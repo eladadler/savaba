@@ -1965,17 +1965,59 @@ function Onboarding({ th, go }) {
 // MATCHMAKER REGISTRATION
 // ════════════════════════════════════════════════════════════
 function Register({ th, go }) {
+  const { user } = useContext(AuthCtx);
   const [f, setF] = useS({ name: '', phone: '', region: '', gender: '', bio: '' });
+  const [photoURL, setPhotoURL] = useS('');
+  const [uploading, setUploading] = useS(false);
+  const [saving, setSaving] = useS(false);
   const set = (k) => (v) => setF(s => ({ ...s, [k]: v }));
   const valid = f.name && f.phone && f.region && f.gender;
+
+  const handlePhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !user) return;
+    setUploading(true);
+    try {
+      const ref = storage.ref(`profiles/${user.uid}/${Date.now()}_${file.name}`);
+      await ref.put(file);
+      const url = await ref.getDownloadURL();
+      setPhotoURL(url);
+    } catch(err) { alert('שגיאה בהעלאת תמונה: ' + err.message); }
+    setUploading(false);
+  };
+
+  const handleSave = async () => {
+    if (!valid || !user) return;
+    setSaving(true);
+    try {
+      await db.collection('users').doc(user.uid).update({
+        displayName: f.name,
+        phone: f.phone,
+        region: f.region,
+        gender: f.gender,
+        bio: f.bio,
+        ...(photoURL ? { photoURL } : {}),
+        profileComplete: true,
+      });
+      go('home');
+    } catch(err) { alert('שגיאה: ' + err.message); setSaving(false); }
+  };
 
   return (
     <>
       <AppHeader th={th} title="נעים להכיר" sub="כמה פרטים ונצא לדרך" onBack={() => go('onboarding')} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 22 }}>
-          <PhotoSlot th={th} label="פרופיל" size={108} />
-          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginTop: 8 }}>הוסף/י תמונת פרופיל *</div>
+          <label style={{ cursor: 'pointer' }}>
+            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+            {photoURL
+              ? <img src={photoURL} alt="" style={{ width: 108, height: 108, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${th.primary}` }} />
+              : <div style={{ width: 108, height: 108, borderRadius: '50%', background: alpha(th.primary, 0.1), border: `2px dashed ${alpha(th.ink, 0.25)}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: alpha(th.ink, 0.5) }}>
+                  <Icon name="camera" size={28} />
+                  <span style={{ fontFamily: th.body, fontSize: 12 }}>{uploading ? 'מעלה…' : 'תמונה'}</span>
+                </div>}
+          </label>
+          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginTop: 8 }}>לחץ/י להוספת תמונת פרופיל</div>
         </div>
 
         <Field th={th} label="שם פרטי ומשפחה" required>
@@ -1995,7 +2037,9 @@ function Register({ th, go }) {
         </Field>
 
         <div style={{ marginTop: 8 }}>
-          <Btn th={th} full size="l" disabled={!valid} onClick={() => go('home')}>יאללה, מתחילים</Btn>
+          <Btn th={th} full size="l" disabled={!valid || saving || uploading} onClick={handleSave}>
+            {saving ? 'שומר…' : 'יאללה, מתחילים'}
+          </Btn>
           <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.45), marginTop: 12 }}>
             הרשמה פשוטה. את/ה תמיד יכול/ה להשלים פרטים בהמשך.
           </div>
@@ -2009,8 +2053,10 @@ function Register({ th, go }) {
 // MATCHMAKER HOME
 // ════════════════════════════════════════════════════════════
 function Home({ th, go }) {
-  const me = MATCHMAKERS.me;
-  const mine = CANDIDATES.filter(c => c.mine);
+  const { profile } = useContext(AuthCtx);
+  const { candidates } = useContext(DataCtx);
+  const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
+  const mine = candidates.filter(c => c.mmId === profile?.uid);
   const waiting = [
     { icon: 'heart', tone: th.primary, big: '3', text: 'הצעות מחכות לתגובה שלך', to: () => go('offers') },
     { icon: 'bell', tone: th.gold, big: '2', text: 'מועמדים שלא קיבלו יחס מעל 7 ימים', to: () => go('tab', { tab: 'cands' }) },
@@ -2025,9 +2071,9 @@ function Home({ th, go }) {
   return (
     <>
       <div style={{ paddingTop: 50, paddingInline: 18, paddingBottom: 6, background: th.cream, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <Avatar grad={me.grad} name={me.name} size={46} />
+        <Avatar grad={gradForId(me.uid||'me')} name={me.displayName||me.email||''} size={46} photo={me.photoURL} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום נועה,</div>
+          <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום {(me.displayName||'').split(' ')[0]},</div>
           <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>מה קורה היום?</div>
         </div>
         <button onClick={() => go('tab', { tab: 'set' })} style={{ position: 'relative', border: 'none', background: th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: th.ink, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
