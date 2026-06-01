@@ -1106,11 +1106,12 @@ function useAuthState() {
 
 // ── Data hook (live Firestore listeners) ─────────────────────
 function useFirebaseData(uid) {
-  const [candidates, setCandidates] = useState([]);
-  const [offers,     setOffers]     = useState([]);
-  const [matchmakers, setMatchmakers] = useState({});
-  const [texts,      setTexts]      = useState({});
-  const [loading,    setLoading]    = useState(true);
+  const [candidates,    setCandidates]    = useState([]);
+  const [offers,        setOffers]        = useState([]);
+  const [matchmakers,   setMatchmakers]   = useState({});
+  const [texts,         setTexts]         = useState({});
+  const [notifications, setNotifications] = useState([]);
+  const [loading,       setLoading]       = useState(true);
 
   useEffect(() => {
     if (!uid) return;
@@ -1144,6 +1145,14 @@ function useFirebaseData(uid) {
     unsubs.push(db.collection('config').doc('texts').onSnapshot(d => {
       if (d.exists) setTexts(d.data());
     }));
+
+    unsubs.push(db.collection('notifications')
+      .where('toUid', '==', uid)
+      .orderBy('createdAt', 'desc')
+      .limit(30)
+      .onSnapshot(s => {
+        setNotifications(s.docs.map(d => ({ id: d.id, ...d.data() })));
+      }));
 
     return () => unsubs.forEach(u => u());
   }, [uid]);
@@ -1194,11 +1203,33 @@ function useFirebaseData(uid) {
   const setUserAdmin = useCallback((targetUid, isAdmin) =>
     db.collection('users').doc(targetUid).update({ isAdmin }), []);
 
+  const markNotificationRead = useCallback((id) =>
+    db.collection('notifications').doc(id).update({ read: true }), []);
+
+  const approveCandidate = useCallback((candidateId) =>
+    db.collection('candidates').doc(candidateId).update({ pendingApproval: false }), []);
+
   return {
-    candidates, offers, matchmakers, texts, loading,
+    candidates, offers, matchmakers, texts, notifications, loading,
     addCandidate, updateCandidate, deleteCandidate,
     uploadPhoto, addOffer, updateOffer, updateText, setUserAdmin,
+    markNotificationRead, approveCandidate,
   };
+}
+
+// ── INVITATION SYSTEM ──────────────────────────────────────────
+const INVITE_BASE_URL = 'https://eladadler.github.io/savaba/';
+const inviteURL = (token) => `${INVITE_BASE_URL}?invite=${token}`;
+
+async function createInvitation(mmId, mmName, flow) {
+  const token = Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+  await db.collection('invitations').doc(token).set({
+    mmId, mmName, flow,
+    status: 'pending',
+    candidateId: null, candidateUid: null, candidateName: null,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+  return token;
 }
 
 // findCand / findMm that work with context data
@@ -1625,7 +1656,7 @@ Object.assign(window, {
 // ════════════════════════════════════════════════════════════
 // LOGIN SCREEN
 // ════════════════════════════════════════════════════════════
-function LoginScreen({ th }) {
+function LoginScreen({ th, inviteToken }) {
   const [mode, setMode]   = useState('choose'); // choose | email
   const [email, setEmail] = useState('');
   const [pass,  setPass]  = useState('');
@@ -1654,7 +1685,14 @@ function LoginScreen({ th }) {
       <div style={{ marginBottom: 32, textAlign: 'center', animation: 'sabaPop .5s ease' }}>
         <Logo size={72} color={th.primary} flaw={th.cream} />
         <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.ink, marginTop: 14 }}>סבבה והכל</div>
-        <div style={{ fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.55), marginTop: 4 }}>פלטפורמת השידוכים לשדכנים</div>
+        <div style={{ fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.55), marginTop: 4 }}>
+          {inviteToken ? 'קיבלת הזמנה — התחבר/י להמשיך' : 'פלטפורמת השידוכים לשדכנים'}
+        </div>
+        {inviteToken && (
+          <div style={{ marginTop: 12, background: alpha(th.primary, 0.08), border: `1.5px solid ${alpha(th.primary, 0.2)}`, borderRadius: th.rSm, padding: '10px 14px', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.7) }}>
+            🔗 יש קישור הזמנה פעיל — לאחר הכניסה תועבר/י ישירות להזמנה
+          </div>
+        )}
       </div>
 
       {mode === 'choose' && (
@@ -2185,7 +2223,7 @@ function Register({ th, go }) {
 // ════════════════════════════════════════════════════════════
 function Home({ th, go }) {
   const { profile } = useContext(AuthCtx);
-  const { candidates } = useContext(DataCtx);
+  const { candidates, notifications, markNotificationRead } = useContext(DataCtx);
   const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
   const mine = candidates.filter(c => c.mmId === profile?.uid);
   const waiting = [
@@ -2207,10 +2245,7 @@ function Home({ th, go }) {
           <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום {(me.displayName||'').split(' ')[0]},</div>
           <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>מה קורה היום?</div>
         </div>
-        <button onClick={() => go('tab', { tab: 'set' })} style={{ position: 'relative', border: 'none', background: th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: th.ink, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-          <Icon name="bell" size={21} />
-          <span style={{ position: 'absolute', top: 8, right: 9, width: 9, height: 9, borderRadius: '50%', background: th.primary, border: `2px solid ${th.card}` }} />
-        </button>
+        <NotificationDrawer th={th} go={go} notifications={notifications} markNotificationRead={markNotificationRead} />
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
@@ -2401,26 +2436,372 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
   );
 }
 
-function AddSheet({ open, onClose, th, go }) {
-  const paths = [
-    { icon: 'edit', title: 'אני ממלא/ת עבורו', body: 'הזמנה בוואטסאפ, ואת/ה ממלא/ת את הכרטיסייה. לא צריך אישור.', cta: 'מילוי ידני', act: () => { onClose(); go('candidate', { id: 'c1' }); } },
-    { icon: 'link', title: 'הוא/היא ימלא/תמלא', body: 'שולחים לינק ייחודי, המועמד/ת ממלא/ת, ואת/ה מאשר/ת.', cta: 'שליחת לינק', act: onClose },
-    { icon: 'users', title: 'כבר במערכת', body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.', cta: 'חיפוש במאגר', act: onClose },
-  ];
+// ════════════════════════════════════════════════════════════
+// INVITE FLOW — matchmaker creates invitation link
+// ════════════════════════════════════════════════════════════
+function InviteFlow({ open, onClose, th, mmId, mmName }) {
+  const [step, setStep] = useState(1);
+  const [flow, setFlow] = useState('mm_fills');
+  const [token, setToken] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const reset = () => { setStep(1); setFlow('mm_fills'); setToken(''); setCopied(false); };
+
+  const generate = async () => {
+    setCreating(true);
+    try { const tok = await createInvitation(mmId, mmName, flow); setToken(tok); setStep(2); }
+    finally { setCreating(false); }
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(inviteURL(token));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const waText = encodeURIComponent(`היי! 😊\n${mmName} מזמין/ת אותך להצטרף למערכת שידוכים "סבבה והכל".\n\nלחץ/י כאן להרשמה:\n${inviteURL(token)}`);
+
   return (
-    <Sheet open={open} onClose={onClose} th={th} title="הוספת מועמד/ת">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {paths.map((p, k) => (
-          <button key={k} onClick={p.act} style={{ all: 'unset', cursor: 'pointer', display: 'flex', gap: 13, alignItems: 'flex-start', background: th.card, border: `1.5px solid ${alpha(th.ink, 0.1)}`, borderRadius: th.r, padding: 14 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: alpha(th.primary, 0.12), color: th.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={p.icon} size={22} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{p.title}</div>
-              <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6), lineHeight: 1.35, marginTop: 2 }}>{p.body}</div>
-            </div>
-          </button>
-        ))}
-      </div>
+    <Sheet open={open} onClose={() => { onClose(); reset(); }} th={th} title="הזמנת מועמד/ת">
+      {step === 1 ? (
+        <>
+          <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginBottom: 14 }}>מי ימלא את פרטי המועמד/ת?</div>
+          {[
+            { val: 'mm_fills', label: 'אני אמלא', desc: 'המועמד/ת פותח/ת את הקישור ומאשר/ת בלבד. אתה/את ממלא/ת את הכרטיסייה.' },
+            { val: 'cand_fills', label: 'המועמד/ת ימלא/תמלא', desc: 'המועמד/ת ממלא/ת את כל הפרטים ותמונות בעצמו/ה. אתה/את מאשר/ת לפני פרסום.' },
+          ].map(opt => (
+            <button key={opt.val} onClick={() => setFlow(opt.val)} style={{
+              all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%',
+              padding: '13px 15px', borderRadius: th.r, marginBottom: 10, display: 'block', textAlign: 'right',
+              border: `2px solid ${flow === opt.val ? th.primary : alpha(th.ink, 0.12)}`,
+              background: flow === opt.val ? alpha(th.primary, 0.06) : th.card,
+            }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: flow === opt.val ? th.primary : th.ink, marginBottom: 3 }}>{opt.label}</div>
+              <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), lineHeight: 1.4 }}>{opt.desc}</div>
+            </button>
+          ))}
+          <Btn th={th} full onClick={generate} style={{ marginTop: 4 }} disabled={creating}>
+            {creating ? 'יוצר קישור…' : 'צור קישור הזמנה'}
+          </Btn>
+        </>
+      ) : (
+        <>
+          <div style={{ background: alpha(th.success, 0.1), border: `1.5px solid ${alpha(th.success, 0.25)}`, borderRadius: th.r, padding: 14, marginBottom: 16, textAlign: 'center' }}>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.success, marginBottom: 6 }}>✓ קישור נוצר!</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 11, color: alpha(th.ink, 0.55), wordBreak: 'break-all', lineHeight: 1.5 }}>{inviteURL(token)}</div>
+          </div>
+          <Btn th={th} full onClick={copyLink} icon={<Icon name="link" size={18} />} style={{ marginBottom: 10 }}>
+            {copied ? '✓ הועתק!' : 'העתק קישור'}
+          </Btn>
+          <a href={`https://wa.me/?text=${waText}`} target="_blank" rel="noreferrer" style={{ display: 'block', textDecoration: 'none', marginBottom: 10 }}>
+            <Btn th={th} full variant="ghost">💬 פתח ווצאפ עם הקישור</Btn>
+          </a>
+          <Btn th={th} full variant="ghost" onClick={() => { onClose(); reset(); }}>סגור</Btn>
+        </>
+      )}
     </Sheet>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// INVITATION LANDING — candidate opens invite link
+// ════════════════════════════════════════════════════════════
+function InvitationLanding({ th, go, token }) {
+  const { user, profile } = useContext(AuthCtx);
+  const [invite, setInvite]   = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState('');
+  const [busy, setBusy]       = useState(false);
+  const [done, setDone]       = useState(false);
+
+  useEffect(() => {
+    db.collection('invitations').doc(token).get().then(doc => {
+      if (!doc.exists) { setError('ההזמנה לא נמצאה או פגה תוקף'); }
+      else {
+        const inv = doc.data();
+        if (inv.status !== 'pending') setError('הזמנה זו כבר נוצלה');
+        else setInvite(inv);
+      }
+      setLoading(false);
+    }).catch(() => { setError('שגיאה בטעינת ההזמנה'); setLoading(false); });
+  }, [token]);
+
+  const accept = async () => {
+    setBusy(true);
+    try {
+      const ref = await db.collection('candidates').add({
+        name: profile?.displayName || '', age: 0, gender: '', region: '', religiosity: '',
+        family: '', kids: 0, oneLine: '', seesWith: '', sabaBut: '',
+        interests: [], partner: [], discrete: '', available: true, photos: [],
+        mmId: invite.mmId, candidateUid: user.uid,
+        pendingApproval: false, status: 'pending_mm',
+        grad: gradForId(user.uid),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await db.collection('invitations').doc(token).update({
+        status: 'accepted', candidateId: ref.id, candidateUid: user.uid,
+        candidateName: profile?.displayName || user.email,
+        acceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await db.collection('notifications').add({
+        toUid: invite.mmId, type: 'invite_accepted',
+        candidateId: ref.id, candidateName: profile?.displayName || user.email,
+        inviteToken: token, read: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      setDone(true);
+    } catch(e) { setError('שגיאה: ' + e.message); }
+    setBusy(false);
+  };
+
+  if (loading) return (
+    <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
+      <Logo size={50} color={th.primary} flaw={th.cream} />
+    </div>
+  );
+
+  const centeredBox = (emoji, title, body) => (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:32, textAlign:'center', direction:'rtl' }}>
+      <div style={{ fontSize:52, marginBottom:16 }}>{emoji}</div>
+      <div style={{ fontFamily:th.display, fontSize:22, fontWeight:800, color:th.ink, marginBottom:8 }}>{title}</div>
+      <div style={{ fontFamily:th.body, fontSize:15, color:alpha(th.ink,0.6), lineHeight:1.5, maxWidth:280 }}>{body}</div>
+    </div>
+  );
+
+  if (error) return centeredBox('😕', 'הזמנה לא תקינה', error);
+  if (done)  return centeredBox('🎉', 'אישרת בהצלחה!', `${invite.mmName} יקבל/ת הודעה וימשיך/תמשיך למלא את הפרטים שלך.`);
+
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', background:`linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.84)})`, direction:'rtl' }}>
+      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 28px', textAlign:'center' }}>
+        <Logo size={56} color={th.primary} flaw={th.cream} style={{ marginBottom:20 }} />
+        <div style={{ fontFamily:th.display, fontSize:13, fontWeight:700, color:th.primary, letterSpacing:1.5, marginBottom:6 }}>הוזמנת להצטרף</div>
+        <h1 style={{ fontFamily:th.display, fontSize:30, fontWeight:800, color:th.ink, margin:'0 0 6px', lineHeight:1.2 }}>סבבה והכל</h1>
+        <div style={{ fontFamily:th.body, fontSize:16, color:alpha(th.ink,0.65), marginBottom:28 }}>
+          <b>{invite.mmName}</b> מזמין/ת אותך למערכת השידוכים
+        </div>
+        <div style={{ background:th.card, borderRadius:th.rLg, padding:18, marginBottom:28, width:'100%', maxWidth:320, boxShadow:`0 8px 24px ${alpha(th.ink,0.08)}`, textAlign:'right' }}>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:6 }}>מה קורה אחרי שתאשר/י?</div>
+          <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.5 }}>
+            {invite.flow === 'mm_fills'
+              ? `${invite.mmName} ימלא/תמלא את הפרטים שלך ויצור/תיצור עבורך כרטיסייה.`
+              : 'תתבקש/י למלא את הפרטים שלך ולהעלות תמונות. השדכן/ית יאשר/תאשר לפני פרסום.'}
+          </div>
+        </div>
+        <Btn th={th} full size="l" onClick={invite.flow === 'mm_fills' ? accept : () => go('candSelfFill', { token, invite })} disabled={busy}>
+          {busy ? 'שניה…' : invite.flow === 'mm_fills' ? '✓ אני מאשר/ת' : 'מלא/י את הפרטים שלי →'}
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// CANDIDATE SELF FILL — candidate fills their own card (flow 2)
+// ════════════════════════════════════════════════════════════
+function CandidateSelfFill({ th, go, params }) {
+  const { user, profile } = useContext(AuthCtx);
+  const { token, invite } = params;
+  const [f, setF] = useState({
+    name: profile?.displayName || '', age: '', gender: 'f',
+    region: '', religiosity: '', family: 'רווק/ה', kids: 0,
+    sabaBut: '', oneLine: '', seesWith: '', interests: [], partner: [], discrete: '', available: true,
+  });
+  const set = k => v => setF(s => ({ ...s, [k]: v }));
+  const [photos, setPhotos]   = useState([]);
+  const [submitting, setSub]  = useState(false);
+  const [uploading, setUpl]   = useState(false);
+  const [done, setDone]       = useState(false);
+
+  const addPhoto = async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    setUpl(true);
+    try {
+      const ref = storage.ref(`profiles/${user.uid}/${Date.now()}_${file.name}`);
+      await ref.put(file);
+      setPhotos(p => [...p, await ref.getDownloadURL()]);
+    } finally { setUpl(false); }
+  };
+
+  const submit = async () => {
+    if (!f.name || !f.age) return alert('נא למלא שם וגיל');
+    setSub(true);
+    try {
+      const ref = await db.collection('candidates').add({
+        ...f, age: +f.age, photos,
+        mmId: invite.mmId, candidateUid: user.uid,
+        pendingApproval: true, available: true,
+        grad: gradForId(user.uid),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await db.collection('invitations').doc(token).update({
+        status: 'filled', candidateId: ref.id, candidateUid: user.uid, candidateName: f.name,
+        filledAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      await db.collection('notifications').add({
+        toUid: invite.mmId, type: 'cand_filled',
+        candidateId: ref.id, candidateName: f.name,
+        inviteToken: token, read: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      setDone(true);
+    } catch(e) { alert('שגיאה: ' + e.message); }
+    setSub(false);
+  };
+
+  if (done) return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:32, textAlign:'center', direction:'rtl' }}>
+      <div style={{ fontSize:52, marginBottom:16 }}>🎉</div>
+      <div style={{ fontFamily:th.display, fontSize:22, fontWeight:800, color:th.ink, marginBottom:8 }}>הפרטים נשלחו!</div>
+      <div style={{ fontFamily:th.body, fontSize:15, color:alpha(th.ink,0.6), lineHeight:1.5, maxWidth:280 }}>
+        {invite.mmName} יקבל/ת הודעה ויעיין/תעיין בפרטים שלך. לאחר האישור תהיה/י רשמית במערכת.
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
+      <AppHeader th={th} title="הפרטים שלי" sub={`עבור ${invite.mmName}`} onBack={() => go('back')} />
+      <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
+        <Field th={th} label="שם מלא" required><TextInput th={th} value={f.name} onChange={set('name')} placeholder="שם פרטי ומשפחה" /></Field>
+        <Field th={th} label="גיל" required><TextInput th={th} type="number" value={f.age} onChange={set('age')} placeholder="25" /></Field>
+        <Field th={th} label="מין" required><Segmented th={th} value={f.gender} onChange={set('gender')} options={['f','m']} /></Field>
+        <Field th={th} label="אזור מגורים"><TextInput th={th} value={f.region} onChange={set('region')} placeholder="תל אביב" /></Field>
+        <Field th={th} label="זרם דתי"><TextInput th={th} value={f.religiosity} onChange={set('religiosity')} placeholder="דתי-לאומי, מסורתי…" /></Field>
+        <Field th={th} label="מצב משפחתי"><TextInput th={th} value={f.family} onChange={set('family')} /></Field>
+        <Field th={th} label='סבבה והכל, אבל…' hint="משהו מצחיק/ייחודי עליך"><TextInput th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder="למשל: מפחד/ת מיונים" /></Field>
+        <Field th={th} label="משפט תיאור"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder="ספר/י על עצמך במשפט" /></Field>
+        <Field th={th} label="מחפש/ת"><TextInput th={th} value={f.seesWith} onChange={set('seesWith')} placeholder="מה חשוב לך בבן/ת זוג?" /></Field>
+        <Field th={th} label="תמונות">
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+            {photos.map((url, i) => (
+              <div key={i} style={{ position:'relative' }}>
+                <img src={url} alt="" style={{ width:72, height:72, borderRadius:10, objectFit:'cover' }} />
+                <button onClick={() => setPhotos(p => p.filter((_,j) => j!==i))} style={{ position:'absolute', top:-6, insetInlineEnd:-6, width:22, height:22, borderRadius:'50%', border:'none', background:th.error, color:'#fff', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>×</button>
+              </div>
+            ))}
+            <label style={{ width:72, height:72, borderRadius:10, border:`2px dashed ${alpha(th.ink,0.2)}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: uploading ? alpha(th.ink,0.3) : th.primary, flexShrink:0 }}>
+              {uploading ? <span style={{ fontFamily:th.body, fontSize:11 }}>מעלה…</span> : <Icon name="plus" size={26} />}
+              <input type="file" accept="image/*" style={{ display:'none' }} onChange={addPhoto} disabled={uploading} />
+            </label>
+          </div>
+        </Field>
+        <Btn th={th} full size="l" onClick={submit} disabled={submitting} style={{ marginTop:12 }}>
+          {submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// EDIT CANDIDATE SCREEN — matchmaker edits after invite accepted
+// ════════════════════════════════════════════════════════════
+function EditCandidateScreen({ th, go, params }) {
+  const { candidates, updateCandidate, uploadPhoto, approveCandidate } = useContext(DataCtx);
+  const c = candidates.find(x => x.id === params?.id);
+  if (!c) return (
+    <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
+      <Logo size={40} color={th.primary} flaw={th.cream} />
+    </div>
+  );
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
+      <AppHeader th={th} title={c.name || 'מועמד/ת חדש/ה'} sub={c.pendingApproval ? 'ממתין/ה לאישורך' : 'עריכת פרטים'} onBack={() => go('back')} />
+      <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
+        {c.pendingApproval && (
+          <div style={{ background:alpha(th.gold,0.12), border:`1.5px solid ${alpha(th.gold,0.3)}`, borderRadius:th.r, padding:14, marginBottom:16, display:'flex', gap:10 }}>
+            <Icon name="info" size={18} style={{ color:th.gold, flexShrink:0, marginTop:2 }} />
+            <div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>ממתין/ה לאישורך</div>
+              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.4 }}>המועמד/ת מילא/ה פרטים. עבור/י על הכרטיסייה ואשר/י כדי שתופיע במערכת.</div>
+            </div>
+          </div>
+        )}
+        <CandidateForm th={th} initial={c}
+          onSave={async (data) => { await updateCandidate(c.id, data); go('back'); }}
+          onCancel={() => go('back')}
+          onUpload={(file) => uploadPhoto(c.id, file)} />
+        {c.pendingApproval && (
+          <Btn th={th} full variant="success" style={{ marginTop:14 }}
+            onClick={async () => { await approveCandidate(c.id); go('back'); }}>
+            ✓ אשר/י — פרסם כרטיסייה
+          </Btn>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// NOTIFICATION DRAWER
+// ════════════════════════════════════════════════════════════
+function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
+  const [open, setOpen] = useState(false);
+  const unread = notifications.filter(n => !n.read).length;
+
+  const handleTap = (n) => {
+    if (!n.read) markNotificationRead(n.id);
+    setOpen(false);
+    go('editCand', { id: n.candidateId });
+  };
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
+        <Icon name="bell" size={21} />
+        {unread > 0 && (
+          <span style={{ position:'absolute', top:6, insetInlineEnd:6, minWidth:16, height:16, borderRadius:99, background:th.error, color:'#fff', fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px', border:`2px solid ${th.card}` }}>{unread}</span>
+        )}
+      </button>
+      <Sheet open={open} onClose={() => setOpen(false)} th={th} title="התראות">
+        {notifications.length === 0
+          ? <div style={{ textAlign:'center', fontFamily:th.body, color:alpha(th.ink,0.4), padding:'24px 0' }}>אין התראות</div>
+          : notifications.map(n => (
+            <button key={n.id} onClick={() => handleTap(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', borderRadius:th.r, marginBottom:8, display:'block', textAlign:'right', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}` }}>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
+                {n.type === 'invite_accepted' ? `✓ ${n.candidateName} אישר/ה הזמנה` : `📋 ${n.candidateName} מילא/ה פרטים`}
+              </div>
+              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55) }}>
+                {n.type === 'invite_accepted' ? 'לחץ/י למילוי פרטי המועמד/ת' : 'לחץ/י לבדיקה ואישור הכרטיסייה'}
+              </div>
+            </button>
+          ))
+        }
+      </Sheet>
+    </>
+  );
+}
+
+function AddSheet({ open, onClose, th, go }) {
+  const { profile } = useContext(AuthCtx);
+  const [inviteOpen, setInviteOpen] = useState(false);
+
+  const paths = [
+    { icon: 'edit',  title: 'אני אמלא/ת עבורו/ה', body: 'שולחים הזמנה, המועמד/ת מאשר/ת, ואת/ה ממלא/ת את הכרטיסייה.', act: () => { onClose(); setInviteOpen(true); } },
+    { icon: 'link',  title: 'המועמד/ת ימלא/תמלא',  body: 'שולחים קישור, המועמד/ת ממלא/ת את הפרטים ואת/ה מאשר/ת לפני פרסום.', act: () => { onClose(); setInviteOpen(true); } },
+    { icon: 'users', title: 'כבר במערכת',           body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.', act: onClose },
+  ];
+
+  return (
+    <>
+      <Sheet open={open} onClose={onClose} th={th} title="הוספת מועמד/ת">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {paths.map((p, k) => (
+            <button key={k} onClick={p.act} style={{ all: 'unset', cursor: 'pointer', display: 'flex', gap: 13, alignItems: 'flex-start', background: th.card, border: `1.5px solid ${alpha(th.ink, 0.1)}`, borderRadius: th.r, padding: 14 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: alpha(th.primary, 0.12), color: th.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={p.icon} size={22} /></div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{p.title}</div>
+                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6), lineHeight: 1.35, marginTop: 2 }}>{p.body}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </Sheet>
+      <InviteFlow open={inviteOpen} onClose={() => setInviteOpen(false)} th={th}
+        mmId={profile?.uid} mmName={profile?.displayName || 'השדכן/ית'} />
+    </>
   );
 }
 
@@ -3153,8 +3534,11 @@ function renderScreen(cur, th, go, profile) {
     case 'ai':          return <AIRecs th={th} go={go} />;
     case 'candidateMode': return <CandidateMode th={th} go={go} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
-    case 'admin':       return <AdminPanel th={th} go={go} />;
-    default:            return <Home th={th} go={go} />;
+    case 'admin':         return <AdminPanel th={th} go={go} />;
+    case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
+    case 'candSelfFill':  return <CandidateSelfFill th={th} go={go} params={p} />;
+    case 'editCand':      return <EditCandidateScreen th={th} go={go} params={p} />;
+    default:              return <Home th={th} go={go} />;
   }
 }
 
@@ -3223,7 +3607,7 @@ function AppSettings({ th, go, profile }) {
   );
 }
 
-function AppInner() {
+function AppInner({ inviteToken }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
   const th             = makeTheme(t);
   const { user, profile } = useContext(AuthCtx);
@@ -3231,9 +3615,15 @@ function AppInner() {
   const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
   const cur  = stack[stack.length - 1];
 
-  // Skip onboarding straight to home if profile is already complete
+  // Handle invite token: route to inviteLanding once profile is loaded
   React.useEffect(() => {
-    if (profile?.profileComplete && stack.length === 1 && stack[0].name === 'onboarding') {
+    if (!profile) return;
+    if (inviteToken && stack.length === 1 && stack[0].name !== 'inviteLanding' && stack[0].name !== 'candSelfFill') {
+      setStack([{ name: 'inviteLanding', params: { token: inviteToken } }]);
+      return;
+    }
+    // Skip onboarding if already registered
+    if (profile.profileComplete && stack.length === 1 && stack[0].name === 'onboarding') {
       setStack([{ name: 'home', params: {} }]);
     }
   }, [profile]);
@@ -3289,6 +3679,7 @@ function App() {
   const data = useFirebaseData(user?.uid);
   const [t]  = useTweaks(TWEAK_DEFAULTS);
   const th   = makeTheme(t);
+  const [inviteToken] = React.useState(() => new URLSearchParams(window.location.search).get('invite'));
 
   if (user === undefined) {
     return (
@@ -3304,7 +3695,7 @@ function App() {
     return (
       <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div style={{ width:'100%', maxWidth:430, background:th.cream }}>
-          <LoginScreen th={th} />
+          <LoginScreen th={th} inviteToken={inviteToken} />
         </div>
       </div>
     );
@@ -3314,7 +3705,7 @@ function App() {
     <AuthCtx.Provider value={{ user, profile }}>
       <DataCtx.Provider value={data}>
         <TextsCtx.Provider value={{ texts: data.texts, defaults: DEFAULT_TEXTS }}>
-          <AppInner />
+          <AppInner inviteToken={inviteToken} />
         </TextsCtx.Provider>
       </DataCtx.Provider>
     </AuthCtx.Provider>
