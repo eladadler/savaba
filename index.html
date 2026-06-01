@@ -1117,7 +1117,17 @@ function useFirebaseData(uid) {
     const unsubs = [];
 
     unsubs.push(db.collection('candidates').onSnapshot(s => {
-      setCandidates(s.docs.map(d => ({ id: d.id, ...d.data() })));
+      setCandidates(s.docs.map(d => {
+        const data = d.data();
+        return {
+          id: d.id,
+          ...data,
+          grad: data.grad || gradForId(d.id),
+          photos: data.photos || [],
+          interests: data.interests || [],
+          partner: data.partner || [],
+        };
+      }));
       setLoading(false);
     }));
 
