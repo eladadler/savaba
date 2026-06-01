@@ -3257,7 +3257,50 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null, info: null }; }
+  componentDidCatch(err, info) { this.setState({ err, info }); console.error(err, info); }
+  render() {
+    const { err, info } = this.state;
+    if (!err) return this.props.children;
+    const stack = (info?.componentStack || '').trim();
+    return (
+      <div style={{ position:'fixed', inset:0, background:'#1a0a0a', color:'#ff6b6b', fontFamily:'monospace', overflowY:'auto', padding:'28px 20px', direction:'ltr', boxSizing:'border-box' }}>
+        <div style={{ maxWidth:600, margin:'0 auto' }}>
+          <div style={{ fontSize:13, color:'#ff9999', marginBottom:6, fontWeight:700, letterSpacing:1 }}>REACT ERROR</div>
+          <div style={{ fontSize:17, fontWeight:700, marginBottom:16, color:'#ffaaaa', lineHeight:1.4 }}>{err.toString()}</div>
+          {stack && (
+            <>
+              <div style={{ fontSize:11, color:'#ff6b6b88', marginBottom:6, letterSpacing:1 }}>COMPONENT STACK</div>
+              <pre style={{ fontSize:11, color:'#ff9999aa', whiteSpace:'pre-wrap', wordBreak:'break-all', margin:'0 0 20px', lineHeight:1.5 }}>{stack}</pre>
+            </>
+          )}
+          {err.stack && (
+            <>
+              <div style={{ fontSize:11, color:'#ff6b6b88', marginBottom:6, letterSpacing:1 }}>STACK TRACE</div>
+              <pre style={{ fontSize:11, color:'#ff9999aa', whiteSpace:'pre-wrap', wordBreak:'break-all', margin:0, lineHeight:1.5 }}>{err.stack}</pre>
+            </>
+          )}
+          <button onClick={() => this.setState({ err:null, info:null })} style={{ marginTop:24, padding:'10px 22px', background:'#ff6b6b22', border:'1.5px solid #ff6b6b55', borderRadius:8, color:'#ff9999', fontFamily:'monospace', fontSize:13, cursor:'pointer' }}>
+            נסה שוב
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
+
+// Also catch unhandled JS errors (outside React tree)
+window.addEventListener('error', (e) => {
+  const root = document.getElementById('root');
+  if (root && root.innerHTML.trim() === '') {
+    root.innerHTML = `<div style="position:fixed;inset:0;background:#1a0a0a;color:#ff6b6b;font-family:monospace;padding:28px 20px;overflow:auto;direction:ltr"><div style="max-width:600px;margin:0 auto"><div style="font-size:13px;font-weight:700;margin-bottom:8px;color:#ff9999">JS ERROR</div><div style="font-size:17px;color:#ffaaaa;margin-bottom:16px">${e.message}</div><pre style="font-size:11px;color:#ff9999aa;white-space:pre-wrap">${e.error?.stack || ''}</pre></div></div>`;
+  }
+});
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ErrorBoundary><App /></ErrorBoundary>
+);
 </script>
 </body>
 </html>
