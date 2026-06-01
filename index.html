@@ -2625,7 +2625,8 @@ function CandidateSelfFill({ th, go, params }) {
     try {
       const ref = storage.ref(`profiles/${user.uid}/${Date.now()}_${file.name}`);
       await ref.put(file);
-      setPhotos(p => [...p, await ref.getDownloadURL()]);
+      const url = await ref.getDownloadURL();
+      setPhotos(p => [...p, url]);
     } finally { setUpl(false); }
   };
 
