@@ -1052,7 +1052,17 @@ Object.assign(window, {
 // ════════════════════════════════════════════════════════════
 // FIREBASE DATA LAYER
 // ════════════════════════════════════════════════════════════
-const { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext } = React;
+// (useState/useEffect/useRef/useMemo/useCallback already declared above by theme.jsx)
+const { useContext, createContext } = React;
+
+// Pre-initialize globals so screens don't crash before Firestore loads
+window.CANDIDATES  = [];
+window.OFFERS      = [];
+window.MATCHMAKERS = {};
+window.CHATS       = {};
+window.AI_PAIRS    = [];
+window.findCand    = () => undefined;
+window.findMm      = (id) => ({ id, name: '—', grad: ['#ccc','#999'] });
 
 const AuthCtx  = createContext(null);
 const DataCtx  = createContext(null);
