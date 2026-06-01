@@ -1146,13 +1146,18 @@ function useFirebaseData(uid) {
       if (d.exists) setTexts(d.data());
     }));
 
-    unsubs.push(db.collection('notifications')
+    const notifUnsub = db.collection('notifications')
       .where('toUid', '==', uid)
-      .orderBy('createdAt', 'desc')
       .limit(30)
-      .onSnapshot(s => {
-        setNotifications(s.docs.map(d => ({ id: d.id, ...d.data() })));
-      }));
+      .onSnapshot(
+        s => {
+          const arr = s.docs.map(d => ({ id: d.id, ...d.data() }));
+          arr.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+          setNotifications(arr);
+        },
+        err => console.warn('notifications listener error (index may be missing):', err.message)
+      );
+    unsubs.push(notifUnsub);
 
     return () => unsubs.forEach(u => u());
   }, [uid]);
