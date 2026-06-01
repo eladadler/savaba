@@ -1,0 +1,3137 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>סבבה והכל</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@400;500;700;800;900&family=Rubik:wght@400;500;700;800&family=Secular+One&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; background: #2a2630; }
+  body { font-family: "Assistant", sans-serif; overflow: hidden; }
+  #root { height: 100%; }
+  button { font-family: inherit; }
+  input, textarea, select { font-family: inherit; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  @keyframes sabaFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sabaUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes sabaPop { 0% { opacity: 0; transform: scale(0.8); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+</style>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script>
+// ── REPLACE WITH YOUR FIREBASE CONFIG ──────────────────────
+const firebaseConfig = {
+  apiKey:            "REPLACE_API_KEY",
+  authDomain:        "REPLACE_AUTH_DOMAIN",
+  projectId:         "REPLACE_PROJECT_ID",
+  storageBucket:     "REPLACE_STORAGE_BUCKET",
+  messagingSenderId: "REPLACE_MESSAGING_SENDER_ID",
+  appId:             "REPLACE_APP_ID"
+};
+// ───────────────────────────────────────────────────────────
+firebase.initializeApp(firebaseConfig);
+const db      = firebase.firestore();
+const auth    = firebase.auth();
+const storage = firebase.storage();
+</script>
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+/* BEGIN USAGE */
+// iOS.jsx — Simplified iOS 26 (Liquid Glass) device frame
+// Based on the iOS 26 UI Kit + Figma status bar spec. No assets, no deps.
+// Exports (to window): IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard
+//
+// Usage — wrap your screen content in <IOSDevice> to get the bezel, status bar
+// and home indicator (props: title, dark, keyboard):
+//
+//   <IOSDevice title="Settings">
+//     ...your screen content...
+//   </IOSDevice>
+//   <IOSDevice dark title="Search" keyboard>…</IOSDevice>
+/* END USAGE */
+
+// ─────────────────────────────────────────────────────────────
+// Status bar
+// ─────────────────────────────────────────────────────────────
+function IOSStatusBar({ dark = false, time = '9:41' }) {
+  const c = dark ? '#fff' : '#000';
+  return (
+    <div style={{
+      display: 'flex', gap: 154, alignItems: 'center', justifyContent: 'center',
+      padding: '21px 24px 19px', boxSizing: 'border-box',
+      position: 'relative', zIndex: 20, width: '100%',
+    }}>
+      <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 1.5 }}>
+        <span style={{
+          fontFamily: '-apple-system, "SF Pro", system-ui', fontWeight: 590,
+          fontSize: 17, lineHeight: '22px', color: c,
+        }}>{time}</span>
+      </div>
+      <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, paddingTop: 1, paddingRight: 1 }}>
+        <svg width="19" height="12" viewBox="0 0 19 12">
+          <rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill={c}/>
+          <rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill={c}/>
+          <rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill={c}/>
+          <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill={c}/>
+        </svg>
+        <svg width="17" height="12" viewBox="0 0 17 12">
+          <path d="M8.5 3.2C10.8 3.2 12.9 4.1 14.4 5.6L15.5 4.5C13.7 2.7 11.2 1.5 8.5 1.5C5.8 1.5 3.3 2.7 1.5 4.5L2.6 5.6C4.1 4.1 6.2 3.2 8.5 3.2Z" fill={c}/>
+          <path d="M8.5 6.8C9.9 6.8 11.1 7.3 12 8.2L13.1 7.1C11.8 5.9 10.2 5.1 8.5 5.1C6.8 5.1 5.2 5.9 3.9 7.1L5 8.2C5.9 7.3 7.1 6.8 8.5 6.8Z" fill={c}/>
+          <circle cx="8.5" cy="10.5" r="1.5" fill={c}/>
+        </svg>
+        <svg width="27" height="13" viewBox="0 0 27 13">
+          <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke={c} strokeOpacity="0.35" fill="none"/>
+          <rect x="2" y="2" width="20" height="9" rx="2" fill={c}/>
+          <path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill={c} fillOpacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Liquid glass pill — blur + tint + shine
+// ─────────────────────────────────────────────────────────────
+function IOSGlassPill({ children, dark = false, style = {} }) {
+  return (
+    <div style={{
+      height: 44, minWidth: 44, borderRadius: 9999,
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: dark
+        ? '0 2px 6px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.2)'
+        : '0 1px 3px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.06)',
+      ...style,
+    }}>
+      {/* blur + tint */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        background: dark ? 'rgba(120,120,128,0.28)' : 'rgba(255,255,255,0.5)',
+      }} />
+      {/* shine */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        boxShadow: dark
+          ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15), inset -1px -1px 1px rgba(255,255,255,0.08)'
+          : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
+        border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
+      }} />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', padding: '0 4px' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Navigation bar — glass pills + large title
+// ─────────────────────────────────────────────────────────────
+function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true }) {
+  const muted = dark ? 'rgba(255,255,255,0.6)' : '#404040';
+  const text = dark ? '#fff' : '#000';
+  const pillIcon = (content) => (
+    <IOSGlassPill dark={dark}>
+      <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {content}
+      </div>
+    </IOSGlassPill>
+  );
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 10,
+      paddingTop: 62, paddingBottom: 10, position: 'relative', zIndex: 5,
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px',
+      }}>
+        {/* back chevron */}
+        {pillIcon(
+          <svg width="12" height="20" viewBox="0 0 12 20" fill="none" style={{ marginLeft: -1 }}>
+            <path d="M10 2L2 10l8 8" stroke={muted} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+        {/* trailing ellipsis */}
+        {trailingIcon && pillIcon(
+          <svg width="22" height="6" viewBox="0 0 22 6">
+            <circle cx="3" cy="3" r="2.5" fill={muted}/>
+            <circle cx="11" cy="3" r="2.5" fill={muted}/>
+            <circle cx="19" cy="3" r="2.5" fill={muted}/>
+          </svg>
+        )}
+      </div>
+      {/* large title */}
+      <div style={{
+        padding: '0 16px',
+        fontFamily: '-apple-system, system-ui',
+        fontSize: 34, fontWeight: 700, lineHeight: '41px',
+        color: text, letterSpacing: 0.4,
+      }}>{title}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Grouped list (inset card, r:26) + row (52px)
+// ─────────────────────────────────────────────────────────────
+function IOSListRow({ title, detail, icon, chevron = true, isLast = false, dark = false }) {
+  const text = dark ? '#fff' : '#000';
+  const sec = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const ter = dark ? 'rgba(235,235,245,0.3)' : 'rgba(60,60,67,0.3)';
+  const sep = dark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.12)';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', minHeight: 52,
+      padding: '0 16px', position: 'relative',
+      fontFamily: '-apple-system, system-ui', fontSize: 17,
+      letterSpacing: -0.43,
+    }}>
+      {icon && (
+        <div style={{
+          width: 30, height: 30, borderRadius: 7, background: icon,
+          marginRight: 12, flexShrink: 0,
+        }} />
+      )}
+      <div style={{ flex: 1, color: text }}>{title}</div>
+      {detail && <span style={{ color: sec, marginRight: 6 }}>{detail}</span>}
+      {chevron && (
+        <svg width="8" height="14" viewBox="0 0 8 14" style={{ flexShrink: 0 }}>
+          <path d="M1 1l6 6-6 6" stroke={ter} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+      {!isLast && (
+        <div style={{
+          position: 'absolute', bottom: 0, right: 0,
+          left: icon ? 58 : 16, height: 0.5, background: sep,
+        }} />
+      )}
+    </div>
+  );
+}
+
+function IOSList({ header, children, dark = false }) {
+  const hc = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const bg = dark ? '#1C1C1E' : '#fff';
+  return (
+    <div>
+      {header && (
+        <div style={{
+          fontFamily: '-apple-system, system-ui', fontSize: 13,
+          color: hc, textTransform: 'uppercase',
+          padding: '8px 36px 6px', letterSpacing: -0.08,
+        }}>{header}</div>
+      )}
+      <div style={{
+        background: bg, borderRadius: 26,
+        margin: '0 16px', overflow: 'hidden',
+      }}>{children}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Device frame
+// ─────────────────────────────────────────────────────────────
+function IOSDevice({
+  children, width = 402, height = 874, dark = false,
+  title, keyboard = false,
+}) {
+  return (
+    <div style={{
+      width, height, borderRadius: 48, overflow: 'hidden',
+      position: 'relative', background: dark ? '#000' : '#F2F2F7',
+      boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',
+      fontFamily: '-apple-system, system-ui, sans-serif',
+      WebkitFontSmoothing: 'antialiased',
+    }}>
+      {/* dynamic island */}
+      <div style={{
+        position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
+        width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50,
+      }} />
+      {/* status bar (absolute) */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+        <IOSStatusBar dark={dark} />
+      </div>
+      {/* nav + content */}
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {title !== undefined && <IOSNavBar title={title} dark={dark} />}
+        <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
+        {keyboard && <IOSKeyboard dark={dark} />}
+      </div>
+      {/* home indicator — always on top */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60,
+        height: 34, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+        paddingBottom: 8, pointerEvents: 'none',
+      }}>
+        <div style={{
+          width: 139, height: 5, borderRadius: 100,
+          background: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.25)',
+        }} />
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Keyboard — iOS 26 liquid glass
+// ─────────────────────────────────────────────────────────────
+function IOSKeyboard({ dark = false }) {
+  const glyph = dark ? 'rgba(255,255,255,0.7)' : '#595959';
+  const sugg = dark ? 'rgba(255,255,255,0.6)' : '#333';
+  const keyBg = dark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.85)';
+
+  // special-key icons
+  const icons = {
+    shift: <svg width="19" height="17" viewBox="0 0 19 17"><path d="M9.5 1L1 9.5h4.5V16h8V9.5H18L9.5 1z" fill={glyph}/></svg>,
+    del: <svg width="23" height="17" viewBox="0 0 23 17"><path d="M7 1h13a2 2 0 012 2v11a2 2 0 01-2 2H7l-6-7.5L7 1z" fill="none" stroke={glyph} strokeWidth="1.6" strokeLinejoin="round"/><path d="M10 5l7 7M17 5l-7 7" stroke={glyph} strokeWidth="1.6" strokeLinecap="round"/></svg>,
+    ret: <svg width="20" height="14" viewBox="0 0 20 14"><path d="M18 1v6H4m0 0l4-4M4 7l4 4" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  };
+
+  const key = (content, { w, flex, ret, fs = 25, k } = {}) => (
+    <div key={k} style={{
+      height: 42, borderRadius: 8.5,
+      flex: flex ? 1 : undefined, width: w, minWidth: 0,
+      background: ret ? '#08f' : keyBg,
+      boxShadow: '0 1px 0 rgba(0,0,0,0.075)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: '-apple-system, "SF Compact", system-ui',
+      fontSize: fs, fontWeight: 458, color: ret ? '#fff' : glyph,
+    }}>{content}</div>
+  );
+
+  const row = (keys, pad = 0) => (
+    <div style={{ display: 'flex', gap: 6.5, justifyContent: 'center', padding: `0 ${pad}px` }}>
+      {keys.map(l => key(l, { flex: true, k: l }))}
+    </div>
+  );
+
+  return (
+    <div style={{
+      position: 'relative', zIndex: 15, borderRadius: 27, overflow: 'hidden',
+      padding: '11px 0 2px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      boxShadow: dark
+        ? '0 -2px 20px rgba(0,0,0,0.09)'
+        : '0 -1px 6px rgba(0,0,0,0.018), 0 -3px 20px rgba(0,0,0,0.012)',
+    }}>
+      {/* liquid glass bg — same recipe as nav pills */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 27,
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        background: dark ? 'rgba(120,120,128,0.14)' : 'rgba(255,255,255,0.25)',
+      }} />
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 27,
+        boxShadow: dark
+          ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15)'
+          : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
+        border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* autocorrect bar */}
+      <div style={{
+        display: 'flex', gap: 20, alignItems: 'center',
+        padding: '8px 22px 13px', width: '100%', boxSizing: 'border-box',
+        position: 'relative',
+      }}>
+        {['"The"', 'the', 'to'].map((w, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ width: 1, height: 25, background: '#ccc', opacity: 0.3 }} />}
+            <div style={{
+              flex: 1, textAlign: 'center',
+              fontFamily: '-apple-system, system-ui', fontSize: 17,
+              color: sugg, letterSpacing: -0.43, lineHeight: '22px',
+            }}>{w}</div>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* key layout */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 13,
+        padding: '0 6.5px', width: '100%', boxSizing: 'border-box',
+        position: 'relative',
+      }}>
+        {row(['q','w','e','r','t','y','u','i','o','p'])}
+        {row(['a','s','d','f','g','h','j','k','l'], 20)}
+        <div style={{ display: 'flex', gap: 14.25, alignItems: 'center' }}>
+          {key(icons.shift, { w: 45, k: 'shift' })}
+          <div style={{ display: 'flex', gap: 6.5, flex: 1 }}>
+            {['z','x','c','v','b','n','m'].map(l => key(l, { flex: true, k: l }))}
+          </div>
+          {key(icons.del, { w: 45, k: 'del' })}
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {key('ABC', { w: 92.25, fs: 18, k: 'abc' })}
+          {key('', { flex: true, k: 'space' })}
+          {key(icons.ret, { w: 92.25, ret: true, k: 'ret' })}
+        </div>
+      </div>
+
+      {/* bottom spacer (emoji+mic area, icons omitted) */}
+      <div style={{ height: 56, width: '100%', position: 'relative' }} />
+    </div>
+  );
+}
+
+Object.assign(window, {
+  IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard,
+});
+
+/* BEGIN USAGE */
+// tweaks-panel.jsx
+// Reusable Tweaks shell + form-control helpers.
+// Exports (to window): useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSlider,
+//   TweakToggle, TweakRadio, TweakSelect, TweakText, TweakNumber, TweakColor, TweakButton.
+//
+// Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
+// posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
+// individual prototypes don't re-roll it. Ships a consistent set of controls so you
+// don't hand-draw <input type="range">, segmented radios, steppers, etc.
+//
+// Usage (in an HTML file that loads React + Babel):
+//
+//   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+//     "primaryColor": "#D97757",
+//     "palette": ["#D97757", "#29261b", "#f6f4ef"],
+//     "fontSize": 16,
+//     "density": "regular",
+//     "dark": false
+//   }/*EDITMODE-END*/;
+//
+//   function App() {
+//     const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+//     return (
+//       <div style={{ fontSize: t.fontSize, color: t.primaryColor }}>
+//         Hello
+//         <TweaksPanel>
+//           <TweakSection label="Typography" />
+//           <TweakSlider label="Font size" value={t.fontSize} min={10} max={32} unit="px"
+//                        onChange={(v) => setTweak('fontSize', v)} />
+//           <TweakRadio  label="Density" value={t.density}
+//                        options={['compact', 'regular', 'comfy']}
+//                        onChange={(v) => setTweak('density', v)} />
+//           <TweakSection label="Theme" />
+//           <TweakColor  label="Primary" value={t.primaryColor}
+//                        options={['#D97757', '#2A6FDB', '#1F8A5B', '#7A5AE0']}
+//                        onChange={(v) => setTweak('primaryColor', v)} />
+//           <TweakColor  label="Palette" value={t.palette}
+//                        options={[['#D97757', '#29261b', '#f6f4ef'],
+//                                  ['#475569', '#0f172a', '#f1f5f9']]}
+//                        onChange={(v) => setTweak('palette', v)} />
+//           <TweakToggle label="Dark mode" value={t.dark}
+//                        onChange={(v) => setTweak('dark', v)} />
+//         </TweaksPanel>
+//       </div>
+//     );
+//   }
+//
+// TweakRadio is the segmented control for 2–3 short options (auto-falls-back to
+// TweakSelect past ~16/~10 chars per label); reach for TweakSelect directly when
+// options are many or long. For color tweaks always curate 3-4 options rather than
+// a free picker; an option can also be a whole 2–5 color palette (the stored value
+// is the array). The Tweak* controls are a floor, not a ceiling — build custom
+// controls inside the panel if a tweak calls for UI they don't cover.
+/* END USAGE */
+// ─────────────────────────────────────────────────────────────────────────────
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-body::-webkit-scrollbar{width:8px}
+  .twk-body::-webkit-scrollbar-track{background:transparent;margin:2px}
+  .twk-body::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:4px;
+    border:2px solid transparent;background-clip:content-box}
+  .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
+    border:2px solid transparent;background-clip:content-box}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
+    color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+    width:14px;height:14px;border-radius:50%;background:#fff;
+    border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg.dragging .twk-seg-thumb{transition:none}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2;
+    overflow-wrap:anywhere}
+
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+
+  .twk-num{display:flex;align-items:center;box-sizing:border-box;min-width:0;height:26px;padding:0 0 0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6)}
+  .twk-num-lbl{font-weight:500;color:rgba(41,38,27,.6);cursor:ew-resize;
+    user-select:none;padding-right:8px}
+  .twk-num input{flex:1;min-width:0;height:100%;border:0;background:transparent;
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:0 8px 0 0;
+    outline:none;color:inherit;-moz-appearance:textfield}
+  .twk-num input::-webkit-inner-spin-button,.twk-num input::-webkit-outer-spin-button{
+    -webkit-appearance:none;margin:0}
+  .twk-num-unit{padding-right:8px;color:rgba(41,38,27,.45)}
+
+  .twk-btn{appearance:none;height:26px;padding:0 12px;border:0;border-radius:7px;
+    background:rgba(0,0,0,.78);color:#fff;font:inherit;font-weight:500;cursor:default}
+  .twk-btn:hover{background:rgba(0,0,0,.88)}
+  .twk-btn.secondary{background:rgba(0,0,0,.06);color:inherit}
+  .twk-btn.secondary:hover{background:rgba(0,0,0,.1)}
+
+  .twk-swatch{appearance:none;-webkit-appearance:none;width:56px;height:22px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:6px;padding:0;cursor:default;
+    background:transparent;flex-shrink:0}
+  .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+  .twk-swatch::-webkit-color-swatch{border:0;border-radius:5.5px}
+  .twk-swatch::-moz-color-swatch{border:0;border-radius:5.5px}
+
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),
+    0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;
+    display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1;box-shadow:0 -1px 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i:first-child{box-shadow:none}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+// ── useTweaks ───────────────────────────────────────────────────────────────
+// Single source of truth for tweak values. setTweak persists via the host
+// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
+  // useState-style call doesn't write a "[object Object]" key into the persisted
+  // JSON block.
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    // Same-window signal so in-page listeners (deck-stage rail thumbnails)
+    // can react — the parent message only reaches the host, not peers.
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+// ── TweaksPanel ─────────────────────────────────────────────────────────────
+// Floating shell. Registers the protocol listener BEFORE announcing
+// availability — if the announce ran first, the host's activate could land
+// before our handler exists and the toolbar toggle would silently no-op.
+// The close button posts __edit_mode_dismissed so the host's toolbar toggle
+// flips off in lockstep; the host echoes __deactivate_edit_mode back which
+// is what actually hides the panel.
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', clampToViewport);
+      return () => window.removeEventListener('resize', clampToViewport);
+    }
+    const ro = new ResizeObserver(clampToViewport);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => {
+    setOpen(false);
+    window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
+  };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = {
+        x: startRight - (ev.clientX - sx),
+        y: startBottom - (ev.clientY - sy),
+      };
+      clampToViewport();
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" data-omelette-chrome=""
+           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" aria-label="Close tweaks"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">
+          {children}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ── Layout helpers ──────────────────────────────────────────────────────────
+
+function TweakSection({ label, children }) {
+  return (
+    <>
+      <div className="twk-sect">{label}</div>
+      {children}
+    </>
+  );
+}
+
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl">
+        <span>{label}</span>
+        {value != null && <span className="twk-val">{value}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Controls ────────────────────────────────────────────────────────────────
+
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input type="range" className="twk-slider" min={min} max={max} step={step}
+             value={value} onChange={(e) => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'}
+              role="switch" aria-checked={!!value}
+              onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  // The active value is read by pointer-move handlers attached for the lifetime
+  // of a drag — ref it so a stale closure doesn't fire onChange for every move.
+  const valueRef = React.useRef(value);
+  valueRef.current = value;
+
+  // Segments wrap mid-word once per-segment width runs out. The track is
+  // ~248px (280 panel − 28 body pad − 4 seg pad), each button loses 12px
+  // to its own padding, and 11.5px system-ui averages ~6.3px/char — so 2
+  // options fit ~16 chars each, 3 fit ~10. Past that (or >3 options), fall
+  // back to a dropdown rather than wrap.
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    // <select> emits strings — map back to the original option value so the
+    // fallback stays type-preserving (numbers, booleans) like the segment path.
+    const resolve = (s) => {
+      const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s);
+      return m === undefined ? s : typeof m === 'object' ? m.value : m;
+    };
+    return <TweakSelect label={label} value={value} options={options}
+                        onChange={(s) => onChange(resolve(s))} />;
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+
+  const segAt = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    const inner = r.width - 4;
+    const i = Math.floor(((clientX - r.left - 2) / inner) * n);
+    return opts[Math.max(0, Math.min(n - 1, i))].value;
+  };
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX);
+    if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => {
+      if (!trackRef.current) return;
+      const v = segAt(ev.clientX);
+      if (v !== valueRef.current) onChange(v);
+    };
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown}
+           className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb"
+             style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`,
+                      width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => (
+          <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => {
+          const v = typeof o === 'object' ? o.value : o;
+          const l = typeof o === 'object' ? o.label : o;
+          return <option key={v} value={v}>{l}</option>;
+        })}
+      </select>
+    </TweakRow>
+  );
+}
+
+function TweakText({ label, value, placeholder, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <input className="twk-field" type="text" value={value} placeholder={placeholder}
+             onChange={(e) => onChange(e.target.value)} />
+    </TweakRow>
+  );
+}
+
+function TweakNumber({ label, value, min, max, step = 1, unit = '', onChange }) {
+  const clamp = (n) => {
+    if (min != null && n < min) return min;
+    if (max != null && n > max) return max;
+    return n;
+  };
+  const startRef = React.useRef({ x: 0, val: 0 });
+  const onScrubStart = (e) => {
+    e.preventDefault();
+    startRef.current = { x: e.clientX, val: value };
+    const decimals = (String(step).split('.')[1] || '').length;
+    const move = (ev) => {
+      const dx = ev.clientX - startRef.current.x;
+      const raw = startRef.current.val + dx * step;
+      const snapped = Math.round(raw / step) * step;
+      onChange(clamp(Number(snapped.toFixed(decimals))));
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return (
+    <div className="twk-num">
+      <span className="twk-num-lbl" onPointerDown={onScrubStart}>{label}</span>
+      <input type="number" value={value} min={min} max={max} step={step}
+             onChange={(e) => onChange(clamp(Number(e.target.value)))} />
+      {unit && <span className="twk-num-unit">{unit}</span>}
+    </div>
+  );
+}
+
+// Relative-luminance contrast pick — checkmarks drawn over a swatch need to
+// read on both #111 and #fafafa without per-option configuration. Hex input
+// only (#rgb / #rrggbb); named or rgb()/hsl() colors fall through to "light".
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+
+const __TwkCheck = ({ light }) => (
+  <svg viewBox="0 0 14 14" aria-hidden="true">
+    <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2"
+          strokeLinecap="round" strokeLinejoin="round"
+          stroke={light ? 'rgba(0,0,0,.78)' : '#fff'} />
+  </svg>
+);
+
+// TweakColor — curated color/palette picker. Each option is either a single
+// hex string or an array of 1-5 hex strings; the card adapts — a lone color
+// renders solid, a palette renders colors[0] as the hero (left ~2/3) with the
+// rest stacked in a sharp column on the right. onChange emits the
+// option in the shape it was passed (string stays string, array stays array).
+// Without options it falls back to the native color input for back-compat.
+function TweakColor({ label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" className="twk-swatch" value={value}
+               onChange={(e) => onChange(e.target.value)} />
+      </div>
+    );
+  }
+  // Native <input type=color> emits lowercase hex per the HTML spec, so
+  // compare case-insensitively. String() guards JSON.stringify(undefined),
+  // which returns the primitive undefined (no .toLowerCase).
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero, ...rest] = colors;
+          const sup = rest.slice(0, 4);
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio"
+                    aria-checked={on} data-on={on ? '1' : '0'}
+                    aria-label={colors.join(', ')} title={colors.join(' · ')}
+                    style={{ background: hero }}
+                    onClick={() => onChange(o)}>
+              {sup.length > 0 && (
+                <span>
+                  {sup.map((c, j) => <i key={j} style={{ background: c }} />)}
+                </span>
+              )}
+              {on && <__TwkCheck light={__twkIsLight(hero)} />}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+
+function TweakButton({ label, onClick, secondary = false }) {
+  return (
+    <button type="button" className={secondary ? 'twk-btn secondary' : 'twk-btn'}
+            onClick={onClick}>{label}</button>
+  );
+}
+
+Object.assign(window, {
+  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
+  TweakText, TweakNumber, TweakColor, TweakButton,
+});
+// theme.jsx — design tokens, icon set, tiny primitives for "סבבה והכל"
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+// ── Palette (option 0: deep pink / cream / gold) ───────────────
+const PALETTE = {
+  primary: '#E8547A',
+  cream:   '#FFF8F0',
+  card:    '#FFFFFF',
+  gold:    '#C9A96E',
+  ink:     '#1C1C2E',
+  success: '#6BCB77',
+  error:   '#FF6B6B',
+};
+
+// Font pairings (display / body) — all RTL-capable Google fonts
+const FONT_PAIRS = {
+  'אופי':   { display: '"Secular One", sans-serif', body: '"Assistant", sans-serif' },
+  'נקי':    { display: '"Heebo", sans-serif',       body: '"Heebo", sans-serif' },
+  'ידידותי':{ display: '"Fredoka", "Rubik", sans-serif', body: '"Rubik", sans-serif' },
+};
+
+const RADIUS = { 'חד': 8, 'רך': 16, 'מעוגל': 26 };
+const DENSITY = { 'קומפקטי': 0.82, 'רגיל': 1, 'מרווח': 1.18 };
+
+// Compose a style context object from tweaks
+function makeTheme(t) {
+  const pair = FONT_PAIRS[t.fontPair] || FONT_PAIRS['אופי'];
+  const r = RADIUS[t.radius] ?? 16;
+  const d = DENSITY[t.density] ?? 1;
+  return {
+    primary: t.primaryColor || PALETTE.primary,
+    cream: PALETTE.cream, card: PALETTE.card, gold: PALETTE.gold,
+    ink: PALETTE.ink, success: PALETTE.success, error: PALETTE.error,
+    display: pair.display, body: pair.body,
+    r, rSm: Math.max(6, r * 0.6), rLg: r * 1.5,
+    d, sp: (n) => Math.round(n * d),
+    cardVariant: t.cardVariant || 'קלאסי',
+  };
+}
+
+// soft tint of a hex color toward white
+function tint(hex, amt = 0.88) {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const mix = (c) => Math.round(c + (255 - c) * amt);
+  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+}
+function alpha(hex, a) {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+// ── Icon set (line icons, currentColor) ───────────────────────
+function Icon({ name, size = 24, stroke = 2, style, fill = 'none' }) {
+  const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none',
+    stroke: 'currentColor', strokeWidth: stroke, strokeLinecap: 'round',
+    strokeLinejoin: 'round', style };
+  const paths = {
+    home: <><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></>,
+    users: <><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 6.2a3 3 0 0 1 0 5.6"/><path d="M17.5 14c2.2.5 3.5 2.3 3.5 5"/></>,
+    heart: <path d="M12 20.5C7 17 3.5 13.8 3.5 9.8 3.5 7 5.6 5 8.2 5c1.7 0 3 .9 3.8 2.2C12.8 5.9 14.1 5 15.8 5c2.6 0 4.7 2 4.7 4.8 0 4-3.5 7.2-8.5 10.7Z" fill={fill}/>,
+    spark: <><path d="M12 3.5c.6 3.7 1.8 4.9 5.5 5.5-3.7.6-4.9 1.8-5.5 5.5-.6-3.7-1.8-4.9-5.5-5.5 3.7-.6 4.9-1.8 5.5-5.5Z" fill={fill}/><path d="M18.5 15c.3 1.6.8 2.1 2.4 2.4-1.6.3-2.1.8-2.4 2.4-.3-1.6-.8-2.1-2.4-2.4 1.6-.3 2.1-.8 2.4-2.4Z" fill={fill}/></>,
+    gear: <><circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3"/></>,
+    plus: <><path d="M12 5v14M5 12h14"/></>,
+    filter: <><path d="M4 6h16M7 12h10M10 18h4"/></>,
+    search: <><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.5-3.5"/></>,
+    chevR: <path d="m9 5 7 7-7 7"/>,
+    chevL: <path d="m15 5-7 7 7 7"/>,
+    chevD: <path d="m5 9 7 7 7-7"/>,
+    x: <><path d="M6 6l12 12M18 6 6 18"/></>,
+    check: <path d="m4 12.5 5 5 11-11"/>,
+    send: <path d="M21 4 3 11l6 2.5L12 20l3-7.5L21 4Z" fill={fill}/>,
+    camera: <><path d="M3.5 8.5h3l1.5-2.2h6L15.5 8.5h5V19h-17V8.5Z"/><circle cx="12" cy="13" r="3.2"/></>,
+    bell: <><path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 5 2 6 2 6H4.5s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/></>,
+    edit: <><path d="M16 4.5 19.5 8 9 18.5 4.5 19.5 5.5 15 16 4.5Z"/></>,
+    trash: <><path d="M4.5 7h15M9 7V5h6v2M6.5 7l1 12.5h9l1-12.5"/></>,
+    link: <><path d="M9.5 13.5 14 9M8.5 11l-2 2a3 3 0 0 0 4.2 4.2l2-2M15.5 13l2-2A3 3 0 0 0 13.3 6.8l-2 2"/></>,
+    dots: <><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></>,
+    pin: <><path d="M12 21s6-5.3 6-10a6 6 0 1 0-12 0c0 4.7 6 10 6 10Z"/><circle cx="12" cy="11" r="2.2"/></>,
+    cal: <><rect x="4" y="5.5" width="16" height="15" rx="2.5"/><path d="M4 9.5h16M8.5 3.5v3M15.5 3.5v3"/></>,
+    user: <><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3-6 7-6s7 2.4 7 6"/></>,
+    chat: <><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H9l-4 4v-4H4Z"/></>,
+    sliders: <><path d="M5 8h7M16 8h3M5 16h3M12 16h7"/><circle cx="14" cy="8" r="2"/><circle cx="10" cy="16" r="2"/></>,
+    whatsapp: <><path d="M12 3.5a8.5 8.5 0 0 0-7.3 12.8L4 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5Z"/><path d="M9 9c0 4 2.5 6 5.5 6.5.8.1 1.4-.6 1.2-1.3l-.3-1-1.8-.4-.9.8c-1-.5-1.7-1.2-2.2-2.2l.8-.9-.4-1.8-1-.3C9.2 7.9 9 8.4 9 9Z" fill={fill}/></>,
+    back: <path d="m9 5 7 7-7 7"/>, // RTL back points right
+    arrow: <><path d="M5 12h14M13 6l6 6-6 6"/></>,
+    sad: <><circle cx="12" cy="12" r="8.5"/><path d="M8.5 15.5c1-1.2 5-1.2 7 0M9 9.5h.01M15 9.5h.01"/></>,
+    info: <><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></>,
+    lock: <><rect x="5" y="10.5" width="14" height="9.5" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></>,
+    eye: <><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></>,
+    rose: <><path d="M12 13v8M12 13c-2.5 0-4-2-4-4.5 0-2 1.8-3.5 4-3.5s4 1.5 4 3.5C16 11 14.5 13 12 13Z"/><path d="M12 16c-2 0-3.5 1-3.5 1M12 16c2 0 3.5 1 3.5 1"/></>,
+    robot: <><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 8V5M12 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><circle cx="9.5" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 16h5"/></>,
+  };
+  return <svg {...p}>{paths[name] || null}</svg>;
+}
+
+// The brand mark — a heart with a small flaw ("סבבה והכל אבל…")
+function Logo({ size = 40, color = 'currentColor', flaw = '#fff' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <path d="M24 41C12 33 5 25.5 5 16.5 5 10.3 9.6 6 15.2 6c3.6 0 6.5 1.9 8.8 5C26.3 7.9 29.2 6 32.8 6 38.4 6 43 10.3 43 16.5 43 25.5 36 33 24 41Z" fill={color}/>
+      {/* the little flaw — a notch/chip taken out */}
+      <path d="M24 14c-1.6 2-3.4 3-3.4 5.4 0 1.8 1.5 3.1 3.4 3.1-1.2 1.1-2 2.2-2 3.8 0 2 1.7 3.2 4 3.2" stroke={flaw} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+Object.assign(window, {
+  PALETTE, FONT_PAIRS, RADIUS, DENSITY, makeTheme, tint, alpha, Icon, Logo,
+});
+
+// ════════════════════════════════════════════════════════════
+// FIREBASE DATA LAYER
+// ════════════════════════════════════════════════════════════
+const { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext } = React;
+
+const AuthCtx  = createContext(null);
+const DataCtx  = createContext(null);
+const TextsCtx = createContext({});
+
+// ── Auth hook ────────────────────────────────────────────────
+function useAuthState() {
+  const [user, setUser]       = useState(undefined); // undefined = loading
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    return auth.onAuthStateChanged(async (u) => {
+      setUser(u);
+      if (!u) { setProfile(null); return; }
+      const ref = db.collection('users').doc(u.uid);
+      const snap = await ref.get();
+      if (!snap.exists) {
+        // first user → admin
+        const allSnap = await db.collection('users').get();
+        const isFirst = allSnap.empty;
+        const p = {
+          email: u.email,
+          displayName: u.displayName || '',
+          photoURL: u.photoURL || '',
+          isAdmin: isFirst,
+          role: 'matchmaker',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        };
+        await ref.set(p);
+        setProfile({ uid: u.uid, ...p, isAdmin: isFirst });
+      } else {
+        setProfile({ uid: u.uid, ...snap.data() });
+        // live updates
+        ref.onSnapshot(d => setProfile({ uid: u.uid, ...d.data() }));
+      }
+    });
+  }, []);
+
+  return { user, profile };
+}
+
+// ── Data hook (live Firestore listeners) ─────────────────────
+function useFirebaseData(uid) {
+  const [candidates, setCandidates] = useState([]);
+  const [offers,     setOffers]     = useState([]);
+  const [matchmakers, setMatchmakers] = useState({});
+  const [texts,      setTexts]      = useState({});
+  const [loading,    setLoading]    = useState(true);
+
+  useEffect(() => {
+    if (!uid) return;
+    const unsubs = [];
+
+    unsubs.push(db.collection('candidates').onSnapshot(s => {
+      setCandidates(s.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    }));
+
+    unsubs.push(db.collection('offers').onSnapshot(s => {
+      setOffers(s.docs.map(d => ({ id: d.id, ...d.data() })));
+    }));
+
+    unsubs.push(db.collection('users').onSnapshot(s => {
+      const mm = {};
+      s.docs.forEach(d => { mm[d.id] = { id: d.id, ...d.data() }; });
+      setMatchmakers(mm);
+    }));
+
+    unsubs.push(db.collection('config').doc('texts').onSnapshot(d => {
+      if (d.exists) setTexts(d.data());
+    }));
+
+    return () => unsubs.forEach(u => u());
+  }, [uid]);
+
+  // CRUD helpers
+  const addCandidate = useCallback(async (data) => {
+    const ref = await db.collection('candidates').add({
+      ...data,
+      mmId: uid,
+      mine: true,
+      available: true,
+      photos: [],
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    return ref.id;
+  }, [uid]);
+
+  const updateCandidate = useCallback((id, data) =>
+    db.collection('candidates').doc(id).update(data), []);
+
+  const deleteCandidate = useCallback((id) =>
+    db.collection('candidates').doc(id).delete(), []);
+
+  const uploadPhoto = useCallback(async (candidateId, file) => {
+    const ext  = file.name.split('.').pop();
+    const path = `candidates/${candidateId}/${Date.now()}.${ext}`;
+    const ref  = storage.ref(path);
+    await ref.put(file);
+    const url = await ref.getDownloadURL();
+    await db.collection('candidates').doc(candidateId).update({
+      photos: firebase.firestore.FieldValue.arrayUnion(url),
+    });
+    return url;
+  }, []);
+
+  const addOffer = useCallback((data) =>
+    db.collection('offers').add({
+      ...data,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }), []);
+
+  const updateOffer = useCallback((id, data) =>
+    db.collection('offers').doc(id).update(data), []);
+
+  const updateText = useCallback((key, value) =>
+    db.collection('config').doc('texts').set({ [key]: value }, { merge: true }), []);
+
+  const setUserAdmin = useCallback((targetUid, isAdmin) =>
+    db.collection('users').doc(targetUid).update({ isAdmin }), []);
+
+  return {
+    candidates, offers, matchmakers, texts, loading,
+    addCandidate, updateCandidate, deleteCandidate,
+    uploadPhoto, addOffer, updateOffer, updateText, setUserAdmin,
+  };
+}
+
+// findCand / findMm that work with context data
+function useFinders() {
+  const { candidates, matchmakers } = useContext(DataCtx);
+  const findCand = (id) => candidates.find(c => c.id === id);
+  const findMm   = (id) => matchmakers[id] || { id, name: '—', grad: ['#ccc','#999'] };
+  return { findCand, findMm };
+}
+
+// ════════════════════════════════════════════════════════════
+// STATIC FALLBACK DATA (used as gradient palette etc.)
+// ════════════════════════════════════════════════════════════
+const REGIONS     = ['ירושלים', 'מרכז', 'צפון', 'דרום', 'גולן', 'חו"ל'];
+const RELIGIOSITY = ['חילוני', 'מסורתי קל', 'מסורתי', 'דתי לשעבר', 'דתי קל', 'דתי', 'דתי לאומי', 'חרדי לשעבר', 'חרדי', 'אחר'];
+const INTERESTS   = ['איש של אנשים','אמנות','ספרות','טיולים','פוליטיקה','רוחניות','ספורט','בישול','מוזיקה','קולנוע','טכנולוגיה','חינוך','התנדבות','משפחה','קריירה','חיות מחמד','יוגה / מדיטציה','הומור','יזמות','דת ומסורת'];
+const PARTNER_TRAITS = ['הלכתי','רוחניקי','ביתי','קרייריסטי','חברתי','מצחיק','יציב כלכלית','עם ערכים','פתוח לעולם','דתי','חילוני','ישראלי בנשמה','שאפתן','רגוע','הרפתקן','שמח בחלקו'];
+const AV_GRADS = [
+  ['#FFD7B5', '#E8547A'], ['#C9A96E', '#8C6B3D'], ['#A8D8C0', '#3E8E73'],
+  ['#B9C5FF', '#6A5ACD'], ['#FFC4D6', '#C0436B'], ['#FFE3A3', '#C9A96E'],
+  ['#D6B8FF', '#7B4B8A'], ['#BDE0FE', '#4A7FB5'], ['#FFB5A7', '#E0533F'],
+];
+function gradForId(id) {
+  if (!id) return AV_GRADS[0];
+  let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0xffff;
+  return AV_GRADS[h % AV_GRADS.length];
+}
+Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, AV_GRADS, gradForId });
+// ui.jsx — shared UI primitives for "סבבה והכל"
+const { useState: useStateUI } = React;
+
+// ── Avatar (gradient placeholder, or real photo when provided) ──
+function Avatar({ grad = ['#FFD7B5', '#E8547A'], name = '', size = 56, ring, style, photo }) {
+  const initial = (name || '').trim().charAt(0) || '♥';
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+      background: `linear-gradient(140deg, ${grad[0]}, ${grad[1]})`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#fff', fontWeight: 800, fontSize: size * 0.42,
+      fontFamily: '"Assistant", sans-serif',
+      boxShadow: ring ? `0 0 0 3px ${ring}, 0 4px 12px rgba(0,0,0,0.12)` : '0 4px 12px rgba(0,0,0,0.1)',
+      ...style,
+    }}>{photo ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initial}</div>
+  );
+}
+
+// ── The signature tag: "סבבה והכל, אבל…" ───────────────────────
+function SabaBadge({ text, th, size = 'm' }) {
+  const big = size === 'l';
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'flex-start', gap: 8,
+      background: th.ink, color: th.cream,
+      borderRadius: big ? th.rLg : th.r,
+      padding: big ? '14px 16px' : '9px 13px',
+      maxWidth: '100%', position: 'relative',
+      boxShadow: `0 6px 18px ${alpha(th.ink, 0.22)}`,
+    }}>
+      <Logo size={big ? 26 : 19} color={th.primary} flaw={th.cream} />
+      <div style={{ lineHeight: 1.25, minWidth: 0 }}>
+        <div style={{ fontFamily: th.display, fontSize: big ? 13 : 11, color: th.gold, letterSpacing: 0.3, marginBottom: 1 }}>
+          סבבה והכל, אבל…
+        </div>
+        <div style={{ fontFamily: th.body, fontWeight: 600, fontSize: big ? 17 : 13.5, textWrap: 'pretty' }}>
+          {text}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Chip / pill ────────────────────────────────────────────────
+function Chip({ label, active, onClick, th, icon, tone }) {
+  const c = tone || th.primary;
+  return (
+    <button onClick={onClick} style={{
+      border: active ? `1.5px solid ${c}` : `1.5px solid ${alpha(th.ink, 0.12)}`,
+      background: active ? alpha(c, 0.12) : th.card,
+      color: active ? c : alpha(th.ink, 0.72),
+      borderRadius: 999, padding: '7px 14px', cursor: onClick ? 'pointer' : 'default',
+      fontFamily: th.body, fontWeight: 600, fontSize: 13.5, whiteSpace: 'nowrap',
+      display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'all .15s',
+    }}>
+      {icon}{label}
+    </button>
+  );
+}
+
+function Tag({ children, th, tone, soft = true }) {
+  const c = tone || th.gold;
+  return (
+    <span style={{
+      background: soft ? alpha(c, 0.16) : c, color: soft ? c : '#fff',
+      borderRadius: 999, padding: '3px 10px', fontFamily: th.body,
+      fontWeight: 700, fontSize: 11.5, whiteSpace: 'nowrap',
+    }}>{children}</span>
+  );
+}
+
+// ── Button ─────────────────────────────────────────────────────
+function Btn({ children, onClick, th, variant = 'primary', full, icon, size = 'm', disabled, style }) {
+  const pad = size === 'l' ? '15px 22px' : size === 's' ? '8px 14px' : '12px 18px';
+  const fs = size === 'l' ? 17 : size === 's' ? 13.5 : 15.5;
+  const styles = {
+    primary: { background: th.primary, color: '#fff', boxShadow: `0 8px 20px ${alpha(th.primary, 0.32)}` },
+    dark:    { background: th.ink, color: th.cream },
+    gold:    { background: th.gold, color: '#fff' },
+    ghost:   { background: 'transparent', color: th.ink, boxShadow: `inset 0 0 0 1.5px ${alpha(th.ink, 0.18)}` },
+    soft:    { background: alpha(th.primary, 0.12), color: th.primary },
+    success: { background: th.success, color: '#fff' },
+  };
+  return (
+    <button onClick={disabled ? undefined : onClick} style={{
+      ...styles[variant], border: 'none', borderRadius: th.r, padding: pad,
+      fontFamily: th.display, fontWeight: variant === 'ghost' ? 700 : 800, fontSize: fs,
+      cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.45 : 1,
+      width: full ? '100%' : undefined, display: 'inline-flex', alignItems: 'center',
+      justifyContent: 'center', gap: 8, transition: 'transform .12s, box-shadow .2s',
+      ...style,
+    }}
+    onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.97)'}
+    onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+    >{icon}{children}</button>
+  );
+}
+
+// ── App header (custom RTL top bar, accounts for status bar) ───
+function AppHeader({ title, sub, onBack, action, th, big, bg }) {
+  return (
+    <div style={{
+      paddingTop: 50, paddingBottom: big ? 10 : 12, paddingInline: 18,
+      background: bg || th.cream, flexShrink: 0,
+      borderBottom: big ? 'none' : `1px solid ${alpha(th.ink, 0.07)}`,
+      display: 'flex', alignItems: big ? 'flex-end' : 'center', gap: 10,
+      position: 'relative', zIndex: 5,
+    }}>
+      {onBack && (
+        <button onClick={onBack} style={{
+          width: 38, height: 38, borderRadius: '50%', border: 'none', flexShrink: 0,
+          background: th.card, color: th.ink, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        }}><Icon name="back" size={20} /></button>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: th.display, color: th.ink,
+          fontSize: big ? 30 : 20, fontWeight: 800, lineHeight: 1.1,
+        }}>{title}</div>
+        {sub && <div style={{ fontFamily: th.body, color: alpha(th.ink, 0.55), fontSize: 13.5, marginTop: 3 }}>{sub}</div>}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// ── Bottom navigation ──────────────────────────────────────────
+function BottomNav({ active, onNav, th }) {
+  const tabs = [
+    { id: 'home',  label: 'בית',     icon: 'home' },
+    { id: 'cands', label: 'מועמדים', icon: 'users' },
+    { id: 'match', label: 'שידוכים', icon: 'heart' },
+    { id: 'ai',    label: 'AI',      icon: 'spark' },
+    { id: 'set',   label: 'הגדרות',  icon: 'gear' },
+  ];
+  return (
+    <div style={{
+      flexShrink: 0, background: alpha(th.card, 0.92),
+      backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+      borderTop: `1px solid ${alpha(th.ink, 0.08)}`,
+      paddingTop: 8, paddingBottom: 26, paddingInline: 6,
+      display: 'flex', justifyContent: 'space-around',
+    }}>
+      {tabs.map(tb => {
+        const on = active === tb.id;
+        return (
+          <button key={tb.id} onClick={() => onNav(tb.id)} style={{
+            border: 'none', background: 'none', cursor: 'pointer', flex: 1,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            color: on ? th.primary : alpha(th.ink, 0.42), padding: '2px 0',
+          }}>
+            <div style={{ position: 'relative' }}>
+              <Icon name={tb.icon} size={25} stroke={on ? 2.4 : 2}
+                fill={on && (tb.icon === 'heart' || tb.icon === 'spark') ? th.primary : 'none'} />
+            </div>
+            <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: 11 }}>{tb.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Bottom sheet / modal ───────────────────────────────────────
+function Sheet({ open, onClose, children, th, title, height }) {
+  if (!open) return null;
+  return (
+    <div onClick={onClose} style={{
+      position: 'absolute', inset: 0, zIndex: 100,
+      background: alpha(th.ink, 0.42), display: 'flex', alignItems: 'flex-end',
+      animation: 'sabaFade .2s ease',
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: th.cream, width: '100%', maxHeight: height || '82%',
+        borderTopLeftRadius: th.rLg, borderTopRightRadius: th.rLg,
+        display: 'flex', flexDirection: 'column', overflow: 'hidden',
+        animation: 'sabaUp .28s cubic-bezier(.2,.9,.3,1)', paddingBottom: 28,
+      }}>
+        <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 40, height: 5, borderRadius: 99, background: alpha(th.ink, 0.18) }} />
+        </div>
+        {title && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px 8px', flexShrink: 0 }}>
+            <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink }}>{title}</div>
+            <button onClick={onClose} style={{ border: 'none', background: alpha(th.ink, 0.06), borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="x" size={18} /></button>
+          </div>
+        )}
+        <div style={{ overflowY: 'auto', padding: '4px 20px 4px' }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── AI score ring ──────────────────────────────────────────────
+function ScoreRing({ score, th, size = 54 }) {
+  const r = (size - 6) / 2, c = 2 * Math.PI * r;
+  const col = score >= 80 ? th.success : score >= 70 ? th.gold : alpha(th.ink, 0.4);
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={alpha(th.ink, 0.1)} strokeWidth="4" />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={col} strokeWidth="4"
+          strokelinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - score / 100)}
+          style={{ transition: 'stroke-dashoffset .8s ease' }} />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+        <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: size * 0.3, color: th.ink }}>{score}</span>
+        <span style={{ fontFamily: th.body, fontSize: size * 0.16, color: alpha(th.ink, 0.5) }}>%</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Form fields ────────────────────────────────────────────────
+function Field({ label, required, children, th, hint }) {
+  return (
+    <div style={{ marginBottom: th.sp(16) }}>
+      <label style={{ display: 'block', fontFamily: th.body, fontWeight: 700, fontSize: 14, color: th.ink, marginBottom: 6 }}>
+        {label}{required && <span style={{ color: th.primary }}> *</span>}
+      </label>
+      {children}
+      {hint && <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5), marginTop: 4 }}>{hint}</div>}
+    </div>
+  );
+}
+const inputBase = (th) => ({
+  width: '100%', boxSizing: 'border-box', border: `1.5px solid ${alpha(th.ink, 0.14)}`,
+  borderRadius: th.rSm, padding: '12px 14px', fontFamily: th.body, fontSize: 15,
+  color: th.ink, background: th.card, outline: 'none',
+});
+function TextInput({ value, onChange, th, placeholder, type = 'text' }) {
+  return <input type={type} value={value || ''} placeholder={placeholder}
+    onChange={(e) => onChange?.(e.target.value)} style={inputBase(th)} />;
+}
+function TextArea({ value, onChange, th, placeholder, rows = 3 }) {
+  return <textarea rows={rows} value={value || ''} placeholder={placeholder}
+    onChange={(e) => onChange?.(e.target.value)} style={{ ...inputBase(th), resize: 'none', lineHeight: 1.5 }} />;
+}
+function Select({ value, onChange, options, th, placeholder }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <select value={value || ''} onChange={(e) => onChange?.(e.target.value)} style={{
+        ...inputBase(th), appearance: 'none', WebkitAppearance: 'none', paddingLeft: 38,
+        cursor: 'pointer', color: value ? th.ink : alpha(th.ink, 0.4),
+      }}>
+        <option value="" disabled>{placeholder || 'בחר/י'}</option>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+      <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: alpha(th.ink, 0.4) }}>
+        <Icon name="chevD" size={18} />
+      </div>
+    </div>
+  );
+}
+function Segmented({ value, onChange, options, th }) {
+  return (
+    <div style={{ display: 'flex', gap: 8 }}>
+      {options.map(o => {
+        const on = value === o;
+        return (
+          <button key={o} onClick={() => onChange?.(o)} style={{
+            flex: 1, padding: '11px 8px', borderRadius: th.rSm, cursor: 'pointer',
+            border: on ? `1.5px solid ${th.primary}` : `1.5px solid ${alpha(th.ink, 0.14)}`,
+            background: on ? alpha(th.primary, 0.1) : th.card,
+            color: on ? th.primary : alpha(th.ink, 0.6), fontFamily: th.body, fontWeight: 700, fontSize: 14,
+          }}>{o}</button>
+        );
+      })}
+    </div>
+  );
+}
+function MultiChips({ value = [], onChange, options, th, tone }) {
+  const toggle = (o) => onChange?.(value.includes(o) ? value.filter(x => x !== o) : [...value, o]);
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {options.map(o => <Chip key={o} label={o} active={value.includes(o)} onClick={() => toggle(o)} th={th} tone={tone} />)}
+    </div>
+  );
+}
+
+// striped image upload placeholder
+function PhotoSlot({ th, label = 'תמונה', size = 92, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      width: size, height: size, flexShrink: 0, borderRadius: th.rSm, cursor: 'pointer',
+      border: `1.5px dashed ${alpha(th.ink, 0.25)}`,
+      background: `repeating-linear-gradient(45deg, ${alpha(th.gold,0.06)} 0 7px, transparent 7px 14px)`,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5,
+      color: alpha(th.ink, 0.5),
+    }}>
+      <Icon name="camera" size={22} />
+      <span style={{ fontFamily: 'monospace', fontSize: 10 }}>{label}</span>
+    </button>
+  );
+}
+
+// ── Multi-photo gallery (placeholders until real photos uploaded) ──
+function galleryGrad(c, i) {
+  const base = AV_GRADS.indexOf(c.grad);
+  if (i === 0 && base >= 0) return c.grad;
+  const idx = ((base >= 0 ? base : 0) + i * 3) % AV_GRADS.length;
+  return AV_GRADS[idx];
+}
+
+function PhotoGallery({ c, th, height = 360, radius = 0, children }) {
+  const [idx, setIdx] = useStateUI(0);
+  const startX = React.useRef(0);
+  const photos = c.photos || [];
+  const n = Math.max(photos.length, c.photoCount || 1);
+  const clamp = (i) => Math.max(0, Math.min(n - 1, i));
+
+  return (
+    <div style={{ position: 'relative', height, overflow: 'hidden', borderRadius: radius, background: th.ink, touchAction: 'pan-y' }}
+      onPointerDown={(e) => { startX.current = e.clientX; }}
+      onPointerUp={(e) => { const d = e.clientX - startX.current; if (d > 40) setIdx(i => clamp(i - 1)); else if (d < -40) setIdx(i => clamp(i + 1)); }}>
+      {/* sliding track (LTR internally) */}
+      <div style={{ display: 'flex', height: '100%', width: `${n * 100}%`, direction: 'ltr', transform: `translateX(-${idx * (100 / n)}%)`, transition: 'transform .38s cubic-bezier(.4,0,.2,1)' }}>
+        {Array.from({ length: n }).map((_, i) => {
+          const g = galleryGrad(c, i);
+          return (
+            <div key={i} style={{ width: `${100 / n}%`, height: '100%', flexShrink: 0, position: 'relative' }}>
+              {photos[i]
+                ? <img src={photos[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <div style={{ width: '100%', height: '100%', background: `linear-gradient(155deg, ${g[0]}, ${g[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontFamily: th.display, fontSize: height * 0.4, color: 'rgba(255,255,255,0.32)', fontWeight: 800 }}>{c.name.charAt(0)}</span>
+                  </div>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* overlay content (scrim, name, status) */}
+      {children}
+
+      {/* arrows */}
+      {n > 1 && (
+        <>
+          {idx > 0 && <button onClick={() => setIdx(i => clamp(i - 1))} style={galleryArrow(th, 'right')}><Icon name="chevR" size={20} /></button>}
+          {idx < n - 1 && <button onClick={() => setIdx(i => clamp(i + 1))} style={galleryArrow(th, 'left')}><Icon name="chevL" size={20} /></button>}
+        </>
+      )}
+
+      {/* dots + counter */}
+      {n > 1 && (
+        <div style={{ position: 'absolute', top: 58, left: '50%', transform: 'translateX(-50%)', zIndex: 6, display: 'flex', alignItems: 'center', gap: 6, background: alpha(th.ink, 0.32), backdropFilter: 'blur(6px)', borderRadius: 999, padding: '5px 9px' }}>
+          {Array.from({ length: n }).map((_, i) => (
+            <span key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 16 : 6, height: 6, borderRadius: 99, background: i === idx ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'all .25s', cursor: 'pointer' }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+function galleryArrow(th, side) {
+  return { position: 'absolute', top: '50%', [side]: 10, transform: 'translateY(-50%)', zIndex: 6, width: 36, height: 36, borderRadius: '50%', border: 'none', cursor: 'pointer', background: alpha('#ffffff', 0.82), color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' };
+}
+
+// circular avatar + thumbnail strip (for the minimal card)
+function AvatarGallery({ c, th, size = 120 }) {
+  const [idx, setIdx] = useStateUI(0);
+  const photos = c.photos || [];
+  const n = Math.max(photos.length, c.photoCount || 1);
+  const grad = galleryGrad(c, idx);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+      <div style={{ width: size, height: size, borderRadius: '50%', overflow: 'hidden', boxShadow: `0 0 0 1.5px ${alpha(th.ink, 0.08)}, 0 18px 36px ${alpha(th.ink, 0.14)}`, background: `linear-gradient(140deg, ${grad[0]}, ${grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        {photos[idx]
+          ? <img src={photos[idx]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: size * 0.42, color: '#fff' }}>{c.name.charAt(0)}</span>}
+      </div>
+      {n > 1 && (
+        <div style={{ display: 'flex', gap: 8 }}>
+          {Array.from({ length: n }).map((_, i) => {
+            const g = galleryGrad(c, i);
+            return (
+              <button key={i} onClick={() => setIdx(i)} style={{ width: 34, height: 34, borderRadius: '50%', border: i === idx ? `2px solid ${th.primary}` : `2px solid transparent`, padding: 0, cursor: 'pointer', overflow: 'hidden', background: `linear-gradient(140deg, ${g[0]}, ${g[1]})`, opacity: i === idx ? 1 : 0.6 }}>
+                {photos[i] && <img src={photos[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+Object.assign(window, {
+  Avatar, SabaBadge, Chip, Tag, Btn, AppHeader, BottomNav, Sheet, ScoreRing,
+  Field, TextInput, TextArea, Select, Segmented, MultiChips, PhotoSlot,
+  PhotoGallery, galleryGrad, AvatarGallery,
+});
+// ════════════════════════════════════════════════════════════
+// LOGIN SCREEN
+// ════════════════════════════════════════════════════════════
+function LoginScreen({ th }) {
+  const [mode, setMode]   = useState('choose'); // choose | email
+  const [email, setEmail] = useState('');
+  const [pass,  setPass]  = useState('');
+  const [isNew, setIsNew] = useState(false);
+  const [err,   setErr]   = useState('');
+  const [busy,  setBusy]  = useState(false);
+
+  const googleLogin = async () => {
+    setBusy(true); setErr('');
+    try {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      await auth.signInWithPopup(provider);
+    } catch (e) { setErr(e.message); setBusy(false); }
+  };
+
+  const emailLogin = async () => {
+    setBusy(true); setErr('');
+    try {
+      if (isNew) await auth.createUserWithEmailAndPassword(email, pass);
+      else       await auth.signInWithEmailAndPassword(email, pass);
+    } catch (e) { setErr(e.message); setBusy(false); }
+  };
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.82)})`, padding: 28, direction: 'rtl' }}>
+      <div style={{ marginBottom: 32, textAlign: 'center', animation: 'sabaPop .5s ease' }}>
+        <Logo size={72} color={th.primary} flaw={th.cream} />
+        <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.ink, marginTop: 14 }}>סבבה והכל</div>
+        <div style={{ fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.55), marginTop: 4 }}>פלטפורמת השידוכים לשדכנים</div>
+      </div>
+
+      {mode === 'choose' && (
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, animation: 'sabaUp .35s ease' }}>
+          <button onClick={googleLogin} disabled={busy} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '14px 18px', borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.18)}`, background: th.card, fontFamily: th.body, fontWeight: 700, fontSize: 15.5, color: th.ink, cursor: 'pointer' }}>
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.8-2.1 5.1-4.4 6.7l6.9 5.4c4-3.7 6.3-9.2 6.3-16.1z"/><path fill="#FBBC05" d="M10.6 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5L2.3 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.6 10.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-6.9-5.4c-2.1 1.4-4.8 2.2-8.9 2.2-6.2 0-11.5-3.5-13.4-9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+            {busy ? 'מתחבר…' : 'כניסה עם Google'}
+          </button>
+          <button onClick={() => setMode('email')} style={{ width: '100%', padding: '14px 18px', borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.18)}`, background: th.card, fontFamily: th.body, fontWeight: 700, fontSize: 15.5, color: th.ink, cursor: 'pointer' }}>
+            כניסה עם אימייל וסיסמה
+          </button>
+        </div>
+      )}
+
+      {mode === 'email' && (
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, animation: 'sabaUp .3s ease' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+            {[['כניסה', false], ['הרשמה', true]].map(([lbl, n]) => (
+              <button key={lbl} onClick={() => setIsNew(n)} style={{ flex: 1, padding: 10, borderRadius: th.r, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: isNew === n ? th.ink : alpha(th.ink, 0.08), color: isNew === n ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
+            ))}
+          </div>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="אימייל" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: 15, background: th.card, outline: 'none', color: th.ink }} />
+          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="סיסמה" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: 15, background: th.card, outline: 'none', color: th.ink }} />
+          {err && <div style={{ fontFamily: th.body, fontSize: 13, color: th.error, textAlign: 'center' }}>{err}</div>}
+          <Btn th={th} full size="l" disabled={busy || !email || !pass} onClick={emailLogin}>{busy ? 'מתחבר…' : (isNew ? 'הרשמה' : 'כניסה')}</Btn>
+          <button onClick={() => setMode('choose')} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>חזרה</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// ADMIN PANEL
+// ════════════════════════════════════════════════════════════
+function AdminPanel({ th, go }) {
+  const { profile }  = useContext(AuthCtx);
+  const { candidates, matchmakers, texts, addCandidate, updateCandidate,
+          deleteCandidate, uploadPhoto, updateText, setUserAdmin } = useContext(DataCtx);
+  const [tab, setTab]         = useState('candidates');
+  const [editCand, setEditCand] = useState(null);
+  const [newCand,  setNewCand]  = useState(false);
+  const [editKey,  setEditKey]  = useState(null);
+  const [editVal,  setEditVal]  = useState('');
+
+  if (!profile?.isAdmin) return (
+    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', direction: 'rtl', fontFamily: th.body, color: th.error }}>
+      אין הרשאות מנהל
+    </div>
+  );
+
+  const tabs = [['candidates', 'מועמדים'], ['texts', 'טקסטים'], ['users', 'משתמשים']];
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
+      <AppHeader th={th} title="פאנל ניהול" onBack={() => go('back')} />
+      <div style={{ display: 'flex', gap: 6, padding: '6px 18px', flexShrink: 0 }}>
+        {tabs.map(([id, lbl]) => (
+          <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: '8px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : alpha(th.ink, 0.07), color: tab === id ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 30px' }}>
+        {/* ── CANDIDATES ── */}
+        {tab === 'candidates' && (
+          <>
+            <Btn th={th} full onClick={() => setNewCand(true)} icon={<Icon name="plus" size={18} />} style={{ marginBottom: 14 }}>הוסף מועמד/ת</Btn>
+            {newCand && <CandidateForm th={th} onSave={async (data) => { await addCandidate(data); setNewCand(false); }} onCancel={() => setNewCand(false)} />}
+            {candidates.map(c => (
+              <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+                {editCand === c.id
+                  ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
+                  : (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <Avatar grad={gradForId(c.id)} name={c.name} size={44} photo={c.photos?.[0]} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
+                          <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
+                        </div>
+                        <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
+                        <button onClick={() => { if (confirm('למחוק?')) deleteCandidate(c.id); }} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
+                      </div>
+                      {c.photos?.length > 0 && (
+                        <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
+                          {c.photos.map((url, i) => <img key={i} src={url} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />)}
+                        </div>
+                      )}
+                    </>
+                  )}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ── TEXTS (CMS) ── */}
+        {tab === 'texts' && (
+          <>
+            <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginBottom: 14 }}>עריכת טקסטים קבועים באפליקציה. לחץ על טקסט לעריכה.</div>
+            {Object.entries(TEXT_KEYS).map(([key, label]) => (
+              <div key={key} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 8, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
+                <div style={{ fontFamily: th.body, fontSize: 11, color: th.gold, fontWeight: 700, marginBottom: 4 }}>{label}</div>
+                {editKey === key ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <textarea value={editVal} onChange={e => setEditVal(e.target.value)} rows={2} style={{ width: '100%', borderRadius: 8, border: `1.5px solid ${alpha(th.ink,0.15)}`, padding: '8px 10px', fontFamily: th.body, fontSize: 14, resize: 'none', outline: 'none' }} />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Btn th={th} size="s" onClick={async () => { await updateText(key, editVal); setEditKey(null); }}>שמור</Btn>
+                      <Btn th={th} size="s" variant="ghost" onClick={() => setEditKey(null)}>ביטול</Btn>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => { setEditKey(key); setEditVal(texts[key] || DEFAULT_TEXTS[key] || ''); }} style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', fontFamily: th.body, fontSize: 14, color: th.ink, lineHeight: 1.4 }}>
+                    {texts[key] || DEFAULT_TEXTS[key] || <span style={{ color: alpha(th.ink, 0.35) }}>(ריק)</span>}
+                  </button>
+                )}
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ── USERS ── */}
+        {tab === 'users' && Object.values(matchmakers).map(u => (
+          <div key={u.id} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
+            <Avatar grad={gradForId(u.id)} name={u.displayName || u.email} size={40} photo={u.photoURL} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink }}>{u.displayName || u.email}</div>
+              <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{u.email}</div>
+            </div>
+            <button onClick={() => setUserAdmin(u.id, !u.isAdmin)} style={{ border: 'none', borderRadius: 999, padding: '6px 12px', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: 12, background: u.isAdmin ? alpha(th.gold, 0.15) : alpha(th.ink, 0.07), color: u.isAdmin ? th.gold : alpha(th.ink, 0.5) }}>
+              {u.isAdmin ? 'מנהל ✓' : 'הפוך למנהל'}
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
+  const [f, setF] = useState(initial || { name:'', age:'', gender:'f', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true });
+  const set = (k) => (v) => setF(s => ({ ...s, [k]: v }));
+  const [uploading, setUploading] = useState(false);
+
+  return (
+    <div style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 14, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
+      <Field th={th} label="שם"><TextInput th={th} value={f.name} onChange={set('name')} /></Field>
+      <Field th={th} label="גיל"><TextInput th={th} type="number" value={f.age} onChange={v => setF(s => ({...s, age: +v}))} /></Field>
+      <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['f', 'm']} /></Field>
+      <Field th={th} label="אזור"><Select th={th} value={f.region} onChange={set('region')} options={REGIONS} /></Field>
+      <Field th={th} label="קרבה לדת"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={RELIGIOSITY} /></Field>
+      <Field th={th} label="סבבה והכל, אבל…"><TextInput th={th} value={f.sabaBut} onChange={set('sabaBut')} /></Field>
+      <Field th={th} label="במשפט אחד"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} /></Field>
+      <Field th={th} label="רואה את עצמו/ה עם"><TextInput th={th} value={f.seesWith} onChange={set('seesWith')} /></Field>
+      <Field th={th} label="תחומי עניין (מופרד בפסיקים)"><TextInput th={th} value={f.interests?.join(', ')} onChange={v => setF(s => ({...s, interests: v.split(',').map(x=>x.trim()).filter(Boolean)}))} /></Field>
+      <Field th={th} label="חשוב בפרטנר (מופרד בפסיקים)"><TextInput th={th} value={f.partner?.join(', ')} onChange={v => setF(s => ({...s, partner: v.split(',').map(x=>x.trim()).filter(Boolean)}))} /></Field>
+      <Field th={th} label="פרטים דיסקרטיים"><TextArea th={th} value={f.discrete} onChange={set('discrete')} rows={2} /></Field>
+      {onUpload && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontFamily: th.body, fontWeight: 700, fontSize: 14, marginBottom: 6, color: th.ink }}>העלאת תמונה</div>
+          <input type="file" accept="image/*" onChange={async (e) => { if (!e.target.files[0]) return; setUploading(true); await onUpload(e.target.files[0]); setUploading(false); }} />
+          {uploading && <div style={{ fontFamily: th.body, fontSize: 12, color: th.gold, marginTop: 4 }}>מעלה…</div>}
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Btn th={th} full onClick={() => onSave(f)}>שמור</Btn>
+        <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
+      </div>
+    </div>
+  );
+}
+
+const TEXT_KEYS = {
+  onb_slide1_title: 'אונבורדינג — כותרת שקף 1',
+  onb_slide1_body:  'אונבורדינג — גוף שקף 1',
+  onb_slide2_title: 'אונבורדינג — כותרת שקף 2',
+  onb_slide2_body:  'אונבורדינג — גוף שקף 2',
+  onb_slide3_title: 'אונבורדינג — כותרת שקף 3',
+  onb_slide3_body:  'אונבורדינג — גוף שקף 3',
+  home_greeting:    'בית — ברכה',
+  home_waiting_title: 'בית — כותרת "מה מחכה"',
+  ai_info_text:     'AI — טקסט הסבר',
+  register_title:   'הרשמה — כותרת',
+  register_sub:     'הרשמה — תת-כותרת',
+};
+const DEFAULT_TEXTS = {
+  onb_slide1_title: 'סבבה והכל אבל...',
+  onb_slide1_body:  'איזה כיף להכניס קצת הומור לכל הכבדות!',
+  onb_slide2_title: 'הרשימה שלך, תמיד לפנייך',
+  onb_slide2_body:  'כל הרווקים והרווקות שלך במקום אחד — מסודר, חי ונושם.',
+  onb_slide3_title: 'AI מציע, את/ה מחליט/ה',
+  onb_slide3_body:  'אפשר לשדך לבד, אפשר להיעזר ברובוט, העיקר שנזכה במצוות!',
+  home_greeting:    'מה קורה היום?',
+  home_waiting_title: 'מה מחכה לך',
+  ai_info_text:     'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
+  register_title:   'נעים להכיר',
+  register_sub:     'כמה פרטים ונצא לדרך',
+};
+
+// ════════════════════════════════════════════════════════════
+// SCREENS — use DataCtx instead of static globals
+// ════════════════════════════════════════════════════════════
+// screens-a.jsx — Onboarding, Registration, Home
+const { useState: useS, useEffect: useE } = React;
+
+// ════════════════════════════════════════════════════════════
+// ONBOARDING
+// ════════════════════════════════════════════════════════════
+function Onboarding({ th, go }) {
+  const [i, setI] = useS(0);
+  const slides = [
+    {
+      kind: 'friends',
+      title: 'סבבה והכל אבל...',
+      body: 'איזה כיף להכניס קצת הומור לכל הכבדות!',
+    },
+    {
+      kind: 'list',
+      title: 'הרשימה שלך, תמיד לפנייך',
+      body: 'כל הרווקים והרווקות שלך במקום אחד — מסודר, חי ונושם.',
+    },
+    {
+      kind: 'ai',
+      title: 'AI מציע, את/ה מחליט/ה',
+      body: 'אפשר לשדך לבד, אפשר להיעזר ברובוט, העיקר שנזכה במצוות!',
+    },
+  ];
+  const last = i === slides.length - 1;
+  const s = slides[i];
+
+  const Scene = () => {
+    if (s.kind === 'list') return (
+      <div style={{ position: 'relative', width: 220, height: 200 }}>
+        {[2, 1, 0].map((k, idx) => (
+          <div key={k} style={{
+            position: 'absolute', top: k * 18, right: k * 14, left: k * 14,
+            background: th.card, borderRadius: th.r, padding: 14,
+            boxShadow: `0 10px 26px ${alpha(th.ink, 0.12)}`,
+            display: 'flex', alignItems: 'center', gap: 12,
+            transform: `scale(${1 - k * 0.05})`, opacity: 1 - k * 0.15,
+          }}>
+            <Avatar grad={AV_GRADS[idx * 2]} name={['ד','א','ש'][idx]} size={42} />
+            <div style={{ flex: 1 }}>
+              <div style={{ height: 9, width: '60%', background: alpha(th.ink, 0.15), borderRadius: 6, marginBottom: 7 }} />
+              <div style={{ height: 7, width: '85%', background: alpha(th.primary, 0.25), borderRadius: 6 }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+    if (s.kind === 'friends') return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+        <Avatar grad={AV_GRADS[4]} name="נ" size={92} style={{ marginInlineEnd: -16, zIndex: 2 }} />
+        <div style={{ zIndex: 3, background: th.primary, borderRadius: '50%', width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: `0 10px 24px ${alpha(th.primary,0.4)}` }}>
+          <Icon name="heart" size={30} fill="#fff" stroke={0} />
+        </div>
+        <Avatar grad={AV_GRADS[3]} name="א" size={92} style={{ marginInlineStart: -16, zIndex: 1 }} />
+      </div>
+    );
+    if (s.kind === 'ai') return (
+      <div style={{ position: 'relative', color: th.gold }}>
+        <div style={{ background: alpha(th.gold, 0.14), borderRadius: 40, padding: 30 }}>
+          <Icon name="robot" size={90} stroke={1.6} />
+        </div>
+        <div style={{ position: 'absolute', bottom: -6, left: -6, color: th.primary, background: th.cream, borderRadius: '50%', padding: 8 }}>
+          <Icon name="rose" size={34} stroke={1.8} />
+        </div>
+      </div>
+    );
+    return <Logo size={150} color={th.primary} flaw={th.cream} />;
+  };
+
+  return (
+    <div style={{
+      height: '100%', display: 'flex', flexDirection: 'column',
+      background: `linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.84)})`,
+      direction: 'rtl', fontFamily: th.body, position: 'relative',
+    }}>
+      {/* skip */}
+      <div style={{ paddingTop: 52, paddingInline: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <Logo size={26} color={th.primary} flaw={th.cream} />
+          <span style={{ fontFamily: th.display, fontWeight: 800, color: th.ink, fontSize: 18 }}>סבבה והכל</span>
+        </div>
+        {!last && <button onClick={() => setI(slides.length - 1)} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>דלג/י</button>}
+      </div>
+
+      {/* scene */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', textAlign: 'center' }}>
+        <div key={i} style={{ marginBottom: 40, animation: 'sabaPop .5s cubic-bezier(.2,.9,.3,1)', display: 'flex', justifyContent: 'center' }}><Scene /></div>
+        <h1 key={'t'+i} style={{ fontFamily: th.display, fontSize: 28, color: th.ink, margin: '0 0 12px', lineHeight: 1.15, animation: 'sabaUp .4s ease' }}>{s.title}</h1>
+        <p style={{ fontFamily: th.body, fontSize: 16.5, color: alpha(th.ink, 0.62), lineHeight: 1.5, maxWidth: 300, margin: 0, textWrap: 'pretty' }}>{s.body}</p>
+      </div>
+
+      {/* dots + controls */}
+      <div style={{ padding: '0 24px 40px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 22 }}>
+          {slides.map((_, k) => (
+            <div key={k} onClick={() => setI(k)} style={{
+              width: k === i ? 22 : 8, height: 8, borderRadius: 99, cursor: 'pointer',
+              background: k === i ? th.primary : alpha(th.ink, 0.18), transition: 'all .3s',
+            }} />
+          ))}
+        </div>
+        {last ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <Btn th={th} full size="l" onClick={() => go('register')}>אני שדכן/ית</Btn>
+            <Btn th={th} full size="l" variant="ghost" onClick={() => go('candidateMode')}>אני מועמד/ת</Btn>
+          </div>
+        ) : (
+          <Btn th={th} full size="l" onClick={() => setI(i + 1)} icon={<span style={{ transform: 'scaleX(-1)', display: 'inline-flex' }}><Icon name="arrow" size={20} /></span>}>הבא</Btn>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// MATCHMAKER REGISTRATION
+// ════════════════════════════════════════════════════════════
+function Register({ th, go }) {
+  const [f, setF] = useS({ name: '', phone: '', region: '', gender: '', bio: '' });
+  const set = (k) => (v) => setF(s => ({ ...s, [k]: v }));
+  const valid = f.name && f.phone && f.region && f.gender;
+
+  return (
+    <>
+      <AppHeader th={th} title="נעים להכיר" sub="כמה פרטים ונצא לדרך" onBack={() => go('onboarding')} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 22 }}>
+          <PhotoSlot th={th} label="פרופיל" size={108} />
+          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginTop: 8 }}>הוסף/י תמונת פרופיל *</div>
+        </div>
+
+        <Field th={th} label="שם פרטי ומשפחה" required>
+          <TextInput th={th} value={f.name} onChange={set('name')} placeholder="נועה לוי" />
+        </Field>
+        <Field th={th} label="טלפון (לוואטסאפ)" required hint="לא יוצג למועמדים — משמש לתיאומים">
+          <TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} placeholder="050-0000000" />
+        </Field>
+        <Field th={th} label="אזור מגורים" required>
+          <Select th={th} value={f.region} onChange={set('region')} options={REGIONS} />
+        </Field>
+        <Field th={th} label="מין" required>
+          <Segmented th={th} value={f.gender} onChange={set('gender')} options={['אישה', 'גבר']} />
+        </Field>
+        <Field th={th} label="קצת עלייך" hint="לא חובה — אפשר להשלים מאוחר יותר בהגדרות">
+          <TextArea th={th} value={f.bio} onChange={set('bio')} placeholder="שדכנית בלב, מאמינה שלכל אחד יש את הסבבה־והכל שלו…" rows={3} />
+        </Field>
+
+        <div style={{ marginTop: 8 }}>
+          <Btn th={th} full size="l" disabled={!valid} onClick={() => go('home')}>יאללה, מתחילים</Btn>
+          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.45), marginTop: 12 }}>
+            הרשמה פשוטה. את/ה תמיד יכול/ה להשלים פרטים בהמשך.
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// MATCHMAKER HOME
+// ════════════════════════════════════════════════════════════
+function Home({ th, go }) {
+  const me = MATCHMAKERS.me;
+  const mine = CANDIDATES.filter(c => c.mine);
+  const waiting = [
+    { icon: 'heart', tone: th.primary, big: '3', text: 'הצעות מחכות לתגובה שלך', to: () => go('offers') },
+    { icon: 'bell', tone: th.gold, big: '2', text: 'מועמדים שלא קיבלו יחס מעל 7 ימים', to: () => go('tab', { tab: 'cands' }) },
+    { icon: 'chat', tone: th.ink, big: '1', text: 'שידוך שמחכה לתשובת המועמד', to: () => go('offers') },
+  ];
+  const stats = [
+    { n: mine.length, label: 'מועמדים פעילים' },
+    { n: 4, label: 'שידוכים החודש' },
+    { n: 3, label: 'הצעות ממתינות' },
+  ];
+
+  return (
+    <>
+      <div style={{ paddingTop: 50, paddingInline: 18, paddingBottom: 6, background: th.cream, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Avatar grad={me.grad} name={me.name} size={46} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום נועה,</div>
+          <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>מה קורה היום?</div>
+        </div>
+        <button onClick={() => go('tab', { tab: 'set' })} style={{ position: 'relative', border: 'none', background: th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: th.ink, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+          <Icon name="bell" size={21} />
+          <span style={{ position: 'absolute', top: 8, right: 9, width: 9, height: 9, borderRadius: '50%', background: th.primary, border: `2px solid ${th.card}` }} />
+        </button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
+        {/* WAITING banner */}
+        <div style={{ background: `linear-gradient(135deg, ${th.ink}, ${alpha(th.primary, 0.85)})`, borderRadius: th.rLg, padding: 18, marginBottom: 18, color: th.cream, boxShadow: `0 16px 34px ${alpha(th.ink, 0.28)}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Logo size={22} color={th.gold} flaw={th.cream} />
+            <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800 }}>מה מחכה לך</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {waiting.map((w, k) => (
+              <button key={k} onClick={w.to} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, background: alpha('#ffffff', 0.1), borderRadius: th.r, padding: '10px 12px' }}>
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: w.tone, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name={w.icon} size={20} fill={w.icon === 'heart' ? '#fff' : 'none'} stroke={w.icon === 'heart' ? 0 : 2} />
+                </div>
+                <div style={{ flex: 1, fontFamily: th.body, fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>
+                  <b style={{ fontFamily: th.display, fontSize: 17 }}>{w.big}</b>&nbsp; {w.text}
+                </div>
+                <span style={{ transform: 'scaleX(-1)', opacity: 0.6 }}><Icon name="chevL" size={18} /></span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* STATS */}
+        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+          {stats.map((st, k) => (
+            <div key={k} style={{ flex: 1, background: th.card, borderRadius: th.r, padding: '14px 8px', textAlign: 'center', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+              <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.primary }}>{st.n}</div>
+              <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* MY CANDIDATES preview */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontFamily: th.display, fontSize: 18, fontWeight: 800, color: th.ink }}>המועמדים שלך</span>
+          <button onClick={() => go('tab', { tab: 'cands' })} style={{ border: 'none', background: 'none', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: 13.5, cursor: 'pointer' }}>הכל</button>
+        </div>
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 6, margin: '0 -18px', paddingInline: 18 }}>
+          {mine.map(c => (
+            <button key={c.id} onClick={() => go('candidate', { id: c.id })} style={{ all: 'unset', cursor: 'pointer', width: 130, flexShrink: 0, background: th.card, borderRadius: th.r, padding: 12, boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}` }}>
+              <Avatar grad={c.grad} name={c.name} size={56} photo={c.photos && c.photos[0]} style={{ marginInline: 'auto', marginBottom: 8 }} />
+              <div style={{ textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
+              <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* AI nudge */}
+        <button onClick={() => go('tab', { tab: 'ai' })} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, marginTop: 18, background: alpha(th.gold, 0.12), border: `1.5px solid ${alpha(th.gold, 0.3)}`, borderRadius: th.r, padding: 14, width: '100%', boxSizing: 'border-box' }}>
+          <div style={{ color: th.gold }}><Icon name="spark" size={28} fill={th.gold} /></div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>3 התאמות חדשות מ-AI</div>
+            <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6) }}>בדוק/י מי מתאים למי השבוע</div>
+          </div>
+          <span style={{ transform: 'scaleX(-1)', color: th.gold }}><Icon name="chevL" size={20} /></span>
+        </button>
+      </div>
+    </>
+  );
+}
+
+Object.assign(window, { Onboarding, Register, Home });
+// screens-b.jsx — Candidates list + filters, Candidate detail (3 variations)
+const { useState: useSb, useMemo: useMb } = React;
+
+// ════════════════════════════════════════════════════════════
+// CANDIDATES LIST
+// ════════════════════════════════════════════════════════════
+function Candidates({ th, go }) {
+  const [scope, setScope] = useSb('mine'); // mine | all
+  const [q, setQ] = useSb('');
+  const [filterOpen, setFilterOpen] = useSb(false);
+  const [addOpen, setAddOpen] = useSb(false);
+  const [filters, setFilters] = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
+
+  const list = useMb(() => CANDIDATES.filter(c => {
+    if (scope === 'mine' && !c.mine) return false;
+    if (q && !c.name.includes(q) && !c.oneLine.includes(q)) return false;
+    if (filters.gender && (filters.gender === 'נשים' ? c.gender !== 'f' : c.gender !== 'm')) return false;
+    if (filters.region && c.region !== filters.region) return false;
+    if (filters.status === 'פנוי' && !c.available) return false;
+    if (filters.status === 'תפוס' && c.available) return false;
+    if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
+    if (c.age < filters.ageMin || c.age > filters.ageMax) return false;
+    return true;
+  }), [scope, q, filters]);
+
+  const activeFilters = (filters.gender ? 1 : 0) + (filters.region ? 1 : 0) + (filters.status ? 1 : 0) + filters.rel.length;
+
+  return (
+    <>
+      <AppHeader th={th} title="מועמדים" sub={`${list.length} ברשימה`} action={
+        <button onClick={() => setFilterOpen(true)} style={{ position: 'relative', border: 'none', background: th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: th.ink, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+          <Icon name="filter" size={21} />
+          {activeFilters > 0 && <span style={{ position: 'absolute', top: -3, left: -3, background: th.primary, color: '#fff', borderRadius: '50%', minWidth: 18, height: 18, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{activeFilters}</span>}
+        </button>
+      } />
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 90px', position: 'relative' }}>
+        {/* search */}
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={19} /></span>
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="חיפוש מועמד…" style={{ width: '100%', boxSizing: 'border-box', padding: '11px 40px 11px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14.5, background: th.card, outline: 'none', color: th.ink }} />
+        </div>
+
+        {/* scope toggle */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          {[['mine', 'שלי'], ['all', 'כל המאגר']].map(([id, lbl]) => (
+            <button key={id} onClick={() => setScope(id)} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: scope === id ? th.ink : th.card, color: scope === id ? th.cream : alpha(th.ink, 0.55), boxShadow: scope === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>{lbl}</button>
+          ))}
+        </div>
+
+        {/* grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {list.map(c => <CandCard key={c.id} c={c} th={th} onClick={() => go('candidate', { id: c.id })} />)}
+        </div>
+        {list.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '50px 20px', color: alpha(th.ink, 0.4) }}>
+            <Icon name="search" size={40} />
+            <div style={{ fontFamily: th.body, marginTop: 10, fontSize: 15 }}>לא נמצאו מועמדים. נסה/י לשנות פילטרים.</div>
+          </div>
+        )}
+      </div>
+
+      {/* FAB */}
+      <button onClick={() => setAddOpen(true)} style={{ position: 'absolute', bottom: 102, left: 20, zIndex: 30, width: 58, height: 58, borderRadius: '50%', border: 'none', background: th.primary, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 12px 28px ${alpha(th.primary, 0.45)}` }}>
+        <Icon name="plus" size={28} />
+      </button>
+
+      <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} filters={filters} setFilters={setFilters} />
+      <AddSheet open={addOpen} onClose={() => setAddOpen(false)} th={th} go={go} />
+    </>
+  );
+}
+
+function CandCard({ c, th, onClick }) {
+  return (
+    <button onClick={onClick} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'relative', height: 116, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {c.photos && c.photos[0]
+          ? <img src={c.photos[0]} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <span style={{ fontFamily: th.display, fontSize: 44, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>}
+        <div style={{ position: 'absolute', top: 8, right: 8 }}>
+          <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)} soft={false}>{c.available ? 'פנוי/ה' : 'תפוס/ה'}</Tag>
+        </div>
+        {!c.mine && <div style={{ position: 'absolute', top: 8, left: 8 }}><Tag th={th} tone={th.gold} soft={false}>{findMm(c.mm).name.split(' ')[0]}</Tag></div>}
+        {c.photoCount > 1 && (
+          <div style={{ position: 'absolute', bottom: 7, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4 }}>
+            {Array.from({ length: c.photoCount }).map((_, i) => (
+              <span key={i} style={{ width: i === 0 ? 12 : 5, height: 5, borderRadius: 99, background: i === 0 ? '#fff' : 'rgba(255,255,255,0.6)' }} />
+            ))}
+          </div>
+        )}
+      </div>
+      <div style={{ padding: '10px 12px 12px' }}>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{c.name}, {c.age}</div>
+        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}</div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 9px' }}>
+          <Logo size={15} color={th.primary} flaw={th.cream} />
+          <span style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function FilterSheet({ open, onClose, th, filters, setFilters }) {
+  const set = (k, v) => setFilters(s => ({ ...s, [k]: v }));
+  return (
+    <Sheet open={open} onClose={onClose} th={th} title="פילטרים">
+      <Field th={th} label="מין"><Segmented th={th} value={filters.gender} onChange={v => set('gender', filters.gender === v ? '' : v)} options={['נשים', 'גברים']} /></Field>
+      <Field th={th} label="סטטוס"><Segmented th={th} value={filters.status} onChange={v => set('status', filters.status === v ? '' : v)} options={['פנוי', 'תפוס']} /></Field>
+      <Field th={th} label={`טווח גיל: ${filters.ageMin}–${filters.ageMax}`}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input type="range" min={20} max={60} value={filters.ageMin} onChange={e => set('ageMin', Math.min(+e.target.value, filters.ageMax))} style={{ flex: 1, accentColor: th.primary }} />
+          <input type="range" min={20} max={60} value={filters.ageMax} onChange={e => set('ageMax', Math.max(+e.target.value, filters.ageMin))} style={{ flex: 1, accentColor: th.primary }} />
+        </div>
+      </Field>
+      <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={REGIONS} /></Field>
+      <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={RELIGIOSITY} tone={th.gold} /></Field>
+      <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+        <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 })}>נקה</Btn>
+        <Btn th={th} full onClick={onClose}>הצג תוצאות</Btn>
+      </div>
+    </Sheet>
+  );
+}
+
+function AddSheet({ open, onClose, th, go }) {
+  const paths = [
+    { icon: 'edit', title: 'אני ממלא/ת עבורו', body: 'הזמנה בוואטסאפ, ואת/ה ממלא/ת את הכרטיסייה. לא צריך אישור.', cta: 'מילוי ידני', act: () => { onClose(); go('candidate', { id: 'c1' }); } },
+    { icon: 'link', title: 'הוא/היא ימלא/תמלא', body: 'שולחים לינק ייחודי, המועמד/ת ממלא/ת, ואת/ה מאשר/ת.', cta: 'שליחת לינק', act: onClose },
+    { icon: 'users', title: 'כבר במערכת', body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.', cta: 'חיפוש במאגר', act: onClose },
+  ];
+  return (
+    <Sheet open={open} onClose={onClose} th={th} title="הוספת מועמד/ת">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {paths.map((p, k) => (
+          <button key={k} onClick={p.act} style={{ all: 'unset', cursor: 'pointer', display: 'flex', gap: 13, alignItems: 'flex-start', background: th.card, border: `1.5px solid ${alpha(th.ink, 0.1)}`, borderRadius: th.r, padding: 14 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: alpha(th.primary, 0.12), color: th.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={p.icon} size={22} /></div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{p.title}</div>
+              <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6), lineHeight: 1.35, marginTop: 2 }}>{p.body}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// CANDIDATE DETAIL — 3 VARIATIONS (the heart)
+// ════════════════════════════════════════════════════════════
+function CandidateDetail({ th, go, params }) {
+  const c = findCand(params?.id) || CANDIDATES[0];
+  const [showDiscrete, setShowDiscrete] = useSb(false);
+  const variant = th.cardVariant;
+
+  const footer = (
+    <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
+      <button onClick={() => {}} style={{ width: 52, borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.15)}`, background: th.card, color: th.success, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}><Icon name="whatsapp" size={24} /></button>
+      <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>שדך/י את {c.name}</Btn>
+    </div>
+  );
+
+  const body =
+    variant === 'מגזין' ? <MagBody c={c} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
+    : variant === 'מינימלי' ? <MinBody c={c} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
+    : <ClassicBody c={c} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />;
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, position: 'relative' }}>
+      {/* floating back / dots over content */}
+      <div style={{ position: 'absolute', top: 50, right: 16, left: 16, zIndex: 20, display: 'flex', justifyContent: 'space-between', pointerEvents: 'none' }}>
+        <button onClick={() => go('back')} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="back" size={20} /></button>
+        <button style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="dots" size={20} /></button>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto' }}>{body}</div>
+      {footer}
+    </div>
+  );
+}
+
+// shared sub-sections
+function InterestChips({ items, th, tone }) {
+  return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{items.map(i => <Chip key={i} label={i} th={th} tone={tone} active />)}</div>;
+}
+function DiscreteBox({ c, th, show, setShow, mag }) {
+  return (
+    <div style={{ background: mag ? 'transparent' : alpha(th.ink, 0.04), borderRadius: th.r, padding: mag ? 0 : 14, border: `1.5px dashed ${alpha(th.ink, 0.18)}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: show ? 8 : 0 }}>
+        <Icon name="lock" size={17} style={{ color: th.gold }} />
+        <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, flex: 1 }}>פרטים דיסקרטיים</span>
+        <button onClick={() => setShow(!show)} style={{ border: 'none', background: 'none', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="eye" size={16} />{show ? 'הסתר' : 'גלוי לשדכן בלבד'}
+        </button>
+      </div>
+      {show && <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.7), lineHeight: 1.5 }}>{c.discrete}</div>}
+    </div>
+  );
+}
+
+Object.assign(window, { Candidates, CandidateDetail, InterestChips, DiscreteBox });
+// screens-b2.jsx — the 3 candidate-card body variations
+const { useState: useSb2 } = React;
+
+function infoPairs(c) {
+  return [
+    ['גיל', c.age],
+    ['אזור', c.region],
+    ['מצב', c.family],
+    ['ילדים', c.kids ? `${c.kids}` : 'אין'],
+    ['קרבה לדת', c.religiosity],
+  ];
+}
+
+// ── VARIANT 1 — קלאסי (warm, friendly) ─────────────────────────
+function ClassicBody({ c, th, showDiscrete, setShowDiscrete }) {
+  const Section = ({ label, children, icon }) => (
+    <div style={{ background: th.card, borderRadius: th.r, padding: 16, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+        {icon && <span style={{ color: th.primary }}><Icon name={icon} size={18} /></span>}
+        <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{label}</span>
+      </div>
+      {children}
+    </div>
+  );
+  return (
+    <div>
+      {/* hero gallery */}
+      <PhotoGallery c={c} th={th} height={360}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 170, background: `linear-gradient(to top, ${alpha(th.ink, 0.74)}, transparent)`, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: 50, right: 20, left: 20, color: '#fff', pointerEvents: 'none' }}>
+          <div style={{ marginBottom: 10 }}>
+            <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.7)} soft={false}>{c.available ? 'פנוי/ה להצעות' : 'תפוס/ה'}</Tag>
+          </div>
+          <div style={{ fontFamily: th.display, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{c.name}, {c.age}</div>
+          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.92, marginTop: 4 }}>{c.region} · {c.religiosity}</div>
+        </div>
+      </PhotoGallery>
+
+      <div style={{ padding: '0 16px 24px', marginTop: -28, position: 'relative' }}>
+        {/* the saba badge overlaps the hero */}
+        <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={c.sabaBut} size="l" /></div>
+
+        <Section label="במשפט אחד" icon="user">
+          <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p>
+        </Section>
+        <Section label="רואה אותו/ה משתדך/ת עם…" icon="heart">
+          <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
+        </Section>
+        <Section label="תחומי עניין" icon="spark"><InterestChips items={c.interests} th={th} /></Section>
+        <Section label="מה חשוב אצל הפרטנר" icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} /></Section>
+        <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>
+      </div>
+    </div>
+  );
+}
+
+// ── VARIANT 2 — מגזין (editorial) ──────────────────────────────
+function MagBody({ c, th, showDiscrete, setShowDiscrete }) {
+  const Rule = () => <div style={{ height: 1.5, background: alpha(th.gold, 0.4), margin: '22px 0' }} />;
+  const Label = ({ children }) => <div style={{ fontFamily: th.display, fontSize: 12, color: th.gold, letterSpacing: 2, marginBottom: 10 }}>{children}</div>;
+  return (
+    <div>
+      {/* full-bleed gallery */}
+      <PhotoGallery c={c} th={th} height={440}>
+        <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${alpha(th.ink, 0.82)} 6%, transparent 55%)`, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: 26, right: 24, left: 24, color: '#fff', pointerEvents: 'none' }}>
+          <div style={{ fontFamily: th.display, fontSize: 13, letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age} · {c.available ? 'פנוי/ה' : 'תפוס/ה'}</div>
+          <div style={{ fontFamily: th.display, fontSize: 52, fontWeight: 800, lineHeight: 0.95 }}>{c.name}</div>
+          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.85, marginTop: 8 }}>{c.religiosity}</div>
+        </div>
+      </PhotoGallery>
+
+      <div style={{ background: th.cream, padding: '30px 24px 24px' }}>
+        {/* pull quote */}
+        <div style={{ position: 'relative', paddingTop: 18 }}>
+          <span style={{ position: 'absolute', top: -18, right: -6, fontFamily: th.display, fontSize: 90, color: alpha(th.primary, 0.22), lineHeight: 1 }}>״</span>
+          <div style={{ fontFamily: th.display, fontSize: 24, color: th.ink, lineHeight: 1.3, position: 'relative', textWrap: 'pretty' }}>{c.sabaBut}</div>
+          <div style={{ fontFamily: th.body, fontSize: 13.5, color: th.gold, fontWeight: 700, marginTop: 12 }}>— סבבה והכל, אבל…</div>
+        </div>
+        <Rule />
+        <Label>במשפט אחד</Label>
+        <p style={{ margin: 0, fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p>
+        <Rule />
+        <Label>רואה אותו/ה משתדך/ת עם</Label>
+        <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
+        <Rule />
+        <Label>תחומי עניין</Label>
+        <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
+          {c.interests.map((it, i) => <span key={it}>{it}{i < c.interests.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
+        </div>
+        <Rule />
+        <Label>מה חשוב אצל הפרטנר</Label>
+        <InterestChips items={c.partner} th={th} tone={th.gold} />
+        <Rule />
+        <Label>פרטים</Label>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+          {infoPairs(c).map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(th.ink, 0.08)}`, paddingBottom: 6 }}>
+              <span style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.5) }}>{k}</span>
+              <span style={{ fontFamily: th.display, fontSize: 14.5, color: th.ink, fontWeight: 700 }}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <Rule />
+        <DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} mag />
+      </div>
+    </div>
+  );
+}
+
+// ── VARIANT 3 — מינימלי (clean, airy) ──────────────────────────
+function MinBody({ c, th, showDiscrete, setShowDiscrete }) {
+  const Hr = () => <div style={{ height: 1, background: alpha(th.ink, 0.09), margin: '0 0' }} />;
+  const Block = ({ label, children }) => (
+    <div style={{ padding: '20px 0' }}>
+      <div style={{ fontFamily: th.body, fontSize: 12.5, fontWeight: 700, color: alpha(th.ink, 0.4), letterSpacing: 0.5, marginBottom: 9 }}>{label}</div>
+      {children}
+    </div>
+  );
+  return (
+    <div style={{ padding: '0 24px' }}>
+      {/* centered identity */}
+      <div style={{ textAlign: 'center', paddingTop: 104, paddingBottom: 6 }}>
+        <AvatarGallery c={c} th={th} size={120} />
+        <div style={{ fontFamily: th.display, fontSize: 30, fontWeight: 800, color: th.ink, marginTop: 18 }}>{c.name}, {c.age}</div>
+        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5), marginTop: 3 }}>{c.region} · {c.religiosity}</div>
+        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+          <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)}>{c.available ? 'פנוי/ה להצעות' : 'תפוס/ה'}</Tag>
+        </div>
+      </div>
+
+      {/* sabaBut — quiet highlight */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', background: alpha(th.primary, 0.07), borderRadius: th.r, padding: '14px 16px', margin: '18px 0 4px' }}>
+        <Logo size={22} color={th.primary} flaw={th.cream} />
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: th.body, fontSize: 11, color: th.primary, fontWeight: 700 }}>סבבה והכל, אבל…</div>
+          <div style={{ fontFamily: th.display, fontSize: 16, color: th.ink, lineHeight: 1.25 }}>{c.sabaBut}</div>
+        </div>
+      </div>
+
+      <Block label="במשפט אחד"><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
+      <Hr />
+      <Block label="רואה אותו/ה עם"><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p></Block>
+      <Hr />
+      <Block label="תחומי עניין"><InterestChips items={c.interests} th={th} /></Block>
+      <Hr />
+      <Block label="חשוב בפרטנר"><InterestChips items={c.partner} th={th} tone={th.gold} /></Block>
+      <Hr />
+      <Block label="פרטים">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          {infoPairs(c).map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5) }}>{k}</span>
+              <span style={{ fontFamily: th.body, fontSize: 14.5, color: th.ink, fontWeight: 700 }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </Block>
+      <Hr />
+      <div style={{ padding: '20px 0 24px' }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>
+    </div>
+  );
+}
+
+Object.assign(window, { ClassicBody, MagBody, MinBody });
+// screens-c.jsx — Match flow (wizard)
+const { useState: useSc, useMemo: useMc } = React;
+
+// mini selectable candidate row
+function CandRow({ c, th, selected, onClick, trailing }) {
+  return (
+    <button onClick={onClick} style={{ all: 'unset', cursor: onClick ? 'pointer' : 'default', boxSizing: 'border-box', width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: th.card, borderRadius: th.r, border: selected ? `2px solid ${th.primary}` : `2px solid transparent`, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, marginBottom: 10 }}>
+      <Avatar grad={c.grad} name={c.name} size={50} photo={c.photos && c.photos[0]} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{c.name}, {c.age}</div>
+        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 4 }}>{c.region} · {c.religiosity} · {findMm(c.mm).name.split(' ')[0]}</div>
+        <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.7), display: 'flex', gap: 5, alignItems: 'center' }}>
+          <Logo size={13} color={th.primary} flaw={th.cream} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.sabaBut}</span>
+        </div>
+      </div>
+      {trailing}
+    </button>
+  );
+}
+
+function MatchFlow({ th, go, params }) {
+  const first = findCand(params?.id) || CANDIDATES[0];
+  const presetSecond = params?.withId ? findCand(params.withId) : null;
+  const [step, setStep] = useSc(presetSecond ? 3 : 1); // 1 first, 2 choose, 3 proposal, 4 success
+  const [second, setSecond] = useSc(presetSecond);
+  const [note, setNote] = useSc('');
+  const [relFilter, setRelFilter] = useSc('');
+
+  const candidates2 = useMc(() => CANDIDATES.filter(c => c.gender !== first.gender && c.id !== first.id && c.available && (!relFilter || c.religiosity === relFilter)), [first, relFilter]);
+  const steps = ['ראשון', 'שני', 'הצעה'];
+  const stepIdx = Math.min(step, 3) - 1;
+
+  const back = () => {
+    if (step === 1) return go('back');
+    if (step === 3 && presetSecond) return go('back');
+    setStep(step - 1);
+  };
+
+  // STEP 4 — success
+  if (step === 4) return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(170deg, ${th.cream}, ${tint(th.success, 0.86)})`, padding: 28, textAlign: 'center' }}>
+      <div style={{ animation: 'sabaPop .5s cubic-bezier(.2,.9,.3,1)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 24 }}>
+        <Avatar grad={first.grad} name={first.name} size={84} photo={first.photos && first.photos[0]} style={{ marginInlineEnd: -12 }} />
+        <div style={{ zIndex: 2, background: th.success, color: '#fff', borderRadius: '50%', width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${alpha(th.success, 0.4)}` }}><Icon name="heart" size={26} fill="#fff" stroke={0} /></div>
+        <Avatar grad={second.grad} name={second.name} size={84} photo={second.photos && second.photos[0]} style={{ marginInlineStart: -12 }} />
+      </div>
+      <h1 style={{ fontFamily: th.display, fontSize: 28, color: th.ink, margin: '0 0 10px' }}>ההצעה בדרך!</h1>
+      <p style={{ fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.65), lineHeight: 1.5, maxWidth: 300, margin: '0 0 28px' }}>
+        שלחנו ל{findMm(second.mm).name} את ההצעה. ברגע שתתקבל — {first.name} יקבל/תקבל הודעה בוואטסאפ.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
+        <Btn th={th} full size="l" onClick={() => go('offers')}>למעקב הצעות</Btn>
+        <Btn th={th} full size="l" variant="ghost" onClick={() => go('tab', { tab: 'home' })}>חזרה לבית</Btn>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream }}>
+      <AppHeader th={th} title="שידוך חדש" onBack={back} />
+      {/* progress */}
+      <div style={{ display: 'flex', gap: 6, padding: '4px 18px 10px', flexShrink: 0 }}>
+        {steps.map((s, i) => (
+          <div key={i} style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ height: 5, borderRadius: 99, background: i <= stepIdx ? th.primary : alpha(th.ink, 0.12), marginBottom: 5, transition: 'background .3s' }} />
+            <span style={{ fontFamily: th.body, fontSize: 11, fontWeight: 700, color: i <= stepIdx ? th.primary : alpha(th.ink, 0.4) }}>{s}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 24px' }}>
+        {step === 1 && (
+          <>
+            <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 6 }}>מתחילים עם {first.name}</div>
+            <p style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginTop: 0, marginBottom: 14, lineHeight: 1.4 }}>זה/זו המועמד/ת הראשון/ה בשידוך. עכשיו נמצא את ההתאמה.</p>
+            <CandRow c={first} th={th} selected />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: alpha(th.gold, 0.12), borderRadius: th.r, padding: 12, marginTop: 4 }}>
+              <Icon name="info" size={18} style={{ color: th.gold, flexShrink: 0 }} />
+              <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.4 }}>חוק הבית: לפחות אחד מבני הזוג חייב להיות מועמד/ת <b>שלך</b>.</span>
+            </div>
+            <Btn th={th} full size="l" style={{ marginTop: 20 }} onClick={() => setStep(2)}>בחר/י התאמה</Btn>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 10 }}>מי מתאים/ה ל{first.name}?</div>
+            <div style={{ display: 'flex', gap: 7, overflowX: 'auto', marginBottom: 14, paddingBottom: 4 }}>
+              <Chip th={th} label="הכל" active={!relFilter} onClick={() => setRelFilter('')} tone={th.gold} />
+              {RELIGIOSITY.slice(0, 6).map(r => <Chip key={r} th={th} label={r} active={relFilter === r} onClick={() => setRelFilter(relFilter === r ? '' : r)} tone={th.gold} />)}
+            </div>
+            {candidates2.map(c => (
+              <CandRow key={c.id} c={c} th={th} selected={second?.id === c.id} onClick={() => setSecond(c)}
+                trailing={second?.id === c.id ? <div style={{ color: th.primary }}><Icon name="check" size={24} /></div> : null} />
+            ))}
+            {candidates2.length === 0 && <div style={{ textAlign: 'center', color: alpha(th.ink, 0.4), padding: 30, fontFamily: th.body }}>אין התאמות בפילטר הזה</div>}
+            <Btn th={th} full size="l" style={{ marginTop: 8 }} disabled={!second} onClick={() => setStep(3)}>{second ? `המשך עם ${second.name}` : 'בחר/י מועמד/ת'}</Btn>
+          </>
+        )}
+
+        {step === 3 && second && (
+          <>
+            <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 14 }}>הנה ההצעה</div>
+            {/* pair summary */}
+            <div style={{ background: th.card, borderRadius: th.rLg, padding: 18, boxShadow: `0 8px 22px ${alpha(th.ink, 0.08)}`, marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 14 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <Avatar grad={first.grad} name={first.name} size={72} photo={first.photos && first.photos[0]} style={{ marginInline: 'auto' }} />
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 6 }}>{first.name}</div>
+                </div>
+                <div style={{ color: th.primary, padding: '0 4px' }}><Icon name="heart" size={30} fill={th.primary} stroke={0} /></div>
+                <div style={{ textAlign: 'center' }}>
+                  <Avatar grad={second.grad} name={second.name} size={72} photo={second.photos && second.photos[0]} style={{ marginInline: 'auto' }} />
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 6 }}>{second.name}</div>
+                </div>
+              </div>
+              <div style={{ background: alpha(th.gold, 0.12), borderRadius: th.r, padding: 13 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                  <Icon name="spark" size={16} style={{ color: th.gold }} fill={th.gold} />
+                  <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink }}>למה זה יכול לעבוד</span>
+                </div>
+                <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
+                  שניהם מ{first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים אבל קרובים בנפש'}, חולקים תחומי עניין ומחפשים חיבור אמיתי. תחושת בטן אומרת — שווה לנסות.
+                </p>
+              </div>
+            </div>
+
+            <Field th={th} label={`מילה אישית ל${findMm(second.mm).name}`} hint="לא חובה — אבל תמיד עוזר">
+              <TextArea th={th} value={note} onChange={setNote} placeholder="היי! חשבתי שאולי יש כאן משהו… בא לך שנבדוק?" rows={3} />
+            </Field>
+            <Btn th={th} full size="l" style={{ marginTop: 4 }} onClick={() => setStep(4)} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>שלח/י הצעה</Btn>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { CandRow, MatchFlow });
+// screens-d.jsx — Offer status, Matchmaker chat, AI recommendations
+const { useState: useSd, useRef: useRd, useEffect: useEd } = React;
+
+function statusTone(s, th) {
+  return { 'נשלחה': th.gold, 'נצפתה': th.gold, 'אושרה': th.success, 'נדחתה': alpha(th.ink, 0.5) }[s] || th.gold;
+}
+
+// ════════════════════════════════════════════════════════════
+// OFFER STATUS
+// ════════════════════════════════════════════════════════════
+function Offers({ th, go }) {
+  const [tab, setTab] = useSd('active');
+  const active = OFFERS.filter(o => o.status !== 'נדחתה');
+  const list = tab === 'active' ? active : OFFERS.filter(o => o.status === 'נדחתה' || o.status === 'אושרה');
+
+  return (
+    <>
+      <AppHeader th={th} title="שידוכים" sub={`${active.length} הצעות פעילות`} onBack={() => go('tab', { tab: 'home' })} />
+      <div style={{ display: 'flex', gap: 8, padding: '4px 18px 10px', flexShrink: 0 }}>
+        {[['active', 'פעילות'], ['done', 'הסתיימו']].map(([id, lbl]) => (
+          <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}` }}>{lbl}</button>
+        ))}
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 24px' }}>
+        {list.map(o => {
+          const a = findCand(o.aId), b = findCand(o.bId), bMm = findMm(o.bMm);
+          return (
+            <button key={o.id} onClick={() => go('chat', { id: o.id })} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 6px 18px ${alpha(th.ink, 0.06)}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
+                <Avatar grad={a.grad} name={a.name} size={46} photo={a.photos && a.photos[0]} style={{ marginInlineEnd: -8 }} />
+                <Avatar grad={b.grad} name={b.name} size={46} photo={b.photos && b.photos[0]} style={{ marginInlineStart: -8, marginInlineEnd: 10 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{a.name} · {b.name}</div>
+                  <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>השדכן/ית של {b.name}: {bMm.name}</div>
+                </div>
+                <Tag th={th} tone={statusTone(o.status, th)} soft={false}>{o.status}</Tag>
+              </div>
+              {/* per-side status */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                {[[a.name, o.aStatus], [b.name, o.bStatus]].map(([n, st], i) => (
+                  <div key={i} style={{ flex: 1, background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 10px' }}>
+                    <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>{n}</div>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: st === 'אישר' ? th.success : st === 'דחה' ? th.error : alpha(th.ink, 0.7) }}>{st}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, color: th.primary }}>
+                  <Icon name="chat" size={18} /><span style={{ fontFamily: th.body, fontWeight: 700, fontSize: 13.5 }}>פתח/י צ'אט עם {bMm.name.split(' ')[0]}</span>
+                </div>
+                {o.unread > 0 && <span style={{ background: th.primary, color: '#fff', borderRadius: 999, minWidth: 20, height: 20, fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{o.unread}</span>}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// MATCHMAKER CHAT
+// ════════════════════════════════════════════════════════════
+function Chat({ th, go, params }) {
+  const o = OFFERS.find(x => x.id === params?.id) || OFFERS[0];
+  const a = findCand(o.aId), b = findCand(o.bId), bMm = findMm(o.bMm);
+  const [msgs, setMsgs] = useSd(CHATS[o.id] ? [...CHATS[o.id]] : []);
+  const [text, setText] = useSd('');
+  const endRef = useRd(null);
+  useEd(() => { endRef.current?.parentNode?.scrollTo(0, 99999); }, [msgs]);
+
+  const send = (t) => { if (!t.trim()) return; setMsgs(m => [...m, { from: 'me', text: t, t: 'עכשיו' }]); setText(''); };
+  const incoming = (t) => setMsgs(m => [...m, { from: 'm2', text: t, t: 'עכשיו' }]);
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream }}>
+      {/* header */}
+      <div style={{ paddingTop: 50, paddingInline: 14, paddingBottom: 10, background: th.card, flexShrink: 0, borderBottom: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button onClick={() => go('offers')} style={{ width: 38, height: 38, borderRadius: '50%', border: 'none', background: alpha(th.ink, 0.05), color: th.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="back" size={20} /></button>
+        <Avatar grad={bMm.grad} name={bMm.name} size={40} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{bMm.name}</div>
+          <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>על {a.name} ו{b.name}</div>
+        </div>
+        <Tag th={th} tone={statusTone(o.status, th)} soft={false}>{o.status}</Tag>
+      </div>
+
+      {/* messages */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* the proposal card pinned at top */}
+        <div style={{ alignSelf: 'center', background: alpha(th.gold, 0.14), borderRadius: th.r, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <Icon name="heart" size={15} style={{ color: th.primary }} fill={th.primary} stroke={0} />
+          <span style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.7) }}>הצעת שידוך: {a.name} · {b.name}</span>
+        </div>
+        {msgs.map((m, i) => {
+          const mine = m.from === 'me';
+          return (
+            <div key={i} style={{ alignSelf: mine ? 'flex-start' : 'flex-end', maxWidth: '78%' }}>
+              <div style={{ background: mine ? th.primary : th.card, color: mine ? '#fff' : th.ink, borderRadius: 18, borderBottomRightRadius: mine ? 18 : 4, borderBottomLeftRadius: mine ? 4 : 18, padding: '9px 13px', fontFamily: th.body, fontSize: 14.5, lineHeight: 1.4, boxShadow: `0 2px 8px ${alpha(th.ink, 0.06)}` }}>{m.text}</div>
+              <div style={{ fontFamily: th.body, fontSize: 10.5, color: alpha(th.ink, 0.4), marginTop: 3, textAlign: mine ? 'right' : 'left' }}>{m.t}</div>
+            </div>
+          );
+        })}
+        <div ref={endRef} />
+      </div>
+
+      {/* incoming-offer action row (decision buttons) */}
+      {o.status !== 'אושרה' && o.status !== 'נדחתה' && (
+        <div style={{ flexShrink: 0, padding: '10px 14px', display: 'flex', gap: 8, background: th.cream, borderTop: `1px solid ${alpha(th.ink, 0.06)}` }}>
+          <Btn th={th} size="s" variant="success" onClick={() => incoming('מאשר! בוא נתקדם 🎉')} icon={<Icon name="check" size={16} />}>קבל</Btn>
+          <Btn th={th} size="s" variant="ghost" onClick={() => incoming('צריך עוד פרטים על הגובה ועל הרקע המשפחתי')}>בקש פרטים</Btn>
+          <Btn th={th} size="s" variant="ghost" style={{ color: th.error, boxShadow: `inset 0 0 0 1.5px ${alpha(th.error,0.3)}` }} onClick={() => incoming('חבל, אבל זה לא מתאים הפעם')}>דחה</Btn>
+        </div>
+      )}
+
+      {/* input */}
+      <div style={{ flexShrink: 0, padding: '8px 14px 26px', display: 'flex', gap: 8, alignItems: 'center', background: th.card, borderTop: `1px solid ${alpha(th.ink, 0.08)}` }}>
+        <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && send(text)} placeholder="כתוב/י הודעה…" style={{ flex: 1, border: 'none', background: alpha(th.ink, 0.05), borderRadius: 999, padding: '11px 16px', fontFamily: th.body, fontSize: 14.5, outline: 'none', color: th.ink }} />
+        <button onClick={() => send(text)} style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: th.primary, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="send" size={20} fill="#fff" stroke={0} /></button>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// AI RECOMMENDATIONS
+// ════════════════════════════════════════════════════════════
+function AIRecs({ th, go }) {
+  return (
+    <>
+      <AppHeader th={th} title="המלצות AI" sub="הזיווגים שהאלגוריתם מצא השבוע" action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 24px' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: alpha(th.gold, 0.1), borderRadius: th.r, padding: 13, marginBottom: 16 }}>
+          <Icon name="info" size={18} style={{ color: th.gold, flexShrink: 0 }} />
+          <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.45 }}>ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. <b>אתם מחליטים</b> — הוא רק מציע.</span>
+        </div>
+
+        {AI_PAIRS.map((p, i) => {
+          const a = findCand(p.aId), b = findCand(p.bId);
+          const mineId = a.mine ? a.id : b.id;
+          const otherId = a.mine ? b.id : a.id;
+          return (
+            <div key={i} style={{ background: th.card, borderRadius: th.rLg, padding: 16, marginBottom: 14, boxShadow: `0 6px 20px ${alpha(th.ink, 0.07)}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <Avatar grad={a.grad} name={a.name} size={52} photo={a.photos && a.photos[0]} style={{ marginInlineEnd: -10, zIndex: 2 }} />
+                  <Avatar grad={b.grad} name={b.name} size={52} photo={b.photos && b.photos[0]} style={{ marginInlineStart: -10 }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{a.name} · {b.name}</div>
+                  <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>{a.age} · {b.age} | {a.region} · {b.region}</div>
+                </div>
+                <ScoreRing score={p.score} th={th} />
+              </div>
+              <div style={{ background: alpha(th.gold, 0.1), borderRadius: th.r, padding: 12, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                  <Icon name="spark" size={15} style={{ color: th.gold }} fill={th.gold} />
+                  <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink }}>למה הם מתאימים</span>
+                </div>
+                <p style={{ margin: 0, fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>{p.why}</p>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Btn th={th} variant="ghost" onClick={() => go('candidate', { id: otherId })}>הצג כרטיסייה</Btn>
+                <Btn th={th} full onClick={() => go('matchFlow', { id: mineId, withId: otherId })} icon={<Icon name="heart" size={17} fill="#fff" stroke={0} />}>יזום שידוך</Btn>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+Object.assign(window, { Offers, Chat, AIRecs });
+// screens-e.jsx — Candidate mode, Settings
+const { useState: useSe } = React;
+
+function Toggle({ on, onChange, th }) {
+  return (
+    <button onClick={() => onChange(!on)} style={{ width: 50, height: 30, borderRadius: 999, border: 'none', cursor: 'pointer', background: on ? th.success : alpha(th.ink, 0.2), position: 'relative', transition: 'background .2s', flexShrink: 0 }}>
+      <span style={{ position: 'absolute', top: 3, right: on ? 23 : 3, width: 24, height: 24, borderRadius: '50%', background: '#fff', transition: 'right .2s', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }} />
+    </button>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// CANDIDATE MODE (separate candidate view)
+// ════════════════════════════════════════════════════════════
+function CandidateMode({ th, go }) {
+  const me = findCand('c1');       // viewing as דנה
+  const offer = findCand('c4');    // current proposal: יונתן
+  const [available, setAvailable] = useSe(true);
+  const [decided, setDecided] = useSe(null); // 'yes' | 'no'
+  const myMms = [MATCHMAKERS.me, MATCHMAKERS.m3];
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream }}>
+      {/* header */}
+      <div style={{ paddingTop: 50, paddingInline: 18, paddingBottom: 14, background: `linear-gradient(160deg, ${tint(th.primary,0.8)}, ${th.cream})`, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={() => go('onboarding')} style={{ width: 38, height: 38, borderRadius: '50%', border: 'none', background: alpha('#fff', 0.7), color: th.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="back" size={20} /></button>
+          <Avatar grad={me.grad} name={me.name} size={50} photo={me.photos && me.photos[0]} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: th.display, fontSize: 20, fontWeight: 800, color: th.ink, lineHeight: 1 }}>שלום, {me.name}</div>
+            <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3 }}>מצב מועמדת</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: alpha('#fff', 0.6), borderRadius: th.r, padding: '10px 14px', marginTop: 14 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{available ? 'פנויה להצעות' : 'במנוחה מהצעות'}</div>
+            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.55) }}>{available ? 'שדכנים יכולים להציע לך' : 'לא תקבלי הצעות חדשות'}</div>
+          </div>
+          <Toggle on={available} onChange={setAvailable} th={th} />
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 28px' }}>
+        {/* CURRENT OFFER (queue: one at a time) */}
+        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+          <Icon name="heart" size={19} style={{ color: th.primary }} fill={th.primary} stroke={0} /> ההצעה הנוכחית
+        </div>
+        {decided ? (
+          <div style={{ background: th.card, borderRadius: th.rLg, padding: 22, textAlign: 'center', marginBottom: 22, boxShadow: `0 6px 18px ${alpha(th.ink, 0.06)}` }}>
+            <div style={{ color: decided === 'yes' ? th.success : alpha(th.ink, 0.4), marginBottom: 8 }}>
+              <Icon name={decided === 'yes' ? 'check' : 'sad'} size={40} />
+            </div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink }}>{decided === 'yes' ? 'מעולה! עדכנו את השדכנית' : 'קיבלנו, תודה על הכנות'}</div>
+            <p style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.6), margin: '6px 0 0', lineHeight: 1.4 }}>{decided === 'yes' ? 'נועה תיצור קשר עם הצד השני לתיאום.' : 'נמשיך לחפש בשבילך את הסבבה־והכל הנכון.'}</p>
+            <Btn th={th} variant="ghost" size="s" style={{ marginTop: 14 }} onClick={() => setDecided(null)}>בטל</Btn>
+          </div>
+        ) : (
+          <div style={{ background: th.card, borderRadius: th.rLg, overflow: 'hidden', marginBottom: 22, boxShadow: `0 10px 26px ${alpha(th.ink, 0.1)}` }}>
+            <PhotoGallery c={offer} th={th} height={220}>
+              <div style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'none' }}><Tag th={th} tone={th.primary} soft={false}>הצעה חדשה</Tag></div>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90, background: `linear-gradient(to top, ${alpha(th.ink,0.7)}, transparent)`, pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', bottom: 14, right: 16, color: '#fff', pointerEvents: 'none' }}>
+                <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800 }}>{offer.name}, {offer.age}</div>
+                <div style={{ fontFamily: th.body, fontSize: 13.5, opacity: 0.9 }}>{offer.region} · {offer.religiosity}</div>
+              </div>
+            </PhotoGallery>
+            <div style={{ padding: 16 }}>
+              <div style={{ marginBottom: 12 }}><SabaBadge th={th} text={offer.sabaBut} /></div>
+              <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>{offer.oneLine}</p>
+              <button onClick={() => go('candidate', { id: offer.id })} style={{ all: 'unset', cursor: 'pointer', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: 13.5, display: 'flex', alignItems: 'center', gap: 5, marginBottom: 14 }}>
+                <Icon name="eye" size={17} /> לכרטיסייה המלאה
+              </button>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Btn th={th} variant="ghost" full style={{ color: th.error, boxShadow: `inset 0 0 0 1.5px ${alpha(th.error,0.3)}` }} onClick={() => setDecided('no')} icon={<Icon name="x" size={18} />}>לא הפעם</Btn>
+                <Btn th={th} variant="success" full onClick={() => setDecided('yes')} icon={<Icon name="heart" size={18} fill="#fff" stroke={0} />}>מעניין אותי</Btn>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MY MATCHMAKERS */}
+        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>השדכנים שלי</div>
+        <div style={{ background: th.card, borderRadius: th.r, padding: 6, marginBottom: 22, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+          {myMms.map((m, i) => (
+            <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px', borderBottom: i < myMms.length - 1 ? `1px solid ${alpha(th.ink, 0.07)}` : 'none' }}>
+              <Avatar grad={m.grad} name={m.name} size={42} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{m.name}</div>
+                <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{m.region}</div>
+              </div>
+              <button style={{ border: 'none', background: alpha(th.success, 0.12), color: th.success, borderRadius: 999, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Icon name="whatsapp" size={19} /></button>
+            </div>
+          ))}
+          <button style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '10px', color: th.primary }}>
+            <Icon name="plus" size={18} /><span style={{ fontFamily: th.body, fontWeight: 700, fontSize: 13.5 }}>הצטרפות לשדכן/ית נוסף/ת</span>
+          </button>
+        </div>
+
+        {/* HISTORY */}
+        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>היסטוריית הצעות</div>
+        <div style={{ background: th.card, borderRadius: th.r, overflow: 'hidden', marginBottom: 22, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+          {[['נדב', 'נדחתה', th.error], ['אורי', 'הסתיימה', alpha(th.ink,0.5)]].map(([n, st, col], i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: i === 0 ? `1px solid ${alpha(th.ink, 0.07)}` : 'none' }}>
+              <Avatar grad={AV_GRADS[i+2]} name={n} size={36} />
+              <div style={{ flex: 1, fontFamily: th.display, fontWeight: 700, fontSize: 14.5, color: th.ink }}>{n}</div>
+              <span style={{ fontFamily: th.body, fontSize: 12.5, fontWeight: 700, color: col }}>{st}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* actions */}
+        <button onClick={() => go('home')} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', textAlign: 'center', padding: 13, borderRadius: th.r, background: alpha(th.ink, 0.05), fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink, marginBottom: 10 }}>מעבר למצב שדכן/ית</button>
+        <button style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', textAlign: 'center', padding: 13, fontFamily: th.body, fontWeight: 700, fontSize: 13.5, color: th.error }}>מחיקת פרופיל (בלתי הפיך)</button>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// SETTINGS (matchmaker)
+// ════════════════════════════════════════════════════════════
+function Settings({ th, go }) {
+  const me = MATCHMAKERS.me;
+  const Row = ({ icon, label, danger, last, onClick, tone }) => (
+    <button onClick={onClick} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderBottom: last ? 'none' : `1px solid ${alpha(th.ink, 0.07)}` }}>
+      <div style={{ width: 34, height: 34, borderRadius: 10, background: alpha(danger ? th.error : (tone || th.ink), 0.1), color: danger ? th.error : (tone || th.ink), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={icon} size={19} /></div>
+      <span style={{ flex: 1, fontFamily: th.body, fontWeight: 600, fontSize: 15, color: danger ? th.error : th.ink }}>{label}</span>
+      <span style={{ color: alpha(th.ink, 0.3), transform: 'scaleX(-1)' }}><Icon name="chevL" size={18} /></span>
+    </button>
+  );
+  const Group = ({ children }) => <div style={{ background: th.card, borderRadius: th.r, overflow: 'hidden', marginBottom: 16, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>{children}</div>;
+
+  return (
+    <>
+      <AppHeader th={th} title="הגדרות" big />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 24px' }}>
+        {/* profile card */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: th.card, borderRadius: th.rLg, padding: 16, marginBottom: 18, boxShadow: `0 6px 18px ${alpha(th.ink, 0.06)}` }}>
+          <Avatar grad={me.grad} name={me.name} size={62} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 19, color: th.ink }}>{me.name}</div>
+            <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שדכנית · {me.region}</div>
+          </div>
+          <Btn th={th} variant="soft" size="s" icon={<Icon name="edit" size={16} />}>עריכה</Btn>
+        </div>
+
+        <Group>
+          <Row icon="user" label="עריכת פרטים אישיים" />
+          <Row icon="bell" label="ניהול התראות" last />
+        </Group>
+        <Group>
+          <Row icon="users" label="מעבר למצב מועמד/ת" tone={th.primary} onClick={() => go('candidateMode')} last />
+        </Group>
+        <Group>
+          <Row icon="info" label="הצהרת נגישות" />
+          <Row icon="lock" label="פרטיות ואבטחה" last />
+        </Group>
+        <Group>
+          <Row icon="trash" label="מחיקת חשבון" danger />
+          <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => go('onboarding')} />
+        </Group>
+
+        <div style={{ textAlign: 'center', marginTop: 8 }}>
+          <Logo size={28} color={alpha(th.ink, 0.25)} flaw={th.cream} />
+          <div style={{ fontFamily: th.display, fontSize: 13, color: alpha(th.ink, 0.35), marginTop: 4 }}>סבבה והכל · גרסה 1.0</div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+Object.assign(window, { Toggle, CandidateMode, Settings });
+
+// ════════════════════════════════════════════════════════════
+// APP — with auth + data providers
+// ════════════════════════════════════════════════════════════
+const TWEAK_DEFAULTS = {
+  "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
+  "density": "רגיל", "cardVariant": "קלאסי"
+};
+const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
+const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
+const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', offers:'match', chat:'match', matchFlow:'match', ai:'ai', set:'set' };
+
+function renderScreen(cur, th, go, profile) {
+  const p = cur.params;
+  switch (cur.name) {
+    case 'onboarding':  return <Onboarding th={th} go={go} />;
+    case 'register':    return <Register th={th} go={go} />;
+    case 'home':        return <Home th={th} go={go} />;
+    case 'cands':       return <Candidates th={th} go={go} />;
+    case 'candidate':   return <CandidateDetail th={th} go={go} params={p} />;
+    case 'matchFlow':   return <MatchFlow th={th} go={go} params={p} />;
+    case 'offers':      return <Offers th={th} go={go} />;
+    case 'chat':        return <Chat th={th} go={go} params={p} />;
+    case 'ai':          return <AIRecs th={th} go={go} />;
+    case 'candidateMode': return <CandidateMode th={th} go={go} />;
+    case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
+    case 'admin':       return <AdminPanel th={th} go={go} />;
+    default:            return <Home th={th} go={go} />;
+  }
+}
+
+function Stage({ children }) {
+  const [scale, setScale] = React.useState(1);
+  React.useEffect(() => {
+    const fit = () => {
+      const s = Math.min(1, (window.innerWidth-32)/402, (window.innerHeight-32)/874);
+      setScale(s);
+    };
+    fit(); window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
+  return (
+    <div style={{ position:'fixed', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:'radial-gradient(circle at 50% 30%, #3a3440, #211d26)' }}>
+      <div style={{ transform:`scale(${scale})`, transformOrigin:'center center' }}>{children}</div>
+    </div>
+  );
+}
+
+// Settings screen (replaces screens-e Settings, adds admin link + signout)
+function AppSettings({ th, go, profile }) {
+  const Row = ({ icon, label, danger, last, onClick, tone }) => (
+    <button onClick={onClick} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, padding:'13px 14px', borderBottom: last ? 'none' : `1px solid ${alpha(th.ink,0.07)}` }}>
+      <div style={{ width:34, height:34, borderRadius:10, background:alpha(danger ? th.error : (tone||th.ink), 0.1), color:danger ? th.error : (tone||th.ink), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><Icon name={icon} size={19} /></div>
+      <span style={{ flex:1, fontFamily:th.body, fontWeight:600, fontSize:15, color:danger ? th.error : th.ink }}>{label}</span>
+      <span style={{ color:alpha(th.ink,0.3), transform:'scaleX(-1)' }}><Icon name="chevL" size={18} /></span>
+    </button>
+  );
+  const Group = ({ children }) => <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', marginBottom:16, boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}` }}>{children}</div>;
+
+  return (
+    <>
+      <AppHeader th={th} title="הגדרות" big />
+      <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 24px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:14, background:th.card, borderRadius:th.rLg, padding:16, marginBottom:18, boxShadow:`0 6px 18px ${alpha(th.ink,0.06)}` }}>
+          <Avatar grad={gradForId(profile?.uid||'me')} name={profile?.displayName||profile?.email||'?'} size={62} photo={profile?.photoURL} />
+          <div style={{ flex:1 }}>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:19, color:th.ink }}>{profile?.displayName || profile?.email}</div>
+            <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55) }}>שדכן/ית{profile?.isAdmin ? ' · מנהל' : ''}</div>
+          </div>
+        </div>
+
+        {profile?.isAdmin && (
+          <Group>
+            <Row icon="gear" label="פאנל ניהול" tone={th.primary} onClick={() => go('admin')} last />
+          </Group>
+        )}
+
+        <Group>
+          <Row icon="users" label="מעבר למצב מועמד/ת" tone={th.primary} onClick={() => go('candidateMode')} last />
+        </Group>
+        <Group>
+          <Row icon="info" label="הצהרת נגישות" />
+          <Row icon="lock" label="פרטיות ואבטחה" last />
+        </Group>
+        <Group>
+          <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); }} />
+        </Group>
+        <div style={{ textAlign:'center', marginTop:8 }}>
+          <Logo size={28} color={alpha(th.ink,0.25)} flaw={th.cream} />
+          <div style={{ fontFamily:th.display, fontSize:13, color:alpha(th.ink,0.35), marginTop:4 }}>סבבה והכל · גרסה 1.0</div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function AppInner() {
+  const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
+  const th             = makeTheme(t);
+  const { user, profile } = useContext(AuthCtx);
+  const data           = useContext(DataCtx);
+  const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
+  const cur  = stack[stack.length - 1];
+
+  // Patch static globals so existing screens work
+  React.useEffect(() => {
+    window.CANDIDATES  = data.candidates;
+    window.OFFERS      = data.offers;
+    window.MATCHMAKERS = data.matchmakers;
+    window.findCand    = (id) => data.candidates.find(c => c.id === id);
+    window.findMm      = (id) => data.matchmakers[id] || { id, name:'—', grad:['#ccc','#999'] };
+    window.CHATS       = {};
+    window.AI_PAIRS    = [];
+  }, [data.candidates, data.offers, data.matchmakers]);
+
+  const go = React.useCallback((name, params={}) => {
+    if (name === 'back')  { setStack(s => s.length > 1 ? s.slice(0,-1) : s); return; }
+    if (name === 'tab')   { setStack([{ name: TAB_TO_ROUTE[params.tab]||'home', params:{} }]); return; }
+    if (NAV_ROUTES.includes(name)) setStack([{ name, params }]);
+    else setStack(s => [...s, { name, params }]);
+  }, []);
+
+  const showNav  = NAV_ROUTES.includes(cur.name);
+  const activeTab = ROUTE_TO_TAB[cur.name] || 'home';
+
+  return (
+    <>
+      <Stage>
+        <IOSDevice>
+          <div dir="rtl" style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, position:'relative', overflow:'hidden' }}>
+            {data.loading
+              ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
+              : renderScreen(cur, th, go, profile)}
+            {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} />}
+          </div>
+        </IOSDevice>
+      </Stage>
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="כרטיסיית מועמד" />
+        <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
+        <TweakSection label="צבע" />
+        <TweakColor label="צבע ראשי" value={t.primaryColor} options={['#E8547A','#C0436B','#7B4B8A','#E0533F','#2B6E5C']} onChange={v => setTweak('primaryColor',v)} />
+        <TweakSection label="טיפוגרפיה" />
+        <TweakRadio label="פונט" value={t.fontPair} options={['אופי','נקי','ידידותי']} onChange={v => setTweak('fontPair',v)} />
+        <TweakSection label="פריסה" />
+        <TweakRadio label="עיגול פינות" value={t.radius} options={['חד','רך','מעוגל']} onChange={v => setTweak('radius',v)} />
+        <TweakRadio label="צפיפות" value={t.density} options={['קומפקטי','רגיל','מרווח']} onChange={v => setTweak('density',v)} />
+      </TweaksPanel>
+    </>
+  );
+}
+
+function App() {
+  const { user, profile } = useAuthState();
+  const data = useFirebaseData(user?.uid);
+  const [t]  = useTweaks(TWEAK_DEFAULTS);
+  const th   = makeTheme(t);
+
+  if (user === undefined) {
+    return (
+      <Stage>
+        <IOSDevice>
+          <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
+            <Logo size={60} color={th.primary} flaw={th.cream} />
+          </div>
+        </IOSDevice>
+      </Stage>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Stage>
+        <IOSDevice>
+          <LoginScreen th={th} />
+        </IOSDevice>
+      </Stage>
+    );
+  }
+
+  return (
+    <AuthCtx.Provider value={{ user, profile }}>
+      <DataCtx.Provider value={data}>
+        <TextsCtx.Provider value={{ texts: data.texts, defaults: DEFAULT_TEXTS }}>
+          <AppInner />
+        </TextsCtx.Provider>
+      </DataCtx.Provider>
+    </AuthCtx.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
