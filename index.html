@@ -3077,16 +3077,12 @@ function AppInner() {
 
   return (
     <>
-      <Stage>
-        <IOSDevice>
-          <div dir="rtl" style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, position:'relative', overflow:'hidden' }}>
-            {data.loading
-              ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
-              : renderScreen(cur, th, go, profile)}
-            {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} />}
-          </div>
-        </IOSDevice>
-      </Stage>
+      <div dir="rtl" style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden' }}>
+        {data.loading
+          ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
+          : renderScreen(cur, th, go, profile)}
+        {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} />}
+      </div>
       <TweaksPanel title="Tweaks">
         <TweakSection label="כרטיסיית מועמד" />
         <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
@@ -3110,23 +3106,17 @@ function App() {
 
   if (user === undefined) {
     return (
-      <Stage>
-        <IOSDevice>
-          <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
-            <Logo size={60} color={th.primary} flaw={th.cream} />
-          </div>
-        </IOSDevice>
-      </Stage>
+      <div style={{ position:'fixed', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
+        <Logo size={60} color={th.primary} flaw={th.cream} />
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <Stage>
-        <IOSDevice>
-          <LoginScreen th={th} />
-        </IOSDevice>
-      </Stage>
+      <div style={{ position:'fixed', inset:0, background:th.cream }}>
+        <LoginScreen th={th} />
+      </div>
     );
   }
 
