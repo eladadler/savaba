@@ -1719,11 +1719,11 @@ async function seedTestData(eladUid) {
   const rivkaCands = [
     { name: 'דניאל כהן', age: 28, gender: 'm', region: 'תל אביב', religiosity: 'דתי-לאומי',
       family: 'רווק', kids: 0, oneLine: 'מהנדס תוכנה שאוהב טיולים ומוזיקה', seesWith: 'אישה חמה ואינטליגנטית עם ערכים דומים',
-      interests: ['טיולים', 'מוזיקה', 'ספורט'], partner: ['דתית-לאומית', 'אקדמאית'], sabaBut: '', discrete: '', available: true,
+      interests: ['טיולים', 'מוזיקה', 'ספורט'], partner: ['דתית-לאומית', 'אקדמאית'], sabaBut: 'מסביר לכולם שהוא "לא בן אדם של בוקר" — כולל ב-11:30', discrete: '', available: true,
       photos: [db_avatar('daniel-cohen', 'm')], mmId: mm1id, mine: false, createdAt: ts },
     { name: 'מיכל שפירא', age: 26, gender: 'f', region: 'רמת גן', religiosity: 'מסורתית',
       family: 'רווקה', kids: 0, oneLine: 'מורה לאמנות, אוהבת בישול ויצירה', seesWith: 'גבר בוגר עם חוש הומור',
-      interests: ['אמנות', 'בישול', 'יוגה'], partner: ['מסורתי', 'עם חוש הומור'], sabaBut: '', discrete: '', available: true,
+      interests: ['אמנות', 'בישול', 'יוגה'], partner: ['מסורתי', 'עם חוש הומור'], sabaBut: 'מדרגת את כל הסרטים לפי כמות הכלבים שמופיעים בהם', discrete: '', available: true,
       photos: [db_avatar('michal-shapira', 'f')], mmId: mm1id, mine: false, createdAt: ts },
   ];
 
@@ -1731,15 +1731,15 @@ async function seedTestData(eladUid) {
   const yossiCands = [
     { name: 'אורי לוין', age: 31, gender: 'm', region: 'ירושלים', religiosity: 'חרדי-מודרני',
       family: 'רווק', kids: 0, oneLine: 'רופא בהתמחות ומגיע עם ערכים חזקים', seesWith: 'אישה פשוטה, חמה ומשפחתית',
-      interests: ['לימוד תורה', 'ריצה', 'בישול'], partner: ['ירא שמיים', 'משפחתית'], sabaBut: '', discrete: '', available: true,
+      interests: ['לימוד תורה', 'ריצה', 'בישול'], partner: ['ירא שמיים', 'משפחתית'], sabaBut: 'חושב שאם הוא לא שמע על הסרט — הוא כנראה לא טוב', discrete: '', available: true,
       photos: [db_avatar('uri-levin', 'm')], mmId: mm2id, mine: false, createdAt: ts },
     { name: 'שירה אברהם', age: 29, gender: 'f', region: 'ירושלים', religiosity: 'דתייה',
       family: 'רווקה', kids: 0, oneLine: 'עורכת דין צעירה עם ראש על הכתפיים', seesWith: 'גבר שאפתן עם ביטחון עצמי',
-      interests: ['קריאה', 'טיולים', 'בישול'], partner: ['שאפתן', 'אמין'], sabaBut: '', discrete: '', available: true,
+      interests: ['קריאה', 'טיולים', 'בישול'], partner: ['שאפתן', 'אמין'], sabaBut: 'מתווכחת בשינה — ומנצחת', discrete: '', available: true,
       photos: [db_avatar('shira-avraham', 'f')], mmId: mm2id, mine: false, createdAt: ts },
     { name: 'נועם גולדברג', age: 33, gender: 'm', region: 'בית שמש', religiosity: 'מסורתי',
       family: 'רווק', kids: 0, oneLine: 'איש עסקים שמחפש שקט בחיים', seesWith: 'אישה עם יציבות רגשית',
-      interests: ['עסקים', 'גולף', 'בישול'], partner: ['יציבה', 'בוגרת'], sabaBut: '', discrete: '', available: true,
+      interests: ['עסקים', 'גולף', 'בישול'], partner: ['יציבה', 'בוגרת'], sabaBut: 'מסביר את כל הבעיות בחיים עם אנלוגיות מגולף', discrete: '', available: true,
       photos: [db_avatar('noam-goldberg', 'm')], mmId: mm2id, mine: false, createdAt: ts },
   ];
 
@@ -1747,15 +1747,15 @@ async function seedTestData(eladUid) {
   const eladCands = [
     { name: 'אביגיל רוזן', age: 27, gender: 'f', region: 'רעננה', religiosity: 'דתית-לאומית',
       family: 'רווקה', kids: 0, oneLine: 'פסיכולוגית קלינית, יצירתית ואוהבת חיים', seesWith: 'גבר בטוח בעצמו עם חוש הומור',
-      interests: ['פסיכולוגיה', 'ריקוד', 'טבע'], partner: ['מצחיק', 'אמפתי', 'מסורתי'], sabaBut: '', discrete: '', available: true,
+      interests: ['פסיכולוגיה', 'ריקוד', 'טבע'], partner: ['מצחיק', 'אמפתי', 'מסורתי'], sabaBut: 'מנתחת את כולם פסיכולוגית — כולל את הקופאית בסופר', discrete: '', available: true,
       photos: [db_avatar('avigail-rosen', 'f')], mmId: eladUid, mine: true, createdAt: ts },
     { name: 'אמיר חיון', age: 30, gender: 'm', region: 'חיפה', religiosity: 'מסורתי',
       family: 'רווק', kids: 0, oneLine: 'אדריכל שיוצר יופי ומחפש אהבה אמיתית', seesWith: 'אישה חכמה שמכבדת חלומות',
-      interests: ['אדריכלות', 'ג׳אז', 'טיולים'], partner: ['אינטליגנטית', 'ספונטנית'], sabaBut: '', discrete: '', available: true,
+      interests: ['אדריכלות', 'ג׳אז', 'טיולים'], partner: ['אינטליגנטית', 'ספונטנית'], sabaBut: 'לא יכול לשבת בבית קפה בלי לקרוא ביקורת על העיצוב שלו', discrete: '', available: true,
       photos: [db_avatar('amir-hayun', 'm')], mmId: eladUid, mine: true, createdAt: ts },
     { name: 'שושנה פרץ', age: 25, gender: 'f', region: 'נתניה', religiosity: 'מסורתית',
       family: 'רווקה', kids: 0, oneLine: 'סטודנטית לרפואה, חרוצה ועם לב גדול', seesWith: 'גבר עם שאיפות ויציבות',
-      interests: ['רפואה', 'בישול', 'קריאה'], partner: ['אחראי', 'עם ערכים'], sabaBut: '', discrete: '', available: true,
+      interests: ['רפואה', 'בישול', 'קריאה'], partner: ['אחראי', 'עם ערכים'], sabaBut: 'מאבחנת מחלות לכולם בארוחות משפחתיות — גם כשלא שואלים', discrete: '', available: true,
       photos: [db_avatar('shoshana-peretz', 'f')], mmId: eladUid, mine: true, createdAt: ts },
   ];
 
@@ -1781,15 +1781,15 @@ function AdminPanel({ th, go }) {
   const db_avatar = (seed, gender) =>
     `https://api.dicebear.com/9.x/${gender === 'f' ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
-  const SEED_PHOTOS = {
-    'דניאל כהן':   { seed: 'daniel-cohen',     gender: 'm' },
-    'מיכל שפירא':  { seed: 'michal-shapira',    gender: 'f' },
-    'אורי לוין':   { seed: 'uri-levin',          gender: 'm' },
-    'שירה אברהם':  { seed: 'shira-avraham',      gender: 'f' },
-    'נועם גולדברג': { seed: 'noam-goldberg',     gender: 'm' },
-    'אביגיל רוזן': { seed: 'avigail-rosen',      gender: 'f' },
-    'אמיר חיון':   { seed: 'amir-hayun',         gender: 'm' },
-    'שושנה פרץ':   { seed: 'shoshana-peretz',    gender: 'f' },
+  const SEED_DATA = {
+    'דניאל כהן':    { seed: 'daniel-cohen',    gender: 'm', sabaBut: 'מסביר לכולם שהוא "לא בן אדם של בוקר" — כולל ב-11:30' },
+    'מיכל שפירא':   { seed: 'michal-shapira',  gender: 'f', sabaBut: 'מדרגת את כל הסרטים לפי כמות הכלבים שמופיעים בהם' },
+    'אורי לוין':    { seed: 'uri-levin',        gender: 'm', sabaBut: 'חושב שאם הוא לא שמע על הסרט — הוא כנראה לא טוב' },
+    'שירה אברהם':   { seed: 'shira-avraham',    gender: 'f', sabaBut: 'מתווכחת בשינה — ומנצחת' },
+    'נועם גולדברג':  { seed: 'noam-goldberg',   gender: 'm', sabaBut: 'מסביר את כל הבעיות בחיים עם אנלוגיות מגולף' },
+    'אביגיל רוזן':  { seed: 'avigail-rosen',    gender: 'f', sabaBut: 'מנתחת את כולם פסיכולוגית — כולל את הקופאית בסופר' },
+    'אמיר חיון':    { seed: 'amir-hayun',        gender: 'm', sabaBut: 'לא יכול לשבת בבית קפה בלי לקרוא ביקורת על העיצוב שלו' },
+    'שושנה פרץ':    { seed: 'shoshana-peretz',   gender: 'f', sabaBut: 'מאבחנת מחלות לכולם בארוחות משפחתיות — גם כשלא שואלים' },
   };
 
   const updateSeedPhotos = async () => {
@@ -1798,11 +1798,13 @@ function AdminPanel({ th, go }) {
       const snap = await db.collection('candidates').get();
       const batch = db.batch();
       snap.docs.forEach(doc => {
-        const name = doc.data().name;
-        const entry = SEED_PHOTOS[name];
-        if (entry && (!doc.data().photos || doc.data().photos.length === 0)) {
-          batch.update(doc.ref, { photos: [db_avatar(entry.seed, entry.gender)] });
-        }
+        const d = doc.data();
+        const entry = SEED_DATA[d.name];
+        if (!entry) return;
+        const upd = {};
+        if (!d.photos?.length) upd.photos = [db_avatar(entry.seed, entry.gender)];
+        if (!d.sabaBut) upd.sabaBut = entry.sabaBut;
+        if (Object.keys(upd).length) batch.update(doc.ref, upd);
       });
       await batch.commit();
     } finally {
@@ -1838,7 +1840,7 @@ function AdminPanel({ th, go }) {
                 {seeding ? 'טוען נתוני בדיקה…' : '⚡ זרע נתוני בדיקה (לבדיקות בלבד)'}
               </Btn>
             )}
-            {candidates.length > 0 && candidates.some(c => !c.photos?.length) && (
+            {candidates.length > 0 && candidates.some(c => !c.photos?.length || !c.sabaBut) && (
               <Btn th={th} full variant="ghost" style={{ marginBottom: 14, color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
                 onClick={updateSeedPhotos}>
                 {updatingPhotos ? 'מעדכן תמונות…' : '🖼 הוסף תמונות DiceBear למועמדי בדיקה'}
