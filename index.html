@@ -3123,11 +3123,13 @@ function AppInner() {
 
   return (
     <>
-      <div dir="rtl" style={{ position:'fixed', inset:0, display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden' }}>
-        {data.loading
-          ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
-          : renderScreen(cur, th, go, profile)}
-        {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} />}
+      <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
+        <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
+          {data.loading
+            ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
+            : renderScreen(cur, th, go, profile)}
+          {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} />}
+        </div>
       </div>
       <TweaksPanel title="Tweaks">
         <TweakSection label="כרטיסיית מועמד" />
@@ -3152,16 +3154,20 @@ function App() {
 
   if (user === undefined) {
     return (
-      <div style={{ position:'fixed', inset:0, display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
-        <Logo size={60} color={th.primary} flaw={th.cream} />
+      <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
+        <div style={{ width:'100%', maxWidth:430, display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
+          <Logo size={60} color={th.primary} flaw={th.cream} />
+        </div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div style={{ position:'fixed', inset:0, background:th.cream }}>
-        <LoginScreen th={th} />
+      <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
+        <div style={{ width:'100%', maxWidth:430, background:th.cream }}>
+          <LoginScreen th={th} />
+        </div>
       </div>
     );
   }
