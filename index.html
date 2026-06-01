@@ -1680,6 +1680,69 @@ function LoginScreen({ th }) {
 // ════════════════════════════════════════════════════════════
 // ADMIN PANEL
 // ════════════════════════════════════════════════════════════
+async function seedTestData(eladUid) {
+  const batch = db.batch();
+  const ts = firebase.firestore.FieldValue.serverTimestamp();
+
+  // ── 2 fake matchmakers ──
+  const mm1id = 'seed_mm_rivka';
+  const mm2id = 'seed_mm_yossi';
+
+  batch.set(db.collection('users').doc(mm1id), {
+    displayName: 'רבקה לוי', email: 'rivka@test.local', phone: '050-1111111',
+    region: 'תל אביב', gender: 'f', bio: 'שדכנית מנוסה עם 8 שנות ניסיון. מתמחה בזוגות דתיים-לאומיים.',
+    isAdmin: false, profileComplete: true, createdAt: ts,
+  });
+
+  batch.set(db.collection('users').doc(mm2id), {
+    displayName: 'יוסי מזרחי', email: 'yossi@test.local', phone: '052-2222222',
+    region: 'ירושלים', gender: 'm', bio: 'שדכן חרדי-מודרני. עבדתי עם מעל 200 זוגות.',
+    isAdmin: false, profileComplete: true, createdAt: ts,
+  });
+
+  // ── candidates for רבקה ──
+  const rivkaCands = [
+    { name: 'דניאל כהן', age: 28, gender: 'm', region: 'תל אביב', religiosity: 'דתי-לאומי',
+      family: 'רווק', kids: 0, oneLine: 'מהנדס תוכנה שאוהב טיולים ומוזיקה', seesWith: 'אישה חמה ואינטליגנטית עם ערכים דומים',
+      interests: ['טיולים', 'מוזיקה', 'ספורט'], partner: ['דתית-לאומית', 'אקדמאית'], sabaBut: '', discrete: '', available: true, photos: [], mmId: mm1id, mine: false, createdAt: ts },
+    { name: 'מיכל שפירא', age: 26, gender: 'f', region: 'רמת גן', religiosity: 'מסורתית',
+      family: 'רווקה', kids: 0, oneLine: 'מורה לאמנות, אוהבת בישול ויצירה', seesWith: 'גבר בוגר עם חוש הומור',
+      interests: ['אמנות', 'בישול', 'יוגה'], partner: ['מסורתי', 'עם חוש הומור'], sabaBut: '', discrete: '', available: true, photos: [], mmId: mm1id, mine: false, createdAt: ts },
+  ];
+
+  // ── candidates for יוסי ──
+  const yossiCands = [
+    { name: 'אורי לוין', age: 31, gender: 'm', region: 'ירושלים', religiosity: 'חרדי-מודרני',
+      family: 'רווק', kids: 0, oneLine: 'רופא בהתמחות ומגיע עם ערכים חזקים', seesWith: 'אישה פשוטה, חמה ומשפחתית',
+      interests: ['לימוד תורה', 'ריצה', 'בישול'], partner: ['ירא שמיים', 'משפחתית'], sabaBut: '', discrete: '', available: true, photos: [], mmId: mm2id, mine: false, createdAt: ts },
+    { name: 'שירה אברהם', age: 29, gender: 'f', region: 'ירושלים', religiosity: 'דתייה',
+      family: 'רווקה', kids: 0, oneLine: 'עורכת דין צעירה עם ראש על הכתפיים', seesWith: 'גבר שאפתן עם ביטחון עצמי',
+      interests: ['קריאה', 'טיולים', 'בישול'], partner: ['שאפתן', 'אמין'], sabaBut: '', discrete: '', available: true, photos: [], mmId: mm2id, mine: false, createdAt: ts },
+    { name: 'נועם גולדברג', age: 33, gender: 'm', region: 'בית שמש', religiosity: 'מסורתי',
+      family: 'רווק', kids: 0, oneLine: 'איש עסקים שמחפש שקט בחיים', seesWith: 'אישה עם יציבות רגשית',
+      interests: ['עסקים', 'גולף', 'בישול'], partner: ['יציבה', 'בוגרת'], sabaBut: '', discrete: '', available: true, photos: [], mmId: mm2id, mine: false, createdAt: ts },
+  ];
+
+  // ── candidates for אלעד (current admin) ──
+  const eladCands = [
+    { name: 'אביגיל רוזן', age: 27, gender: 'f', region: 'רעננה', religiosity: 'דתית-לאומית',
+      family: 'רווקה', kids: 0, oneLine: 'פסיכולוגית קלינית, יצירתית ואוהבת חיים', seesWith: 'גבר בטוח בעצמו עם חוש הומור',
+      interests: ['פסיכולוגיה', 'ריקוד', 'טבע'], partner: ['מצחיק', 'אמפתי', 'מסורתי'], sabaBut: '', discrete: '', available: true, photos: [], mmId: eladUid, mine: true, createdAt: ts },
+    { name: 'אמיר חיון', age: 30, gender: 'm', region: 'חיפה', religiosity: 'מסורתי',
+      family: 'רווק', kids: 0, oneLine: 'אדריכל שיוצר יופי ומחפש אהבה אמיתית', seesWith: 'אישה חכמה שמכבדת חלומות',
+      interests: ['אדריכלות', 'ג׳אז', 'טיולים'], partner: ['אינטליגנטית', 'ספונטנית'], sabaBut: '', discrete: '', available: true, photos: [], mmId: eladUid, mine: true, createdAt: ts },
+    { name: 'שושנה פרץ', age: 25, gender: 'f', region: 'נתניה', religiosity: 'מסורתית',
+      family: 'רווקה', kids: 0, oneLine: 'סטודנטית לרפואה, חרוצה ועם לב גדול', seesWith: 'גבר עם שאיפות ויציבות',
+      interests: ['רפואה', 'בישול', 'קריאה'], partner: ['אחראי', 'עם ערכים'], sabaBut: '', discrete: '', available: true, photos: [], mmId: eladUid, mine: true, createdAt: ts },
+  ];
+
+  [...rivkaCands, ...yossiCands, ...eladCands].forEach(c => {
+    batch.set(db.collection('candidates').doc(), c);
+  });
+
+  await batch.commit();
+}
+
 function AdminPanel({ th, go }) {
   const { profile }  = useContext(AuthCtx);
   const { candidates, matchmakers, texts, addCandidate, updateCandidate,
@@ -1689,6 +1752,7 @@ function AdminPanel({ th, go }) {
   const [newCand,  setNewCand]  = useState(false);
   const [editKey,  setEditKey]  = useState(null);
   const [editVal,  setEditVal]  = useState('');
+  const [seeding,  setSeeding]  = useState(false);
 
   if (!profile?.isAdmin) return (
     <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', direction: 'rtl', fontFamily: th.body, color: th.error }}>
@@ -1711,7 +1775,13 @@ function AdminPanel({ th, go }) {
         {/* ── CANDIDATES ── */}
         {tab === 'candidates' && (
           <>
-            <Btn th={th} full onClick={() => setNewCand(true)} icon={<Icon name="plus" size={18} />} style={{ marginBottom: 14 }}>הוסף מועמד/ת</Btn>
+            <Btn th={th} full onClick={() => setNewCand(true)} icon={<Icon name="plus" size={18} />} style={{ marginBottom: 10 }}>הוסף מועמד/ת</Btn>
+            {candidates.length === 0 && (
+              <Btn th={th} full variant="ghost" style={{ marginBottom: 14, color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
+                onClick={async () => { setSeeding(true); try { await seedTestData(profile.uid); } finally { setSeeding(false); } }}>
+                {seeding ? 'טוען נתוני בדיקה…' : '⚡ זרע נתוני בדיקה (לבדיקות בלבד)'}
+              </Btn>
+            )}
             {newCand && <CandidateForm th={th} onSave={async (data) => { await addCandidate(data); setNewCand(false); }} onCancel={() => setNewCand(false)} />}
             {candidates.map(c => (
               <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
