@@ -2019,10 +2019,7 @@ function Onboarding({ th, go }) {
           ))}
         </div>
         {last ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Btn th={th} full size="l" onClick={() => go('register')}>אני שדכן/ית</Btn>
-            <Btn th={th} full size="l" variant="ghost" onClick={() => go('candidateMode')}>אני מועמד/ת</Btn>
-          </div>
+          <Btn th={th} full size="l" onClick={() => go('register')}>שנתחיל?</Btn>
         ) : (
           <Btn th={th} full size="l" onClick={() => setI(i + 1)} icon={<span style={{ transform: 'scaleX(-1)', display: 'inline-flex' }}><Icon name="arrow" size={20} /></span>}>הבא</Btn>
         )}
@@ -3169,6 +3166,13 @@ function AppInner() {
   const data           = useContext(DataCtx);
   const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
   const cur  = stack[stack.length - 1];
+
+  // Skip onboarding straight to home if profile is already complete
+  React.useEffect(() => {
+    if (profile?.profileComplete && stack.length === 1 && stack[0].name === 'onboarding') {
+      setStack([{ name: 'home', params: {} }]);
+    }
+  }, [profile]);
 
   // Patch static globals so existing screens work
   React.useEffect(() => {
