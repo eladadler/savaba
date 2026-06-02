@@ -3150,25 +3150,24 @@ function Candidates({ th, go }) {
   return (
     <>
       <AppHeader th={th} title="מועמדים" sub={`${list.length} ברשימה`} action={
-        <div style={{ display:'flex', gap:8 }}>
-          {/* invite tracker bell */}
-          <button onClick={() => setInvOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
-            <Icon name="bell" size={21} />
-            {pendingCount > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.gold, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{pendingCount}</span>}
-          </button>
-          {/* filter */}
-          <button onClick={() => setFilterOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
-            <Icon name="filter" size={21} />
-            {activeFilters > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.primary, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{activeFilters}</span>}
-          </button>
-        </div>
+        /* invite tracker bell only — filter moved inline with search */
+        <button onClick={() => setInvOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
+          <Icon name="bell" size={21} />
+          {pendingCount > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.gold, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{pendingCount}</span>}
+        </button>
       } />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 90px', position: 'relative' }}>
-        {/* search */}
-        <div style={{ position: 'relative', marginBottom: 12 }}>
-          <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={19} /></span>
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="חיפוש מועמד…" style={{ width: '100%', boxSizing: 'border-box', padding: '11px 40px 11px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14.5, background: th.card, outline: 'none', color: th.ink }} />
+        {/* search + filter inline */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={19} /></span>
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder="חיפוש מועמד…" style={{ width: '100%', boxSizing: 'border-box', padding: '11px 40px 11px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14.5, background: th.card, outline: 'none', color: th.ink }} />
+          </div>
+          <button onClick={() => setFilterOpen(true)} style={{ position:'relative', border:'none', background: activeFilters > 0 ? alpha(th.primary, 0.1) : th.card, width:46, height:46, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color: activeFilters > 0 ? th.primary : th.ink, cursor:'pointer', flexShrink:0, boxShadow: activeFilters > 0 ? `0 0 0 1.5px ${alpha(th.primary,0.35)}, 0 2px 8px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.07)' }}>
+            <Icon name="filter" size={21} />
+            {activeFilters > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.primary, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{activeFilters}</span>}
+          </button>
         </div>
 
         {/* scope toggle */}
@@ -3738,6 +3737,8 @@ function AddSheet({ open, onClose, th, go }) {
 function CandidateDetail({ th, go, params }) {
   const c = findCand(params?.id) || CANDIDATES[0];
   const [showDiscrete, setShowDiscrete] = useSb(false);
+  const { user } = React.useContext(AuthCtx);
+  const myUid = user?.uid;
   const variant = th.cardVariant;
 
   const footer = (
@@ -3759,7 +3760,32 @@ function CandidateDetail({ th, go, params }) {
         <button onClick={() => go('back')} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="back" size={20} /></button>
         <button style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="dots" size={20} /></button>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto' }}>{body}</div>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {body}
+        {/* Matchmaker section — only for other matchmakers' candidates */}
+        {c.mmId && c.mmId !== myUid && (() => {
+          const mm = window.findMm(c.mmId);
+          return (
+            <div style={{ padding: '0 16px 28px', background: th.cream }}>
+              <div style={{ background: th.card, borderRadius: th.r, padding: 16, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+                <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 10 }}>השדכן/ית של {c.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                  <Avatar grad={mm.grad} name={mm.name} size={44} />
+                  <div>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{mm.name}</div>
+                    <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>שדכן/ית</div>
+                  </div>
+                </div>
+                <Btn th={th} full variant="soft" size="m"
+                  icon={<Icon name="chat" size={16} />}
+                  onClick={() => go('candInquiry', { candId: c.id, toMm: c.mmId })}>
+                  שאל/י שאלה על {c.name}
+                </Btn>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
       {footer}
     </div>
   );
@@ -3960,7 +3986,7 @@ function CandRow({ c, th, selected, onClick, trailing }) {
       <Avatar grad={c.grad} name={c.name} size={50} photo={c.photos && c.photos[0]} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{c.name}, {c.age}</div>
-        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 4 }}>{c.region} · {c.religiosity} · {findMm(c.mm).name.split(' ')[0]}</div>
+        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 4 }}>{c.region} · {c.religiosity} · {window.findMm(c.mmId).name.split(' ')[0]}</div>
         <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.7), display: 'flex', gap: 5, alignItems: 'center' }}>
           <Logo size={13} color={th.primary} flaw={th.cream} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.sabaBut}</span>
         </div>
@@ -3982,6 +4008,7 @@ function MatchFlow({ th, go, params }) {
   const [relFilter, setRelFilter] = useSc('');
   const [sending, setSending] = useSc(false);
   const [firstCandId, setFirstCandId] = useSc(null); // for self-match: who gets notified first
+  const [previewCand, setPreviewCand] = useSc(null); // candidate being previewed in step 2
 
   const myUid = profile?.uid;
   const isSelfMatch = !!(second && first?.mmId === myUid && second?.mmId === myUid);
@@ -4091,11 +4118,11 @@ function MatchFlow({ th, go, params }) {
               {liveReligiosity.slice(0, 6).map(r => <Chip key={r} th={th} label={r} active={relFilter === r} onClick={() => setRelFilter(relFilter === r ? '' : r)} tone={th.gold} />)}
             </div>
             {candidates2.map(c => (
-              <CandRow key={c.id} c={c} th={th} selected={second?.id === c.id} onClick={() => setSecond(c)}
+              <CandRow key={c.id} c={c} th={th} selected={second?.id === c.id} onClick={() => setPreviewCand(c)}
                 trailing={second?.id === c.id ? <div style={{ color: th.primary }}><Icon name="check" size={24} /></div> : null} />
             ))}
             {candidates2.length === 0 && <div style={{ textAlign: 'center', color: alpha(th.ink, 0.4), padding: 30, fontFamily: th.body }}>אין התאמות בפילטר הזה</div>}
-            <Btn th={th} full size="l" style={{ marginTop: 8 }} disabled={!second} onClick={() => setStep(3)}>{second ? `המשך עם ${second.name}` : 'בחר/י מועמד/ת'}</Btn>
+            <div style={{ height: second ? 72 : 20 }} />
           </>
         )}
 
@@ -4160,6 +4187,99 @@ function MatchFlow({ th, go, params }) {
           </>
         )}
       </div>
+
+      {/* Floating "proceed" bar — appears at bottom once a candidate is chosen via preview */}
+      {step === 2 && second && (
+        <div style={{ flexShrink: 0, padding: '10px 18px 18px', background: th.cream, borderTop: `1px solid ${alpha(th.ink, 0.07)}`, boxShadow: `0 -8px 22px ${alpha(th.ink, 0.08)}`, animation: 'sabaUp .2s ease' }}>
+          <Btn th={th} full size="l" icon={<Icon name="heart" size={18} fill="#fff" stroke={0} />} onClick={() => setStep(3)}>
+            {second.name} — המשך לשליחה
+          </Btn>
+        </div>
+      )}
+
+      {/* Candidate profile preview sheet — slides up when a row is tapped in step 2 */}
+      {previewCand && (
+        <div onClick={() => setPreviewCand(null)} style={{ position: 'absolute', inset: 0, zIndex: 100, background: alpha(th.ink, 0.42), display: 'flex', alignItems: 'flex-end', animation: 'sabaFade .2s ease' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: th.cream, width: '100%', height: '92%', borderTopLeftRadius: th.rLg, borderTopRightRadius: th.rLg, display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'sabaUp .28s cubic-bezier(.2,.9,.3,1)' }}>
+            {/* drag handle + close button */}
+            <div style={{ display: 'flex', alignItems: 'center', padding: '10px 16px 4px', flexShrink: 0 }}>
+              <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: 40, height: 5, borderRadius: 99, background: alpha(th.ink, 0.18) }} />
+              </div>
+              <button onClick={() => setPreviewCand(null)} style={{ border: 'none', background: alpha(th.ink, 0.07), borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name="x" size={18} />
+              </button>
+            </div>
+            {/* scrollable profile body */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              <PhotoGallery c={previewCand} th={th} height={280}>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 130, background: `linear-gradient(to top, ${alpha(th.ink, 0.76)}, transparent)`, pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: 36, right: 20, left: 20, color: '#fff', pointerEvents: 'none' }}>
+                  <div style={{ fontFamily: th.display, fontSize: 28, fontWeight: 800, lineHeight: 1 }}>{previewCand.name}, {previewCand.age}</div>
+                  <div style={{ fontFamily: th.body, fontSize: 14, opacity: 0.9, marginTop: 5 }}>{previewCand.region} · {previewCand.religiosity}</div>
+                </div>
+              </PhotoGallery>
+              <div style={{ padding: '16px 20px 32px' }}>
+                {previewCand.sabaBut && <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={previewCand.sabaBut} size="l" /></div>}
+                {previewCand.oneLine && (
+                  <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>במשפט אחד</div>
+                    <p style={{ margin: 0, fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.oneLine}</p>
+                  </div>
+                )}
+                {previewCand.seesWith && (
+                  <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>רואה את עצמו/ה עם</div>
+                    <p style={{ margin: 0, fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.seesWith}</p>
+                  </div>
+                )}
+                {(previewCand.interests?.length > 0) && (
+                  <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>תחומי עניין</div>
+                    <InterestChips items={previewCand.interests} th={th} />
+                  </div>
+                )}
+                <div style={{ background: th.card, borderRadius: th.r, padding: '4px 14px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+                  {infoPairs(previewCand).map(([k, v]) => (
+                    <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(th.ink, 0.07)}`, padding: '10px 0' }}>
+                      <span style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.5) }}>{k}</span>
+                      <span style={{ fontFamily: th.display, fontSize: 14, color: th.ink, fontWeight: 700 }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* Matchmaker info + inquiry — only for other MMs' candidates */}
+                {previewCand.mmId && previewCand.mmId !== myUid && (() => {
+                  const mm = window.findMm(previewCand.mmId);
+                  return (
+                    <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginTop: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
+                      <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>השדכן/ית</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                        <Avatar grad={mm.grad} name={mm.name} size={38} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{mm.name}</div>
+                          <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.45) }}>שדכן/ית של {previewCand.name}</div>
+                        </div>
+                      </div>
+                      <Btn th={th} full variant="soft" size="s"
+                        icon={<Icon name="chat" size={14} />}
+                        onClick={() => { setPreviewCand(null); go('candInquiry', { candId: previewCand.id, toMm: previewCand.mmId }); }}>
+                        שאל/י שאלה על {previewCand.name}
+                      </Btn>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            {/* sticky "שדך" action button */}
+            <div style={{ flexShrink: 0, padding: '12px 20px 28px', background: th.cream, borderTop: `1px solid ${alpha(th.ink, 0.08)}`, boxShadow: `0 -8px 24px ${alpha(th.ink, 0.07)}` }}>
+              <Btn th={th} full size="l" icon={<Icon name="heart" size={19} fill="#fff" stroke={0} />}
+                onClick={() => { setSecond(previewCand); setPreviewCand(null); setStep(3); }}>
+                שדך עם {first.name}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -4234,32 +4354,106 @@ function Offers({ th, go }) {
                 <Tag th={th} tone={statusTone(o.status, th)} soft={false}>{o.status}</Tag>
               </div>
 
-              {/* Two-sided layout: mine (left in RTL = right side) vs theirs */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                {/* MY SIDE */}
-                <div style={{ flex: 1, background: alpha(th.primary, 0.07), border: `1.5px solid ${alpha(th.primary, 0.2)}`, borderRadius: th.rSm, padding: '10px 12px', display:'flex', flexDirection:'column', gap:6 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-                    <Avatar grad={myCand.grad} name={myCand.name} size={36} photo={myCand.photos?.[0]} />
-                    <div style={{ minWidth:0 }}>
-                      <div style={{ fontFamily: th.body, fontSize: 10, fontWeight:700, color: th.primary, marginBottom:1 }}>המועמד/ת שלי</div>
-                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{myCand.name}</div>
+              {/* ── Candidate pair + approval pipeline ─── */}
+              {(() => {
+                // Who must approve to advance? Initiator waits for other MM; receiver must act themselves.
+                const blockStatus = iAmA ? theirStatus : myStatus;
+                const blockName   = iAmA ? theirMm.name.split(' ')[0] : 'אני';
+                const approved    = blockStatus === 'אישר';
+                const rejected    = blockStatus === 'דחה';
+                const pending     = !approved && !rejected;
+                const seen        = o.status === 'נצפתה';
+                const finalDone   = o.status === 'אושרה';
+                const finalFail   = o.status === 'נדחתה';
+                return (
+                  <>
+                    {/* Two candidate boxes — compact, no confusing status text */}
+                    <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+                      <div style={{ flex:1, background:alpha(th.primary,0.07), border:`1.5px solid ${alpha(th.primary,0.2)}`, borderRadius:th.rSm, padding:'9px 12px', display:'flex', alignItems:'center', gap:8 }}>
+                        <Avatar grad={myCand.grad} name={myCand.name} size={34} photo={myCand.photos?.[0]} />
+                        <div style={{ minWidth:0 }}>
+                          <div style={{ fontFamily:th.body, fontSize:10, fontWeight:700, color:th.primary }}>המועמד/ת שלי</div>
+                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{myCand.name}</div>
+                        </div>
+                      </div>
+                      <div style={{ flex:1, background:alpha(th.ink,0.04), borderRadius:th.rSm, padding:'9px 12px', display:'flex', alignItems:'center', gap:8 }}>
+                        <Avatar grad={theirC.grad} name={theirC.name} size={34} photo={theirC.photos?.[0]} />
+                        <div style={{ minWidth:0 }}>
+                          <div style={{ fontFamily:th.body, fontSize:10, fontWeight:700, color:alpha(th.ink,0.45) }}>הצד השני</div>
+                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{theirC.name}</div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: myStatus === 'אישר' ? th.success : myStatus === 'דחה' ? th.error : alpha(th.ink, 0.6) }}>{myStatus || 'ממתין'}</div>
-                </div>
 
-                {/* THEIR SIDE */}
-                <div style={{ flex: 1, background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '10px 12px', display:'flex', flexDirection:'column', gap:6 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-                    <Avatar grad={theirC.grad} name={theirC.name} size={36} photo={theirC.photos?.[0]} />
-                    <div style={{ minWidth:0 }}>
-                      <div style={{ fontFamily: th.body, fontSize: 10, fontWeight:700, color: alpha(th.ink,0.45), marginBottom:1 }}>הצד השני</div>
-                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{theirC.name}</div>
+                    {/* ── 3-step approval pipeline ── */}
+                    <div style={{ background:alpha(th.ink,0.025), borderRadius:th.rSm, padding:'10px 12px', marginBottom:10 }}>
+                      {/* Track row: circles + connectors */}
+                      <div style={{ display:'flex', alignItems:'center' }}>
+                        {/* Step 1: sent (always ✓) */}
+                        <div style={{ width:24, height:24, borderRadius:'50%', background:th.success, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                          <Icon name="check" size={12} style={{ color:'#fff' }} />
+                        </div>
+                        <div style={{ flex:1, height:2, background:th.success, margin:'0 4px' }} />
+                        {/* Step 2: MM must approve */}
+                        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, transition:'all .2s',
+                          background: approved ? th.success : rejected ? th.error : (pending && !finalFail) ? th.primary : alpha(th.ink,0.15),
+                          boxShadow: (pending && !finalFail) ? `0 0 0 3px ${alpha(th.primary,0.2)}` : 'none',
+                          display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          {approved ? <Icon name="check" size={12} style={{ color:'#fff' }} />
+                          : rejected ? <Icon name="x"    size={12} style={{ color:'#fff' }} />
+                          : <span style={{ fontFamily:th.display, fontWeight:800, fontSize:10, color:(pending&&!finalFail)?'#fff':alpha(th.ink,0.4) }}>2</span>}
+                        </div>
+                        <div style={{ flex:1, height:2, margin:'0 4px', background: approved ? th.success : alpha(th.ink,0.1) }} />
+                        {/* Step 3: candidates get the offer */}
+                        <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0, transition:'all .2s',
+                          background: finalDone ? th.success : finalFail ? th.error : (approved && !finalDone) ? th.primary : alpha(th.ink,0.15),
+                          display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          {finalDone ? <Icon name="check" size={12} style={{ color:'#fff' }} />
+                          : finalFail ? <Icon name="x"    size={12} style={{ color:'#fff' }} />
+                          : <span style={{ fontFamily:th.display, fontWeight:800, fontSize:10, color:(approved&&!finalDone)?'#fff':alpha(th.ink,0.4) }}>3</span>}
+                        </div>
+                      </div>
+                      {/* Step labels */}
+                      <div style={{ display:'flex', justifyContent:'space-between', marginTop:6 }}>
+                        <div style={{ textAlign:'right', flex:1 }}>
+                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:10.5, color:th.success }}>שלחתי</div>
+                        </div>
+                        <div style={{ textAlign:'center', flex:1 }}>
+                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:10.5, color:approved?th.success:rejected?th.error:(pending&&!finalFail)?th.primary:alpha(th.ink,0.4) }}>{blockName}</div>
+                          <div style={{ fontFamily:th.body, fontSize:10, color:alpha(th.ink,0.45) }}>{approved?'אישר/ה ✓':rejected?'דחה/ה ✗':seen?'ראה/תה':'טרם ראה'}</div>
+                        </div>
+                        <div style={{ textAlign:'left', flex:1 }}>
+                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:10.5, color:finalDone?th.success:finalFail?th.error:alpha(th.ink,0.35) }}>מועמדים</div>
+                          <div style={{ fontFamily:th.body, fontSize:10, color:alpha(th.ink,0.45) }}>{finalDone?'קיבלו ✓':finalFail?'לא הועבר':'בהמתנה'}</div>
+                        </div>
+                      </div>
+                      {/* Context-sensitive callout */}
+                      {pending && !finalFail && (
+                        <div style={{ marginTop:8, background:alpha(th.gold,0.12), borderRadius:th.rSm, padding:'6px 10px', display:'flex', alignItems:'center', gap:6 }}>
+                          <Icon name="info" size={13} style={{ color:th.gold, flexShrink:0 }} />
+                          <span style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.72) }}>
+                            {!iAmA
+                              ? <><b>נדרש אישורך</b> — פתח/י צ'אט לאישור או דחייה</>
+                              : <>ממתין לאישור <b>{blockName}</b>{seen?' (ראה/תה את ההצעה)':''}</>}
+                          </span>
+                        </div>
+                      )}
+                      {rejected && (
+                        <div style={{ marginTop:8, background:alpha(th.error,0.08), borderRadius:th.rSm, padding:'6px 10px', display:'flex', alignItems:'center', gap:6 }}>
+                          <Icon name="x" size={13} style={{ color:th.error, flexShrink:0 }} />
+                          <span style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.72) }}><b>{blockName}</b> דחה/תה את ההצעה</span>
+                        </div>
+                      )}
+                      {approved && (
+                        <div style={{ marginTop:8, background:alpha(th.success,0.09), borderRadius:th.rSm, padding:'6px 10px', display:'flex', alignItems:'center', gap:6 }}>
+                          <Icon name="check" size={13} style={{ color:th.success, flexShrink:0 }} />
+                          <span style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.72) }}><b>{blockName}</b> אישר/ה — {myCand.name} קיבל/ה את ההצעה</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: theirStatus === 'אישר' ? th.success : theirStatus === 'דחה' ? th.error : alpha(th.ink, 0.6) }}>{theirStatus || 'ממתין'}</div>
-                </div>
-              </div>
+                  </>
+                );
+              })()}
 
               {/* Other matchmaker + chat CTA */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: alpha(th.ink, 0.03), borderRadius: th.rSm, padding: '8px 10px' }}>
@@ -4428,7 +4622,121 @@ function AIRecs({ th, go }) {
   );
 }
 
-Object.assign(window, { Offers, Chat, AIRecs });
+// ════════════════════════════════════════════════════════════
+// CANDIDATE INQUIRY CHAT — matchmaker ↔ matchmaker about a candidate
+// ════════════════════════════════════════════════════════════
+function CandInquiry({ th, go, params }) {
+  const { candidates, matchmakers } = useContext(DataCtx);
+  const { user } = useContext(AuthCtx);
+  const myUid   = user?.uid;
+  const candId  = params?.candId;
+  const toMmId  = params?.toMm;
+
+  const c = candidates.find(x => x.id === candId) || { name:'?', grad:['#ccc','#999'], photos:[] };
+  const resolveM = id => { const m = matchmakers[id]; return { ...m, name: m?.displayName||m?.name||'—', grad: m?.grad||['#ccc','#999'] }; };
+  const theirMm = resolveM(toMmId);
+
+  // Deterministic doc ID — order-agnostic, unique per (pair of MMs + candidate)
+  const chatId = [...[myUid, toMmId].sort(), candId].join('__');
+
+  const [msgs,    setMsgs]    = useSd([]);
+  const [text,    setText]    = useSd('');
+  const [loading, setLoading] = useSd(true);
+  const [sending, setSending] = useSd(false);
+  const endRef = useRd(null);
+
+  useEd(() => {
+    if (!chatId) return;
+    const unsub = db.collection('mm_chats').doc(chatId).onSnapshot(
+      snap => { setMsgs(snap.exists ? (snap.data().messages || []) : []); setLoading(false); },
+      ()   => setLoading(false)
+    );
+    return () => unsub();
+  }, [chatId]);
+
+  useEd(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+
+  const send = async () => {
+    if (!text.trim() || sending) return;
+    const msgText = text.trim();
+    setText('');
+    setSending(true);
+    try {
+      await db.collection('mm_chats').doc(chatId).set({
+        fromMm: myUid, toMm: toMmId, candId,
+        participants: [myUid, toMmId],
+        lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMsg: msgText,
+        messages: firebase.firestore.FieldValue.arrayUnion({ from: myUid, text: msgText, at: Date.now() }),
+      }, { merge: true });
+    } catch(e) { console.error(e); }
+    setSending(false);
+  };
+
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream }}>
+      {/* Header */}
+      <div style={{ paddingTop:50, paddingInline:14, paddingBottom:10, background:th.card, flexShrink:0, borderBottom:`1px solid ${alpha(th.ink,0.08)}`, display:'flex', alignItems:'center', gap:10 }}>
+        <button onClick={() => go('back')} style={{ width:38, height:38, borderRadius:'50%', border:'none', background:alpha(th.ink,0.05), color:th.ink, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+          <Icon name="back" size={20} />
+        </button>
+        <Avatar grad={theirMm.grad} name={theirMm.name} size={40} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>{theirMm.name}</div>
+          <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>בנושא {c.name}</div>
+        </div>
+      </div>
+      {/* Candidate context chip */}
+      <div style={{ flexShrink:0, padding:'10px 16px 6px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, background:alpha(th.primary,0.07), border:`1px solid ${alpha(th.primary,0.15)}`, borderRadius:th.rSm, padding:'8px 12px' }}>
+          <Avatar grad={c.grad} name={c.name} size={30} photo={c.photos?.[0]} />
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontFamily:th.body, fontSize:10, color:alpha(th.ink,0.45) }}>שיחה בנושא</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{c.name}{c.age?`, ${c.age}`:''}{c.region?` · ${c.region}`:''}</div>
+          </div>
+        </div>
+      </div>
+      {/* Messages */}
+      <div style={{ flex:1, overflowY:'auto', padding:'8px 16px 12px', display:'flex', flexDirection:'column', gap:8 }}>
+        {loading && <div style={{ textAlign:'center', color:alpha(th.ink,0.4), fontFamily:th.body, fontSize:13, padding:24 }}>טוען…</div>}
+        {!loading && msgs.length === 0 && (
+          <div style={{ textAlign:'center', padding:'36px 20px' }}>
+            <div style={{ fontSize:34, marginBottom:10 }}>💬</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:6 }}>פתח/י שיחה</div>
+            <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.5), lineHeight:1.55 }}>שאל/י שאלות, קבל/י פרטים נוספים<br />על {c.name} מ{theirMm.name}</div>
+          </div>
+        )}
+        {msgs.map((m, i) => {
+          const mine = m.from === myUid;
+          return (
+            <div key={i} style={{ alignSelf:mine?'flex-start':'flex-end', maxWidth:'80%' }}>
+              <div style={{ background:mine?th.primary:th.card, color:mine?'#fff':th.ink, borderRadius:18, borderBottomRightRadius:mine?18:4, borderBottomLeftRadius:mine?4:18, padding:'9px 13px', fontFamily:th.body, fontSize:14.5, lineHeight:1.4, boxShadow:`0 2px 8px ${alpha(th.ink,0.06)}` }}>
+                {m.text}
+              </div>
+              <div style={{ fontFamily:th.body, fontSize:10.5, color:alpha(th.ink,0.4), marginTop:3, textAlign:mine?'right':'left' }}>
+                {mine ? 'אני' : theirMm.name}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={endRef} />
+      </div>
+      {/* Input bar */}
+      <div style={{ flexShrink:0, padding:'10px 14px 24px', background:th.card, borderTop:`1px solid ${alpha(th.ink,0.07)}`, display:'flex', gap:8, alignItems:'flex-end' }}>
+        <textarea value={text} onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+          placeholder={`שאל/י שאלה על ${c.name}…`} rows={1}
+          style={{ flex:1, resize:'none', border:'none', outline:'none', background:'transparent', fontFamily:th.body, fontSize:15, color:th.ink, lineHeight:1.5, padding:'4px 0' }} />
+        <button onClick={send} disabled={!text.trim()||sending}
+          style={{ width:38, height:38, borderRadius:'50%', border:'none', background:text.trim()?th.primary:alpha(th.ink,0.1), color:'#fff', cursor:text.trim()?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'background .15s' }}>
+          <Icon name="send" size={17} fill="#fff" stroke={0} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { Offers, Chat, AIRecs, CandInquiry });
 // screens-e.jsx — Candidate mode, Settings
 const { useState: useSe } = React;
 
@@ -4674,7 +4982,7 @@ const TWEAK_DEFAULTS = {
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
 const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
-const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', offers:'match', chat:'match', matchFlow:'match', ai:'ai', set:'set' };
+const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', candInquiry:'cands', offers:'match', chat:'match', matchFlow:'match', ai:'ai', set:'set' };
 
 function renderScreen(cur, th, go, profile) {
   const p = cur.params;
@@ -4687,6 +4995,7 @@ function renderScreen(cur, th, go, profile) {
     case 'matchFlow':   return <MatchFlow th={th} go={go} params={p} />;
     case 'offers':      return <Offers th={th} go={go} />;
     case 'chat':        return <Chat th={th} go={go} params={p} />;
+    case 'candInquiry': return <CandInquiry th={th} go={go} params={p} />;
     case 'ai':          return <AIRecs th={th} go={go} />;
     case 'candidateMode': return <CandidateMode th={th} go={go} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
@@ -4859,6 +5168,11 @@ function App() {
     const clean = raw.split(/https?:\/\//)[0];
     return clean || null;
   });
+  // All hooks must come before any conditional returns (Rules of Hooks)
+  const [impersonate, setImpersonate] = React.useState(null);
+  const startImpersonate = React.useCallback((uid, prof, type) =>
+    setImpersonate({ uid, profile: { ...prof, uid }, type }), []);
+  const stopImpersonate = React.useCallback(() => setImpersonate(null), []);
 
   if (user === undefined) {
     return (
@@ -4882,15 +5196,9 @@ function App() {
     );
   }
 
-  const [impersonate, setImpersonate] = React.useState(null);
   // impersonate = { uid, profile, type: 'matchmaker'|'candidate' }
-
   const effectiveUser    = impersonate ? { ...user, uid: impersonate.uid } : user;
   const effectiveProfile = impersonate ? impersonate.profile : profile;
-
-  const startImpersonate = React.useCallback((uid, prof, type) =>
-    setImpersonate({ uid, profile: { ...prof, uid }, type }), []);
-  const stopImpersonate = React.useCallback(() => setImpersonate(null), []);
 
   return (
     <AuthCtx.Provider value={{
