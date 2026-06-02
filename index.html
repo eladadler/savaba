@@ -1873,77 +1873,211 @@ function LoginScreen({ th, inviteToken }) {
 // ════════════════════════════════════════════════════════════
 // ADMIN PANEL
 // ════════════════════════════════════════════════════════════
+async function clearSeedData() {
+  const batch = db.batch();
+  // Delete seed matchmakers
+  ['seed_mm_rivka', 'seed_mm_yossi', 'seed_mm_dana'].forEach(id =>
+    batch.delete(db.collection('users').doc(id)));
+  // Delete seed candidates
+  const candIds = [
+    'seed_c_daniel','seed_c_michal','seed_c_guy','seed_c_maya',
+    'seed_c_uri','seed_c_shira','seed_c_noam','seed_c_tali',
+    'seed_c_ben','seed_c_noa','seed_c_roi','seed_c_lihi',
+    'seed_c_avigail','seed_c_amir','seed_c_shoshana','seed_c_tal',
+  ];
+  candIds.forEach(id => batch.delete(db.collection('candidates').doc(id)));
+  // Delete seed offers
+  const offerIds = [
+    'seed_o1','seed_o2','seed_o3','seed_o4',
+    'seed_o5','seed_o6','seed_o7','seed_o8','seed_o9',
+  ];
+  offerIds.forEach(id => batch.delete(db.collection('offers').doc(id)));
+  await batch.commit();
+}
+
 async function seedTestData(eladUid) {
   const batch = db.batch();
   const ts = firebase.firestore.FieldValue.serverTimestamp();
 
-  // ── 2 fake matchmakers ──
-  const mm1id = 'seed_mm_rivka';
-  const mm2id = 'seed_mm_yossi';
+  const av = (seed, gender) =>
+    `https://api.dicebear.com/9.x/${gender === 'f' ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
-  const db_avatar = (seed, gender) =>
-    `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+  // ── 3 fake matchmakers ────────────────────────────────────────
+  const MM1 = 'seed_mm_rivka';
+  const MM2 = 'seed_mm_yossi';
+  const MM3 = 'seed_mm_dana';
 
-  batch.set(db.collection('users').doc(mm1id), {
+  batch.set(db.collection('users').doc(MM1), {
     displayName: 'רבקה לוי', email: 'rivka@test.local', phone: '050-1111111',
-    region: 'תל אביב', gender: 'f', bio: 'שדכנית מנוסה עם 8 שנות ניסיון. מתמחה בזוגות דתיים-לאומיים.',
-    photoURL: db_avatar('rivka-levi', 'f'),
-    isAdmin: false, profileComplete: true, createdAt: ts,
+    region: 'תל אביב', gender: 'f',
+    bio: 'שדכנית מנוסה עם 8 שנות ניסיון. מתמחה בזוגות דתיים-לאומיים.',
+    photoURL: av('rivka-levi','f'), isAdmin: false, profileComplete: true, createdAt: ts,
   });
-
-  batch.set(db.collection('users').doc(mm2id), {
+  batch.set(db.collection('users').doc(MM2), {
     displayName: 'יוסי מזרחי', email: 'yossi@test.local', phone: '052-2222222',
-    region: 'ירושלים', gender: 'm', bio: 'שדכן חרדי-מודרני. עבדתי עם מעל 200 זוגות.',
-    photoURL: db_avatar('yossi-mizrahi', 'm'),
-    isAdmin: false, profileComplete: true, createdAt: ts,
+    region: 'ירושלים', gender: 'm',
+    bio: 'שדכן בירושלים. עבדתי עם מעל 200 זוגות. מתמחה בקהילה הדתית.',
+    photoURL: av('yossi-mizrahi','m'), isAdmin: false, profileComplete: true, createdAt: ts,
+  });
+  batch.set(db.collection('users').doc(MM3), {
+    displayName: 'דנה ברקוביץ׳', email: 'dana@test.local', phone: '054-3333333',
+    region: 'רמת גן', gender: 'f',
+    bio: 'שדכנית מהמרכז. גישה פסיכולוגית, מאמינה בכימיה אמיתית.',
+    photoURL: av('dana-barkowitz','f'), isAdmin: false, profileComplete: true, createdAt: ts,
   });
 
-  // ── candidates for רבקה ──
-  const rivkaCands = [
-    { name: 'דניאל כהן', age: 28, gender: 'm', region: 'תל אביב', religiosity: 'דתי-לאומי',
-      family: 'רווק', kids: 0, oneLine: 'מהנדס תוכנה שאוהב טיולים ומוזיקה', seesWith: 'אישה חמה ואינטליגנטית עם ערכים דומים',
-      interests: ['טיולים', 'מוזיקה', 'ספורט'], partner: ['דתית-לאומית', 'אקדמאית'], sabaBut: 'מסביר לכולם שהוא "לא בן אדם של בוקר" — כולל ב-11:30', discrete: '', available: true,
-      photos: [db_avatar('daniel-cohen', 'm')], mmId: mm1id, mine: false, createdAt: ts },
-    { name: 'מיכל שפירא', age: 26, gender: 'f', region: 'רמת גן', religiosity: 'מסורתית',
-      family: 'רווקה', kids: 0, oneLine: 'מורה לאמנות, אוהבת בישול ויצירה', seesWith: 'גבר בוגר עם חוש הומור',
-      interests: ['אמנות', 'בישול', 'יוגה'], partner: ['מסורתי', 'עם חוש הומור'], sabaBut: 'מדרגת את כל הסרטים לפי כמות הכלבים שמופיעים בהם', discrete: '', available: true,
-      photos: [db_avatar('michal-shapira', 'f')], mmId: mm1id, mine: false, createdAt: ts },
-  ];
+  // ── helper to set candidate ───────────────────────────────────
+  const c = (id, mmId, name, age, gender, region, religiosity, oneLine, seesWith, sabaBut, interests, partner) => {
+    batch.set(db.collection('candidates').doc(id), {
+      name, age, gender, region, religiosity, oneLine, seesWith, sabaBut,
+      interests, partner, family: gender === 'f' ? 'רווקה' : 'רווק', kids: 0,
+      discrete: '', available: true, mmId,
+      photos: [av(id.replace('seed_c_',''), gender)], createdAt: ts,
+    });
+  };
 
-  // ── candidates for יוסי ──
-  const yossiCands = [
-    { name: 'אורי לוין', age: 31, gender: 'm', region: 'ירושלים', religiosity: 'חרדי-מודרני',
-      family: 'רווק', kids: 0, oneLine: 'רופא בהתמחות ומגיע עם ערכים חזקים', seesWith: 'אישה פשוטה, חמה ומשפחתית',
-      interests: ['לימוד תורה', 'ריצה', 'בישול'], partner: ['ירא שמיים', 'משפחתית'], sabaBut: 'חושב שאם הוא לא שמע על הסרט — הוא כנראה לא טוב', discrete: '', available: true,
-      photos: [db_avatar('uri-levin', 'm')], mmId: mm2id, mine: false, createdAt: ts },
-    { name: 'שירה אברהם', age: 29, gender: 'f', region: 'ירושלים', religiosity: 'דתייה',
-      family: 'רווקה', kids: 0, oneLine: 'עורכת דין צעירה עם ראש על הכתפיים', seesWith: 'גבר שאפתן עם ביטחון עצמי',
-      interests: ['קריאה', 'טיולים', 'בישול'], partner: ['שאפתן', 'אמין'], sabaBut: 'מתווכחת בשינה — ומנצחת', discrete: '', available: true,
-      photos: [db_avatar('shira-avraham', 'f')], mmId: mm2id, mine: false, createdAt: ts },
-    { name: 'נועם גולדברג', age: 33, gender: 'm', region: 'בית שמש', religiosity: 'מסורתי',
-      family: 'רווק', kids: 0, oneLine: 'איש עסקים שמחפש שקט בחיים', seesWith: 'אישה עם יציבות רגשית',
-      interests: ['עסקים', 'גולף', 'בישול'], partner: ['יציבה', 'בוגרת'], sabaBut: 'מסביר את כל הבעיות בחיים עם אנלוגיות מגולף', discrete: '', available: true,
-      photos: [db_avatar('noam-goldberg', 'm')], mmId: mm2id, mine: false, createdAt: ts },
-  ];
+  // ── רבקה's candidates (תל אביב / מרכז, מגוון) ──────────────
+  c('seed_c_daniel', MM1, 'דניאל כהן',  28,'m','תל אביב',    'דתי-לאומי',
+    'מהנדס תוכנה שאוהב טיולים ומוזיקה',
+    'אישה חמה ואינטליגנטית עם ערכים דומים',
+    'מסביר לכולם שהוא "לא בן אדם של בוקר" — כולל ב-11:30',
+    ['טיולים','מוזיקה','ספורט'], ['דתית-לאומית','אקדמאית']);
+  c('seed_c_michal', MM1, 'מיכל שפירא', 26,'f','רמת גן',     'מסורתית',
+    'מורה לאמנות, אוהבת בישול ויצירה',
+    'גבר בוגר עם חוש הומור',
+    'מדרגת את כל הסרטים לפי כמות הכלבים שמופיעים בהם',
+    ['אמנות','בישול','יוגה'], ['מסורתי','עם חוש הומור']);
+  c('seed_c_guy',    MM1, 'גיא שמיר',   32,'m','תל אביב',    'חילוני',
+    'יזם הייטק שחוזר הביתה רק בשביל לבשל',
+    'אישה ספונטנית שלא מפחדת להרפתקה',
+    'מתחיל כל שיחה ב"יש לי רעיון לסטארטאפ"',
+    ['בישול','ריצה','מוזיקה'], ['ספונטנית','עצמאית']);
+  c('seed_c_maya',   MM1, 'מאיה גרין',  30,'f','הרצליה',     'חילונית',
+    'מנהלת שיווק דיגיטלי, אוהבתים ואנשים',
+    'גבר שיודע לשמוע ולא רק לדבר',
+    'גוגלת "האם זה נורמלי?" לפחות שלוש פעמים ביום',
+    ['ים','ריקוד','קולנוע'], ['קשוב','רגשי']);
 
-  // ── candidates for אלעד (current admin) ──
-  const eladCands = [
-    { name: 'אביגיל רוזן', age: 27, gender: 'f', region: 'רעננה', religiosity: 'דתית-לאומית',
-      family: 'רווקה', kids: 0, oneLine: 'פסיכולוגית קלינית, יצירתית ואוהבת חיים', seesWith: 'גבר בטוח בעצמו עם חוש הומור',
-      interests: ['פסיכולוגיה', 'ריקוד', 'טבע'], partner: ['מצחיק', 'אמפתי', 'מסורתי'], sabaBut: 'מנתחת את כולם פסיכולוגית — כולל את הקופאית בסופר', discrete: '', available: true,
-      photos: [db_avatar('avigail-rosen', 'f')], mmId: eladUid, mine: true, createdAt: ts },
-    { name: 'אמיר חיון', age: 30, gender: 'm', region: 'חיפה', religiosity: 'מסורתי',
-      family: 'רווק', kids: 0, oneLine: 'אדריכל שיוצר יופי ומחפש אהבה אמיתית', seesWith: 'אישה חכמה שמכבדת חלומות',
-      interests: ['אדריכלות', 'ג׳אז', 'טיולים'], partner: ['אינטליגנטית', 'ספונטנית'], sabaBut: 'לא יכול לשבת בבית קפה בלי לקרוא ביקורת על העיצוב שלו', discrete: '', available: true,
-      photos: [db_avatar('amir-hayun', 'm')], mmId: eladUid, mine: true, createdAt: ts },
-    { name: 'שושנה פרץ', age: 25, gender: 'f', region: 'נתניה', religiosity: 'מסורתית',
-      family: 'רווקה', kids: 0, oneLine: 'סטודנטית לרפואה, חרוצה ועם לב גדול', seesWith: 'גבר עם שאיפות ויציבות',
-      interests: ['רפואה', 'בישול', 'קריאה'], partner: ['אחראי', 'עם ערכים'], sabaBut: 'מאבחנת מחלות לכולם בארוחות משפחתיות — גם כשלא שואלים', discrete: '', available: true,
-      photos: [db_avatar('shoshana-peretz', 'f')], mmId: eladUid, mine: true, createdAt: ts },
-  ];
+  // ── יוסי's candidates (ירושלים / דתיים) ────────────────────
+  c('seed_c_uri',    MM2, 'אורי לוין',  31,'m','ירושלים',    'דתי-לאומי',
+    'רופא בהתמחות, מגיע עם ערכים חזקים',
+    'אישה פשוטה, חמה ומשפחתית',
+    'חושב שאם הוא לא שמע על הסרט — הוא כנראה לא טוב',
+    ['לימוד תורה','ריצה','בישול'], ['ירא שמיים','משפחתית']);
+  c('seed_c_shira',  MM2, 'שירה אברהם', 29,'f','ירושלים',    'דתית-לאומית',
+    'עורכת דין צעירה עם ראש על הכתפיים',
+    'גבר שאפתן עם ביטחון עצמי',
+    'מתווכחת בשינה — ומנצחת',
+    ['קריאה','טיולים','בישול'], ['שאפתן','אמין']);
+  c('seed_c_noam',   MM2, 'נועם גולדברג',33,'m','בית שמש',   'מסורתי',
+    'איש עסקים שמחפש שקט בחיים',
+    'אישה עם יציבות רגשית',
+    'מסביר את כל הבעיות בחיים עם אנלוגיות מגולף',
+    ['עסקים','גולף','בישול'], ['יציבה','בוגרת']);
+  c('seed_c_tali',   MM2, 'טלי כץ',     27,'f','ירושלים',    'דתית-לאומית',
+    'סטודנטית לפסיכולוגיה, מלאת חיים',
+    'גבר שמח ואופטימי עם ראש על הכתפיים',
+    'מצטלמת עם כל כלב שפוגשת ברחוב',
+    ['פסיכולוגיה','טיולים','ריקוד'], ['שמח','יציב','ספורטיבי']);
 
-  [...rivkaCands, ...yossiCands, ...eladCands].forEach(c => {
-    batch.set(db.collection('candidates').doc(), c);
+  // ── דנה's candidates (מרכז, חילוניים-מסורתיים) ───────────
+  c('seed_c_ben',    MM3, 'בן זיו',      29,'m','רמת גן',     'מסורתי',
+    'מעצב גרפי שמאמין שהפרטים עושים את ההבדל',
+    'אישה שמרגישה בנוח עם עצמה',
+    'מסדר את כל הפריטים בסופר לפי צבע',
+    ['עיצוב','מוזיקה','ספורט'], ['אותנטית','חמה']);
+  c('seed_c_noa',    MM3, 'נועה לוי',   25,'f','כפר סבא',    'חילונית',
+    'כתבת בעיתון, סקרנית ואוהבת סיפורים',
+    'גבר שיש לו עמדות אבל יודע להקשיב',
+    'שואלת שאלות אישיות מדי בפגישה הראשונה',
+    ['כתיבה','ריצה','טיולים'], ['מדבר','מקשיב','עם עמדות']);
+  c('seed_c_roi',    MM3, 'רועי כהן',   35,'m','גבעתיים',    'מסורתי',
+    'רופא שיניים ואוהב ג׳אז בזמן הפנאי',
+    'אישה עם רגש ועם הומור',
+    'מאשים את הפלייליסט על כל מצב רוח',
+    ['ג׳אז','קולנוע','בישול'], ['מרגישה','מצחיקה']);
+  c('seed_c_lihi',   MM3, 'ליהי סימון', 28,'f','פתח תקווה',  'מסורתית',
+    'ניהול עסקים + שוחה בים כל בוקר',
+    'גבר שאמיץ מספיק להיות עצמו',
+    'מתחילה לתכנן את החופשה הבאה ב-5 הדקות הראשונות',
+    ['ים','ספורט','נסיעות'], ['אמיץ','אותנטי','ספונטני']);
+
+  // ── אלעד's candidates ─────────────────────────────────────
+  c('seed_c_avigail',eladUid,'אביגיל רוזן',27,'f','רעננה',   'דתית-לאומית',
+    'פסיכולוגית קלינית, יצירתית ואוהבת חיים',
+    'גבר בטוח בעצמו עם חוש הומור',
+    'מנתחת את כולם פסיכולוגית — כולל את הקופאית בסופר',
+    ['פסיכולוגיה','ריקוד','טבע'], ['מצחיק','אמפתי','מסורתי']);
+  c('seed_c_amir',   eladUid,'אמיר חיון', 30,'m','חיפה',     'מסורתי',
+    'אדריכל שיוצר יופי ומחפש אהבה אמיתית',
+    'אישה חכמה שמכבדת חלומות',
+    'לא יכול לשבת בבית קפה בלי לקרוא ביקורת על העיצוב שלו',
+    ['אדריכלות','ג׳אז','טיולים'], ['אינטליגנטית','ספונטנית']);
+  c('seed_c_shoshana',eladUid,'שושנה פרץ',25,'f','נתניה',    'מסורתית',
+    'סטודנטית לרפואה, חרוצה ועם לב גדול',
+    'גבר עם שאיפות ויציבות',
+    'מאבחנת מחלות לכולם בארוחות משפחתיות — גם כשלא שואלים',
+    ['רפואה','בישול','קריאה'], ['אחראי','עם ערכים']);
+  c('seed_c_tal',    eladUid,'טל נחמן',   28,'m','ראשון לציון','חילוני',
+    'מפתח פולאסטאק שמבשל ברמת שף',
+    'אישה שיודעת לבלות וגם לשבת בבית',
+    'מתכנן "פרויקטים קטנים" שהופכים לפרויקטים של חצי שנה',
+    ['בישול','גיימינג','ריצה'], ['מאוזנת','עם הומור']);
+
+  // ── offers in various stages ──────────────────────────────────
+  // o1: אושרה — דניאל (rivka) ↔ שירה (yossi)
+  batch.set(db.collection('offers').doc('seed_o1'), {
+    aId: 'seed_c_daniel', aMm: MM1, bId: 'seed_c_shira', bMm: MM2,
+    status: 'אושרה', aStatus: 'אישר', bStatus: 'אישר',
+    note: 'שניהם דתיים-לאומיים, תל אביב / ירושלים. כדאי לנסות!', unread: 0, createdAt: ts,
+  });
+  // o2: אושרה — בן (dana) ↔ אביגיל (elad)
+  batch.set(db.collection('offers').doc('seed_o2'), {
+    aId: 'seed_c_ben', aMm: MM3, bId: 'seed_c_avigail', bMm: eladUid,
+    status: 'אושרה', aStatus: 'אישר', bStatus: 'אישר',
+    note: 'שניהם מהמרכז, מסורתיים. חיבור טוב.', unread: 0, createdAt: ts,
+  });
+  // o3: נצפתה — גיא (rivka) ↔ נועה (dana) — bMm ראה, עוד לא ענה
+  batch.set(db.collection('offers').doc('seed_o3'), {
+    aId: 'seed_c_guy', aMm: MM1, bId: 'seed_c_noa', bMm: MM3,
+    status: 'נצפתה', aStatus: 'ממתין', bStatus: 'ממתין',
+    note: 'שניהם חילוניים ואוהבים הרפתקאות. שלחתי הצעה.', unread: 1, createdAt: ts,
+  });
+  // o4: נצפתה — טל (elad) ↔ טלי (yossi) — elad אישר, yossi ממתין
+  batch.set(db.collection('offers').doc('seed_o4'), {
+    aId: 'seed_c_tal', aMm: eladUid, bId: 'seed_c_tali', bMm: MM2,
+    status: 'נצפתה', aStatus: 'אישר', bStatus: 'ממתין',
+    note: 'טל ממש התלהב. מחכים ליוסי.', unread: 0, createdAt: ts,
+  });
+  // o5: נשלחה — אמיר (elad) ↔ מיכל (rivka)
+  batch.set(db.collection('offers').doc('seed_o5'), {
+    aId: 'seed_c_amir', aMm: eladUid, bId: 'seed_c_michal', bMm: MM1,
+    status: 'נשלחה', aStatus: 'ממתין', bStatus: 'ממתין',
+    note: 'שניהם אוהבים מוזיקה ויצירה. חיבור טבעי.', unread: 1, createdAt: ts,
+  });
+  // o6: נשלחה — רועי (dana) ↔ שושנה (elad)
+  batch.set(db.collection('offers').doc('seed_o6'), {
+    aId: 'seed_c_roi', aMm: MM3, bId: 'seed_c_shoshana', bMm: eladUid,
+    status: 'נשלחה', aStatus: 'ממתין', bStatus: 'ממתין',
+    note: 'שניהם בתחום הרפואה, מסורתיים. נשמע מבטיח.', unread: 1, createdAt: ts,
+  });
+  // o7: נדחתה — נועם (yossi) ↔ מאיה (rivka) — bMm דחה
+  batch.set(db.collection('offers').doc('seed_o7'), {
+    aId: 'seed_c_noam', aMm: MM2, bId: 'seed_c_maya', bMm: MM1,
+    status: 'נדחתה', aStatus: 'ממתין', bStatus: 'דחה',
+    note: 'ניסיתי — לא הלך.', unread: 0, createdAt: ts,
+  });
+  // o8: נדחתה — ליהי (dana) ↔ אורי (yossi) — aMm דחה
+  batch.set(db.collection('offers').doc('seed_o8'), {
+    aId: 'seed_c_lihi', aMm: MM3, bId: 'seed_c_uri', bMm: MM2,
+    status: 'נדחתה', aStatus: 'דחה', bStatus: 'ממתין',
+    note: 'רמות דתיות שונות מדי.', unread: 0, createdAt: ts,
+  });
+  // o9: נשלחה — שושנה (elad) ↔ בן (dana) — הצעה שנייה
+  batch.set(db.collection('offers').doc('seed_o9'), {
+    aId: 'seed_c_shoshana', aMm: eladUid, bId: 'seed_c_ben', bMm: MM3,
+    status: 'נשלחה', aStatus: 'ממתין', bStatus: 'ממתין',
+    note: 'הצעה חדשה — ניסיון שני עם שידוך אחר.', unread: 1, createdAt: ts,
   });
 
   await batch.commit();
@@ -2277,12 +2411,16 @@ function AdminPanel({ th, go }) {
         {tab === 'candidates' && (
           <>
             <Btn th={th} full onClick={() => setNewCand(true)} icon={<Icon name="plus" size={18} />} style={{ marginBottom: 10 }}>הוסף מועמד/ת</Btn>
-            {candidates.length === 0 && (
-              <Btn th={th} full variant="ghost" style={{ marginBottom: 10, color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
+            <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+              <Btn th={th} full variant="ghost" style={{ color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
                 onClick={async () => { setSeeding(true); try { await seedTestData(profile.uid); } finally { setSeeding(false); } }}>
-                {seeding ? 'טוען נתוני בדיקה…' : '⚡ זרע נתוני בדיקה (לבדיקות בלבד)'}
+                {seeding ? 'טוען…' : '⚡ זרע נתוני בדיקה'}
               </Btn>
-            )}
+              <Btn th={th} variant="ghost" style={{ color: th.error, boxShadow: `inset 0 0 0 1.5px ${alpha(th.error,0.3)}`, flexShrink:0, padding:'0 14px' }}
+                onClick={async () => { if(confirm('למחוק את כל נתוני הבדיקה?')) { setSeeding(true); try { await clearSeedData(); } finally { setSeeding(false); } } }}>
+                🗑 נקה
+              </Btn>
+            </div>
             {candidates.length > 0 && candidates.some(c => !c.photos?.length || !c.sabaBut) && (
               <Btn th={th} full variant="ghost" style={{ marginBottom: 14, color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
                 onClick={updateSeedPhotos}>
