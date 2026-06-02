@@ -3559,6 +3559,7 @@ function statusTone(s, th) {
 // ════════════════════════════════════════════════════════════
 function Offers({ th, go }) {
   const { offers, candidates, matchmakers } = useContext(DataCtx);
+  const { user } = useContext(AuthCtx);
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || gradForId(id) }; };
   const [tab, setTab] = useSd('pending');
@@ -3595,32 +3596,64 @@ function Offers({ th, go }) {
           </div>
         )}
         {list.map(o => {
-          const a = findC(o.aId), b = findC(o.bId), bMm = findM(o.bMm);
+          // Determine which side is "mine" based on logged-in user's UID
+          const iAmA   = o.aMm === user?.uid;
+          const myCand = findC(iAmA ? o.aId : o.bId);
+          const theirC = findC(iAmA ? o.bId : o.aId);
+          const myStatus    = iAmA ? o.aStatus : o.bStatus;
+          const theirStatus = iAmA ? o.bStatus : o.aStatus;
+          const theirMm = findM(iAmA ? o.bMm : o.aMm);
+
           return (
             <button key={o.id} onClick={() => go('chat', { id: o.id })} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 6px 18px ${alpha(th.ink, 0.06)}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
-                <Avatar grad={a.grad} name={a.name} size={46} photo={a.photos && a.photos[0]} style={{ marginInlineEnd: -8 }} />
-                <Avatar grad={b.grad} name={b.name} size={46} photo={b.photos && b.photos[0]} style={{ marginInlineStart: -8, marginInlineEnd: 10 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{a.name} · {b.name}</div>
-                  <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>השדכן/ית של {b.name}: {bMm.name}</div>
+
+              {/* Status tag top-right */}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 12 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>
+                  {myCand.name} · {theirC.name}
                 </div>
                 <Tag th={th} tone={statusTone(o.status, th)} soft={false}>{o.status}</Tag>
               </div>
-              {/* per-side status */}
+
+              {/* Two-sided layout: mine (left in RTL = right side) vs theirs */}
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                {[[a.name, o.aStatus], [b.name, o.bStatus]].map(([n, st], i) => (
-                  <div key={i} style={{ flex: 1, background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 10px' }}>
-                    <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>{n}</div>
-                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: st === 'אישר' ? th.success : st === 'דחה' ? th.error : alpha(th.ink, 0.7) }}>{st}</div>
+                {/* MY SIDE */}
+                <div style={{ flex: 1, background: alpha(th.primary, 0.07), border: `1.5px solid ${alpha(th.primary, 0.2)}`, borderRadius: th.rSm, padding: '10px 12px', display:'flex', flexDirection:'column', gap:6 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+                    <Avatar grad={myCand.grad} name={myCand.name} size={36} photo={myCand.photos?.[0]} />
+                    <div style={{ minWidth:0 }}>
+                      <div style={{ fontFamily: th.body, fontSize: 10, fontWeight:700, color: th.primary, marginBottom:1 }}>המועמד/ת שלי</div>
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{myCand.name}</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, color: th.primary }}>
-                  <Icon name="chat" size={18} /><span style={{ fontFamily: th.body, fontWeight: 700, fontSize: 13.5 }}>פתח/י צ'אט עם {(bMm.name || '—').split(' ')[0]}</span>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: myStatus === 'אישר' ? th.success : myStatus === 'דחה' ? th.error : alpha(th.ink, 0.6) }}>{myStatus || 'ממתין'}</div>
                 </div>
-                {o.unread > 0 && <span style={{ background: th.primary, color: '#fff', borderRadius: 999, minWidth: 20, height: 20, fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{o.unread}</span>}
+
+                {/* THEIR SIDE */}
+                <div style={{ flex: 1, background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '10px 12px', display:'flex', flexDirection:'column', gap:6 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+                    <Avatar grad={theirC.grad} name={theirC.name} size={36} photo={theirC.photos?.[0]} />
+                    <div style={{ minWidth:0 }}>
+                      <div style={{ fontFamily: th.body, fontSize: 10, fontWeight:700, color: alpha(th.ink,0.45), marginBottom:1 }}>הצד השני</div>
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{theirC.name}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: theirStatus === 'אישר' ? th.success : theirStatus === 'דחה' ? th.error : alpha(th.ink, 0.6) }}>{theirStatus || 'ממתין'}</div>
+                </div>
+              </div>
+
+              {/* Other matchmaker + chat CTA */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: alpha(th.ink, 0.03), borderRadius: th.rSm, padding: '8px 10px' }}>
+                <Avatar grad={theirMm.grad} name={theirMm.name} size={28} photo={theirMm.photoURL} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.45) }}>שדכן/ית הצד השני</div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink }}>{theirMm.name}</div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:5, color: th.primary, flexShrink:0 }}>
+                  <Icon name="chat" size={17} />
+                  <span style={{ fontFamily: th.body, fontWeight: 700, fontSize: 12.5 }}>צ'אט</span>
+                  {o.unread > 0 && <span style={{ background: th.primary, color: '#fff', borderRadius: 999, minWidth: 18, height: 18, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{o.unread}</span>}
+                </div>
               </div>
             </button>
           );
