@@ -2361,18 +2361,6 @@ function AdminPanel({ th, go }) {
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
   const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
   const [invitesOpen, setInvitesOpen] = useState(false);
-  const [myInvites, setMyInvites] = useState([]);
-  const [loadingInvites, setLoadingInvites] = useState(false);
-
-  const loadInvites = async () => {
-    setLoadingInvites(true);
-    try {
-      const snap = await db.collection('invitations').where('mmId', '==', profile.uid).get();
-      const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-      setMyInvites(items);
-    } finally { setLoadingInvites(false); }
-  };
   const toggleHideSeed = () => setHideSeed(v => { localStorage.setItem('hideSeed', String(!v)); return !v; });
 
   const isSeed    = (id) => typeof id === 'string' && id.startsWith('seed_');
@@ -2452,7 +2440,7 @@ function AdminPanel({ th, go }) {
         {tab === 'candidates' && (
           <>
             <Btn th={th} full onClick={() => setNewCand(true)} icon={<Icon name="plus" size={18} />} style={{ marginBottom: 10 }}>הוסף מועמד/ת</Btn>
-            <Btn th={th} full onClick={() => { loadInvites(); setInvitesOpen(true); }}
+            <Btn th={th} full onClick={() => setInvitesOpen(true)}
               icon={<Icon name="bell" size={18} />} style={{ marginBottom: 10 }}>
               מעקב הזמנות
             </Btn>
@@ -2467,41 +2455,7 @@ function AdminPanel({ th, go }) {
               </Btn>
             </div>
 
-            {/* ── Invitations tracker sheet ── */}
-            <Sheet open={invitesOpen} onClose={() => setInvitesOpen(false)} th={th} title="מעקב הזמנות">
-              {loadingInvites ? (
-                <div style={{ textAlign:'center', padding: 24, fontFamily:th.body, color:alpha(th.ink,0.4) }}>טוען…</div>
-              ) : myInvites.length === 0 ? (
-                <div style={{ textAlign:'center', padding: 24, fontFamily:th.body, color:alpha(th.ink,0.4) }}>לא נשלחו עדיין הזמנות</div>
-              ) : myInvites.map(inv => {
-                const statusColor = inv.status === 'pending' ? th.gold : inv.status === 'accepted' || inv.status === 'filled' ? th.success : alpha(th.ink,0.4);
-                const statusLabel = { pending: 'ממתין', accepted: 'נענה', filled: 'מילא פרטים' }[inv.status] || inv.status;
-                const flowLabel = inv.flow === 'mm_fills' ? 'אני אמלא' : 'ממלא/ת בעצמו/ה';
-                const dateStr = inv.createdAt?.seconds ? new Date(inv.createdAt.seconds * 1000).toLocaleDateString('he-IL') : '—';
-                return (
-                  <div key={inv.id} style={{ background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 8, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
-                      <Avatar grad={gradForId(inv.id)} name={inv.recipientName || '?'} size={38} />
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>
-                          {inv.recipientName || <span style={{ color:alpha(th.ink,0.4) }}>ללא שם</span>}
-                        </div>
-                        <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.5) }}>{flowLabel} · {dateStr}</div>
-                      </div>
-                      <div style={{ background: alpha(statusColor,0.12), color: statusColor, borderRadius:999, padding:'4px 10px', fontFamily:th.display, fontWeight:700, fontSize:12 }}>
-                        {statusLabel}
-                      </div>
-                    </div>
-                    {inv.status === 'accepted' || inv.status === 'filled' ? (
-                      <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.55), paddingRight:48 }}>
-                        {inv.candidateName ? `נרשם/ה כ: ${inv.candidateName}` : 'נרשם/ה'}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-              <Btn th={th} full variant="ghost" style={{ marginTop:8 }} onClick={() => loadInvites()}>רענן</Btn>
-            </Sheet>
+            <InvitationsSheet open={invitesOpen} onClose={() => setInvitesOpen(false)} th={th} mmUid={profile?.uid} />
             {candidates.length > 0 && candidates.some(c => !c.photos?.length || !c.sabaBut) && (
               <Btn th={th} full variant="ghost" style={{ marginBottom: 14, color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
                 onClick={updateSeedPhotos}>
@@ -3069,18 +3023,115 @@ Object.assign(window, { Onboarding, Register, Home });
 const { useState: useSb, useMemo: useMb } = React;
 
 // ════════════════════════════════════════════════════════════
+// INVITATIONS TRACKER — reusable for all matchmakers
+// ════════════════════════════════════════════════════════════
+function InvitationsSheet({ open, onClose, th, mmUid }) {
+  const [invites, setInvites] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !mmUid) return;
+    setLoading(true);
+    db.collection('invitations').where('mmId', '==', mmUid).get()
+      .then(snap => {
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        items.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        setInvites(items);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [open, mmUid]);
+
+  const pending   = invites.filter(i => i.status === 'pending').length;
+  const accepted  = invites.filter(i => i.status === 'accepted' || i.status === 'filled').length;
+
+  return (
+    <Sheet open={open} onClose={onClose} th={th} title="מעקב הזמנות">
+      {/* summary row */}
+      {invites.length > 0 && (
+        <div style={{ display:'flex', gap:8, marginBottom:14 }}>
+          {[
+            { label:'נשלחו', n:invites.length, color:alpha(th.ink,0.6) },
+            { label:'ממתינות', n:pending, color:th.gold },
+            { label:'הצטרפו', n:accepted, color:th.success },
+          ].map(s => (
+            <div key={s.label} style={{ flex:1, background:alpha(s.color,0.1), borderRadius:th.rSm, padding:'10px 0', textAlign:'center' }}>
+              <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:s.color }}>{s.n}</div>
+              <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.55), marginTop:2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{ textAlign:'center', padding:24, fontFamily:th.body, color:alpha(th.ink,0.4) }}>טוען…</div>
+      ) : invites.length === 0 ? (
+        <div style={{ textAlign:'center', padding:32, fontFamily:th.body, color:alpha(th.ink,0.4) }}>
+          <div style={{ fontSize:36, marginBottom:10 }}>📬</div>
+          <div>עדיין לא נשלחו הזמנות</div>
+          <div style={{ fontSize:12, marginTop:6, color:alpha(th.ink,0.35) }}>הזמנות שתשלח יופיעו כאן</div>
+        </div>
+      ) : invites.map(inv => {
+        const isPending  = inv.status === 'pending';
+        const isAccepted = inv.status === 'accepted' || inv.status === 'filled';
+        const statusColor = isPending ? th.gold : isAccepted ? th.success : alpha(th.ink,0.4);
+        const statusLabel = { pending:'ממתין/ה', accepted:'נענה/תה', filled:'מילא/ה פרטים' }[inv.status] || inv.status;
+        const flowLabel   = inv.flow === 'mm_fills' ? 'אמלא אני' : 'ממלא/ת בעצמו/ה';
+        const dateStr     = inv.createdAt?.seconds
+          ? new Date(inv.createdAt.seconds * 1000).toLocaleDateString('he-IL', { day:'numeric', month:'short' })
+          : '—';
+        return (
+          <div key={inv.id} style={{ background:th.card, borderRadius:th.r, padding:'12px 14px', marginBottom:8, boxShadow:`0 3px 10px ${alpha(th.ink,0.05)}` }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <Avatar grad={gradForId(inv.id)} name={inv.recipientName || '?'} size={40} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>
+                  {inv.recipientName || <span style={{ color:alpha(th.ink,0.35) }}>ללא שם</span>}
+                </div>
+                <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>{flowLabel} · {dateStr}</div>
+              </div>
+              <div style={{ background:alpha(statusColor,0.12), color:statusColor, borderRadius:999, padding:'4px 11px', fontFamily:th.display, fontWeight:700, fontSize:12, flexShrink:0 }}>
+                {statusLabel}
+              </div>
+            </div>
+            {isAccepted && inv.candidateName && (
+              <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5), marginTop:6, paddingRight:50 }}>
+                נרשם/ה כ: <b>{inv.candidateName}</b>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <Btn th={th} full variant="ghost" style={{ marginTop:8 }}
+        onClick={() => { setInvites([]); setLoading(true); db.collection('invitations').where('mmId','==',mmUid).get().then(snap=>{const items=snap.docs.map(d=>({id:d.id,...d.data()}));items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));setInvites(items);}).finally(()=>setLoading(false)); }}>
+        ↻ רענן
+      </Btn>
+    </Sheet>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
 // CANDIDATES LIST
 // ════════════════════════════════════════════════════════════
 function Candidates({ th, go }) {
   const { candidates } = useContext(DataCtx);
   const { profile }    = useContext(AuthCtx);
-  const [scope, setScope] = useSb('mine'); // mine | all
-  const [q, setQ] = useSb('');
+  const [scope, setScope]       = useSb('mine'); // mine | all
+  const [q, setQ]               = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
-  const [addOpen, setAddOpen] = useSb(false);
-  const [filters, setFilters] = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
+  const [addOpen, setAddOpen]   = useSb(false);
+  const [invOpen, setInvOpen]   = useSb(false);
+  const [pendingCount, setPendingCount] = useSb(0);
+  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
 
   const myUid = profile?.uid;
+
+  // fetch pending invite count for badge
+  useEffect(() => {
+    if (!myUid) return;
+    db.collection('invitations').where('mmId','==',myUid).where('status','==','pending').get()
+      .then(s => setPendingCount(s.size)).catch(() => {});
+  }, [myUid]);
 
   const list = useMb(() => candidates.filter(c => {
     if (scope === 'mine' && c.mmId !== myUid) return false;
@@ -3099,10 +3150,18 @@ function Candidates({ th, go }) {
   return (
     <>
       <AppHeader th={th} title="מועמדים" sub={`${list.length} ברשימה`} action={
-        <button onClick={() => setFilterOpen(true)} style={{ position: 'relative', border: 'none', background: th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: th.ink, cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-          <Icon name="filter" size={21} />
-          {activeFilters > 0 && <span style={{ position: 'absolute', top: -3, left: -3, background: th.primary, color: '#fff', borderRadius: '50%', minWidth: 18, height: 18, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{activeFilters}</span>}
-        </button>
+        <div style={{ display:'flex', gap:8 }}>
+          {/* invite tracker bell */}
+          <button onClick={() => setInvOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
+            <Icon name="bell" size={21} />
+            {pendingCount > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.gold, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{pendingCount}</span>}
+          </button>
+          {/* filter */}
+          <button onClick={() => setFilterOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
+            <Icon name="filter" size={21} />
+            {activeFilters > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.primary, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{activeFilters}</span>}
+          </button>
+        </div>
       } />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 90px', position: 'relative' }}>
@@ -3138,6 +3197,7 @@ function Candidates({ th, go }) {
 
       <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} filters={filters} setFilters={setFilters} />
       <AddSheet open={addOpen} onClose={() => setAddOpen(false)} th={th} go={go} />
+      <InvitationsSheet open={invOpen} onClose={() => { setInvOpen(false); db.collection('invitations').where('mmId','==',myUid).where('status','==','pending').get().then(s=>setPendingCount(s.size)).catch(()=>{}); }} th={th} mmUid={myUid} />
     </>
   );
 }
