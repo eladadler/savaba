@@ -3408,16 +3408,35 @@ function CandRow({ c, th, selected, onClick, trailing }) {
 }
 
 function MatchFlow({ th, go, params }) {
-  const { lists } = useContext(DataCtx);
+  const { lists, candidates, addOffer } = useContext(DataCtx);
+  const { profile } = useContext(AuthCtx);
   const liveReligiosity = (lists.religiosity && lists.religiosity.length) ? lists.religiosity : RELIGIOSITY;
-  const first = findCand(params?.id) || CANDIDATES[0];
-  const presetSecond = params?.withId ? findCand(params.withId) : null;
+  const first = candidates.find(c => c.id === params?.id) || candidates[0];
+  const presetSecond = params?.withId ? candidates.find(c => c.id === params.withId) : null;
   const [step, setStep] = useSc(presetSecond ? 3 : 1); // 1 first, 2 choose, 3 proposal, 4 success
   const [second, setSecond] = useSc(presetSecond);
   const [note, setNote] = useSc('');
   const [relFilter, setRelFilter] = useSc('');
+  const [sending, setSending] = useSc(false);
 
-  const candidates2 = useMc(() => CANDIDATES.filter(c => c.gender !== first.gender && c.id !== first.id && c.available && (!relFilter || c.religiosity === relFilter)), [first, relFilter]);
+  const candidates2 = useMc(() => candidates.filter(c => c.gender !== first?.gender && c.id !== first?.id && c.available && (!relFilter || c.religiosity === relFilter)), [candidates, first, relFilter]);
+
+  const sendOffer = async () => {
+    if (!first || !second || sending) return;
+    setSending(true);
+    try {
+      await addOffer({
+        aId: first.id,  aMm: first.mmId || profile?.uid,
+        bId: second.id, bMm: second.mmId,
+        status: 'נשלחה',
+        aStatus: 'ממתין', bStatus: 'ממתין',
+        note: note.trim(),
+        unread: 0,
+      });
+      setStep(4);
+    } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
+    setSending(false);
+  };
   const steps = ['ראשון', 'שני', 'הצעה'];
   const stepIdx = Math.min(step, 3) - 1;
 
@@ -3519,7 +3538,7 @@ function MatchFlow({ th, go, params }) {
             <Field th={th} label={`מילה אישית ל${findMm(second.mm).name}`} hint="לא חובה — אבל תמיד עוזר">
               <TextArea th={th} value={note} onChange={setNote} placeholder="היי! חשבתי שאולי יש כאן משהו… בא לך שנבדוק?" rows={3} />
             </Field>
-            <Btn th={th} full size="l" style={{ marginTop: 4 }} onClick={() => setStep(4)} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>שלח/י הצעה</Btn>
+            <Btn th={th} full size="l" style={{ marginTop: 4 }} disabled={sending} onClick={sendOffer} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>{sending ? 'שולח…' : 'שלח/י הצעה'}</Btn>
           </>
         )}
       </div>
@@ -3539,9 +3558,12 @@ function statusTone(s, th) {
 // OFFER STATUS
 // ════════════════════════════════════════════════════════════
 function Offers({ th, go }) {
+  const { offers, candidates, matchmakers } = useContext(DataCtx);
+  const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
+  const findM = id => matchmakers[id] || { name:'—', grad: gradForId(id || 'x') };
   const [tab, setTab] = useSd('active');
-  const active = OFFERS.filter(o => o.status !== 'נדחתה');
-  const list = tab === 'active' ? active : OFFERS.filter(o => o.status === 'נדחתה' || o.status === 'אושרה');
+  const active = offers.filter(o => o.status !== 'נדחתה' && o.status !== 'אושרה');
+  const list = tab === 'active' ? active : offers.filter(o => o.status === 'נדחתה' || o.status === 'אושרה');
 
   return (
     <>
@@ -3552,8 +3574,13 @@ function Offers({ th, go }) {
         ))}
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 24px' }}>
+        {list.length === 0 && (
+          <div style={{ textAlign:'center', padding:'40px 20px', fontFamily:th.body, color:alpha(th.ink,0.4) }}>
+            {tab === 'active' ? 'אין הצעות פעילות כרגע' : 'אין הצעות שהסתיימו'}
+          </div>
+        )}
         {list.map(o => {
-          const a = findCand(o.aId), b = findCand(o.bId), bMm = findMm(o.bMm);
+          const a = findC(o.aId), b = findC(o.bId), bMm = findM(o.bMm);
           return (
             <button key={o.id} onClick={() => go('chat', { id: o.id })} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 6px 18px ${alpha(th.ink, 0.06)}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
@@ -3592,8 +3619,16 @@ function Offers({ th, go }) {
 // MATCHMAKER CHAT
 // ════════════════════════════════════════════════════════════
 function Chat({ th, go, params }) {
-  const o = OFFERS.find(x => x.id === params?.id) || OFFERS[0];
-  const a = findCand(o.aId), b = findCand(o.bId), bMm = findMm(o.bMm);
+  const { offers, candidates, matchmakers } = useContext(DataCtx);
+  const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id||'x'), photos:[] };
+  const findM = id => matchmakers[id] || { name:'—', grad: gradForId(id||'x') };
+  const o = offers.find(x => x.id === params?.id) || offers[0];
+  if (!o) return (
+    <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:'#fff', direction:'rtl' }}>
+      <div style={{ fontFamily:'system-ui', color:'#888' }}>לא נמצאה הצעה</div>
+    </div>
+  );
+  const a = findC(o.aId), b = findC(o.bId), bMm = findM(o.bMm);
   const [msgs, setMsgs] = useSd(CHATS[o.id] ? [...CHATS[o.id]] : []);
   const [text, setText] = useSd('');
   const endRef = useRd(null);
