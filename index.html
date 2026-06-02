@@ -3560,7 +3560,7 @@ function statusTone(s, th) {
 function Offers({ th, go }) {
   const { offers, candidates, matchmakers } = useContext(DataCtx);
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
-  const findM = id => matchmakers[id] || { name:'—', grad: gradForId(id || 'x') };
+  const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || gradForId(id) }; };
   const [tab, setTab] = useSd('pending');
 
   const pending  = offers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה');
@@ -3618,7 +3618,7 @@ function Offers({ th, go }) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, color: th.primary }}>
-                  <Icon name="chat" size={18} /><span style={{ fontFamily: th.body, fontWeight: 700, fontSize: 13.5 }}>פתח/י צ'אט עם {bMm.name.split(' ')[0]}</span>
+                  <Icon name="chat" size={18} /><span style={{ fontFamily: th.body, fontWeight: 700, fontSize: 13.5 }}>פתח/י צ'אט עם {(bMm.name || '—').split(' ')[0]}</span>
                 </div>
                 {o.unread > 0 && <span style={{ background: th.primary, color: '#fff', borderRadius: 999, minWidth: 20, height: 20, fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{o.unread}</span>}
               </div>
@@ -4100,7 +4100,7 @@ function AppInner({ inviteToken }) {
     window.OFFERS      = data.offers;
     window.MATCHMAKERS = data.matchmakers;
     window.findCand    = (id) => data.candidates.find(c => c.id === id);
-    window.findMm      = (id) => data.matchmakers[id] || { id, name:'—', grad:['#ccc','#999'] };
+    window.findMm      = (id) => { const mm = data.matchmakers[id]; if (!mm) return { id, name:'—', grad:['#ccc','#999'] }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || ['#ccc','#999'] }; };
     window.CHATS       = {};
     window.AI_PAIRS    = [];
   }, [data.candidates, data.offers, data.matchmakers]);
