@@ -2002,6 +2002,213 @@ function ListsEditor({ th, listDefs, onSave }) {
   );
 }
 
+// ── AdminStats ────────────────────────────────────────────────
+function AdminStats({ th }) {
+  const { candidates, offers, matchmakers } = useContext(DataCtx);
+  const [invitations, setInvitations] = useState([]);
+
+  useEffect(() => {
+    db.collection('invitations').get().then(snap => {
+      setInvitations(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }).catch(() => {});
+  }, []);
+
+  // ── helpers ──
+  const pct = (n, total) => total === 0 ? 0 : Math.round((n / total) * 100);
+  const StatCard = ({ label, value, sub, color }) => (
+    <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, display:'flex', flexDirection:'column', gap: 2, minWidth: 0 }}>
+      <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5), fontWeight: 600 }}>{label}</div>
+      <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 28, color: color || th.primary, lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>{sub}</div>}
+    </div>
+  );
+  const SectionTitle = ({ children }) => (
+    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 18, marginBottom: 8, paddingRight: 2 }}>{children}</div>
+  );
+  const Bar = ({ label, count, total, color }) => {
+    const w = pct(count, total);
+    return (
+      <div style={{ marginBottom: 7 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.7), marginBottom: 3 }}>
+          <span>{label}</span>
+          <span style={{ fontWeight: 700 }}>{count} <span style={{ color: alpha(th.ink, 0.4), fontWeight: 400 }}>({w}%)</span></span>
+        </div>
+        <div style={{ height: 7, background: alpha(th.ink, 0.08), borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${w}%`, background: color || th.primary, borderRadius: 99, transition: 'width 0.5s' }} />
+        </div>
+      </div>
+    );
+  };
+
+  // ── compute ──
+  const total = candidates.length;
+
+  // Gender
+  const males   = candidates.filter(c => c.gender === 'גבר' || c.gender === 'm').length;
+  const females = candidates.filter(c => c.gender === 'אשה' || c.gender === 'f').length;
+
+  // Available
+  const available = candidates.filter(c => c.available !== false).length;
+
+  // With photos
+  const withPhotos = candidates.filter(c => c.photos && c.photos.length > 0).length;
+
+  // Religiosity breakdown
+  const religMap = {};
+  candidates.forEach(c => { if (c.religiosity) religMap[c.religiosity] = (religMap[c.religiosity] || 0) + 1; });
+  const religEntries = Object.entries(religMap).sort((a,b) => b[1]-a[1]);
+
+  // Region breakdown
+  const regionMap = {};
+  candidates.forEach(c => { if (c.region) regionMap[c.region] = (regionMap[c.region] || 0) + 1; });
+  const regionEntries = Object.entries(regionMap).sort((a,b) => b[1]-a[1]);
+
+  // Age buckets
+  const ageBuckets = { '18-24': 0, '25-29': 0, '30-34': 0, '35-39': 0, '40+': 0 };
+  candidates.forEach(c => {
+    const a = parseInt(c.age) || 0;
+    if (a < 25) ageBuckets['18-24']++;
+    else if (a < 30) ageBuckets['25-29']++;
+    else if (a < 35) ageBuckets['30-34']++;
+    else if (a < 40) ageBuckets['35-39']++;
+    else if (a > 0)  ageBuckets['40+']++;
+  });
+
+  // Interests breakdown
+  const intMap = {};
+  candidates.forEach(c => (c.interests || []).forEach(i => { intMap[i] = (intMap[i] || 0) + 1; }));
+  const intTop = Object.entries(intMap).sort((a,b) => b[1]-a[1]).slice(0, 6);
+
+  // Offers
+  const totalOffers  = offers.length;
+  const pendingOff   = offers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה').length;
+  const approvedOff  = offers.filter(o => o.status === 'אושרה').length;
+  const declinedOff  = offers.filter(o => o.status === 'נדחתה').length;
+  const seenOff      = offers.filter(o => o.status === 'נצפתה').length;
+  // Candidates who have at least 1 offer
+  const candsWithOffer = new Set(offers.flatMap(o => [o.aId, o.bId])).size;
+
+  // Invitations
+  const invTotal    = invitations.length;
+  const invAccepted = invitations.filter(i => i.status === 'accepted' || i.status === 'filled').length;
+  const invPending  = invitations.filter(i => i.status === 'pending').length;
+  // Candidates who completed registration (have candidateUid)
+  const registeredCands = candidates.filter(c => c.candidateUid).length;
+
+  // Matchmakers
+  const mmList = Object.values(matchmakers);
+  const mmCount = mmList.length;
+  const mmCandMap = {};
+  candidates.forEach(c => { if (c.mmId) mmCandMap[c.mmId] = (mmCandMap[c.mmId] || 0) + 1; });
+  const mmEntries = Object.entries(mmCandMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
+
+  const PALETTE = [th.primary, th.gold, th.success, '#a78bfa', '#fb923c', '#34d399'];
+
+  return (
+    <div style={{ direction: 'rtl' }}>
+      {/* ── CANDIDATES overview ── */}
+      <SectionTitle>מועמדים</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
+        <StatCard label="סה״כ מועמדים" value={total} />
+        <StatCard label="זמינים לשידוך" value={available} sub={`${pct(available,total)}% מהסך הכל`} color={th.success} />
+        <StatCard label="עם תמונה" value={withPhotos} sub={`${pct(withPhotos,total)}%`} color={th.gold} />
+        <StatCard label="נרשמו בעצמם" value={registeredCands} sub={`${pct(registeredCands,total)}% השלימו הרשמה`} color="#a78bfa" />
+      </div>
+
+      {/* Gender */}
+      <SectionTitle>פילוג מגדר</SectionTitle>
+      <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+        <Bar label="אישה" count={females} total={total} color={th.primary} />
+        <Bar label="גבר"  count={males}   total={total} color={th.gold} />
+      </div>
+
+      {/* Age */}
+      <SectionTitle>טווחי גיל</SectionTitle>
+      <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+        {Object.entries(ageBuckets).map(([lbl, cnt], i) => (
+          <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
+        ))}
+      </div>
+
+      {/* Religiosity */}
+      {religEntries.length > 0 && (<>
+        <SectionTitle>קרבה לדת</SectionTitle>
+        <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+          {religEntries.map(([lbl, cnt], i) => (
+            <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
+          ))}
+        </div>
+      </>)}
+
+      {/* Region */}
+      {regionEntries.length > 0 && (<>
+        <SectionTitle>אזורים</SectionTitle>
+        <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+          {regionEntries.map(([lbl, cnt], i) => (
+            <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
+          ))}
+        </div>
+      </>)}
+
+      {/* Interests */}
+      {intTop.length > 0 && (<>
+        <SectionTitle>תחומי עניין פופולריים</SectionTitle>
+        <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+          {intTop.map(([lbl, cnt], i) => (
+            <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
+          ))}
+        </div>
+      </>)}
+
+      {/* ── OFFERS ── */}
+      <SectionTitle>הצעות שידוך</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
+        <StatCard label="סה״כ הצעות" value={totalOffers} />
+        <StatCard label="מועמדים עם הצעה" value={candsWithOffer} sub={`${pct(candsWithOffer, total)}% מהמועמדים`} color={th.gold} />
+        <StatCard label="אושרו" value={approvedOff} sub={`${pct(approvedOff, totalOffers)}% מכלל ההצעות`} color={th.success} />
+        <StatCard label="נדחו" value={declinedOff} sub={`${pct(declinedOff, totalOffers)}%`} color={th.error} />
+      </div>
+      {totalOffers > 0 && (
+        <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+          <Bar label="ממתינות לתגובה" count={pendingOff}  total={totalOffers} color={th.gold} />
+          <Bar label="נצפו"           count={seenOff}     total={totalOffers} color="#a78bfa" />
+          <Bar label="אושרו"          count={approvedOff} total={totalOffers} color={th.success} />
+          <Bar label="נדחו"           count={declinedOff} total={totalOffers} color={th.error} />
+        </div>
+      )}
+
+      {/* ── ONBOARDING ── */}
+      <SectionTitle>הזמנות ואונבורדינג</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
+        <StatCard label="הזמנות נשלחו" value={invTotal} />
+        <StatCard label="הזמנות התקבלו" value={invAccepted} sub={`${pct(invAccepted, invTotal)}% אחוז המרה`} color={th.success} />
+        <StatCard label="ממתינות לתגובה" value={invPending} color={th.gold} />
+        <StatCard label="הרשמה הושלמה" value={registeredCands} sub={`${pct(registeredCands, invAccepted || 1)}% מהמגיבים`} color="#a78bfa" />
+      </div>
+      {invTotal > 0 && (
+        <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+          <Bar label="התקבלו"  count={invAccepted}      total={invTotal} color={th.success} />
+          <Bar label="ממתינות" count={invPending}        total={invTotal} color={th.gold} />
+          <Bar label="הרשמה הושלמה" count={registeredCands} total={invTotal} color="#a78bfa" />
+        </div>
+      )}
+
+      {/* ── MATCHMAKERS ── */}
+      <SectionTitle>שדכנים ({mmCount})</SectionTitle>
+      <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, marginBottom: 24 }}>
+        {mmEntries.length === 0
+          ? <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4), textAlign:'center', padding: 8 }}>אין נתונים</div>
+          : mmEntries.map(([mmId, cnt], i) => {
+              const mm = matchmakers[mmId];
+              const name = mm ? (mm.displayName || mm.name || mm.email || '—') : '—';
+              return <Bar key={mmId} label={name} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />;
+            })
+        }
+      </div>
+    </div>
+  );
+}
+
 function AdminPanel({ th, go }) {
   const { profile }  = useContext(AuthCtx);
   const { candidates, matchmakers, texts, lists, addCandidate, updateCandidate,
@@ -2054,7 +2261,7 @@ function AdminPanel({ th, go }) {
     </div>
   );
 
-  const tabs = [['candidates', 'מועמדים'], ['lists', 'רשימות'], ['texts', 'טקסטים'], ['users', 'משתמשים']];
+  const tabs = [['candidates', 'מועמדים'], ['stats', 'סטטיסטיקות'], ['lists', 'רשימות'], ['texts', 'טקסטים'], ['users', 'שדכנים']];
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
@@ -2153,6 +2360,9 @@ function AdminPanel({ th, go }) {
             ))}
           </>
         )}
+
+        {/* ── STATS ── */}
+        {tab === 'stats' && <AdminStats th={th} />}
 
         {/* ── USERS ── */}
         {tab === 'users' && Object.values(matchmakers).map(u => (
