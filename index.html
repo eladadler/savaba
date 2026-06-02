@@ -2137,9 +2137,13 @@ function ListsEditor({ th, listDefs, onSave }) {
 }
 
 // ── AdminStats ────────────────────────────────────────────────
-function AdminStats({ th }) {
-  const { candidates, offers, matchmakers } = useContext(DataCtx);
+function AdminStats({ th, hideSeed, isSeed }) {
+  const { candidates: allCands, offers: allOffers, matchmakers: allMms } = useContext(DataCtx);
   const [invitations, setInvitations] = useState([]);
+
+  const candidates = hideSeed ? allCands.filter(c => !isSeed(c.id))   : allCands;
+  const offers     = hideSeed ? allOffers.filter(o => !isSeed(o.aId)) : allOffers;
+  const matchmakers = hideSeed ? Object.fromEntries(Object.entries(allMms).filter(([id]) => !isSeed(id))) : allMms;
 
   useEffect(() => {
     db.collection('invitations').get().then(snap => {
@@ -2354,6 +2358,12 @@ function AdminPanel({ th, go }) {
   const [editVal,  setEditVal]  = useState('');
   const [seeding,  setSeeding]  = useState(false);
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
+  const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
+  const toggleHideSeed = () => setHideSeed(v => { localStorage.setItem('hideSeed', String(!v)); return !v; });
+
+  const isSeed    = (id) => typeof id === 'string' && id.startsWith('seed_');
+  const visibleCands = hideSeed ? candidates.filter(c => !isSeed(c.id)) : candidates;
+  const visibleMms   = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeed(id))) : matchmakers;
 
   const db_avatar = (seed, gender) =>
     `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -2406,6 +2416,23 @@ function AdminPanel({ th, go }) {
         ))}
       </div>
 
+      {/* ── hide-seed toggle ── */}
+      <div style={{ padding: '4px 18px 8px', display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+        <button onClick={toggleHideSeed} style={{ display:'flex', alignItems:'center', gap:7, border:'none', background: hideSeed ? alpha(th.ink,0.08) : alpha(th.gold,0.13), borderRadius:999, padding:'6px 14px', cursor:'pointer', transition:'background 0.2s' }}>
+          <div style={{ width:28, height:16, background: hideSeed ? th.ink : alpha(th.ink,0.2), borderRadius:999, position:'relative', transition:'background 0.2s', flexShrink:0 }}>
+            <div style={{ position:'absolute', top:2, width:12, height:12, borderRadius:'50%', background:'white', transition:'left 0.2s', left: hideSeed ? 14 : 2 }} />
+          </div>
+          <span style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color: hideSeed ? th.ink : alpha(th.ink,0.5) }}>
+            {hideSeed ? 'פיקטיביים מוסתרים' : 'הצג פיקטיביים'}
+          </span>
+        </button>
+        {hideSeed && (
+          <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>
+            {candidates.length - visibleCands.length} מועמדים · {Object.keys(matchmakers).length - Object.keys(visibleMms).length} שדכנים מוסתרים
+          </span>
+        )}
+      </div>
+
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 30px' }}>
         {/* ── CANDIDATES ── */}
         {tab === 'candidates' && (
@@ -2428,7 +2455,7 @@ function AdminPanel({ th, go }) {
               </Btn>
             )}
             {newCand && <CandidateForm th={th} onSave={async (data) => { const id = await addCandidate(data); setNewCand(false); go('candidate', { id }); }} onCancel={() => setNewCand(false)} />}
-            {candidates.map(c => (
+            {visibleCands.map(c => (
               <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
                 {editCand === c.id
                   ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); go('candidate', { id: c.id }); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
@@ -2500,10 +2527,10 @@ function AdminPanel({ th, go }) {
         )}
 
         {/* ── STATS ── */}
-        {tab === 'stats' && <AdminStats th={th} />}
+        {tab === 'stats' && <AdminStats th={th} hideSeed={hideSeed} isSeed={isSeed} />}
 
         {/* ── USERS ── */}
-        {tab === 'users' && Object.values(matchmakers).map(u => (
+        {tab === 'users' && Object.values(visibleMms).map(u => (
           <div key={u.id} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
             <Avatar grad={gradForId(u.id)} name={u.displayName || u.email} size={40} photo={u.photoURL} />
             <div style={{ flex: 1, minWidth: 0 }}>
