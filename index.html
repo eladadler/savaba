@@ -1110,6 +1110,7 @@ function useFirebaseData(uid) {
   const [offers,        setOffers]        = useState([]);
   const [matchmakers,   setMatchmakers]   = useState({});
   const [texts,         setTexts]         = useState({});
+  const [lists,         setLists]         = useState({});
   const [notifications, setNotifications] = useState([]);
   const [loading,       setLoading]       = useState(true);
 
@@ -1144,6 +1145,10 @@ function useFirebaseData(uid) {
 
     unsubs.push(db.collection('config').doc('texts').onSnapshot(d => {
       if (d.exists) setTexts(d.data());
+    }));
+
+    unsubs.push(db.collection('config').doc('lists').onSnapshot(d => {
+      if (d.exists) setLists(d.data());
     }));
 
     const notifUnsub = db.collection('notifications')
@@ -1208,6 +1213,9 @@ function useFirebaseData(uid) {
   const setUserAdmin = useCallback((targetUid, isAdmin) =>
     db.collection('users').doc(targetUid).update({ isAdmin }), []);
 
+  const updateList = useCallback((key, value) =>
+    db.collection('config').doc('lists').set({ [key]: value }, { merge: true }), []);
+
   const markNotificationRead = useCallback((id) =>
     db.collection('notifications').doc(id).update({ read: true }), []);
 
@@ -1215,9 +1223,9 @@ function useFirebaseData(uid) {
     db.collection('candidates').doc(candidateId).update({ pendingApproval: false }), []);
 
   return {
-    candidates, offers, matchmakers, texts, notifications, loading,
+    candidates, offers, matchmakers, texts, lists, notifications, loading,
     addCandidate, updateCandidate, deleteCandidate,
-    uploadPhoto, addOffer, updateOffer, updateText, setUserAdmin,
+    uploadPhoto, addOffer, updateOffer, updateText, setUserAdmin, updateList,
     markNotificationRead, approveCandidate,
   };
 }
@@ -1742,7 +1750,7 @@ async function seedTestData(eladUid) {
   const mm2id = 'seed_mm_yossi';
 
   const db_avatar = (seed, gender) =>
-    `https://api.dicebear.com/9.x/${gender === 'f' ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+    `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
   batch.set(db.collection('users').doc(mm1id), {
     displayName: 'רבקה לוי', email: 'rivka@test.local', phone: '050-1111111',
@@ -1809,10 +1817,63 @@ async function seedTestData(eladUid) {
   await batch.commit();
 }
 
+function ListsEditor({ th, listDefs, onSave }) {
+  const [editKey, setEditKey] = useState(null);
+  const [items,   setItems]   = useState([]);
+  const [newItem, setNewItem] = useState('');
+
+  const startEdit = (key, live) => { setEditKey(key); setItems([...live]); setNewItem(''); };
+  const removeItem = (i) => setItems(arr => arr.filter((_, idx) => idx !== i));
+  const addItem = () => { const t = newItem.trim(); if (t && !items.includes(t)) { setItems(a => [...a, t]); setNewItem(''); } };
+
+  if (editKey) {
+    const def = listDefs.find(d => d.key === editKey);
+    return (
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <button onClick={() => setEditKey(null)} style={{ border: 'none', background: alpha(th.ink, 0.07), borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="back" size={18} /></button>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{def.label}</div>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, background: alpha(th.primary, 0.1), border: `1.5px solid ${alpha(th.primary, 0.3)}`, borderRadius: 999, padding: '6px 12px' }}>
+              <span style={{ fontFamily: th.body, fontSize: 14, color: th.ink }}>{item}</span>
+              <button onClick={() => removeItem(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: alpha(th.ink, 0.4), lineHeight: 1, padding: 0, fontSize: 16 }}>×</button>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <input value={newItem} onChange={e => setNewItem(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem()} placeholder="פריט חדש…" style={{ flex: 1, border: `1.5px solid ${alpha(th.ink,0.15)}`, borderRadius: th.rSm, padding: '10px 12px', fontFamily: th.body, fontSize: 14, outline: 'none', background: th.card, color: th.ink }} />
+          <Btn th={th} size="s" onClick={addItem}>+ הוסף</Btn>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn th={th} full onClick={async () => { await onSave(editKey, items); setEditKey(null); }}>שמור שינויים</Btn>
+          <Btn th={th} variant="ghost" onClick={() => setEditKey(null)}>ביטול</Btn>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginBottom: 14 }}>לחץ על רשימה לעריכה. שינויים משפיעים על כל הטפסים באפליקציה.</div>
+      {listDefs.map(({ key, label, live }) => (
+        <button key={key} onClick={() => startEdit(key, live)} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 10, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>{label}</div>
+            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{live.slice(0,5).join(' · ')}{live.length > 5 ? ` ועוד ${live.length - 5}` : ''}</div>
+          </div>
+          <Icon name="edit" size={17} style={{ color: alpha(th.ink, 0.4), flexShrink: 0 }} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AdminPanel({ th, go }) {
   const { profile }  = useContext(AuthCtx);
-  const { candidates, matchmakers, texts, addCandidate, updateCandidate,
-          deleteCandidate, uploadPhoto, updateText, setUserAdmin } = useContext(DataCtx);
+  const { candidates, matchmakers, texts, lists, addCandidate, updateCandidate,
+          deleteCandidate, uploadPhoto, updateText, setUserAdmin, updateList } = useContext(DataCtx);
   const [tab, setTab]         = useState('candidates');
   const [editCand, setEditCand] = useState(null);
   const [newCand,  setNewCand]  = useState(false);
@@ -1822,7 +1883,7 @@ function AdminPanel({ th, go }) {
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
 
   const db_avatar = (seed, gender) =>
-    `https://api.dicebear.com/9.x/${gender === 'f' ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
+    `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
 
   const SEED_DATA = {
     'דניאל כהן':    { seed: 'daniel-cohen',    gender: 'm', sabaBut: 'מסביר לכולם שהוא "לא בן אדם של בוקר" — כולל ב-11:30' },
@@ -1861,7 +1922,7 @@ function AdminPanel({ th, go }) {
     </div>
   );
 
-  const tabs = [['candidates', 'מועמדים'], ['texts', 'טקסטים'], ['users', 'משתמשים']];
+  const tabs = [['candidates', 'מועמדים'], ['lists', 'רשימות'], ['texts', 'טקסטים'], ['users', 'משתמשים']];
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
@@ -1917,6 +1978,25 @@ function AdminPanel({ th, go }) {
           </>
         )}
 
+        {/* ── LISTS ── */}
+        {tab === 'lists' && (() => {
+          const liveRegions       = (lists.regions       && lists.regions.length)       ? lists.regions       : REGIONS;
+          const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
+          const liveInterests     = (lists.interests      && lists.interests.length)     ? lists.interests     : INTERESTS;
+          const livePartnerTraits = (lists.partnerTraits  && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
+
+          const listDefs = [
+            { key: 'interests',     label: 'תחומי עניין',       live: liveInterests },
+            { key: 'partnerTraits', label: 'חשוב בפרטנר',       live: livePartnerTraits },
+            { key: 'religiosity',   label: 'קרבה לדת',          live: liveReligiosity },
+            { key: 'regions',       label: 'אזורים',             live: liveRegions },
+          ];
+
+          return (
+            <ListsEditor th={th} listDefs={listDefs} onSave={(key, val) => updateList(key, val)} />
+          );
+        })()}
+
         {/* ── TEXTS (CMS) ── */}
         {tab === 'texts' && (
           <>
@@ -1961,33 +2041,103 @@ function AdminPanel({ th, go }) {
 }
 
 function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
-  const [f, setF] = useState(initial || { name:'', age:'', gender:'f', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true });
+  const { lists } = useContext(DataCtx);
+  const liveRegions      = (lists.regions      && lists.regions.length)      ? lists.regions      : REGIONS;
+  const liveReligiosity  = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
+  const liveInterests    = (lists.interests     && lists.interests.length)    ? lists.interests    : INTERESTS;
+  const livePartnerTraits = (lists.partnerTraits && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
+
+  const [step, setStep] = useState(0);
+  const [f, setF] = useState(initial || { name:'', age:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true });
   const set = (k) => (v) => setF(s => ({ ...s, [k]: v }));
   const [uploading, setUploading] = useState(false);
+  const [uploadedCount, setUploadedCount] = useState((initial?.photos || []).length);
+
+  const steps = onUpload
+    ? ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', 'תמונות ופרטים']
+    : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', 'פרטים נוספים'];
+
+  const isLast = step === steps.length - 1;
+
+  const StepDots = () => (
+    <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 18 }}>
+      {steps.map((s, i) => (
+        <div key={i} onClick={() => i < step && setStep(i)} style={{ width: i === step ? 22 : 8, height: 8, borderRadius: 999, background: i === step ? th.primary : i < step ? alpha(th.primary, 0.4) : alpha(th.ink, 0.15), cursor: i < step ? 'pointer' : 'default', transition: 'all 0.2s' }} />
+      ))}
+    </div>
+  );
 
   return (
-    <div style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 14, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
-      <Field th={th} label="שם"><TextInput th={th} value={f.name} onChange={set('name')} /></Field>
-      <Field th={th} label="גיל"><TextInput th={th} type="number" value={f.age} onChange={v => setF(s => ({...s, age: +v}))} /></Field>
-      <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['f', 'm']} /></Field>
-      <Field th={th} label="אזור"><Select th={th} value={f.region} onChange={set('region')} options={REGIONS} /></Field>
-      <Field th={th} label="קרבה לדת"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={RELIGIOSITY} /></Field>
-      <Field th={th} label="סבבה והכל, אבל…"><TextInput th={th} value={f.sabaBut} onChange={set('sabaBut')} /></Field>
-      <Field th={th} label="במשפט אחד"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} /></Field>
-      <Field th={th} label="רואה את עצמו/ה עם"><TextInput th={th} value={f.seesWith} onChange={set('seesWith')} /></Field>
-      <Field th={th} label="תחומי עניין (מופרד בפסיקים)"><TextInput th={th} value={f.interests?.join(', ')} onChange={v => setF(s => ({...s, interests: v.split(',').map(x=>x.trim()).filter(Boolean)}))} /></Field>
-      <Field th={th} label="חשוב בפרטנר (מופרד בפסיקים)"><TextInput th={th} value={f.partner?.join(', ')} onChange={v => setF(s => ({...s, partner: v.split(',').map(x=>x.trim()).filter(Boolean)}))} /></Field>
-      <Field th={th} label="פרטים דיסקרטיים"><TextArea th={th} value={f.discrete} onChange={set('discrete')} rows={2} /></Field>
-      {onUpload && (
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ fontFamily: th.body, fontWeight: 700, fontSize: 14, marginBottom: 6, color: th.ink }}>העלאת תמונה</div>
-          <input type="file" accept="image/*" onChange={async (e) => { if (!e.target.files[0]) return; setUploading(true); await onUpload(e.target.files[0]); setUploading(false); }} />
-          {uploading && <div style={{ fontFamily: th.body, fontSize: 12, color: th.gold, marginTop: 4 }}>מעלה…</div>}
-        </div>
+    <div style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 16, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
+      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 10, textAlign: 'center' }}>
+        {steps[step]}
+      </div>
+      <StepDots />
+
+      {step === 0 && (
+        <>
+          <Field th={th} label="שם"><TextInput th={th} value={f.name} onChange={set('name')} /></Field>
+          <Field th={th} label="גיל"><TextInput th={th} type="number" value={f.age} onChange={v => setF(s => ({...s, age: +v}))} /></Field>
+          <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה', 'גבר']} /></Field>
+          <Field th={th} label="אזור"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
+          <Field th={th} label="קרבה לדת"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
+        </>
       )}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <Btn th={th} full onClick={() => onSave(f)}>שמור</Btn>
-        <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
+
+      {step === 1 && (
+        <>
+          <Field th={th} label="סבבה והכל, אבל…" hint='למשל: "שואל את גוגל Maps כשהוא יודע בדיוק לאן הוא הולך"'>
+            <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder='משהו אמיתי ומצחיק שמאפיין אותו/ה…' rows={2} />
+          </Field>
+          <Field th={th} label="במשפט אחד"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder='הגדרה קצרה של האדם…' /></Field>
+          <Field th={th} label="רואה את עצמו/ה עם">
+            <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} placeholder='תאר/י את הזוגיות שהוא/היא מדמיין/ת לעצמו/ה…' rows={3} />
+          </Field>
+        </>
+      )}
+
+      {step === 2 && (
+        <>
+          <Field th={th} label="תחומי עניין">
+            <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} options={liveInterests} tone={th.primary} />
+          </Field>
+          <Field th={th} label="חשוב בפרטנר">
+            <MultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner: v}))} options={livePartnerTraits} tone={th.gold} />
+          </Field>
+        </>
+      )}
+
+      {step === 3 && (
+        <>
+          <Field th={th} label="פרטים דיסקרטיים" hint="גלוי לך בלבד — שדכנים אחרים לא יראו שדה זה">
+            <TextArea th={th} value={f.discrete} onChange={set('discrete')} rows={3} placeholder='מידע רגיש שחשוב לדעת…' />
+          </Field>
+          {onUpload && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontFamily: th.body, fontWeight: 700, fontSize: 14, marginBottom: 2, color: th.ink }}>העלאת תמונות</div>
+              <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5), marginBottom: 8 }}>ניתן להעלות מספר תמונות · מומלץ תמונות מאונכות באיכות טובה{uploadedCount > 0 ? ` · ${uploadedCount} הועלו` : ''}</div>
+              <input type="file" accept="image/*" multiple onChange={async (e) => {
+                const files = Array.from(e.target.files);
+                if (!files.length) return;
+                setUploading(true);
+                for (const file of files) { await onUpload(file); setUploadedCount(c => c + 1); }
+                setUploading(false);
+              }} />
+              {uploading && <div style={{ fontFamily: th.body, fontSize: 12, color: th.gold, marginTop: 4 }}>מעלה…</div>}
+            </div>
+          )}
+        </>
+      )}
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+        {step > 0
+          ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
+          : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
+        }
+        {isLast
+          ? <Btn th={th} full onClick={() => onSave(f)}>שמור</Btn>
+          : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא →</Btn>
+        }
       </div>
     </div>
   );
@@ -2140,6 +2290,8 @@ function Onboarding({ th, go }) {
 // ════════════════════════════════════════════════════════════
 function Register({ th, go }) {
   const { user } = useContext(AuthCtx);
+  const { lists } = useContext(DataCtx);
+  const liveRegions = (lists.regions && lists.regions.length) ? lists.regions : REGIONS;
   const [f, setF] = useS({ name: '', phone: '', region: '', gender: '', bio: '' });
   const [photoURL, setPhotoURL] = useS('');
   const [uploading, setUploading] = useS(false);
@@ -2201,7 +2353,7 @@ function Register({ th, go }) {
           <TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} placeholder="050-0000000" />
         </Field>
         <Field th={th} label="אזור מגורים" required>
-          <Select th={th} value={f.region} onChange={set('region')} options={REGIONS} />
+          <Select th={th} value={f.region} onChange={set('region')} options={liveRegions} />
         </Field>
         <Field th={th} label="מין" required>
           <Segmented th={th} value={f.gender} onChange={set('gender')} options={['אישה', 'גבר']} />
@@ -2331,7 +2483,7 @@ function Candidates({ th, go }) {
   const list = useMb(() => CANDIDATES.filter(c => {
     if (scope === 'mine' && !c.mine) return false;
     if (q && !c.name.includes(q) && !c.oneLine.includes(q)) return false;
-    if (filters.gender && (filters.gender === 'נשים' ? c.gender !== 'f' : c.gender !== 'm')) return false;
+    if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
     if (filters.region && c.region !== filters.region) return false;
     if (filters.status === 'פנוי' && !c.available) return false;
     if (filters.status === 'תפוס' && c.available) return false;
@@ -2420,6 +2572,9 @@ function CandCard({ c, th, onClick }) {
 }
 
 function FilterSheet({ open, onClose, th, filters, setFilters }) {
+  const { lists } = useContext(DataCtx);
+  const liveRegions     = (lists.regions     && lists.regions.length)     ? lists.regions     : REGIONS;
+  const liveReligiosity = (lists.religiosity  && lists.religiosity.length) ? lists.religiosity : RELIGIOSITY;
   const set = (k, v) => setFilters(s => ({ ...s, [k]: v }));
   return (
     <Sheet open={open} onClose={onClose} th={th} title="פילטרים">
@@ -2431,8 +2586,8 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
           <input type="range" min={20} max={60} value={filters.ageMax} onChange={e => set('ageMax', Math.max(+e.target.value, filters.ageMin))} style={{ flex: 1, accentColor: th.primary }} />
         </div>
       </Field>
-      <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={REGIONS} /></Field>
-      <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={RELIGIOSITY} tone={th.gold} /></Field>
+      <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={liveRegions} /></Field>
+      <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={liveReligiosity} tone={th.gold} /></Field>
       <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
         <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 })}>נקה</Btn>
         <Btn th={th} full onClick={onClose}>הצג תוצאות</Btn>
@@ -2607,9 +2762,14 @@ function InvitationLanding({ th, go, token }) {
 // ════════════════════════════════════════════════════════════
 function CandidateSelfFill({ th, go, params }) {
   const { user, profile } = useContext(AuthCtx);
+  const { lists } = useContext(DataCtx);
+  const liveRegions       = (lists.regions       && lists.regions.length)       ? lists.regions       : REGIONS;
+  const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
+  const liveInterests     = (lists.interests      && lists.interests.length)     ? lists.interests     : INTERESTS;
+  const livePartnerTraits = (lists.partnerTraits  && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
   const { token, invite } = params;
   const [f, setF] = useState({
-    name: profile?.displayName || '', age: '', gender: 'f',
+    name: profile?.displayName || '', age: '', gender: 'אשה',
     region: '', religiosity: '', family: 'רווק/ה', kids: 0,
     sabaBut: '', oneLine: '', seesWith: '', interests: [], partner: [], discrete: '', available: true,
   });
@@ -2672,7 +2832,7 @@ function CandidateSelfFill({ th, go, params }) {
       <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
         <Field th={th} label="שם מלא" required><TextInput th={th} value={f.name} onChange={set('name')} placeholder="שם פרטי ומשפחה" /></Field>
         <Field th={th} label="גיל" required><TextInput th={th} type="number" value={f.age} onChange={set('age')} placeholder="25" /></Field>
-        <Field th={th} label="מין" required><Segmented th={th} value={f.gender} onChange={set('gender')} options={['f','m']} /></Field>
+        <Field th={th} label="מין" required><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
         <Field th={th} label="אזור מגורים"><TextInput th={th} value={f.region} onChange={set('region')} placeholder="תל אביב" /></Field>
         <Field th={th} label="זרם דתי"><TextInput th={th} value={f.religiosity} onChange={set('religiosity')} placeholder="דתי-לאומי, מסורתי…" /></Field>
         <Field th={th} label="מצב משפחתי"><TextInput th={th} value={f.family} onChange={set('family')} /></Field>
@@ -3050,6 +3210,8 @@ function CandRow({ c, th, selected, onClick, trailing }) {
 }
 
 function MatchFlow({ th, go, params }) {
+  const { lists } = useContext(DataCtx);
+  const liveReligiosity = (lists.religiosity && lists.religiosity.length) ? lists.religiosity : RELIGIOSITY;
   const first = findCand(params?.id) || CANDIDATES[0];
   const presetSecond = params?.withId ? findCand(params.withId) : null;
   const [step, setStep] = useSc(presetSecond ? 3 : 1); // 1 first, 2 choose, 3 proposal, 4 success
@@ -3118,7 +3280,7 @@ function MatchFlow({ th, go, params }) {
             <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 10 }}>מי מתאים/ה ל{first.name}?</div>
             <div style={{ display: 'flex', gap: 7, overflowX: 'auto', marginBottom: 14, paddingBottom: 4 }}>
               <Chip th={th} label="הכל" active={!relFilter} onClick={() => setRelFilter('')} tone={th.gold} />
-              {RELIGIOSITY.slice(0, 6).map(r => <Chip key={r} th={th} label={r} active={relFilter === r} onClick={() => setRelFilter(relFilter === r ? '' : r)} tone={th.gold} />)}
+              {liveReligiosity.slice(0, 6).map(r => <Chip key={r} th={th} label={r} active={relFilter === r} onClick={() => setRelFilter(relFilter === r ? '' : r)} tone={th.gold} />)}
             </div>
             {candidates2.map(c => (
               <CandRow key={c.id} c={c} th={th} selected={second?.id === c.id} onClick={() => setSecond(c)}
@@ -3685,7 +3847,12 @@ function App() {
   const data = useFirebaseData(user?.uid);
   const [t]  = useTweaks(TWEAK_DEFAULTS);
   const th   = makeTheme(t);
-  const [inviteToken] = React.useState(() => new URLSearchParams(window.location.search).get('invite'));
+  const [inviteToken] = React.useState(() => {
+    const raw = new URLSearchParams(window.location.search).get('invite');
+    if (!raw) return null;
+    const clean = raw.split(/https?:\/\//)[0];
+    return clean || null;
+  });
 
   if (user === undefined) {
     return (
