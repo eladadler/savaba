@@ -2349,7 +2349,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
 }
 
 function AdminPanel({ th, go }) {
-  const { profile }  = useContext(AuthCtx);
+  const { profile, startImpersonate }  = useContext(AuthCtx);
   const { candidates, matchmakers, texts, lists, addCandidate, updateCandidate,
           deleteCandidate, uploadPhoto, updateText, setUserAdmin, updateList } = useContext(DataCtx);
   const [tab, setTab]         = useState('candidates');
@@ -2509,7 +2509,8 @@ function AdminPanel({ th, go }) {
               </Btn>
             )}
             {newCand && <CandidateForm th={th} onSave={async (data) => { const id = await addCandidate(data); setNewCand(false); go('candidate', { id }); }} onCancel={() => setNewCand(false)} />}
-            {visibleCands.map(c => (
+            {visibleCands.map(c => {
+              return (
               <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
                 {editCand === c.id
                   ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); go('candidate', { id: c.id }); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
@@ -2521,6 +2522,10 @@ function AdminPanel({ th, go }) {
                           <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
                           <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
                         </div>
+                        {c.candidateUid && (
+                          <button onClick={() => { startImpersonate(c.candidateUid, { uid: c.candidateUid, displayName: c.name, name: c.name }, 'candidate'); go('candidateMode'); }}
+                            title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
+                        )}
                         <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
                         <button onClick={() => { if (confirm('למחוק?')) deleteCandidate(c.id); }} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
                       </div>
@@ -2532,7 +2537,7 @@ function AdminPanel({ th, go }) {
                     </>
                   )}
               </div>
-            ))}
+            );})}
           </>
         )}
 
@@ -2583,19 +2588,43 @@ function AdminPanel({ th, go }) {
         {/* ── STATS ── */}
         {tab === 'stats' && <AdminStats th={th} hideSeed={hideSeed} isSeed={isSeed} />}
 
-        {/* ── USERS ── */}
-        {tab === 'users' && Object.values(visibleMms).map(u => (
-          <div key={u.id} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
-            <Avatar grad={gradForId(u.id)} name={u.displayName || u.email} size={40} photo={u.photoURL} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink }}>{u.displayName || u.email}</div>
-              <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{u.email}</div>
-            </div>
-            <button onClick={() => setUserAdmin(u.id, !u.isAdmin)} style={{ border: 'none', borderRadius: 999, padding: '6px 12px', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: 12, background: u.isAdmin ? alpha(th.gold, 0.15) : alpha(th.ink, 0.07), color: u.isAdmin ? th.gold : alpha(th.ink, 0.5) }}>
-              {u.isAdmin ? 'מנהל ✓' : 'הפוך למנהל'}
-            </button>
-          </div>
-        ))}
+        {/* ── USERS (matchmakers) ── */}
+        {tab === 'users' && (() => {
+          return Object.values(visibleMms).map(u => {
+            const mmCands = visibleCands.filter(c => c.mmId === u.id);
+            return (
+              <div key={u.id} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 10, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
+                {/* matchmaker row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: mmCands.length ? 10 : 0 }}>
+                  <Avatar grad={gradForId(u.id)} name={u.displayName || u.email} size={40} photo={u.photoURL} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink }}>{u.displayName || u.email}</div>
+                    <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{u.email} · {mmCands.length} מועמדים</div>
+                  </div>
+                  <button onClick={() => setUserAdmin(u.id, !u.isAdmin)} style={{ border: 'none', borderRadius: 999, padding: '5px 10px', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: 11, background: u.isAdmin ? alpha(th.gold, 0.15) : alpha(th.ink, 0.07), color: u.isAdmin ? th.gold : alpha(th.ink, 0.5) }}>
+                    {u.isAdmin ? 'מנהל ✓' : 'מנהל'}
+                  </button>
+                  <button onClick={() => { startImpersonate(u.id, u, 'matchmaker'); go('home'); }}
+                    style={{ border: 'none', borderRadius: 999, padding: '5px 10px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 11, background: alpha('#7B2D00', 0.1), color: '#7B2D00' }}>
+                    🎭 התחזה
+                  </button>
+                </div>
+                {/* candidates mini-list */}
+                {mmCands.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, paddingTop: 8, borderTop: `1px solid ${alpha(th.ink,0.07)}` }}>
+                    {mmCands.map(c => (
+                      <button key={c.id} onClick={() => go('candidate', { id: c.id })}
+                        style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5, background:alpha(th.ink,0.05), borderRadius:999, padding:'4px 10px 4px 6px' }}>
+                        <Avatar grad={gradForId(c.id)} name={c.name} size={22} photo={c.photos?.[0]} />
+                        <span style={{ fontFamily:th.body, fontSize:12, fontWeight:600, color:th.ink }}>{c.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          });
+        })()}
       </div>
     </div>
   );
@@ -4674,6 +4703,23 @@ function AppSettings({ th, go, profile }) {
   );
 }
 
+function ImpersonateBanner({ th }) {
+  const { isImpersonating, profile, impersonateType, stopImpersonate } = useContext(AuthCtx);
+  if (!isImpersonating) return null;
+  const label = impersonateType === 'candidate' ? 'מועמד/ת' : 'שדכן/ית';
+  return (
+    <div style={{ background: '#7B2D00', color: '#fff', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, zIndex: 999 }}>
+      <div style={{ fontSize: 14 }}>🎭</div>
+      <div style={{ flex: 1, fontFamily: th.display, fontWeight: 800, fontSize: 12.5 }}>
+        מדמה {label}: {profile?.displayName || profile?.name || profile?.uid}
+      </div>
+      <button onClick={stopImpersonate} style={{ border: 'none', background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 999, padding: '4px 12px', fontFamily: th.display, fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
+        יציאה ✕
+      </button>
+    </div>
+  );
+}
+
 function AppInner({ inviteToken }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
   const th             = makeTheme(t);
@@ -4720,6 +4766,7 @@ function AppInner({ inviteToken }) {
     <>
       <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
+          <ImpersonateBanner th={th} />
           {data.loading
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
             : renderScreen(cur, th, go, profile)}
@@ -4775,8 +4822,24 @@ function App() {
     );
   }
 
+  const [impersonate, setImpersonate] = React.useState(null);
+  // impersonate = { uid, profile, type: 'matchmaker'|'candidate' }
+
+  const effectiveUser    = impersonate ? { ...user, uid: impersonate.uid } : user;
+  const effectiveProfile = impersonate ? impersonate.profile : profile;
+
+  const startImpersonate = React.useCallback((uid, prof, type) =>
+    setImpersonate({ uid, profile: { ...prof, uid }, type }), []);
+  const stopImpersonate = React.useCallback(() => setImpersonate(null), []);
+
   return (
-    <AuthCtx.Provider value={{ user, profile }}>
+    <AuthCtx.Provider value={{
+      user: effectiveUser, profile: effectiveProfile,
+      realProfile: profile, realUser: user,
+      isImpersonating: !!impersonate,
+      impersonateType: impersonate?.type || null,
+      startImpersonate, stopImpersonate,
+    }}>
       <DataCtx.Provider value={data}>
         <TextsCtx.Provider value={{ texts: data.texts, defaults: DEFAULT_TEXTS }}>
           <AppInner inviteToken={inviteToken} />
