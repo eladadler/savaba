@@ -2808,6 +2808,7 @@ function CandidateSelfFill({ th, go, params }) {
       await db.collection('notifications').add({
         toUid: invite.mmId, type: 'cand_filled',
         candidateId: ref.id, candidateName: f.name,
+        candidateAge: +f.age, candidateRegion: f.region, candidateReligiosity: f.religiosity,
         inviteToken: token, read: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -2815,6 +2816,18 @@ function CandidateSelfFill({ th, go, params }) {
     } catch(e) { alert('שגיאה: ' + e.message); }
     setSub(false);
   };
+
+  const [step, setStep] = useState(0);
+  const steps = ['פרטים בסיסיים', 'קצת עלייך', 'תחומי עניין', 'תמונות'];
+  const isLast = step === steps.length - 1;
+
+  const SelfStepDots = () => (
+    <div style={{ display:'flex', justifyContent:'center', gap:6, marginBottom:18 }}>
+      {steps.map((_, i) => (
+        <div key={i} style={{ width: i === step ? 22 : 8, height:8, borderRadius:999, background: i === step ? th.primary : i < step ? alpha(th.primary,0.4) : alpha(th.ink,0.15), transition:'all 0.2s' }} />
+      ))}
+    </div>
+  );
 
   if (done) return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:32, textAlign:'center', direction:'rtl' }}>
@@ -2828,34 +2841,74 @@ function CandidateSelfFill({ th, go, params }) {
 
   return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
-      <AppHeader th={th} title="הפרטים שלי" sub={`עבור ${invite.mmName}`} onBack={() => go('back')} />
+      <AppHeader th={th} title="הפרטים שלי" sub={`עבור ${invite.mmName}`} />
       <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
-        <Field th={th} label="שם מלא" required><TextInput th={th} value={f.name} onChange={set('name')} placeholder="שם פרטי ומשפחה" /></Field>
-        <Field th={th} label="גיל" required><TextInput th={th} type="number" value={f.age} onChange={set('age')} placeholder="25" /></Field>
-        <Field th={th} label="מין" required><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
-        <Field th={th} label="אזור מגורים"><TextInput th={th} value={f.region} onChange={set('region')} placeholder="תל אביב" /></Field>
-        <Field th={th} label="זרם דתי"><TextInput th={th} value={f.religiosity} onChange={set('religiosity')} placeholder="דתי-לאומי, מסורתי…" /></Field>
-        <Field th={th} label="מצב משפחתי"><TextInput th={th} value={f.family} onChange={set('family')} /></Field>
-        <Field th={th} label='סבבה והכל, אבל…' hint="משהו מצחיק/ייחודי עליך"><TextInput th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder="למשל: מפחד/ת מיונים" /></Field>
-        <Field th={th} label="משפט תיאור"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder="ספר/י על עצמך במשפט" /></Field>
-        <Field th={th} label="מחפש/ת"><TextInput th={th} value={f.seesWith} onChange={set('seesWith')} placeholder="מה חשוב לך בבן/ת זוג?" /></Field>
-        <Field th={th} label="תמונות">
-          <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-            {photos.map((url, i) => (
-              <div key={i} style={{ position:'relative' }}>
-                <img src={url} alt="" style={{ width:72, height:72, borderRadius:10, objectFit:'cover' }} />
-                <button onClick={() => setPhotos(p => p.filter((_,j) => j!==i))} style={{ position:'absolute', top:-6, insetInlineEnd:-6, width:22, height:22, borderRadius:'50%', border:'none', background:th.error, color:'#fff', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>×</button>
-              </div>
-            ))}
-            <label style={{ width:72, height:72, borderRadius:10, border:`2px dashed ${alpha(th.ink,0.2)}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color: uploading ? alpha(th.ink,0.3) : th.primary, flexShrink:0 }}>
-              {uploading ? <span style={{ fontFamily:th.body, fontSize:11 }}>מעלה…</span> : <Icon name="plus" size={26} />}
-              <input type="file" accept="image/*" style={{ display:'none' }} onChange={addPhoto} disabled={uploading} />
-            </label>
-          </div>
-        </Field>
-        <Btn th={th} full size="l" onClick={submit} disabled={submitting} style={{ marginTop:12 }}>
-          {submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}
-        </Btn>
+        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, marginBottom:10, textAlign:'center' }}>{steps[step]}</div>
+        <SelfStepDots />
+
+        {step === 0 && (
+          <>
+            <Field th={th} label="שם מלא" required><TextInput th={th} value={f.name} onChange={set('name')} placeholder="שם פרטי ומשפחה" /></Field>
+            <Field th={th} label="גיל" required><TextInput th={th} type="number" value={f.age} onChange={set('age')} placeholder="25" /></Field>
+            <Field th={th} label="מין" required><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
+            <Field th={th} label="אזור מגורים"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
+            <Field th={th} label="זרם דתי"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
+            <Field th={th} label="מצב משפחתי"><TextInput th={th} value={f.family} onChange={set('family')} /></Field>
+          </>
+        )}
+
+        {step === 1 && (
+          <>
+            <Field th={th} label='סבבה והכל, אבל…' hint="משהו מצחיק/ייחודי עליך">
+              <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder='למשל: "מפחד/ת מיונים אבל רוצה לגור ליד הים"' rows={2} />
+            </Field>
+            <Field th={th} label="ספר/י על עצמך במשפט">
+              <TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder="מה הכי מגדיר אותך?" />
+            </Field>
+            <Field th={th} label="מחפש/ת">
+              <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} placeholder="מה חשוב לך בבן/ת זוג?" rows={3} />
+            </Field>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <Field th={th} label="תחומי עניין">
+              <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests:v}))} options={liveInterests} tone={th.primary} />
+            </Field>
+            <Field th={th} label="חשוב לי בפרטנר">
+              <MultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner:v}))} options={livePartnerTraits} tone={th.gold} />
+            </Field>
+          </>
+        )}
+
+        {step === 3 && (
+          <Field th={th} label="תמונות" hint="מומלץ תמונות מאונכות באיכות טובה">
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center', marginBottom:8 }}>
+              {photos.map((url, i) => (
+                <div key={i} style={{ position:'relative' }}>
+                  <img src={url} alt="" style={{ width:80, height:80, borderRadius:12, objectFit:'cover' }} />
+                  <button onClick={() => setPhotos(p => p.filter((_,j) => j!==i))} style={{ position:'absolute', top:-6, insetInlineEnd:-6, width:22, height:22, borderRadius:'50%', border:'none', background:th.error, color:'#fff', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>×</button>
+                </div>
+              ))}
+              <label style={{ width:80, height:80, borderRadius:12, border:`2px dashed ${alpha(th.ink,0.2)}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, cursor:'pointer', color: uploading ? alpha(th.ink,0.3) : th.primary, flexShrink:0 }}>
+                {uploading ? <span style={{ fontFamily:th.body, fontSize:11 }}>מעלה…</span> : <><Icon name="plus" size={22} /><span style={{ fontFamily:th.body, fontSize:11 }}>הוסף/י</span></>}
+                <input type="file" accept="image/*" style={{ display:'none' }} onChange={addPhoto} disabled={uploading} />
+              </label>
+            </div>
+          </Field>
+        )}
+
+        <div style={{ display:'flex', gap:8, marginTop:20 }}>
+          {step > 0
+            ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s-1)}>← חזרה</Btn>
+            : <div style={{ flex:1 }} />
+          }
+          {isLast
+            ? <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.age}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
+            : <Btn th={th} full onClick={() => { if (step===0 && (!f.name||!f.age)) { alert('נא למלא שם וגיל'); return; } setStep(s => s+1); }}>הבא →</Btn>
+          }
+        </div>
       </div>
     </div>
   );
@@ -2927,11 +2980,16 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
           : notifications.map(n => (
             <button key={n.id} onClick={() => handleTap(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', borderRadius:th.r, marginBottom:8, display:'block', textAlign:'right', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}` }}>
               <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
-                {n.type === 'invite_accepted' ? `✓ ${n.candidateName} אישר/ה הזמנה` : `📋 ${n.candidateName} מילא/ה פרטים`}
+                {n.type === 'invite_accepted' ? `✓ ${n.candidateName} אישר/ה הזמנה` : `📋 ${n.candidateName} הצטרף/ה`}
               </div>
-              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55) }}>
-                {n.type === 'invite_accepted' ? 'לחץ/י למילוי פרטי המועמד/ת' : 'לחץ/י לבדיקה ואישור הכרטיסייה'}
+              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55), marginBottom:n.type === 'cand_filled' && n.candidateAge ? 3 : 0 }}>
+                {n.type === 'invite_accepted' ? 'ממתין/ה שתמלא/י את הפרטים' : 'ממתין/ה לאישור ופרסום'}
               </div>
+              {n.type === 'cand_filled' && (n.candidateAge || n.candidateRegion) && (
+                <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.4) }}>
+                  {[n.candidateAge && `גיל ${n.candidateAge}`, n.candidateRegion, n.candidateReligiosity].filter(Boolean).join(' · ')}
+                </div>
+              )}
             </button>
           ))
         }
