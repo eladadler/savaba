@@ -1680,13 +1680,20 @@ function CandidateInviteRegister({ th, inviteToken }) {
   const [err,       setErr]   = useState('');
   const [busy,      setBusy]  = useState(false);
   const [invite,    setInvite] = useState(null);
+  const [cmsTexts,  setCmsTexts] = useState({});
 
   React.useEffect(() => {
     if (!inviteToken) return;
-    db.collection('invitations').doc(inviteToken).get()
-      .then(d => { if (d.exists) setInvite(d.data()); })
-      .catch(() => {});
+    Promise.all([
+      db.collection('invitations').doc(inviteToken).get(),
+      db.collection('config').doc('texts').get(),
+    ]).then(([invDoc, txDoc]) => {
+      if (invDoc.exists) setInvite(invDoc.data());
+      if (txDoc.exists)  setCmsTexts(txDoc.data());
+    }).catch(() => {});
   }, [inviteToken]);
+
+  const t = (key) => cmsTexts[key] || DEFAULT_TEXTS[key] || '';
 
   const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
 
@@ -1725,11 +1732,17 @@ function CandidateInviteRegister({ th, inviteToken }) {
         <Logo size={60} color={th.primary} flaw={th.cream} />
         <div style={{ fontFamily:th.display, fontSize:26, fontWeight:800, color:th.ink, marginTop:12 }}>סבבה והכל</div>
         <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55), marginTop:4, lineHeight:1.5 }}>
-          פלטפורמת שידוכים חכמה — שדכנים מקצועיים, AI שמוצא התאמות, ופרטיות מלאה.
+          {t('invite_app_desc')}
         </div>
         {invite && (
           <div style={{ marginTop:14, background:alpha(th.primary,0.08), border:`1.5px solid ${alpha(th.primary,0.22)}`, borderRadius:10, padding:'10px 16px', fontFamily:th.body, fontSize:13.5, color:th.ink, lineHeight:1.5 }}>
             <b>{invite.mmName}</b> מזמין/ת אותך להצטרף כמועמד/ת
+          </div>
+        )}
+        {invite && (
+          <div style={{ marginTop:10, background:alpha(th.ink,0.04), borderRadius:10, padding:'10px 14px', fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.5, textAlign:'right' }}>
+            <b>מה קורה אחרי?</b>{' '}
+            {invite.flow === 'mm_fills' ? t('invite_what_next_mm') : t('invite_what_next_self')}
           </div>
         )}
       </div>
@@ -1737,7 +1750,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
       <div style={{ width:'100%', maxWidth:360 }}>
         {step === 'name' && (
           <div style={{ display:'flex', flexDirection:'column', gap:12, animation:'sabaUp .3s ease' }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:4 }}>מה שמך?</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:4 }}>{t('invite_name_title')}</div>
             <input value={firstName} onChange={e => setFirst(e.target.value)} placeholder="שם פרטי" style={inStyle} />
             <input value={lastName}  onChange={e => setLast(e.target.value)}  placeholder="שם משפחה" style={inStyle} />
             <Btn th={th} full size="l" disabled={!firstName.trim() || !lastName.trim()} onClick={() => setStep('auth')}>
@@ -2069,11 +2082,11 @@ function AdminPanel({ th, go }) {
                 {updatingPhotos ? 'מעדכן תמונות…' : '🖼 הוסף תמונות DiceBear למועמדי בדיקה'}
               </Btn>
             )}
-            {newCand && <CandidateForm th={th} onSave={async (data) => { await addCandidate(data); setNewCand(false); }} onCancel={() => setNewCand(false)} />}
+            {newCand && <CandidateForm th={th} onSave={async (data) => { const id = await addCandidate(data); setNewCand(false); go('candidate', { id }); }} onCancel={() => setNewCand(false)} />}
             {candidates.map(c => (
               <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
                 {editCand === c.id
-                  ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
+                  ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); go('candidate', { id: c.id }); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
                   : (
                     <>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -2274,6 +2287,10 @@ const TEXT_KEYS = {
   ai_info_text:     'AI — טקסט הסבר',
   register_title:   'הרשמה — כותרת',
   register_sub:     'הרשמה — תת-כותרת',
+  invite_app_desc:  'הזמנה — תיאור האפליקציה',
+  invite_name_title: 'הזמנה — שאלת שם',
+  invite_what_next_mm:   'הזמנה — מה קורה אחרי (שדכן ממלא)',
+  invite_what_next_self: 'הזמנה — מה קורה אחרי (מועמד ממלא)',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -2287,6 +2304,10 @@ const DEFAULT_TEXTS = {
   ai_info_text:     'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
   register_title:   'נעים להכיר',
   register_sub:     'כמה פרטים ונצא לדרך',
+  invite_app_desc:  'פלטפורמת שידוכים חכמה — שדכנים מקצועיים, AI שמוצא התאמות, ופרטיות מלאה.',
+  invite_name_title: 'מה שמך?',
+  invite_what_next_mm:   'השדכן/ית ימלא/תמלא את הפרטים שלך ויצור/תיצור עבורך כרטיסייה.',
+  invite_what_next_self: 'תתבקש/י למלא את הפרטים שלך ולהעלות תמונות. השדכן/ית יאשר/תאשר לפני פרסום.',
 };
 
 // ════════════════════════════════════════════════════════════
