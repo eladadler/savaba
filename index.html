@@ -3561,22 +3561,37 @@ function Offers({ th, go }) {
   const { offers, candidates, matchmakers } = useContext(DataCtx);
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
   const findM = id => matchmakers[id] || { name:'—', grad: gradForId(id || 'x') };
-  const [tab, setTab] = useSd('active');
-  const active = offers.filter(o => o.status !== 'נדחתה' && o.status !== 'אושרה');
-  const list = tab === 'active' ? active : offers.filter(o => o.status === 'נדחתה' || o.status === 'אושרה');
+  const [tab, setTab] = useSd('pending');
+
+  const pending  = offers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה');
+  const approved = offers.filter(o => o.status === 'אושרה');
+  const done     = offers.filter(o => o.status === 'נדחתה');
+  const listMap  = { pending, approved, done };
+  const list     = listMap[tab] || [];
+
+  const emptyMsg = { pending:'אין הצעות הממתינות לאישור', approved:'אין הצעות שאושרו', done:'אין הצעות שהסתיימו' };
+
+  const tabs = [
+    { id:'pending',  lbl:'ממתינות', count: pending.length,  dot: th.gold },
+    { id:'approved', lbl:'אושרו',   count: approved.length, dot: th.success },
+    { id:'done',     lbl:'הסתיימו', count: done.length,     dot: null },
+  ];
 
   return (
     <>
-      <AppHeader th={th} title="שידוכים" sub={`${active.length} הצעות פעילות`} onBack={() => go('tab', { tab: 'home' })} />
-      <div style={{ display: 'flex', gap: 8, padding: '4px 18px 10px', flexShrink: 0 }}>
-        {[['active', 'פעילות'], ['done', 'הסתיימו']].map(([id, lbl]) => (
-          <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}` }}>{lbl}</button>
+      <AppHeader th={th} title="שידוכים" sub={`${pending.length + approved.length} פעילות`} onBack={() => go('tab', { tab: 'home' })} />
+      <div style={{ display: 'flex', gap: 6, padding: '4px 18px 10px', flexShrink: 0 }}>
+        {tabs.map(({ id, lbl, count, dot }) => (
+          <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: '8px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}`, position:'relative' }}>
+            {lbl}
+            {count > 0 && <span style={{ marginInlineStart:4, background: tab===id ? alpha('#fff',0.25) : (dot || alpha(th.ink,0.2)), color: tab===id ? '#fff' : '#fff', borderRadius:99, fontSize:11, fontWeight:800, padding:'1px 6px' }}>{count}</span>}
+          </button>
         ))}
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 24px' }}>
         {list.length === 0 && (
           <div style={{ textAlign:'center', padding:'40px 20px', fontFamily:th.body, color:alpha(th.ink,0.4) }}>
-            {tab === 'active' ? 'אין הצעות פעילות כרגע' : 'אין הצעות שהסתיימו'}
+            {emptyMsg[tab]}
           </div>
         )}
         {list.map(o => {
@@ -3619,7 +3634,7 @@ function Offers({ th, go }) {
 // MATCHMAKER CHAT
 // ════════════════════════════════════════════════════════════
 function Chat({ th, go, params }) {
-  const { offers, candidates, matchmakers } = useContext(DataCtx);
+  const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id||'x'), photos:[] };
   const findM = id => matchmakers[id] || { name:'—', grad: gradForId(id||'x') };
   const o = offers.find(x => x.id === params?.id) || offers[0];
@@ -3629,13 +3644,28 @@ function Chat({ th, go, params }) {
     </div>
   );
   const a = findC(o.aId), b = findC(o.bId), bMm = findM(o.bMm);
-  const [msgs, setMsgs] = useSd(CHATS[o.id] ? [...CHATS[o.id]] : []);
+  const [msgs, setMsgs] = useSd([]);
   const [text, setText] = useSd('');
+  const [testOpen, setTestOpen] = useSd(false);
   const endRef = useRd(null);
   useEd(() => { endRef.current?.parentNode?.scrollTo(0, 99999); }, [msgs]);
 
   const send = (t) => { if (!t.trim()) return; setMsgs(m => [...m, { from: 'me', text: t, t: 'עכשיו' }]); setText(''); };
   const incoming = (t) => setMsgs(m => [...m, { from: 'm2', text: t, t: 'עכשיו' }]);
+
+  // Test helpers — simulate other matchmaker's response in Firestore
+  const testApprove = async () => {
+    await updateOffer(o.id, { bStatus: 'אישר', status: 'אושרה' });
+    incoming('✅ [בדיקה] שדכן ב\' אישר את ההצעה!');
+  };
+  const testDecline = async () => {
+    await updateOffer(o.id, { bStatus: 'דחה', status: 'נדחתה' });
+    incoming('❌ [בדיקה] שדכן ב\' דחה את ההצעה.');
+  };
+  const testSeen = async () => {
+    await updateOffer(o.id, { status: 'נצפתה' });
+    incoming('👁 [בדיקה] שדכן ב\' ראה את ההצעה.');
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream }}>
@@ -3669,14 +3699,24 @@ function Chat({ th, go, params }) {
         <div ref={endRef} />
       </div>
 
-      {/* incoming-offer action row (decision buttons) */}
-      {o.status !== 'אושרה' && o.status !== 'נדחתה' && (
-        <div style={{ flexShrink: 0, padding: '10px 14px', display: 'flex', gap: 8, background: th.cream, borderTop: `1px solid ${alpha(th.ink, 0.06)}` }}>
-          <Btn th={th} size="s" variant="success" onClick={() => incoming('מאשר! בוא נתקדם 🎉')} icon={<Icon name="check" size={16} />}>קבל</Btn>
-          <Btn th={th} size="s" variant="ghost" onClick={() => incoming('צריך עוד פרטים על הגובה ועל הרקע המשפחתי')}>בקש פרטים</Btn>
-          <Btn th={th} size="s" variant="ghost" style={{ color: th.error, boxShadow: `inset 0 0 0 1.5px ${alpha(th.error,0.3)}` }} onClick={() => incoming('חבל, אבל זה לא מתאים הפעם')}>דחה</Btn>
-        </div>
-      )}
+      {/* 🔧 TEST PANEL */}
+      <div style={{ flexShrink:0, borderTop:`1px solid ${alpha(th.ink,0.07)}` }}>
+        <button onClick={() => setTestOpen(x => !x)} style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', padding:'8px 14px', display:'flex', alignItems:'center', gap:6, background:alpha('#f59e0b',0.08) }}>
+          <span style={{ fontSize:14 }}>🔧</span>
+          <span style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color:'#b45309', flex:1 }}>כלי בדיקה — מאחורי הקלעים</span>
+          <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>{testOpen ? '▲ סגור' : '▼ פתח'}</span>
+        </button>
+        {testOpen && (
+          <div style={{ padding:'8px 14px 12px', background:alpha('#f59e0b',0.05), display:'flex', flexDirection:'column', gap:6 }}>
+            <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.5), marginBottom:2 }}>סמולציה של תגובת השדכן השני ({bMm.name}) — שומר ב-Firestore:</div>
+            <div style={{ display:'flex', gap:6 }}>
+              <Btn th={th} size="s" variant="ghost" onClick={testSeen} style={{ fontSize:12 }}>👁 צפה</Btn>
+              <Btn th={th} size="s" variant="success" onClick={testApprove} style={{ fontSize:12 }}>✅ אישר</Btn>
+              <Btn th={th} size="s" variant="ghost" onClick={testDecline} style={{ fontSize:12, color:th.error, boxShadow:`inset 0 0 0 1.5px ${alpha(th.error,0.3)}` }}>❌ דחה</Btn>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* input */}
       <div style={{ flexShrink: 0, padding: '8px 14px 26px', display: 'flex', gap: 8, alignItems: 'center', background: th.card, borderTop: `1px solid ${alpha(th.ink, 0.08)}` }}>
