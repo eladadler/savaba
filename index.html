@@ -3717,63 +3717,100 @@ function Toggle({ on, onChange, th }) {
 // CANDIDATE MODE (separate candidate view)
 // ════════════════════════════════════════════════════════════
 function CandidateMode({ th, go }) {
-  const me = findCand('c1');       // viewing as דנה
-  const offer = findCand('c4');    // current proposal: יונתן
-  const [available, setAvailable] = useSe(true);
-  const [decided, setDecided] = useSe(null); // 'yes' | 'no'
-  const myMms = [MATCHMAKERS.me, MATCHMAKERS.m3];
+  const { user } = useContext(AuthCtx);
+  const { candidates, offers, matchmakers, updateCandidate } = useContext(DataCtx);
+
+  // Find this user's own candidate profile
+  const me = candidates.find(c => c.candidateUid === user?.uid);
+
+  // Find matchmakers who manage this candidate
+  const myMms = me
+    ? Object.values(matchmakers).filter(mm => mm.uid === me.mmId || candidates.some(c => c.id === me.id && c.mmId === mm.uid))
+    : [];
+
+  // Active offers for this candidate
+  const myOffers = me
+    ? offers.filter(o => (o.aId === me.id || o.bId === me.id) && o.status !== 'נדחתה' && o.status !== 'אושרה')
+    : [];
+  const currentOffer = myOffers[0] || null;
+  const otherCandId = currentOffer ? (currentOffer.aId === me?.id ? currentOffer.bId : currentOffer.aId) : null;
+  const otherCand = otherCandId ? candidates.find(c => c.id === otherCandId) : null;
+
+  const [decided, setDecided] = useSe(null);
+
+  const toggleAvailable = async () => {
+    if (!me) return;
+    await updateCandidate(me.id, { available: !me.available });
+  };
+
+  // No candidate profile found
+  if (!me) {
+    return (
+      <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:32, textAlign:'center', direction:'rtl' }}>
+        <div style={{ fontSize:48, marginBottom:16 }}>🔍</div>
+        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginBottom:8 }}>לא נמצאה כרטיסיית מועמד/ת</div>
+        <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.6, maxWidth:280, marginBottom:24 }}>
+          כדי להיכנס למצב מועמד/ת צריך לקבל הזמנה משדכן/ית ולהצטרף דרכה.<br/>
+          אם אתה/את גם שדכן/ית — ייתכן שאין לך עדיין כרטיסייה.
+        </div>
+        <Btn th={th} variant="ghost" onClick={() => go('home')}>חזרה למצב שדכן/ית</Btn>
+      </div>
+    );
+  }
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream }}>
       {/* header */}
       <div style={{ paddingTop: 50, paddingInline: 18, paddingBottom: 14, background: `linear-gradient(160deg, ${tint(th.primary,0.8)}, ${th.cream})`, flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => go('onboarding')} style={{ width: 38, height: 38, borderRadius: '50%', border: 'none', background: alpha('#fff', 0.7), color: th.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="back" size={20} /></button>
-          <Avatar grad={me.grad} name={me.name} size={50} photo={me.photos && me.photos[0]} />
+          <button onClick={() => go('home')} style={{ width: 38, height: 38, borderRadius: '50%', border: 'none', background: alpha('#fff', 0.7), color: th.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="back" size={20} /></button>
+          <Avatar grad={me.grad || gradForId(me.id)} name={me.name} size={50} photo={me.photos?.[0]} />
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: th.display, fontSize: 20, fontWeight: 800, color: th.ink, lineHeight: 1 }}>שלום, {me.name}</div>
-            <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3 }}>מצב מועמדת</div>
+            <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3 }}>מצב מועמד/ת</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: alpha('#fff', 0.6), borderRadius: th.r, padding: '10px 14px', marginTop: 14 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{available ? 'פנויה להצעות' : 'במנוחה מהצעות'}</div>
-            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.55) }}>{available ? 'שדכנים יכולים להציע לך' : 'לא תקבלי הצעות חדשות'}</div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{me.available ? 'פנוי/ה להצעות' : 'במנוחה מהצעות'}</div>
+            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.55) }}>{me.available ? 'שדכנים יכולים להציע לך' : 'לא תקבל/י הצעות חדשות'}</div>
           </div>
-          <Toggle on={available} onChange={setAvailable} th={th} />
+          <Toggle on={!!me.available} onChange={toggleAvailable} th={th} />
         </div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 28px' }}>
-        {/* CURRENT OFFER (queue: one at a time) */}
+
+        {/* CURRENT OFFER */}
         <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
           <Icon name="heart" size={19} style={{ color: th.primary }} fill={th.primary} stroke={0} /> ההצעה הנוכחית
         </div>
-        {decided ? (
+
+        {!currentOffer || !otherCand ? (
+          <div style={{ background: alpha(th.ink, 0.04), borderRadius: th.r, padding: '22px 16px', textAlign: 'center', marginBottom: 22 }}>
+            <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.5) }}>אין הצעה פעילה כרגע</div>
+            <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.4), marginTop: 4 }}>השדכן/ית שלך יעדכן/תעדכן כשתגיע הצעה</div>
+          </div>
+        ) : decided ? (
           <div style={{ background: th.card, borderRadius: th.rLg, padding: 22, textAlign: 'center', marginBottom: 22, boxShadow: `0 6px 18px ${alpha(th.ink, 0.06)}` }}>
-            <div style={{ color: decided === 'yes' ? th.success : alpha(th.ink, 0.4), marginBottom: 8 }}>
-              <Icon name={decided === 'yes' ? 'check' : 'sad'} size={40} />
-            </div>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink }}>{decided === 'yes' ? 'מעולה! עדכנו את השדכנית' : 'קיבלנו, תודה על הכנות'}</div>
-            <p style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.6), margin: '6px 0 0', lineHeight: 1.4 }}>{decided === 'yes' ? 'נועה תיצור קשר עם הצד השני לתיאום.' : 'נמשיך לחפש בשבילך את הסבבה־והכל הנכון.'}</p>
+            <div style={{ color: decided === 'yes' ? th.success : alpha(th.ink, 0.4), marginBottom: 8 }}><Icon name={decided === 'yes' ? 'check' : 'sad'} size={40} /></div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink }}>{decided === 'yes' ? 'מעולה!' : 'קיבלנו, תודה על הכנות'}</div>
+            <p style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.6), margin: '6px 0 0', lineHeight: 1.4 }}>{decided === 'yes' ? 'השדכן/ית יצרו קשר לתיאום.' : 'נמשיך לחפש.'}</p>
             <Btn th={th} variant="ghost" size="s" style={{ marginTop: 14 }} onClick={() => setDecided(null)}>בטל</Btn>
           </div>
         ) : (
           <div style={{ background: th.card, borderRadius: th.rLg, overflow: 'hidden', marginBottom: 22, boxShadow: `0 10px 26px ${alpha(th.ink, 0.1)}` }}>
-            <PhotoGallery c={offer} th={th} height={220}>
+            <PhotoGallery c={otherCand} th={th} height={220}>
               <div style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'none' }}><Tag th={th} tone={th.primary} soft={false}>הצעה חדשה</Tag></div>
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90, background: `linear-gradient(to top, ${alpha(th.ink,0.7)}, transparent)`, pointerEvents: 'none' }} />
               <div style={{ position: 'absolute', bottom: 14, right: 16, color: '#fff', pointerEvents: 'none' }}>
-                <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800 }}>{offer.name}, {offer.age}</div>
-                <div style={{ fontFamily: th.body, fontSize: 13.5, opacity: 0.9 }}>{offer.region} · {offer.religiosity}</div>
+                <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800 }}>{otherCand.name}, {otherCand.age}</div>
+                <div style={{ fontFamily: th.body, fontSize: 13.5, opacity: 0.9 }}>{otherCand.region} · {otherCand.religiosity}</div>
               </div>
             </PhotoGallery>
             <div style={{ padding: 16 }}>
-              <div style={{ marginBottom: 12 }}><SabaBadge th={th} text={offer.sabaBut} /></div>
-              <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>{offer.oneLine}</p>
-              <button onClick={() => go('candidate', { id: offer.id })} style={{ all: 'unset', cursor: 'pointer', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: 13.5, display: 'flex', alignItems: 'center', gap: 5, marginBottom: 14 }}>
-                <Icon name="eye" size={17} /> לכרטיסייה המלאה
-              </button>
+              {otherCand.sabaBut && <div style={{ marginBottom: 12 }}><SabaBadge th={th} text={otherCand.sabaBut} /></div>}
+              {otherCand.oneLine && <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>{otherCand.oneLine}</p>}
               <div style={{ display: 'flex', gap: 10 }}>
                 <Btn th={th} variant="ghost" full style={{ color: th.error, boxShadow: `inset 0 0 0 1.5px ${alpha(th.error,0.3)}` }} onClick={() => setDecided('no')} icon={<Icon name="x" size={18} />}>לא הפעם</Btn>
                 <Btn th={th} variant="success" full onClick={() => setDecided('yes')} icon={<Icon name="heart" size={18} fill="#fff" stroke={0} />}>מעניין אותי</Btn>
@@ -3783,38 +3820,26 @@ function CandidateMode({ th, go }) {
         )}
 
         {/* MY MATCHMAKERS */}
-        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>השדכנים שלי</div>
+        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>השדכן/ית שלי</div>
         <div style={{ background: th.card, borderRadius: th.r, padding: 6, marginBottom: 22, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-          {myMms.map((m, i) => (
-            <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px', borderBottom: i < myMms.length - 1 ? `1px solid ${alpha(th.ink, 0.07)}` : 'none' }}>
-              <Avatar grad={m.grad} name={m.name} size={42} />
+          {myMms.length === 0 ? (
+            <div style={{ padding: '14px 10px', fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.45), textAlign: 'center' }}>לא נמצאו שדכנים</div>
+          ) : myMms.map((m, i) => (
+            <div key={m.uid || m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px', borderBottom: i < myMms.length - 1 ? `1px solid ${alpha(th.ink, 0.07)}` : 'none' }}>
+              <Avatar grad={m.grad || gradForId(m.uid || m.id)} name={m.displayName || m.name || '?'} size={42} photo={m.photoURL} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{m.name}</div>
-                <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{m.region}</div>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{m.displayName || m.name}</div>
+                <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{m.region || ''}</div>
               </div>
-              <button style={{ border: 'none', background: alpha(th.success, 0.12), color: th.success, borderRadius: 999, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Icon name="whatsapp" size={19} /></button>
-            </div>
-          ))}
-          <button style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: '10px', color: th.primary }}>
-            <Icon name="plus" size={18} /><span style={{ fontFamily: th.body, fontWeight: 700, fontSize: 13.5 }}>הצטרפות לשדכן/ית נוסף/ת</span>
-          </button>
-        </div>
-
-        {/* HISTORY */}
-        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>היסטוריית הצעות</div>
-        <div style={{ background: th.card, borderRadius: th.r, overflow: 'hidden', marginBottom: 22, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-          {[['נדב', 'נדחתה', th.error], ['אורי', 'הסתיימה', alpha(th.ink,0.5)]].map(([n, st, col], i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderBottom: i === 0 ? `1px solid ${alpha(th.ink, 0.07)}` : 'none' }}>
-              <Avatar grad={AV_GRADS[i+2]} name={n} size={36} />
-              <div style={{ flex: 1, fontFamily: th.display, fontWeight: 700, fontSize: 14.5, color: th.ink }}>{n}</div>
-              <span style={{ fontFamily: th.body, fontSize: 12.5, fontWeight: 700, color: col }}>{st}</span>
+              {m.phone && (
+                <a href={`https://wa.me/${m.phone.replace(/[^0-9]/g,'')}`} target="_blank" rel="noopener" style={{ border: 'none', background: alpha(th.success, 0.12), color: th.success, borderRadius: 999, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}><Icon name="whatsapp" size={19} /></a>
+              )}
             </div>
           ))}
         </div>
 
         {/* actions */}
         <button onClick={() => go('home')} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', textAlign: 'center', padding: 13, borderRadius: th.r, background: alpha(th.ink, 0.05), fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink, marginBottom: 10 }}>מעבר למצב שדכן/ית</button>
-        <button style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', textAlign: 'center', padding: 13, fontFamily: th.body, fontWeight: 700, fontSize: 13.5, color: th.error }}>מחיקת פרופיל (בלתי הפיך)</button>
       </div>
     </div>
   );
