@@ -2989,15 +2989,19 @@ const { useState: useSb, useMemo: useMb } = React;
 // CANDIDATES LIST
 // ════════════════════════════════════════════════════════════
 function Candidates({ th, go }) {
+  const { candidates } = useContext(DataCtx);
+  const { profile }    = useContext(AuthCtx);
   const [scope, setScope] = useSb('mine'); // mine | all
   const [q, setQ] = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
   const [addOpen, setAddOpen] = useSb(false);
   const [filters, setFilters] = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
 
-  const list = useMb(() => CANDIDATES.filter(c => {
-    if (scope === 'mine' && !c.mine) return false;
-    if (q && !c.name.includes(q) && !c.oneLine.includes(q)) return false;
+  const myUid = profile?.uid;
+
+  const list = useMb(() => candidates.filter(c => {
+    if (scope === 'mine' && c.mmId !== myUid) return false;
+    if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
     if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
     if (filters.region && c.region !== filters.region) return false;
     if (filters.status === 'פנוי' && !c.available) return false;
@@ -3005,7 +3009,7 @@ function Candidates({ th, go }) {
     if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
     if (c.age < filters.ageMin || c.age > filters.ageMax) return false;
     return true;
-  }), [scope, q, filters]);
+  }), [candidates, scope, q, filters, myUid]);
 
   const activeFilters = (filters.gender ? 1 : 0) + (filters.region ? 1 : 0) + (filters.status ? 1 : 0) + filters.rel.length;
 
@@ -3034,7 +3038,7 @@ function Candidates({ th, go }) {
 
         {/* grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {list.map(c => <CandCard key={c.id} c={c} th={th} onClick={() => go('candidate', { id: c.id })} />)}
+          {list.map(c => <CandCard key={c.id} c={c} th={th} myUid={myUid} onClick={() => go('candidate', { id: c.id })} />)}
         </div>
         {list.length === 0 && (
           <div style={{ textAlign: 'center', padding: '50px 20px', color: alpha(th.ink, 0.4) }}>
@@ -3055,7 +3059,7 @@ function Candidates({ th, go }) {
   );
 }
 
-function CandCard({ c, th, onClick }) {
+function CandCard({ c, th, myUid, onClick }) {
   return (
     <button onClick={onClick} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
       <div style={{ position: 'relative', height: 116, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -3065,7 +3069,7 @@ function CandCard({ c, th, onClick }) {
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
           <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)} soft={false}>{c.available ? 'פנוי/ה' : 'תפוס/ה'}</Tag>
         </div>
-        {!c.mine && <div style={{ position: 'absolute', top: 8, left: 8 }}><Tag th={th} tone={th.gold} soft={false}>{findMm(c.mm).name.split(' ')[0]}</Tag></div>}
+        {c.mmId !== myUid && <div style={{ position: 'absolute', top: 8, left: 8 }}><Tag th={th} tone={th.gold} soft={false}>{(window.findMm(c.mmId).name || '—').split(' ')[0]}</Tag></div>}
         {c.photoCount > 1 && (
           <div style={{ position: 'absolute', bottom: 7, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4 }}>
             {Array.from({ length: c.photoCount }).map((_, i) => (
