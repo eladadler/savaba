@@ -4568,13 +4568,15 @@ function Offers({ th, go, params }) {
   const done     = offers.filter(o => o.status === 'נדחתה');
   const listMap  = { pending, approved, done };
 
-  // Apply sub-filter from home banner
-  let list = listMap[tab] || [];
+  // Apply sub-filter from home banner — when active, search across ALL offers (not tab-limited)
+  let list;
   if (subFilter === 'needsMyApproval') {
-    list = list.filter(o => o.bMm === myUid && !['אישר','דחה'].includes(o.bStatus));
+    list = offers.filter(o => o.bMm === myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה');
   } else if (subFilter === 'awaitingCand') {
-    list = list.filter(o =>
-      (o.aMm === myUid || o.bMm === myUid) && o.bStatus === 'אישר' && (!o.aCandStatus || !o.bCandStatus));
+    list = offers.filter(o =>
+      (o.aMm === myUid || o.bMm === myUid) && o.bStatus === 'אישר' && (!o.aCandStatus || !o.bCandStatus) && o.status !== 'נדחתה');
+  } else {
+    list = listMap[tab] || [];
   }
 
   const subFilterLabels = { needsMyApproval: 'ממתינות לאישורי', awaitingCand: 'ממתינות לתשובת מועמד' };
