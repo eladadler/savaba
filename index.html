@@ -2462,12 +2462,14 @@ function AdminPanel({ th, go }) {
   const [seeding,  setSeeding]  = useState(false);
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
   const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
-  const [waitingPanelLight, setWaitingPanelLight] = useState(() => localStorage.getItem('waitingPanelLight') === 'true');
+  const [waitingPanelLight, setWaitingPanelLight] = useState(() => localStorage.getItem('waitingPanelLight') !== 'false');
   const [invitesOpen, setInvitesOpen] = useState(false);
   const toggleHideSeed = () => setHideSeed(v => { localStorage.setItem('hideSeed', String(!v)); return !v; });
   const toggleWaitingPanel = () => setWaitingPanelLight(v => {
     const next = !v;
-    localStorage.setItem('waitingPanelLight', String(next));
+    // store 'false' to get dark; remove key (or set 'true') for light (default)
+    if (next) localStorage.removeItem('waitingPanelLight');
+    else localStorage.setItem('waitingPanelLight', 'false');
     window.dispatchEvent(new Event('waitingPanelChanged'));
     return next;
   });
@@ -2558,7 +2560,7 @@ function AdminPanel({ th, go }) {
             <div style={{ position:'absolute', top:2, width:12, height:12, borderRadius:'50%', background:'white', transition:'left 0.2s', left: waitingPanelLight ? 14 : 2 }} />
           </div>
           <span style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color: waitingPanelLight ? th.primary : alpha(th.ink,0.5) }}>
-            {waitingPanelLight ? 'פאנל בית: בהיר' : 'פאנל בית: כהה'}
+            {waitingPanelLight ? 'פאנל בית: בהיר (ברירת מחדל)' : 'פאנל בית: כהה (קלאסי)'}
           </span>
         </button>
       </div>
@@ -3063,7 +3065,8 @@ function Home({ th, go }) {
   const { candidates, notifications, markNotificationRead } = useContext(DataCtx);
   const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
   const mine = candidates.filter(c => c.mmId === profile?.uid);
-  const [lightPanel, setLightPanel] = React.useState(() => localStorage.getItem('waitingPanelLight') === 'true');
+  // light panel is the default; admin can revert to dark by setting waitingPanelLight='false'
+  const [lightPanel, setLightPanel] = React.useState(() => localStorage.getItem('waitingPanelLight') !== 'false');
 
   // keep in sync if admin changes it while Home is mounted
   React.useEffect(() => {
