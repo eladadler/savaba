@@ -4351,7 +4351,7 @@ function Offers({ th, go }) {
 
           // ── 4 steps in FIXED process order: A(initiator) → B(receiver) → A's cand → B's cand ──
           // Labels shift: "אני" is step 1 when I'm A (I initiated), step 2 when I'm B (I received)
-          const s1 = o.aStatus || 'אישר';   // A always ✓ — creating the offer = approving
+          const s1 = 'אישר';                  // A always ✓ — creating the offer = implicit approval
           const s2 = o.bStatus || null;       // B (receiver) must approve
           const s3 = aCandSt;                 // A's candidate
           const s4 = bCandSt;                 // B's candidate
