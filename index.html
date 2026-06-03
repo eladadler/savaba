@@ -2156,27 +2156,124 @@ function AdminStats({ th, hideSeed, isSeed }) {
 
   // ── helpers ──
   const pct = (n, total) => total === 0 ? 0 : Math.round((n / total) * 100);
-  const StatCard = ({ label, value, sub, color }) => (
-    <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, display:'flex', flexDirection:'column', gap: 2, minWidth: 0 }}>
-      <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5), fontWeight: 600 }}>{label}</div>
-      <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 28, color: color || th.primary, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>{sub}</div>}
+
+  const StatCard = ({ label, value, sub, color, icon }) => (
+    <div style={{ background: th.card, borderRadius: th.r, padding: '14px 14px 12px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, display:'flex', flexDirection:'column', gap: 3, minWidth: 0, borderTop: `3px solid ${color || th.primary}` }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5), fontWeight: 600, flex: 1 }}>{label}</div>
+        {icon && <span style={{ fontSize: 16, lineHeight: 1 }}>{icon}</span>}
+      </div>
+      <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 30, color: color || th.primary, lineHeight: 1.1 }}>{value}</div>
+      {sub && <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.45) }}>{sub}</div>}
     </div>
   );
-  const SectionTitle = ({ children }) => (
-    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 18, marginBottom: 8, paddingRight: 2 }}>{children}</div>
+
+  const SectionTitle = ({ children, icon }) => (
+    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 20, marginBottom: 10, paddingRight: 2, display:'flex', alignItems:'center', gap: 6 }}>
+      {icon && <span style={{ fontSize: 15 }}>{icon}</span>}
+      {children}
+    </div>
   );
+
   const Bar = ({ label, count, total, color }) => {
     const w = pct(count, total);
     return (
-      <div style={{ marginBottom: 7 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.7), marginBottom: 3 }}>
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.72), marginBottom: 5 }}>
           <span>{label}</span>
-          <span style={{ fontWeight: 700 }}>{count} <span style={{ color: alpha(th.ink, 0.4), fontWeight: 400 }}>({w}%)</span></span>
+          <span style={{ fontWeight: 700, color: color || th.primary }}>{count} <span style={{ color: alpha(th.ink, 0.35), fontWeight: 400 }}>({w}%)</span></span>
         </div>
-        <div style={{ height: 7, background: alpha(th.ink, 0.08), borderRadius: 99, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${w}%`, background: color || th.primary, borderRadius: 99, transition: 'width 0.5s' }} />
+        <div style={{ height: 10, background: alpha(th.ink, 0.07), borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${w}%`, background: color || th.primary, borderRadius: 99, transition: 'width 0.6s cubic-bezier(0.4,0,0.2,1)' }} />
         </div>
+      </div>
+    );
+  };
+
+  const GenderSplit = ({ males, females, total }) => {
+    const fPct = total ? Math.round(females / total * 100) : 50;
+    return (
+      <div style={{ background: th.card, borderRadius: th.r, padding: '16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+        <div style={{ display:'flex', justifyContent:'space-between', marginBottom: 12 }}>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap: 2 }}>
+            <span style={{ fontSize: 22 }}>👩</span>
+            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: th.primary }}>{females}</span>
+            <span style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>נשים · {fPct}%</span>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap: 2 }}>
+            <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.35) }}>מתוך</div>
+            <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 20, color: alpha(th.ink, 0.6) }}>{total}</div>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap: 2 }}>
+            <span style={{ fontSize: 22 }}>👨</span>
+            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: th.gold }}>{males}</span>
+            <span style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>גברים · {100 - fPct}%</span>
+          </div>
+        </div>
+        <div style={{ height: 16, borderRadius: 99, overflow: 'hidden', display: 'flex' }}>
+          <div style={{ flex: females || 0, background: `linear-gradient(90deg, ${th.primary}, ${alpha(th.primary,0.7)})`, minWidth: females > 0 ? 4 : 0, transition: 'flex 0.6s' }} />
+          <div style={{ flex: males || 0, background: `linear-gradient(90deg, ${alpha(th.gold,0.75)}, ${th.gold})`, minWidth: males > 0 ? 4 : 0, transition: 'flex 0.6s' }} />
+        </div>
+      </div>
+    );
+  };
+
+  const OfferPipeline = ({ total, seen, pending, approved, declined }) => {
+    const steps = [
+      { label: 'נשלחו',  count: total,    color: th.primary, icon: '📤' },
+      { label: 'נצפו',   count: seen,     color: '#a78bfa',  icon: '👁️' },
+      { label: 'אושרו',  count: approved, color: th.success, icon: '💚' },
+      { label: 'נדחו',   count: declined, color: th.error,   icon: '💔' },
+    ];
+    return (
+      <div style={{ background: th.card, borderRadius: th.r, padding: '18px 14px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+        <div style={{ display:'flex', justifyContent:'space-around', alignItems:'flex-end' }}>
+          {steps.map((s, i) => (
+            <React.Fragment key={s.label}>
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 5 }}>
+                <span style={{ fontSize: 18 }}>{s.icon}</span>
+                <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: s.color, lineHeight: 1 }}>{s.count}</div>
+                <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>{s.label}</div>
+                <div style={{ fontFamily: th.body, fontSize: 10, color: '#fff', fontWeight: 700, background: s.color, borderRadius: 99, padding: '2px 8px' }}>
+                  {total > 0 ? Math.round(s.count / total * 100) : 0}%
+                </div>
+              </div>
+              {i < steps.length - 1 && (
+                <div style={{ color: alpha(th.ink, 0.2), fontSize: 18, marginBottom: 20, paddingBottom: 2 }}>←</div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const OnboardingFunnel = ({ sent, accepted, registered }) => {
+    const steps = [
+      { label: 'הוזמנו',   count: sent,       color: th.primary, icon: '📨' },
+      { label: 'הסכימו',   count: accepted,   color: th.gold,    icon: '🤝' },
+      { label: 'נרשמו',    count: registered, color: th.success, icon: '🎉' },
+    ];
+    const maxCount = Math.max(...steps.map(s => s.count), 1);
+    return (
+      <div style={{ background: th.card, borderRadius: th.r, padding: '16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+        {steps.map((s, i) => (
+          <div key={s.label} style={{ marginBottom: i < steps.length - 1 ? 14 : 0 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 6 }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
+                <span style={{ fontSize: 14 }}>{s.icon}</span>
+                <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.7), fontWeight: 600 }}>{s.label}</span>
+              </div>
+              <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 20, color: s.color }}>
+                {s.count}
+                {i > 0 && sent > 0 && <span style={{ fontFamily: th.body, fontWeight: 400, fontSize: 11, color: alpha(th.ink, 0.4) }}> ({Math.round(s.count / sent * 100)}%)</span>}
+              </div>
+            </div>
+            <div style={{ height: 12, background: alpha(th.ink, 0.07), borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ height:'100%', width: `${Math.round(s.count / maxCount * 100)}%`, background: s.color, borderRadius: 99, transition: 'width 0.6s cubic-bezier(0.4,0,0.2,1)' }} />
+            </div>
+          </div>
+        ))}
       </div>
     );
   };
@@ -2248,23 +2345,20 @@ function AdminStats({ th, hideSeed, isSeed }) {
   return (
     <div style={{ direction: 'rtl' }}>
       {/* ── CANDIDATES overview ── */}
-      <SectionTitle>מועמדים</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
-        <StatCard label="סה״כ מועמדים" value={total} />
-        <StatCard label="זמינים לשידוך" value={available} sub={`${pct(available,total)}% מהסך הכל`} color={th.success} />
-        <StatCard label="עם תמונה" value={withPhotos} sub={`${pct(withPhotos,total)}%`} color={th.gold} />
-        <StatCard label="נרשמו בעצמם" value={registeredCands} sub={`${pct(registeredCands,total)}% השלימו הרשמה`} color="#a78bfa" />
+      <SectionTitle icon="👥">מועמדים</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+        <StatCard label="סה״כ מועמדים"   value={total}           icon="🗂️" />
+        <StatCard label="זמינים לשידוך"   value={available}       sub={`${pct(available,total)}% מהסך הכל`}                 color={th.success}  icon="💚" />
+        <StatCard label="עם תמונה"         value={withPhotos}      sub={`${pct(withPhotos,total)}%`}                          color={th.gold}     icon="📷" />
+        <StatCard label="נרשמו בעצמם"      value={registeredCands} sub={`${pct(registeredCands,total)}% השלימו הרשמה`}        color="#a78bfa"     icon="✅" />
       </div>
 
-      {/* Gender */}
-      <SectionTitle>פילוג מגדר</SectionTitle>
-      <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
-        <Bar label="אישה" count={females} total={total} color={th.primary} />
-        <Bar label="גבר"  count={males}   total={total} color={th.gold} />
-      </div>
+      {/* Gender visual split */}
+      <SectionTitle icon="⚖️">פילוג מגדר</SectionTitle>
+      <GenderSplit males={males} females={females} total={total} />
 
       {/* Age */}
-      <SectionTitle>טווחי גיל</SectionTitle>
+      <SectionTitle icon="🎂">טווחי גיל</SectionTitle>
       <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
         {Object.entries(ageBuckets).map(([lbl, cnt], i) => (
           <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
@@ -2273,7 +2367,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
 
       {/* Religiosity */}
       {religEntries.length > 0 && (<>
-        <SectionTitle>קרבה לדת</SectionTitle>
+        <SectionTitle icon="✡️">קרבה לדת</SectionTitle>
         <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
           {religEntries.map(([lbl, cnt], i) => (
             <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
@@ -2283,7 +2377,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
 
       {/* Region */}
       {regionEntries.length > 0 && (<>
-        <SectionTitle>אזורים</SectionTitle>
+        <SectionTitle icon="🗺️">אזורים</SectionTitle>
         <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
           {regionEntries.map(([lbl, cnt], i) => (
             <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
@@ -2293,7 +2387,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
 
       {/* Interests */}
       {intTop.length > 0 && (<>
-        <SectionTitle>תחומי עניין פופולריים</SectionTitle>
+        <SectionTitle icon="🎯">תחומי עניין פופולריים</SectionTitle>
         <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
           {intTop.map(([lbl, cnt], i) => (
             <Bar key={lbl} label={lbl} count={cnt} total={total} color={PALETTE[i % PALETTE.length]} />
@@ -2302,40 +2396,21 @@ function AdminStats({ th, hideSeed, isSeed }) {
       </>)}
 
       {/* ── OFFERS ── */}
-      <SectionTitle>הצעות שידוך</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
-        <StatCard label="סה״כ הצעות" value={totalOffers} />
-        <StatCard label="מועמדים עם הצעה" value={candsWithOffer} sub={`${pct(candsWithOffer, total)}% מהמועמדים`} color={th.gold} />
-        <StatCard label="אושרו" value={approvedOff} sub={`${pct(approvedOff, totalOffers)}% מכלל ההצעות`} color={th.success} />
-        <StatCard label="נדחו" value={declinedOff} sub={`${pct(declinedOff, totalOffers)}%`} color={th.error} />
+      <SectionTitle icon="💌">הצעות שידוך</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+        <StatCard label="סה״כ הצעות"       value={totalOffers}    icon="💌" />
+        <StatCard label="מועמדים עם הצעה"  value={candsWithOffer} sub={`${pct(candsWithOffer, total)}% מהמועמדים`}             color={th.gold}    icon="👫" />
+        <StatCard label="אושרו"             value={approvedOff}    sub={`${pct(approvedOff, totalOffers)}% מכלל ההצעות`}       color={th.success} icon="💚" />
+        <StatCard label="נדחו"              value={declinedOff}    sub={`${pct(declinedOff, totalOffers)}%`}                    color={th.error}   icon="💔" />
       </div>
-      {totalOffers > 0 && (
-        <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
-          <Bar label="ממתינות לתגובה" count={pendingOff}  total={totalOffers} color={th.gold} />
-          <Bar label="נצפו"           count={seenOff}     total={totalOffers} color="#a78bfa" />
-          <Bar label="אושרו"          count={approvedOff} total={totalOffers} color={th.success} />
-          <Bar label="נדחו"           count={declinedOff} total={totalOffers} color={th.error} />
-        </div>
-      )}
+      {totalOffers > 0 && <OfferPipeline total={totalOffers} seen={seenOff} pending={pendingOff} approved={approvedOff} declined={declinedOff} />}
 
       {/* ── ONBOARDING ── */}
-      <SectionTitle>הזמנות ואונבורדינג</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 4 }}>
-        <StatCard label="הזמנות נשלחו" value={invTotal} />
-        <StatCard label="הזמנות התקבלו" value={invAccepted} sub={`${pct(invAccepted, invTotal)}% אחוז המרה`} color={th.success} />
-        <StatCard label="ממתינות לתגובה" value={invPending} color={th.gold} />
-        <StatCard label="הרשמה הושלמה" value={registeredCands} sub={`${pct(registeredCands, invAccepted || 1)}% מהמגיבים`} color="#a78bfa" />
-      </div>
-      {invTotal > 0 && (
-        <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
-          <Bar label="התקבלו"  count={invAccepted}      total={invTotal} color={th.success} />
-          <Bar label="ממתינות" count={invPending}        total={invTotal} color={th.gold} />
-          <Bar label="הרשמה הושלמה" count={registeredCands} total={invTotal} color="#a78bfa" />
-        </div>
-      )}
+      <SectionTitle icon="🚀">הזמנות ואונבורדינג</SectionTitle>
+      <OnboardingFunnel sent={invTotal} accepted={invAccepted} registered={registeredCands} />
 
       {/* ── MATCHMAKERS ── */}
-      <SectionTitle>שדכנים ({mmCount})</SectionTitle>
+      <SectionTitle icon="🧩">שדכנים ({mmCount})</SectionTitle>
       <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, marginBottom: 24 }}>
         {mmEntries.length === 0
           ? <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4), textAlign:'center', padding: 8 }}>אין נתונים</div>
@@ -3146,6 +3221,7 @@ function Candidates({ th, go }) {
 
   const list = useMb(() => candidates.filter(c => {
     if (scope === 'mine' && c.mmId !== myUid) return false;
+    if (scope === 'all'  && c.mmId === myUid) return false;
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
     if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
     if (filters.region && c.region !== filters.region) return false;
@@ -3161,11 +3237,17 @@ function Candidates({ th, go }) {
   return (
     <>
       <AppHeader th={th} title="מועמדים" sub={`${list.length} ברשימה`} action={
-        /* invite tracker bell only — filter moved inline with search */
-        <button onClick={() => setInvOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
-          <Icon name="bell" size={21} />
-          {pendingCount > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.gold, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{pendingCount}</span>}
-        </button>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          {/* add-candidate button */}
+          <button onClick={() => setAddOpen(true)} style={{ border:'none', background:th.primary, height:38, borderRadius:999, paddingInline:14, display:'flex', alignItems:'center', gap:5, color:'#fff', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:13, boxShadow:`0 6px 18px ${alpha(th.primary,0.35)}`, whiteSpace:'nowrap' }}>
+            <Icon name="plus" size={15} /> הוסף
+          </button>
+          {/* invite tracker bell */}
+          <button onClick={() => setInvOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
+            <Icon name="bell" size={21} />
+            {pendingCount > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.gold, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{pendingCount}</span>}
+          </button>
+        </div>
       } />
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 90px', position: 'relative' }}>
@@ -3183,7 +3265,7 @@ function Candidates({ th, go }) {
 
         {/* scope toggle */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          {[['mine', 'שלי'], ['all', 'כל המאגר']].map(([id, lbl]) => (
+          {[['mine', 'שלי'], ['all', 'שאר המאגר']].map(([id, lbl]) => (
             <button key={id} onClick={() => setScope(id)} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: scope === id ? th.ink : th.card, color: scope === id ? th.cream : alpha(th.ink, 0.55), boxShadow: scope === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>{lbl}</button>
           ))}
         </div>
