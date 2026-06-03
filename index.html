@@ -4349,22 +4349,23 @@ function Offers({ th, go }) {
           const aCandSt = o.aCandStatus || (finalDone ? 'אישר' : null);
           const bCandSt = o.bCandStatus || (finalDone ? 'אישר' : null);
 
-          // ── 4 steps from "my" perspective ──
-          // s1 = MY MM approval, s2 = THEIR MM, s3 = MY candidate, s4 = THEIR candidate
-          const s1 = iAmA ? 'אישר' : (o.bStatus || null);           // I always approved if I initiated
-          const s2 = iAmA ? (o.bStatus || null) : (o.aStatus || 'אישר');  // they always approved if they initiated
-          const s3 = iAmA ? aCandSt : bCandSt;
-          const s4 = iAmA ? bCandSt : aCandSt;
+          // ── 4 steps in FIXED process order: A(initiator) → B(receiver) → A's cand → B's cand ──
+          // Labels shift: "אני" is step 1 when I'm A (I initiated), step 2 when I'm B (I received)
+          const s1 = o.aStatus || 'אישר';   // A always ✓ — creating the offer = approving
+          const s2 = o.bStatus || null;       // B (receiver) must approve
+          const s3 = aCandSt;                 // A's candidate
+          const s4 = bCandSt;                 // B's candidate
           const allApproved = s1==='אישר' && s2==='אישר' && s3==='אישר' && s4==='אישר';
 
+          const initiatorMm = findM(o.aMm);
           const pipeSteps = [
-            { st: s1, label: iAmA ? 'שלחתי' : 'אני' },
-            { st: s2, label: theirMm.name.split(' ')[0] },
-            { st: s3, label: myCand.name.split(' ')[0] },
-            { st: s4, label: theirC.name.split(' ')[0] },
+            { st: s1, label: iAmA ? 'אני' : initiatorMm.name.split(' ')[0] },  // A = initiator
+            { st: s2, label: iAmA ? theirMm.name.split(' ')[0] : 'אני' },        // B = receiver
+            { st: s3, label: findC(o.aId).name.split(' ')[0] },                  // A's candidate
+            { st: s4, label: findC(o.bId).name.split(' ')[0] },                  // B's candidate
           ];
           const activeIdx = pipeSteps.findIndex(p => p.st !== 'אישר');
-          const needsMyAction = activeIdx === 0 && !iAmA; // I'm B and haven't approved yet
+          const needsMyAction = !iAmA && activeIdx === 1; // I'm B and step 2 (my approval) is pending
 
           // WhatsApp link
           const waPhone = theirMm.phone ? String(theirMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
@@ -4459,7 +4460,7 @@ function Offers({ th, go }) {
                           {step.label}
                         </div>
                         <div style={{ fontFamily:th.body, fontSize:8.5, color:alpha(th.ink,0.4), marginTop:1 }}>
-                          {done ? '✓' : fail ? '✗' : active && needsMyAction && idx===0 ? '← נדרש' : active ? '…' : ''}
+                          {done ? '✓' : fail ? '✗' : active && needsMyAction && idx===1 ? '← נדרש' : active ? '…' : ''}
                         </div>
                       </div>
                     );
