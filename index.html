@@ -2365,9 +2365,18 @@ function AdminPanel({ th, go }) {
   const [invitesOpen, setInvitesOpen] = useState(false);
   const toggleHideSeed = () => setHideSeed(v => { localStorage.setItem('hideSeed', String(!v)); return !v; });
 
-  const isSeed    = (id) => typeof id === 'string' && id.startsWith('seed_');
-  const visibleCands = hideSeed ? candidates.filter(c => !isSeed(c.id)) : candidates;
-  const visibleMms   = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeed(id))) : matchmakers;
+  // Matchmaker is fictional if it has a seed_ prefix
+  const isSeedMm  = (id) => typeof id === 'string' && id.startsWith('seed_');
+  // Candidate is fictional if it was never registered via email/password (no candidateUid)
+  // isSeed works for both: seed_ prefix → fictional; candidate lookup → fictional if no candidateUid
+  const isSeed    = (id) => {
+    if (typeof id !== 'string') return false;
+    if (id.startsWith('seed_')) return true;
+    const cand = candidates.find(c => c.id === id);
+    return cand ? !cand.candidateUid : false;
+  };
+  const visibleCands = hideSeed ? candidates.filter(c => !c.candidateUid) : candidates;
+  const visibleMms   = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeedMm(id))) : matchmakers;
 
   const db_avatar = (seed, gender) =>
     `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -4644,42 +4653,149 @@ function Chat({ th, go, params }) {
 // AI RECOMMENDATIONS
 // ════════════════════════════════════════════════════════════
 function AIRecs({ th, go }) {
+  const { candidates, offers } = React.useContext(DataCtx);
+  const { user }               = React.useContext(AuthCtx);
+  const myUid = user?.uid;
+
+  // ── Scoring engine ────────────────────────────────────────────
+  const pairs = React.useMemo(() => {
+    if (!myUid || !candidates.length) return [];
+
+    const mine   = candidates.filter(c => c.mmId === myUid);
+    const others = candidates.filter(c => c.mmId && c.mmId !== myUid);
+    if (!mine.length || !others.length) return [];
+
+    // Offers already in flight — skip those pairs
+    const existing = new Set(
+      offers.flatMap(o => [`${o.aId}__${o.bId}`, `${o.bId}__${o.aId}`])
+    );
+
+    // Religiosity compatibility (gender-neutral root comparison)
+    const rRoot = r => (r||'').replace(/ית$|ית$/,'י').replace(/ה$/,'');
+    const RCOMPAT = {
+      'חרד':      ['חרד', 'דתי-לאומ'],
+      'דתי-לאומ': ['חרד', 'דתי-לאומ', 'מסורת'],
+      'מסורת':    ['דתי-לאומ', 'מסורת', 'חילונ'],
+      'חילונ':    ['מסורת', 'חילונ'],
+    };
+    const compatRelig = (r1, r2) => {
+      if (!r1 || !r2) return true;
+      const k1 = Object.keys(RCOMPAT).find(k => rRoot(r1).startsWith(k));
+      const k2 = Object.keys(RCOMPAT).find(k => rRoot(r2).startsWith(k));
+      if (!k1 || !k2) return true;
+      return k1 === k2 || (RCOMPAT[k1]||[]).some(x => k2.startsWith(x));
+    };
+
+    const calcScore = (a, b) => {
+      const isFemale = c => c.gender === 'f' || c.gender === 'אשה';
+      if (isFemale(a) === isFemale(b)) return -1;   // same gender → skip
+      let s = 50;
+      // Religiosity: +20 exact match, +8 compatible, -25 incompatible
+      if (a.religiosity === b.religiosity) s += 20;
+      else if (compatRelig(a.religiosity, b.religiosity)) s += 8;
+      else s -= 25;
+      // Shared interests: +6 each, max +20
+      const shared = (a.interests||[]).filter(i => (b.interests||[]).includes(i));
+      s += Math.min(shared.length * 6, 20);
+      // Same region +8
+      if (a.region && a.region === b.region) s += 8;
+      // Age proximity
+      const diff = Math.abs((a.age||28) - (b.age||28));
+      if (diff <= 3) s += 10; else if (diff <= 7) s += 5; else if (diff > 14) s -= 15;
+      // Partner preference match: candidate A wants traits B has
+      const partnerMatch = (seeker, candidate) =>
+        (seeker.partner||[]).filter(t => {
+          const c = candidate;
+          if (t === 'הלכתי' || t === 'דתי') return c.religiosity?.includes('דת') || c.religiosity?.includes('חרד');
+          if (t === 'חילוני') return c.religiosity?.includes('חילונ');
+          if (t === 'שאפתן' || t === 'קרייריסטי') return (c.interests||[]).some(x => ['עסקים','קריירה','אקדמיה'].includes(x));
+          if (t === 'חברתי') return (c.interests||[]).some(x => ['נסיעות','בידור','ריקוד'].includes(x));
+          if (t === 'אקדמאי' || t === 'אקדמאית') return c.oneLine?.includes('אקדמ') || (c.interests||[]).includes('לימוד');
+          return false;
+        }).length;
+      s += Math.min(partnerMatch(a, b) * 5, 10);
+      s += Math.min(partnerMatch(b, a) * 5, 10);
+      return Math.min(95, Math.max(10, s));
+    };
+
+    const buildWhy = (a, b) => {
+      const shared = (a.interests||[]).filter(i => (b.interests||[]).includes(i));
+      const parts = [];
+      if (a.religiosity && a.religiosity === b.religiosity)
+        parts.push(`שניהם ${a.religiosity}`);
+      else if (compatRelig(a.religiosity, b.religiosity) && a.religiosity && b.religiosity)
+        parts.push('רמת דתיות משלימה');
+      if (shared.length)
+        parts.push(`עניין משותף: ${shared.slice(0,3).join(', ')}`);
+      if (a.region && a.region === b.region)
+        parts.push(`שניהם מ${a.region}`);
+      if (!parts.length) parts.push('פרופילים עם פוטנציאל התאמה גבוה');
+      return parts.join(' · ');
+    };
+
+    const out = [];
+    for (const c1 of mine) {
+      for (const c2 of others) {
+        if (existing.has(`${c1.id}__${c2.id}`)) continue;
+        const s = calcScore(c1, c2);
+        if (s < 0) continue;
+        out.push({ aId: c1.id, bId: c2.id, score: s, why: buildWhy(c1, c2) });
+      }
+    }
+    out.sort((x, y) => y.score - x.score);
+    return out.slice(0, 10);
+  }, [candidates, offers, myUid]);
+
+  // ── Render ────────────────────────────────────────────────────
   return (
     <>
       <AppHeader th={th} title="המלצות AI" sub="הזיווגים שהאלגוריתם מצא השבוע" action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 24px' }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: alpha(th.gold, 0.1), borderRadius: th.r, padding: 13, marginBottom: 16 }}>
           <Icon name="info" size={18} style={{ color: th.gold, flexShrink: 0 }} />
-          <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.45 }}>ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. <b>אתם מחליטים</b> — הוא רק מציע.</span>
+          <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.45 }}>
+            ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. <b>אתם מחליטים</b> — הוא רק מציע.
+          </span>
         </div>
 
-        {AI_PAIRS.map((p, i) => {
+        {pairs.length === 0 && (
+          <div style={{ textAlign:'center', padding:'48px 24px', color:alpha(th.ink,0.4) }}>
+            <Icon name="spark" size={44} style={{ marginBottom:14, color:alpha(th.ink,0.15) }} />
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, marginBottom:8, color:alpha(th.ink,0.5) }}>אין התאמות כרגע</div>
+            <div style={{ fontFamily:th.body, fontSize:13.5, lineHeight:1.5 }}>
+              הוסף מועמדים ממגדרים שונים כדי שה-AI יוכל להציע זיווגים
+            </div>
+          </div>
+        )}
+
+        {pairs.map((p, i) => {
           const a = findCand(p.aId), b = findCand(p.bId);
-          const mineId = a.mine ? a.id : b.id;
-          const otherId = a.mine ? b.id : a.id;
+          if (!a || !b) return null;
+          const myCand   = a.mmId === myUid ? a : b;
+          const theirCand = a.mmId === myUid ? b : a;
           return (
-            <div key={i} style={{ background: th.card, borderRadius: th.rLg, padding: 16, marginBottom: 14, boxShadow: `0 6px 20px ${alpha(th.ink, 0.07)}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <Avatar grad={a.grad} name={a.name} size={52} photo={a.photos && a.photos[0]} style={{ marginInlineEnd: -10, zIndex: 2 }} />
-                  <Avatar grad={b.grad} name={b.name} size={52} photo={b.photos && b.photos[0]} style={{ marginInlineStart: -10 }} />
+            <div key={i} style={{ background:th.card, borderRadius:th.rLg, padding:16, marginBottom:14, boxShadow:`0 6px 20px ${alpha(th.ink,0.07)}` }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
+                <div style={{ display:'flex', alignItems:'center' }}>
+                  <Avatar grad={a.grad} name={a.name} size={52} photo={a.photos&&a.photos[0]} style={{ marginInlineEnd:-10, zIndex:2 }} />
+                  <Avatar grad={b.grad} name={b.name} size={52} photo={b.photos&&b.photos[0]} style={{ marginInlineStart:-10 }} />
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{a.name} · {b.name}</div>
-                  <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>{a.age} · {b.age} | {a.region} · {b.region}</div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>{a.name} · {b.name}</div>
+                  <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5) }}>{a.age} · {b.age} | {a.region} · {b.region}</div>
                 </div>
                 <ScoreRing score={p.score} th={th} />
               </div>
-              <div style={{ background: alpha(th.gold, 0.1), borderRadius: th.r, padding: 12, marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                  <Icon name="spark" size={15} style={{ color: th.gold }} fill={th.gold} />
-                  <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink }}>למה הם מתאימים</span>
+              <div style={{ background:alpha(th.gold,0.1), borderRadius:th.r, padding:12, marginBottom:12 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:5 }}>
+                  <Icon name="spark" size={15} style={{ color:th.gold }} fill={th.gold} />
+                  <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>למה הם מתאימים</span>
                 </div>
-                <p style={{ margin: 0, fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>{p.why}</p>
+                <p style={{ margin:0, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.5 }}>{p.why}</p>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Btn th={th} variant="ghost" onClick={() => go('candidate', { id: otherId })}>הצג כרטיסייה</Btn>
-                <Btn th={th} full onClick={() => go('matchFlow', { id: mineId, withId: otherId })} icon={<Icon name="heart" size={17} fill="#fff" stroke={0} />}>יזום שידוך</Btn>
+              <div style={{ display:'flex', gap:8 }}>
+                <Btn th={th} variant="ghost" onClick={() => go('candidate', { id: theirCand.id })}>הצג כרטיסייה</Btn>
+                <Btn th={th} full onClick={() => go('matchFlow', { id: myCand.id, withId: theirCand.id })} icon={<Icon name="heart" size={17} fill="#fff" stroke={0} />}>יזום שידוך</Btn>
               </div>
             </div>
           );
