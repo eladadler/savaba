@@ -3099,7 +3099,7 @@ function Home({ th, go }) {
       (o.aMm === myUid || o.bMm === myUid) &&
       o.bStatus === 'אישר' &&
       (!o.aCandStatus || !o.bCandStatus) &&
-      o.status !== 'נדחתה'),
+      o.status !== 'נדחתה' && o.status !== 'אושרה'),
     [offers, myUid]);
 
   // Build waiting list — only items with count > 0
@@ -4574,7 +4574,7 @@ function Offers({ th, go, params }) {
     list = offers.filter(o => o.bMm === myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה');
   } else if (subFilter === 'awaitingCand') {
     list = offers.filter(o =>
-      (o.aMm === myUid || o.bMm === myUid) && o.bStatus === 'אישר' && (!o.aCandStatus || !o.bCandStatus) && o.status !== 'נדחתה');
+      (o.aMm === myUid || o.bMm === myUid) && o.bStatus === 'אישר' && (!o.aCandStatus || !o.bCandStatus) && o.status !== 'נדחתה' && o.status !== 'אושרה');
   } else {
     list = listMap[tab] || [];
   }
