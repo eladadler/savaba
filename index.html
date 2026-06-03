@@ -8,6 +8,7 @@
 <link rel="apple-touch-icon" href="favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@400;500;700;800;900&family=Rubik:wght@400;500;700;800&family=Secular+One&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
   * { box-sizing: border-box; }
@@ -20,6 +21,8 @@
   @keyframes sabaFade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes sabaUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes sabaPop { 0% { opacity: 0; transform: scale(0.8); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+  /* img fade-in: starts transparent, animates in once painted */
+  img { animation: sabaFade 0.28s ease both; will-change: opacity; }
 </style>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1279,9 +1282,13 @@ const { useState: useStateUI } = React;
 
 // ── Avatar (gradient placeholder, or real photo when provided) ──
 function Avatar({ grad = ['#FFD7B5', '#E8547A'], name = '', size = 56, ring, style, photo }) {
+  const [imgLoaded, setImgLoaded] = React.useState(false);
   const initial = (name || '').trim().charAt(0) || '♥';
+  // reset when photo URL changes
+  React.useEffect(() => { setImgLoaded(false); }, [photo]);
   return (
     <div style={{
+      position: 'relative',
       width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
       background: `linear-gradient(140deg, ${grad[0]}, ${grad[1]})`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1289,7 +1296,25 @@ function Avatar({ grad = ['#FFD7B5', '#E8547A'], name = '', size = 56, ring, sty
       fontFamily: '"Assistant", sans-serif',
       boxShadow: ring ? `0 0 0 3px ${ring}, 0 4px 12px rgba(0,0,0,0.12)` : '0 4px 12px rgba(0,0,0,0.1)',
       ...style,
-    }}>{photo ? <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initial}</div>
+    }}>
+      {/* initial letter shows through gradient until photo loads */}
+      <span style={{ pointerEvents: 'none', userSelect: 'none' }}>{initial}</span>
+      {photo && (
+        <img
+          src={photo}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setImgLoaded(true)}
+          style={{
+            position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+            opacity: imgLoaded ? 1 : 0,
+            transition: 'opacity 0.35s ease',
+            animation: 'none', /* override global img animation — we handle this ourselves */
+          }}
+        />
+      )}
+    </div>
   );
 }
 
@@ -1600,7 +1625,7 @@ function PhotoGallery({ c, th, height = 360, radius = 0, children }) {
           return (
             <div key={i} style={{ width: `${100 / n}%`, height: '100%', flexShrink: 0, position: 'relative' }}>
               {photos[i]
-                ? <img src={photos[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                ? <img src={photos[i]} alt="" loading={i === 0 ? 'eager' : 'lazy'} decoding="async" fetchpriority={i === 0 ? 'high' : 'auto'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 : <div style={{ width: '100%', height: '100%', background: `linear-gradient(155deg, ${g[0]}, ${g[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontFamily: th.display, fontSize: height * 0.4, color: 'rgba(255,255,255,0.32)', fontWeight: 800 }}>{c.name.charAt(0)}</span>
                   </div>}
@@ -1645,7 +1670,7 @@ function AvatarGallery({ c, th, size = 120 }) {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
       <div style={{ width: size, height: size, borderRadius: '50%', overflow: 'hidden', boxShadow: `0 0 0 1.5px ${alpha(th.ink, 0.08)}, 0 18px 36px ${alpha(th.ink, 0.14)}`, background: `linear-gradient(140deg, ${grad[0]}, ${grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {photos[idx]
-          ? <img src={photos[idx]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={photos[idx]} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: size * 0.42, color: '#fff' }}>{c.name.charAt(0)}</span>}
       </div>
       {n > 1 && (
@@ -1654,7 +1679,7 @@ function AvatarGallery({ c, th, size = 120 }) {
             const g = galleryGrad(c, i);
             return (
               <button key={i} onClick={() => setIdx(i)} style={{ width: 34, height: 34, borderRadius: '50%', border: i === idx ? `2px solid ${th.primary}` : `2px solid transparent`, padding: 0, cursor: 'pointer', overflow: 'hidden', background: `linear-gradient(140deg, ${g[0]}, ${g[1]})`, opacity: i === idx ? 1 : 0.6 }}>
-                {photos[i] && <img src={photos[i]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                {photos[i] && <img src={photos[i]} alt="" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </button>
             );
           })}
@@ -2992,7 +3017,7 @@ function Register({ th, go }) {
           <label style={{ cursor: 'pointer' }}>
             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
             {photoURL
-              ? <img src={photoURL} alt="" style={{ width: 108, height: 108, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${th.primary}` }} />
+              ? <img src={photoURL} alt="" decoding="async" style={{ width: 108, height: 108, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${th.primary}` }} />
               : <div style={{ width: 108, height: 108, borderRadius: '50%', background: alpha(th.primary, 0.1), border: `2px dashed ${alpha(th.ink, 0.25)}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: alpha(th.ink, 0.5) }}>
                   <Icon name="camera" size={28} />
                   <span style={{ fontFamily: th.body, fontSize: 12 }}>{uploading ? 'מעלה…' : 'תמונה'}</span>
@@ -3360,7 +3385,7 @@ function CandCard({ c, th, myUid, onClick }) {
     <button onClick={onClick} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
       <div style={{ position: 'relative', height: 116, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {c.photos && c.photos[0]
-          ? <img src={c.photos[0]} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span style={{ fontFamily: th.display, fontSize: 44, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>}
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
           <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)} soft={false}>{c.available ? 'פנוי/ה' : 'תפוס/ה'}</Tag>
@@ -3743,7 +3768,7 @@ function CandidateSelfFill({ th, go, params }) {
             <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center', marginBottom:8 }}>
               {photos.map((url, i) => (
                 <div key={i} style={{ position:'relative' }}>
-                  <img src={url} alt="" style={{ width:80, height:80, borderRadius:12, objectFit:'cover' }} />
+                  <img src={url} alt="" loading="lazy" decoding="async" style={{ width:80, height:80, borderRadius:12, objectFit:'cover' }} />
                   <button onClick={() => setPhotos(p => p.filter((_,j) => j!==i))} style={{ position:'absolute', top:-6, insetInlineEnd:-6, width:22, height:22, borderRadius:'50%', border:'none', background:th.error, color:'#fff', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>×</button>
                 </div>
               ))}
