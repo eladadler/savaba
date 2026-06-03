@@ -2437,8 +2437,15 @@ function AdminPanel({ th, go }) {
   const [seeding,  setSeeding]  = useState(false);
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
   const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
+  const [waitingPanelLight, setWaitingPanelLight] = useState(() => localStorage.getItem('waitingPanelLight') === 'true');
   const [invitesOpen, setInvitesOpen] = useState(false);
   const toggleHideSeed = () => setHideSeed(v => { localStorage.setItem('hideSeed', String(!v)); return !v; });
+  const toggleWaitingPanel = () => setWaitingPanelLight(v => {
+    const next = !v;
+    localStorage.setItem('waitingPanelLight', String(next));
+    window.dispatchEvent(new Event('waitingPanelChanged'));
+    return next;
+  });
 
   // Matchmaker is fictional if it has a seed_ prefix
   const isSeedMm  = (id) => typeof id === 'string' && id.startsWith('seed_');
@@ -2505,7 +2512,8 @@ function AdminPanel({ th, go }) {
       </div>
 
       {/* ── hide-seed toggle ── */}
-      <div style={{ padding: '4px 18px 8px', display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+      <div style={{ padding: '4px 18px 8px', display:'flex', flexWrap:'wrap', alignItems:'center', gap:8, flexShrink:0 }}>
+        {/* hide-seed toggle */}
         <button onClick={toggleHideSeed} style={{ display:'flex', alignItems:'center', gap:7, border:'none', background: hideSeed ? alpha(th.ink,0.08) : alpha(th.gold,0.13), borderRadius:999, padding:'6px 14px', cursor:'pointer', transition:'background 0.2s' }}>
           <div style={{ width:28, height:16, background: hideSeed ? th.ink : alpha(th.ink,0.2), borderRadius:999, position:'relative', transition:'background 0.2s', flexShrink:0 }}>
             <div style={{ position:'absolute', top:2, width:12, height:12, borderRadius:'50%', background:'white', transition:'left 0.2s', left: hideSeed ? 14 : 2 }} />
@@ -2519,6 +2527,15 @@ function AdminPanel({ th, go }) {
             {candidates.length - visibleCands.length} מועמדים · {Object.keys(matchmakers).length - Object.keys(visibleMms).length} שדכנים מוסתרים
           </span>
         )}
+        {/* waiting panel style toggle */}
+        <button onClick={toggleWaitingPanel} style={{ display:'flex', alignItems:'center', gap:7, border:'none', background: waitingPanelLight ? alpha(th.primary,0.1) : alpha(th.ink,0.08), borderRadius:999, padding:'6px 14px', cursor:'pointer', transition:'background 0.2s' }}>
+          <div style={{ width:28, height:16, background: waitingPanelLight ? th.primary : alpha(th.ink,0.2), borderRadius:999, position:'relative', transition:'background 0.2s', flexShrink:0 }}>
+            <div style={{ position:'absolute', top:2, width:12, height:12, borderRadius:'50%', background:'white', transition:'left 0.2s', left: waitingPanelLight ? 14 : 2 }} />
+          </div>
+          <span style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color: waitingPanelLight ? th.primary : alpha(th.ink,0.5) }}>
+            {waitingPanelLight ? 'פאנל בית: בהיר' : 'פאנל בית: כהה'}
+          </span>
+        </button>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 30px' }}>
@@ -3021,6 +3038,16 @@ function Home({ th, go }) {
   const { candidates, notifications, markNotificationRead } = useContext(DataCtx);
   const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
   const mine = candidates.filter(c => c.mmId === profile?.uid);
+  const [lightPanel, setLightPanel] = React.useState(() => localStorage.getItem('waitingPanelLight') === 'true');
+
+  // keep in sync if admin changes it while Home is mounted
+  React.useEffect(() => {
+    const onStorage = () => setLightPanel(localStorage.getItem('waitingPanelLight') === 'true');
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('waitingPanelChanged', onStorage);
+    return () => { window.removeEventListener('storage', onStorage); window.removeEventListener('waitingPanelChanged', onStorage); };
+  }, []);
+
   const waiting = [
     { icon: 'heart', tone: th.primary, big: '3', text: 'הצעות מחכות לתגובה שלך', to: () => go('offers') },
     { icon: 'bell', tone: th.gold, big: '2', text: 'מועמדים שלא קיבלו יחס מעל 7 ימים', to: () => go('tab', { tab: 'cands' }) },
@@ -3044,26 +3071,60 @@ function Home({ th, go }) {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
-        {/* WAITING banner */}
-        <div style={{ background: `linear-gradient(135deg, ${th.ink}, ${alpha(th.primary, 0.85)})`, borderRadius: th.rLg, padding: 18, marginBottom: 18, color: th.cream, boxShadow: `0 16px 34px ${alpha(th.ink, 0.28)}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <Logo size={22} color={th.gold} flaw={th.cream} />
-            <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800 }}>מה מחכה לך</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* WAITING banner — two styles, toggled by admin */}
+        {lightPanel ? (
+          /* ── Light / card style ── */
+          <div style={{ background: th.card, borderRadius: th.rLg, padding: '16px 18px 8px', marginBottom: 18, boxShadow: `0 6px 24px ${alpha(th.ink, 0.08)}` }}>
+            {/* title row */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 12 }}>
+              <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.4), fontWeight: 500 }}>היום</span>
+              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
+                <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink }}>מה מחכה לך</span>
+                <span style={{ fontSize: 17 }}>💛</span>
+              </div>
+            </div>
+            <div style={{ height: 1, background: alpha(th.ink, 0.07), marginBottom: 4 }} />
+            {/* items */}
             {waiting.map((w, k) => (
-              <button key={k} onClick={w.to} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, background: alpha('#ffffff', 0.1), borderRadius: th.r, padding: '10px 12px' }}>
-                <div style={{ width: 38, height: 38, borderRadius: 11, background: w.tone, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon name={w.icon} size={20} fill={w.icon === 'heart' ? '#fff' : 'none'} stroke={w.icon === 'heart' ? 0 : 2} />
-                </div>
-                <div style={{ flex: 1, fontFamily: th.body, fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>
-                  <b style={{ fontFamily: th.display, fontSize: 17 }}>{w.big}</b>&nbsp; {w.text}
-                </div>
-                <span style={{ transform: 'scaleX(-1)', opacity: 0.6 }}><Icon name="chevL" size={18} /></span>
-              </button>
+              <React.Fragment key={k}>
+                <button onClick={w.to} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap: 10, width:'100%', boxSizing:'border-box', padding:'11px 0' }}>
+                  {/* big number — right (RTL start) */}
+                  <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: th.primary, lineHeight: 1, minWidth: 28, textAlign:'center' }}>{w.big}</span>
+                  {/* text */}
+                  <span style={{ flex: 1, fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.78), fontWeight: 500, textAlign:'right' }}>{w.text}</span>
+                  {/* circle icon */}
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', border:`1.5px solid ${alpha(w.tone, 0.35)}`, color: w.tone, display:'flex', alignItems:'center', justifyContent:'center', flexShrink: 0 }}>
+                    <Icon name={w.icon} size={15} fill={w.icon === 'heart' ? w.tone : 'none'} />
+                  </div>
+                  {/* chevron */}
+                  <span style={{ color: alpha(th.ink, 0.25) }}><Icon name="chevL" size={16} style={{ transform:'scaleX(-1)' }} /></span>
+                </button>
+                {k < waiting.length - 1 && <div style={{ height: 1, background: alpha(th.ink, 0.06) }} />}
+              </React.Fragment>
             ))}
           </div>
-        </div>
+        ) : (
+          /* ── Dark / gradient style (original) ── */
+          <div style={{ background: `linear-gradient(135deg, ${th.ink}, ${alpha(th.primary, 0.85)})`, borderRadius: th.rLg, padding: 18, marginBottom: 18, color: th.cream, boxShadow: `0 16px 34px ${alpha(th.ink, 0.28)}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <Logo size={22} color={th.gold} flaw={th.cream} />
+              <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800 }}>מה מחכה לך</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {waiting.map((w, k) => (
+                <button key={k} onClick={w.to} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, background: alpha('#ffffff', 0.1), borderRadius: th.r, padding: '10px 12px' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 11, background: w.tone, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name={w.icon} size={20} fill={w.icon === 'heart' ? '#fff' : 'none'} stroke={w.icon === 'heart' ? 0 : 2} />
+                  </div>
+                  <div style={{ flex: 1, fontFamily: th.body, fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>
+                    <b style={{ fontFamily: th.display, fontSize: 17 }}>{w.big}</b>&nbsp; {w.text}
+                  </div>
+                  <span style={{ transform: 'scaleX(-1)', opacity: 0.6 }}><Icon name="chevL" size={18} /></span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* STATS */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
