@@ -4308,7 +4308,7 @@ function statusTone(s, th) {
 // OFFER STATUS
 // ════════════════════════════════════════════════════════════
 function Offers({ th, go }) {
-  const { offers, candidates, matchmakers } = useContext(DataCtx);
+  const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
   const { user } = useContext(AuthCtx);
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || gradForId(id) }; };
@@ -4475,16 +4475,40 @@ function Offers({ th, go }) {
                     );
                   })}
                 </div>
-                {/* Context callout */}
+                {/* Context callout / action buttons */}
                 {!allApproved && !finalFail && activeIdx >= 0 && (
-                  <div style={{ marginTop:7, background:needsMyAction?alpha(th.primary,0.1):alpha(th.gold,0.1), borderRadius:th.rSm, padding:'5px 9px', display:'flex', alignItems:'center', gap:5 }}>
-                    <Icon name={needsMyAction?'info':'bell'} size={12} style={{ color:needsMyAction?th.primary:th.gold, flexShrink:0 }} />
-                    <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.72) }}>
-                      {needsMyAction
-                        ? <><b>נדרש אישורך</b> — פתח/י צ'אט לאישור או דחייה</>
-                        : <>ממתין ל<b>{pipeSteps[activeIdx].label}</b></>}
-                    </span>
-                  </div>
+                  needsMyAction ? (
+                    /* ── Receiver sees approve / decline buttons ── */
+                    <div style={{ marginTop:9, display:'flex', gap:8 }}>
+                      <button
+                        onClick={async (e) => { e.stopPropagation(); await updateOffer(o.id, { bStatus: 'אישר' }); }}
+                        style={{ flex:1, padding:'7px 0', borderRadius:th.rSm, border:'none', cursor:'pointer',
+                          fontFamily:th.display, fontWeight:800, fontSize:13,
+                          background:alpha(th.success,0.13), color:th.success,
+                          display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+                        <Icon name="check" size={14} /> אשר
+                      </button>
+                      <button
+                        onClick={async (e) => { e.stopPropagation();
+                          if (window.confirm('לדחות את הצעת השידוך?'))
+                            await updateOffer(o.id, { bStatus: 'דחה', status: 'נדחתה' }); }}
+                        style={{ flex:1, padding:'7px 0', borderRadius:th.rSm,
+                          border:`1px solid ${alpha(th.error,0.25)}`, cursor:'pointer',
+                          fontFamily:th.display, fontWeight:800, fontSize:13,
+                          background:alpha(th.error,0.08), color:th.error,
+                          display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+                        <Icon name="x" size={14} /> דחה
+                      </button>
+                    </div>
+                  ) : (
+                    /* ── Waiting text for other steps ── */
+                    <div style={{ marginTop:7, background:alpha(th.gold,0.1), borderRadius:th.rSm, padding:'5px 9px', display:'flex', alignItems:'center', gap:5 }}>
+                      <Icon name="bell" size={12} style={{ color:th.gold, flexShrink:0 }} />
+                      <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.72) }}>
+                        ממתין ל<b>{pipeSteps[activeIdx].label}</b>
+                      </span>
+                    </div>
+                  )
                 )}
                 {finalFail && (
                   <div style={{ marginTop:7, background:alpha(th.error,0.08), borderRadius:th.rSm, padding:'5px 9px', display:'flex', alignItems:'center', gap:5 }}>
@@ -4600,6 +4624,40 @@ function Chat({ th, go, params }) {
           <Icon name="heart" size={15} style={{ color: th.primary }} fill={th.primary} stroke={0} />
           <span style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.7) }}>הצעת שידוך: {a.name} · {b.name}</span>
         </div>
+
+        {/* ── Approval banner: shown to the receiver (bMm) when action is needed ── */}
+        {!iAmA && !['אישר','דחה'].includes(o.bStatus) && !['אושרה','נדחתה'].includes(o.status) && (
+          <div style={{ background:alpha(th.primary,0.07), border:`1.5px solid ${alpha(th.primary,0.2)}`,
+            borderRadius:th.r, padding:'13px 14px', marginBottom:6 }}>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:6 }}>
+              🤝 הצעת שידוך ממתינה לאישורך
+            </div>
+            <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6), marginBottom:12 }}>
+              {b.name} · {a.name} — האם ברצונך להמשיך?
+            </div>
+            <div style={{ display:'flex', gap:8 }}>
+              <button
+                onClick={async () => { await updateOffer(o.id, { bStatus: 'אישר' }); }}
+                style={{ flex:1, padding:'9px 0', borderRadius:th.rSm, border:'none',
+                  cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:14,
+                  background:th.success, color:'#fff' }}>
+                ✓ אשר הצעה
+              </button>
+              <button
+                onClick={async () => {
+                  if (window.confirm('לדחות את הצעת השידוך?'))
+                    await updateOffer(o.id, { bStatus: 'דחה', status: 'נדחתה' });
+                }}
+                style={{ flex:1, padding:'9px 0', borderRadius:th.rSm,
+                  border:`1.5px solid ${alpha(th.error,0.3)}`, cursor:'pointer',
+                  fontFamily:th.display, fontWeight:800, fontSize:14,
+                  background:alpha(th.error,0.1), color:th.error }}>
+                ✗ דחה
+              </button>
+            </div>
+          </div>
+        )}
+
         {msgs.map((m, i) => {
           const mine = m.from === 'me';
           return (
