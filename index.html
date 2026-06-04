@@ -2473,6 +2473,7 @@ function AdminPanel({ th, go }) {
           deleteCandidate, uploadPhoto, updateText, setUserAdmin, updateList } = useContext(DataCtx);
   const [tab, setTab]         = useState('candidates');
   const [editCand, setEditCand] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // candidate id pending delete
   const [newCand,  setNewCand]  = useState(false);
   const [editKey,  setEditKey]  = useState(null);
   const [editVal,  setEditVal]  = useState('');
@@ -2627,7 +2628,7 @@ function AdminPanel({ th, go }) {
                             title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
                         )}
                         <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
-                        <button onClick={() => { if (confirm('למחוק?')) deleteCandidate(c.id); }} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
+                        <button onClick={() => setConfirmDelete(c.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
                       </div>
                       {c.photos?.length > 0 && (
                         <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
@@ -2640,6 +2641,36 @@ function AdminPanel({ th, go }) {
             );})}
           </>
         )}
+
+        {/* ── DELETE CONFIRMATION SHEET ── */}
+        {(() => {
+          const cToDelete = confirmDelete ? candidates.find(c => c.id === confirmDelete) : null;
+          return (
+            <Sheet open={!!confirmDelete} onClose={() => setConfirmDelete(null)} th={th} title="מחיקת מועמד/ת">
+              {cToDelete && (
+                <>
+                  <div style={{ display:'flex', alignItems:'center', gap:12, background:alpha(th.error,0.06), borderRadius:th.r, padding:14, marginBottom:16 }}>
+                    <Avatar grad={gradForId(cToDelete.id)} name={cToDelete.name} size={44} photo={cToDelete.photos?.[0]} />
+                    <div>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>{cToDelete.name}, {cToDelete.age}</div>
+                      <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5) }}>{cToDelete.region} · {cToDelete.religiosity}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.65), marginBottom:20, lineHeight:1.5 }}>
+                    פעולה זו תמחק לצמיתות את הכרטיסייה של {cToDelete.name} מהמערכת. לא ניתן לשחזר.
+                  </div>
+                  <div style={{ display:'flex', gap:8 }}>
+                    <Btn th={th} full variant="ghost" onClick={() => setConfirmDelete(null)}>ביטול</Btn>
+                    <Btn th={th} full onClick={async () => { await deleteCandidate(confirmDelete); setConfirmDelete(null); }}
+                      style={{ background:th.error, boxShadow:`0 6px 18px ${alpha(th.error,0.3)}` }}>
+                      <Icon name="trash" size={16} /> מחק לצמיתות
+                    </Btn>
+                  </div>
+                </>
+              )}
+            </Sheet>
+          );
+        })()}
 
         {/* ── LISTS ── */}
         {tab === 'lists' && (() => {
