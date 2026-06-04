@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>סבבה והכל</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<!-- Open Graph / WhatsApp preview -->
+<meta property="og:type"        content="website" />
+<meta property="og:url"         content="https://eladadler.github.io/savaba/" />
+<meta property="og:title"       content="סבבה והכל — הצטרפ/י למערכת השידוכים" />
+<meta property="og:description" content="קיבלת הזמנה אישית להצטרף לסבבה והכל — שידוכים על בסיס אמון ואנשים אמיתיים." />
+<meta property="og:image"       content="https://eladadler.github.io/savaba/og-image.svg" />
+<meta property="og:image:width"  content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card"       content="summary_large_image" />
 <link rel="apple-touch-icon" href="favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -3605,7 +3614,12 @@ function InviteFlow({ open, onClose, th, mmId, mmName }) {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const waText = encodeURIComponent(`היי ${recipFirst.trim()}! 😊\n${mmName} מזמין/ת אותך להצטרף למערכת שידוכים "סבבה והכל".\n\nלחץ/י כאן להרשמה:\n${inviteURL(token)}`);
+  const waText = encodeURIComponent(
+    `היי ${recipFirst.trim()} 👋\n\n` +
+    `${mmName} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\n` +
+    `תוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n` +
+    `👇 לחץ/י כאן להרשמה:\n${inviteURL(token)}`
+  );
 
   return (
     <Sheet open={open} onClose={() => { onClose(); reset(); }} th={th} title="הזמנת מועמד/ת">
