@@ -2589,28 +2589,7 @@ function AdminPanel({ th, go }) {
         {/* ── CANDIDATES ── */}
         {tab === 'candidates' && (
           <>
-            <Btn th={th} full onClick={() => setInvitesOpen(true)}
-              icon={<Icon name="bell" size={18} />} style={{ marginBottom: 10 }}>
-              מעקב הזמנות
-            </Btn>
-            <div style={{ display:'flex', gap:8, marginBottom:10 }}>
-              <Btn th={th} full variant="ghost" style={{ color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
-                onClick={async () => { setSeeding(true); try { await seedTestData(profile.uid); } finally { setSeeding(false); } }}>
-                {seeding ? 'טוען…' : '⚡ זרע נתוני בדיקה'}
-              </Btn>
-              <Btn th={th} variant="ghost" style={{ color: th.error, boxShadow: `inset 0 0 0 1.5px ${alpha(th.error,0.3)}`, flexShrink:0, padding:'0 14px' }}
-                onClick={async () => { if(confirm('למחוק את כל נתוני הבדיקה?')) { setSeeding(true); try { await clearSeedData(); } finally { setSeeding(false); } } }}>
-                🗑 נקה
-              </Btn>
-            </div>
-
             <InvitationsSheet open={invitesOpen} onClose={() => setInvitesOpen(false)} th={th} mmUid={profile?.uid} go={go} />
-            {candidates.length > 0 && candidates.some(c => !c.photos?.length || !c.sabaBut) && (
-              <Btn th={th} full variant="ghost" style={{ marginBottom: 14, color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
-                onClick={updateSeedPhotos}>
-                {updatingPhotos ? 'מעדכן תמונות…' : '🖼 הוסף תמונות DiceBear למועמדי בדיקה'}
-              </Btn>
-            )}
             {newCand && <CandidateForm th={th} onSave={async (data) => { const id = await addCandidate(data); setNewCand(false); go('candidate', { id }); }} onCancel={() => setNewCand(false)} />}
 
             {/* ── helper to render a candidate row ── */}
@@ -2634,11 +2613,6 @@ function AdminPanel({ th, go }) {
                           <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
                           <button onClick={() => setConfirmDelete(c.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
                         </div>
-                        {c.photos?.length > 0 && (
-                          <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
-                            {c.photos.map((url, i) => <img key={i} src={url} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />)}
-                          </div>
-                        )}
                       </>
                     )}
                 </div>
