@@ -3097,6 +3097,11 @@ function Home({ th, go }) {
     mine.filter(c => !recentCandIds.has(c.id)),
     [mine, recentCandIds]);
 
+  // 3a. Co-rep approved notifications (unread)
+  const coRepApprovedNotifs = React.useMemo(() =>
+    notifications.filter(n => n.type === 'corep_approved' && !n.read),
+    [notifications]);
+
   // 3. My offers where both MMs approved but a candidate hasn't responded yet
   const offersAwaitingCand = React.useMemo(() =>
     offers.filter(o =>
@@ -3122,6 +3127,13 @@ function Home({ th, go }) {
       icon: 'chat', tone: '#a78bfa', big: String(offersAwaitingCand.length),
       text: offersAwaitingCand.length === 1 ? 'שידוך מחכה לתשובת המועמד' : 'שידוכים מחכים לתשובת המועמד',
       to: () => go('offers', { filter: 'awaitingCand' }),
+    },
+    coRepApprovedNotifs.length > 0 && {
+      icon: 'users', tone: th.success, big: String(coRepApprovedNotifs.length),
+      text: coRepApprovedNotifs.length === 1
+        ? `${coRepApprovedNotifs[0].candName} אישר/ה שתייצג אותו/ה`
+        : `${coRepApprovedNotifs.length} מועמדים אישרו ייצוג שלך`,
+      to: () => { coRepApprovedNotifs.forEach(n => markNotificationRead(n.id)); go('cands'); },
     },
   ].filter(Boolean);
 
@@ -3361,6 +3373,7 @@ function Candidates({ th, go, params }) {
   const [pendingCount, setPendingCount] = useSb(0);
   const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
   const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
+  const [sentRequests, setSentRequests] = useSb(new Set());
 
   // Neglected filter from home banner — set of candidate IDs to show
   const [neglectedIds, setNeglectedIds] = useSb(
@@ -3454,7 +3467,20 @@ function Candidates({ th, go, params }) {
             <CandCard key={c.id} c={c} th={th} myUid={myUid}
               onClick={() => linkMode ? null : go('candidate', { id: c.id })}
               linkMode={linkMode}
-              onLink={async () => { await claimCandidate(c.id); setLinkMode(false); setScope('mine'); }}
+              requestSent={sentRequests.has(c.id)}
+              onLink={async () => {
+                if (!c.candidateUid) return;
+                await db.collection('coRepRequests').add({
+                  mmId: myUid,
+                  mmName: profile?.displayName || 'שדכן/ית',
+                  candId: c.id,
+                  candName: c.name,
+                  candidateUid: c.candidateUid,
+                  status: 'pending',
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                });
+                setSentRequests(prev => new Set([...prev, c.id]));
+              }}
             />
           ))}
         </div>
@@ -3478,7 +3504,7 @@ function Candidates({ th, go, params }) {
   );
 }
 
-function CandCard({ c, th, myUid, onClick, linkMode, onLink }) {
+function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent }) {
   return (
     <button onClick={onClick} style={{ all: 'unset', cursor: linkMode ? 'default' : 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
       <div style={{ position: 'relative', height: 116, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -3505,12 +3531,19 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink }) {
           <span style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
         </div>
       </div>
-      {linkMode && onLink && (
-        <button onClick={(e) => { e.stopPropagation(); onLink(); }}
-          style={{ width: '100%', padding: '9px 0', border: 'none', background: th.primary, color: '#fff',
-            fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer',
+      {linkMode && (
+        <button
+          onClick={(e) => { e.stopPropagation(); if (!requestSent && c.candidateUid && onLink) onLink(); }}
+          style={{ width: '100%', padding: '9px 0', border: 'none', cursor: requestSent || !c.candidateUid ? 'default' : 'pointer',
+            background: requestSent ? alpha(th.success, 0.13) : c.candidateUid ? th.primary : alpha(th.ink, 0.07),
+            color: requestSent ? th.success : c.candidateUid ? '#fff' : alpha(th.ink, 0.35),
+            fontFamily: th.display, fontWeight: 800, fontSize: 12,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-          <Icon name="plus" size={13} /> הוסף לרשימה שלי
+          {requestSent
+            ? <><Icon name="check" size={12} /> נשלחה בקשה</>
+            : c.candidateUid
+              ? <><Icon name="plus" size={12} /> שלח/י בקשת ייצוג</>
+              : 'טרם נרשמ/ה למערכת'}
         </button>
       )}
     </button>
@@ -3950,7 +3983,11 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
   const handleTap = (n) => {
     if (!n.read) markNotificationRead(n.id);
     setOpen(false);
-    go('editCand', { id: n.candidateId });
+    if (n.type === 'corep_approved') {
+      go('cands');
+    } else {
+      go('editCand', { id: n.candidateId || n.candId });
+    }
   };
 
   return (
@@ -3967,10 +4004,18 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
           : notifications.map(n => (
             <button key={n.id} onClick={() => handleTap(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', borderRadius:th.r, marginBottom:8, display:'block', textAlign:'right', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}` }}>
               <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
-                {n.type === 'invite_accepted' ? `✓ ${n.candidateName} אישר/ה הזמנה` : `📋 ${n.candidateName} הצטרף/ה`}
+                {n.type === 'corep_approved'
+                  ? `🤝 ${n.candName} אישר/ה ייצוג שלך`
+                  : n.type === 'invite_accepted'
+                    ? `✓ ${n.candidateName} אישר/ה הזמנה`
+                    : `📋 ${n.candidateName} הצטרף/ה`}
               </div>
               <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55), marginBottom:n.type === 'cand_filled' && n.candidateAge ? 3 : 0 }}>
-                {n.type === 'invite_accepted' ? 'ממתין/ה שתמלא/י את הפרטים' : 'ממתין/ה לאישור ופרסום'}
+                {n.type === 'corep_approved'
+                  ? 'המועמד/ת מופיע/ה כעת ברשימת ״שלי״'
+                  : n.type === 'invite_accepted'
+                    ? 'ממתין/ה שתמלא/י את הפרטים'
+                    : 'ממתין/ה לאישור ופרסום'}
               </div>
               {n.type === 'cand_filled' && (n.candidateAge || n.candidateRegion) && (
                 <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.4) }}>
@@ -5319,6 +5364,34 @@ function CandidateMode({ th, go }) {
 
   const [decided, setDecided] = useSe(null);
   const [submitting, setSubmitting] = useSe(false);
+  const [coRepReqs, setCoRepReqs] = useSe([]);
+
+  // Listen for pending co-rep requests addressed to this candidate
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = db.collection('coRepRequests')
+      .where('candidateUid', '==', user.uid)
+      .where('status', '==', 'pending')
+      .onSnapshot(s => setCoRepReqs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+    return unsub;
+  }, [user?.uid]);
+
+  const approveCoRep = async (req) => {
+    await db.collection('candidates').doc(req.candId)
+      .update({ coMms: firebase.firestore.FieldValue.arrayUnion(req.mmId) });
+    await db.collection('coRepRequests').doc(req.id)
+      .update({ status: 'accepted', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('notifications').add({
+      toUid: req.mmId, type: 'corep_approved',
+      candId: req.candId, candName: req.candName,
+      read: false, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  };
+
+  const declineCoRep = async (req) => {
+    await db.collection('coRepRequests').doc(req.id)
+      .update({ status: 'declined', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  };
 
   const submitDecision = async (choice) => {
     if (!currentOffer || submitting) return;
@@ -5428,6 +5501,29 @@ function CandidateMode({ th, go }) {
               </div>
             </div>
           </div>
+        )}
+
+        {/* CO-REP REQUESTS */}
+        {coRepReqs.length > 0 && (
+          <>
+            <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10, display:'flex', alignItems:'center', gap:7 }}>
+              🤝 בקשות ייצוג
+            </div>
+            {coRepReqs.map(req => (
+              <div key={req.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow:`0 4px 14px ${alpha(th.ink,0.06)}`, border:`1.5px solid ${alpha(th.primary,0.15)}` }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink, marginBottom:4 }}>
+                  {req.mmName} מעוניין/ת לייצג אותך
+                </div>
+                <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6), marginBottom:12, lineHeight:1.4 }}>
+                  אם תאשר/י — {req.mmName} יוכל/תוכל להציע אותך לשידוכים גם מטעמו/ה
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => approveCoRep(req)} style={{ flex:1, padding:'9px 0', borderRadius:th.rSm, border:'none', background:th.success, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:13, cursor:'pointer' }}>✓ אשר/י</button>
+                  <button onClick={() => declineCoRep(req)} style={{ flex:1, padding:'9px 0', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.error,0.3)}`, background:alpha(th.error,0.08), color:th.error, fontFamily:th.display, fontWeight:800, fontSize:13, cursor:'pointer' }}>✗ דחה/י</button>
+                </div>
+              </div>
+            ))}
+          </>
         )}
 
         {/* MY MATCHMAKERS */}
