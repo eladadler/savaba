@@ -3826,14 +3826,16 @@ function CandidateSelfFill({ th, go, params }) {
   const [done, setDone]       = useState(false);
 
   const addPhoto = async (e) => {
-    const file = e.target.files[0]; if (!file) return;
+    const files = Array.from(e.target.files || []); if (!files.length) return;
     setUpl(true);
     try {
-      const ref = storage.ref(`profiles/${user.uid}/${Date.now()}_${file.name}`);
-      await ref.put(file);
-      const url = await ref.getDownloadURL();
-      setPhotos(p => [...p, url]);
-    } finally { setUpl(false); }
+      const urls = await Promise.all(files.map(async file => {
+        const ref = storage.ref(`profiles/${user.uid}/${Date.now()}_${file.name}`);
+        await ref.put(file);
+        return ref.getDownloadURL();
+      }));
+      setPhotos(p => [...p, ...urls]);
+    } finally { setUpl(false); e.target.value = ''; }
   };
 
   const submit = async () => {
@@ -3929,20 +3931,80 @@ function CandidateSelfFill({ th, go, params }) {
         )}
 
         {step === 3 && (
-          <Field th={th} label="תמונות" hint="מומלץ תמונות מאונכות באיכות טובה">
-            <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center', marginBottom:8 }}>
-              {photos.map((url, i) => (
-                <div key={i} style={{ position:'relative' }}>
-                  <img src={url} alt="" loading="lazy" decoding="async" style={{ width:80, height:80, borderRadius:12, objectFit:'cover' }} />
-                  <button onClick={() => setPhotos(p => p.filter((_,j) => j!==i))} style={{ position:'absolute', top:-6, insetInlineEnd:-6, width:22, height:22, borderRadius:'50%', border:'none', background:th.error, color:'#fff', fontSize:14, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>×</button>
-                </div>
-              ))}
-              <label style={{ width:80, height:80, borderRadius:12, border:`2px dashed ${alpha(th.ink,0.2)}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, cursor:'pointer', color: uploading ? alpha(th.ink,0.3) : th.primary, flexShrink:0 }}>
-                {uploading ? <span style={{ fontFamily:th.body, fontSize:11 }}>מעלה…</span> : <><Icon name="plus" size={22} /><span style={{ fontFamily:th.body, fontSize:11 }}>הוסף/י</span></>}
-                <input type="file" accept="image/*" style={{ display:'none' }} onChange={addPhoto} disabled={uploading} />
-              </label>
+          <div>
+            {/* header row */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+              <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5) }}>תמונות מאונכות, פנים ברורות</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12,
+                color: photos.length > 0 ? th.success : th.error,
+                background: photos.length > 0 ? alpha(th.success,0.1) : alpha(th.error,0.08),
+                borderRadius:999, padding:'4px 11px' }}>
+                {photos.length > 0 ? `✓ ${photos.length} תמונות` : '* חובה'}
+              </div>
             </div>
-          </Field>
+
+            {/* empty state — big hero upload */}
+            {photos.length === 0 && (
+              <label style={{ display:'block', cursor: uploading ? 'default' : 'pointer' }}>
+                <div style={{ border:`2px dashed ${alpha(th.primary,0.35)}`, borderRadius:th.rLg,
+                  background:alpha(th.primary,0.04), padding:'44px 20px', textAlign:'center' }}>
+                  <div style={{ fontSize:52, marginBottom:12 }}>{uploading ? '⏳' : '📸'}</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:19, color:th.ink, marginBottom:6 }}>
+                    {uploading ? 'מעלה תמונות…' : 'הוסף/י תמונות'}
+                  </div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), lineHeight:1.5, marginBottom:20 }}>
+                    מומלץ לפחות 2–3 תמונות<br/>ניתן לבחור כמה קבצים בבת אחת
+                  </div>
+                  {!uploading && (
+                    <div style={{ display:'inline-block', background:th.primary, color:'#fff',
+                      borderRadius:999, padding:'11px 28px', fontFamily:th.display, fontWeight:800, fontSize:15,
+                      boxShadow:`0 6px 18px ${alpha(th.primary,0.3)}` }}>
+                      בחר/י קבצים
+                    </div>
+                  )}
+                </div>
+                <input type="file" accept="image/*" multiple style={{ display:'none' }} onChange={addPhoto} disabled={uploading} />
+              </label>
+            )}
+
+            {/* photo grid */}
+            {photos.length > 0 && (
+              <>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:8, marginBottom:10 }}>
+                  {photos.map((url, i) => (
+                    <div key={i} style={{ position:'relative', aspectRatio:'3/4' }}>
+                      <img src={url} alt="" loading="lazy" decoding="async"
+                        style={{ width:'100%', height:'100%', borderRadius:th.r, objectFit:'cover', display:'block' }} />
+                      <button onClick={() => setPhotos(p => p.filter((_,j) => j!==i))}
+                        style={{ position:'absolute', top:5, insetInlineEnd:5, width:24, height:24,
+                          borderRadius:'50%', border:'none', background:'rgba(0,0,0,0.55)',
+                          color:'#fff', fontSize:15, cursor:'pointer',
+                          display:'flex', alignItems:'center', justifyContent:'center', lineHeight:1 }}>×</button>
+                      {i === 0 && (
+                        <div style={{ position:'absolute', bottom:5, insetInlineStart:5,
+                          background:'rgba(0,0,0,0.55)', color:'#fff', borderRadius:999,
+                          padding:'2px 8px', fontFamily:th.display, fontWeight:700, fontSize:10 }}>ראשי</div>
+                      )}
+                    </div>
+                  ))}
+                  {/* add more tile */}
+                  <label style={{ aspectRatio:'3/4', borderRadius:th.r,
+                    border:`2px dashed ${alpha(th.ink,0.2)}`, display:'flex',
+                    flexDirection:'column', alignItems:'center', justifyContent:'center',
+                    gap:5, cursor: uploading ? 'default' : 'pointer',
+                    color: uploading ? alpha(th.ink,0.3) : th.primary, background: th.card }}>
+                    {uploading
+                      ? <span style={{ fontFamily:th.body, fontSize:11 }}>מעלה…</span>
+                      : <><Icon name="plus" size={24} /><span style={{ fontFamily:th.body, fontSize:11, fontWeight:700 }}>הוסף/י</span></>}
+                    <input type="file" accept="image/*" multiple style={{ display:'none' }} onChange={addPhoto} disabled={uploading} />
+                  </label>
+                </div>
+                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.4), textAlign:'center' }}>
+                  התמונה הראשונה תוצג בכרטיסייה — גרור/י לשינוי סדר
+                </div>
+              </>
+            )}
+          </div>
         )}
 
         <div style={{ display:'flex', gap:8, marginTop:20 }}>
@@ -3951,7 +4013,14 @@ function CandidateSelfFill({ th, go, params }) {
             : <div style={{ flex:1 }} />
           }
           {isLast
-            ? <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.age}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
+            ? <>
+                {photos.length === 0 && (
+                  <div style={{ width:'100%', textAlign:'center', fontFamily:th.body, fontSize:13, color:th.error, marginBottom:8 }}>
+                    נא להעלות לפחות תמונה אחת
+                  </div>
+                )}
+                <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.age || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
+              </>
             : <Btn th={th} full onClick={() => { if (step===0 && (!f.name||!f.age)) { alert('נא למלא שם וגיל'); return; } setStep(s => s+1); }}>הבא →</Btn>
           }
         </div>
