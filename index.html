@@ -1233,6 +1233,9 @@ function useFirebaseData(uid) {
   const markNotificationRead = useCallback((id) =>
     db.collection('notifications').doc(id).update({ read: true }), []);
 
+  const deleteNotification = useCallback((id) =>
+    db.collection('notifications').doc(id).delete(), []);
+
   const approveCandidate = useCallback((candidateId) =>
     db.collection('candidates').doc(candidateId).update({ pendingApproval: false }), []);
 
@@ -1245,7 +1248,7 @@ function useFirebaseData(uid) {
     candidates, offers, matchmakers, texts, lists, notifications, loading,
     addCandidate, updateCandidate, deleteCandidate,
     uploadPhoto, addOffer, updateOffer, updateText, setUserAdmin, updateList,
-    markNotificationRead, approveCandidate, claimCandidate,
+    markNotificationRead, deleteNotification, approveCandidate, claimCandidate,
   };
 }
 
@@ -3075,7 +3078,7 @@ function Register({ th, go }) {
 // ════════════════════════════════════════════════════════════
 function Home({ th, go }) {
   const { profile } = useContext(AuthCtx);
-  const { candidates, offers, notifications, markNotificationRead } = useContext(DataCtx);
+  const { candidates, offers, notifications, markNotificationRead, deleteNotification } = useContext(DataCtx);
   const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
   const myUid = profile?.uid;
   const mine = candidates.filter(c => c.mmId === myUid);
@@ -3161,7 +3164,7 @@ function Home({ th, go }) {
           <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום {(me.displayName||'').split(' ')[0]},</div>
           <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>מה קורה היום?</div>
         </div>
-        <NotificationDrawer th={th} go={go} notifications={notifications} markNotificationRead={markNotificationRead} />
+        <NotificationDrawer th={th} go={go} notifications={notifications} markNotificationRead={markNotificationRead} deleteNotification={deleteNotification} />
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
@@ -4013,7 +4016,7 @@ function EditCandidateScreen({ th, go, params }) {
 // ════════════════════════════════════════════════════════════
 // NOTIFICATION DRAWER
 // ════════════════════════════════════════════════════════════
-function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
+function NotificationDrawer({ th, go, notifications, markNotificationRead, deleteNotification }) {
   const [open, setOpen] = useState(false);
   const unread = notifications.filter(n => !n.read).length;
 
@@ -4027,7 +4030,7 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
     }
   };
 
-  const clearAll = () => notifications.filter(n => !n.read).forEach(n => markNotificationRead(n.id));
+  const deleteAll = () => notifications.forEach(n => deleteNotification(n.id));
 
   // per-type config
   const cfg = (n) => {
@@ -4048,9 +4051,9 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
       <Sheet open={open} onClose={() => setOpen(false)} th={th} title={
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%' }}>
           <span>התראות</span>
-          {unread > 0 && (
-            <button onClick={clearAll} style={{ border:'none', background:alpha(th.ink,0.07), color:alpha(th.ink,0.5), borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontSize:12, fontWeight:600, cursor:'pointer' }}>
-              סמן הכל כנקרא
+          {notifications.length > 0 && (
+            <button onClick={deleteAll} style={{ border:'none', background:alpha(th.error,0.08), color:th.error, borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontSize:12, fontWeight:600, cursor:'pointer' }}>
+              נקה הכל
             </button>
           )}
         </div>
@@ -4060,9 +4063,11 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
           : notifications.map(n => {
             const { icon, title, body, cta } = cfg(n);
             return (
-              <div key={n.id} style={{ borderRadius:th.r, marginBottom:8, overflow:'hidden', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}` }}>
+              <div key={n.id} style={{ borderRadius:th.r, marginBottom:8, overflow:'hidden', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}`, position:'relative' }}>
+                {/* delete X button */}
+                <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} style={{ position:'absolute', top:8, left:10, border:'none', background:'transparent', color:alpha(th.ink,0.3), cursor:'pointer', padding:4, lineHeight:1, fontSize:16, fontWeight:400 }}>×</button>
                 {/* main row — tappable */}
-                <button onClick={() => navigate(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', display:'block', textAlign:'right' }}>
+                <button onClick={() => navigate(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', paddingLeft:32, display:'block', textAlign:'right' }}>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
                     {icon} {title}
                   </div>
