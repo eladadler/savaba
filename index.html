@@ -3166,7 +3166,7 @@ function Home({ th, go }) {
                   <div style={{ width: 32, height: 32, borderRadius: '50%', border:`1.5px solid ${alpha(w.tone, 0.35)}`, color: w.tone, display:'flex', alignItems:'center', justifyContent:'center', flexShrink: 0 }}>
                     <Icon name={w.icon} size={15} fill={w.icon === 'heart' ? w.tone : 'none'} />
                   </div>
-                  <span style={{ color: alpha(th.ink, 0.25) }}><Icon name="chevL" size={16} style={{ transform:'scaleX(-1)' }} /></span>
+                  <span style={{ color: alpha(th.ink, 0.25) }}><Icon name="chevL" size={16} /></span>
                 </button>
                 {k < waiting.length - 1 && <div style={{ height: 1, background: alpha(th.ink, 0.06) }} />}
               </React.Fragment>
@@ -3190,7 +3190,7 @@ function Home({ th, go }) {
                     <div style={{ flex: 1, fontFamily: th.body, fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>
                       <b style={{ fontFamily: th.display, fontSize: 17 }}>{w.big}</b>&nbsp; {w.text}
                     </div>
-                    <span style={{ transform: 'scaleX(-1)', opacity: 0.6 }}><Icon name="chevL" size={18} /></span>
+                    <span style={{ opacity: 0.6 }}><Icon name="chevL" size={18} /></span>
                   </button>
                 ))
               }
@@ -3244,7 +3244,7 @@ function Home({ th, go }) {
             <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>3 התאמות חדשות מ-AI</div>
             <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6) }}>בדוק/י מי מתאים למי השבוע</div>
           </div>
-          <span style={{ transform: 'scaleX(-1)', color: th.gold }}><Icon name="chevL" size={20} /></span>
+          <span style={{ color: th.gold }}><Icon name="chevL" size={20} /></span>
         </button>
       </div>
     </>
@@ -4684,7 +4684,7 @@ function Offers({ th, go, params }) {
                     <div style={{ fontFamily:th.body, fontSize:10, fontWeight:700, color:th.primary }}>המועמד/ת שלי</div>
                     <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{myCand.name}</div>
                   </div>
-                  <Icon name="chevR" size={13} style={{ color:alpha(th.primary,0.4), flexShrink:0 }} />
+                  <Icon name="chevL" size={13} style={{ color:alpha(th.primary,0.4), flexShrink:0 }} />
                 </button>
                 <button onClick={() => go('candidate', { id: iAmA ? o.bId : o.aId })}
                   style={{ all:'unset', cursor:'pointer', flex:1, background:alpha(th.ink,0.04), border:`1.5px solid ${alpha(th.ink,0.08)}`, borderRadius:th.rSm, padding:'9px 12px', display:'flex', alignItems:'center', gap:8, boxSizing:'border-box' }}>
@@ -4693,7 +4693,7 @@ function Offers({ th, go, params }) {
                     <div style={{ fontFamily:th.body, fontSize:10, fontWeight:700, color:alpha(th.ink,0.45) }}>הצד השני</div>
                     <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{theirC.name}</div>
                   </div>
-                  <Icon name="chevR" size={13} style={{ color:alpha(th.ink,0.25), flexShrink:0 }} />
+                  <Icon name="chevL" size={13} style={{ color:alpha(th.ink,0.25), flexShrink:0 }} />
                 </button>
               </div>
 
@@ -5438,7 +5438,7 @@ function Settings({ th, go }) {
     <button onClick={onClick} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderBottom: last ? 'none' : `1px solid ${alpha(th.ink, 0.07)}` }}>
       <div style={{ width: 34, height: 34, borderRadius: 10, background: alpha(danger ? th.error : (tone || th.ink), 0.1), color: danger ? th.error : (tone || th.ink), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={icon} size={19} /></div>
       <span style={{ flex: 1, fontFamily: th.body, fontWeight: 600, fontSize: 15, color: danger ? th.error : th.ink }}>{label}</span>
-      <span style={{ color: alpha(th.ink, 0.3), transform: 'scaleX(-1)' }}><Icon name="chevL" size={18} /></span>
+      <span style={{ color: alpha(th.ink, 0.3) }}><Icon name="chevL" size={18} /></span>
     </button>
   );
   const Group = ({ children }) => <div style={{ background: th.card, borderRadius: th.r, overflow: 'hidden', marginBottom: 16, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>{children}</div>;
