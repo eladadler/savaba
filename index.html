@@ -1229,8 +1229,8 @@ function useFirebaseData(uid) {
 
   const claimCandidate = useCallback((candId) =>
     db.collection('candidates').doc(candId)
-      .update({ coMms: firebase.firestore.FieldValue.arrayUnion(user?.uid) }),
-    [user]);
+      .update({ coMms: firebase.firestore.FieldValue.arrayUnion(uid) }),
+    [uid]);
 
   return {
     candidates, offers, matchmakers, texts, lists, notifications, loading,
