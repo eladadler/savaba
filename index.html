@@ -3527,7 +3527,7 @@ function Candidates({ th, go, params }) {
         {/* scope toggle */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           {[['mine', 'שלי'], ['all', 'שאר המאגר']].map(([id, lbl]) => (
-            <button key={id} onClick={() => setScope(id)} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: scope === id ? th.ink : th.card, color: scope === id ? th.cream : alpha(th.ink, 0.55), boxShadow: scope === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>{lbl}</button>
+            <button key={id} onClick={() => { setScope(id); if (id === 'mine') setLinkMode(false); }} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: scope === id ? th.ink : th.card, color: scope === id ? th.cream : alpha(th.ink, 0.55), boxShadow: scope === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>{lbl}</button>
           ))}
         </div>
 
