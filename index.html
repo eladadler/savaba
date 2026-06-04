@@ -5624,7 +5624,7 @@ function renderScreen(cur, th, go, profile) {
     case 'onboarding':  return <Onboarding th={th} go={go} />;
     case 'register':    return <Register th={th} go={go} />;
     case 'home':        return <Home th={th} go={go} />;
-    case 'cands':       return <Candidates th={th} go={go} params={p} />;
+    case 'cands':       return <Candidates key={p?.linkMode ? 'cands-link' : 'cands'} th={th} go={go} params={p} />;
     case 'candidate':   return <CandidateDetail th={th} go={go} params={p} />;
     case 'matchFlow':   return <MatchFlow th={th} go={go} params={p} />;
     case 'offers':      return <Offers th={th} go={go} params={p} />;
