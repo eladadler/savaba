@@ -4200,9 +4200,11 @@ function AddSheet({ open, onClose, th, go }) {
 function CandidateDetail({ th, go, params }) {
   const c = findCand(params?.id) || CANDIDATES[0];
   const [showDiscrete, setShowDiscrete] = useSb(false);
+  const [dotsOpen, setDotsOpen] = useSb(false);
   const { user } = React.useContext(AuthCtx);
   const myUid = user?.uid;
   const variant = th.cardVariant;
+  const isMine = c && (c.mmId === myUid || c.coMms?.includes(myUid));
 
   const footer = (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
@@ -4221,8 +4223,26 @@ function CandidateDetail({ th, go, params }) {
       {/* floating back / dots over content */}
       <div style={{ position: 'absolute', top: 50, right: 16, left: 16, zIndex: 20, display: 'flex', justifyContent: 'space-between', pointerEvents: 'none' }}>
         <button onClick={() => go('back')} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="back" size={20} /></button>
-        <button style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="dots" size={20} /></button>
+        <button onClick={() => setDotsOpen(true)} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="dots" size={20} /></button>
       </div>
+      <Sheet open={dotsOpen} onClose={() => setDotsOpen(false)} th={th} title={c.name}>
+        {isMine ? (
+          <button onClick={() => { setDotsOpen(false); go('editCand', { id: c.id }); }}
+            style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background:th.card, border:`1.5px solid ${alpha(th.ink,0.1)}`, borderRadius:th.r, padding:14 }}>
+            <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.primary,0.1), color:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <Icon name="edit" size={22} />
+            </div>
+            <div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>ערוך פרטים</div>
+              <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>עדכן/י שם, גיל, אישיות, תמונות ועוד</div>
+            </div>
+          </button>
+        ) : (
+          <div style={{ textAlign:'center', padding:'18px 0', fontFamily:th.body, color:alpha(th.ink,0.4), fontSize:14 }}>
+            אין פעולות זמינות למועמד/ת זו
+          </div>
+        )}
+      </Sheet>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {body}
         {/* Matchmaker section — only for other matchmakers' candidates */}
