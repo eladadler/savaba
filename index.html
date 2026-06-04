@@ -5343,7 +5343,7 @@ function CandidateMode({ th, go }) {
 
   // Find matchmakers who manage this candidate
   const myMms = me
-    ? Object.values(matchmakers).filter(mm => mm.uid === me.mmId || candidates.some(c => c.id === me.id && c.mmId === mm.uid))
+    ? Object.values(matchmakers).filter(mm => mm.id === me.mmId || (me.coMms || []).includes(mm.id))
     : [];
 
   // Active offers for this candidate — including self-match offers when it's my turn
