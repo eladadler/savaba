@@ -1227,11 +1227,16 @@ function useFirebaseData(uid) {
   const approveCandidate = useCallback((candidateId) =>
     db.collection('candidates').doc(candidateId).update({ pendingApproval: false }), []);
 
+  const claimCandidate = useCallback((candId) =>
+    db.collection('candidates').doc(candId)
+      .update({ coMms: firebase.firestore.FieldValue.arrayUnion(user?.uid) }),
+    [user]);
+
   return {
     candidates, offers, matchmakers, texts, lists, notifications, loading,
     addCandidate, updateCandidate, deleteCandidate,
     uploadPhoto, addOffer, updateOffer, updateText, setUserAdmin, updateList,
-    markNotificationRead, approveCandidate,
+    markNotificationRead, approveCandidate, claimCandidate,
   };
 }
 
@@ -2569,7 +2574,6 @@ function AdminPanel({ th, go }) {
         {/* ── CANDIDATES ── */}
         {tab === 'candidates' && (
           <>
-            <Btn th={th} full onClick={() => setNewCand(true)} icon={<Icon name="plus" size={18} />} style={{ marginBottom: 10 }}>הוסף מועמד/ת</Btn>
             <Btn th={th} full onClick={() => setInvitesOpen(true)}
               icon={<Icon name="bell" size={18} />} style={{ marginBottom: 10 }}>
               מעקב הזמנות
@@ -3347,15 +3351,16 @@ function InvitationsSheet({ open, onClose, th, mmUid }) {
 // CANDIDATES LIST
 // ════════════════════════════════════════════════════════════
 function Candidates({ th, go, params }) {
-  const { candidates } = useContext(DataCtx);
+  const { candidates, claimCandidate } = useContext(DataCtx);
   const { profile }    = useContext(AuthCtx);
-  const [scope, setScope]       = useSb('mine'); // mine | all
+  const [scope, setScope]       = useSb(params?.linkMode ? 'all' : 'mine'); // mine | all
   const [q, setQ]               = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
   const [addOpen, setAddOpen]   = useSb(false);
   const [invOpen, setInvOpen]   = useSb(false);
   const [pendingCount, setPendingCount] = useSb(0);
   const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
+  const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
 
   // Neglected filter from home banner — set of candidate IDs to show
   const [neglectedIds, setNeglectedIds] = useSb(
@@ -3374,8 +3379,8 @@ function Candidates({ th, go, params }) {
   const list = useMb(() => candidates.filter(c => {
     // Neglected filter overrides everything
     if (neglectedIds !== null) return neglectedIds.has(c.id);
-    if (scope === 'mine' && c.mmId !== myUid) return false;
-    if (scope === 'all'  && c.mmId === myUid) return false;
+    if (scope === 'mine' && c.mmId !== myUid && !c.coMms?.includes(myUid)) return false;
+    if (scope === 'all'  && (c.mmId === myUid || c.coMms?.includes(myUid))) return false;
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
     if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
     if (filters.region && c.region !== filters.region) return false;
@@ -3424,6 +3429,14 @@ function Candidates({ th, go, params }) {
           ))}
         </div>
 
+        {/* linkMode banner */}
+        {linkMode && (
+          <div style={{ background:alpha(th.primary,0.07), border:`1.5px solid ${alpha(th.primary,0.2)}`, borderRadius:th.r, padding:'12px 14px', marginBottom:12 }}>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:4 }}>🤝 הוסף מועמד/ת לייצוג שלך</div>
+            <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6) }}>בחר/י מועמד/ת — לאחר הוספה יופיע/תופיע גם ברשימת ״שלי״ ותוכל/י להציע אותו/ה לשידוכים</div>
+          </div>
+        )}
+
         {/* neglected filter chip */}
         {neglectedIds !== null && (
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12, background:alpha(th.gold,0.12), border:`1.5px solid ${alpha(th.gold,0.3)}`, borderRadius:th.rSm, padding:'8px 12px' }}>
@@ -3437,7 +3450,13 @@ function Candidates({ th, go, params }) {
 
         {/* grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {list.map(c => <CandCard key={c.id} c={c} th={th} myUid={myUid} onClick={() => go('candidate', { id: c.id })} />)}
+          {list.map(c => (
+            <CandCard key={c.id} c={c} th={th} myUid={myUid}
+              onClick={() => linkMode ? null : go('candidate', { id: c.id })}
+              linkMode={linkMode}
+              onLink={async () => { await claimCandidate(c.id); setLinkMode(false); setScope('mine'); }}
+            />
+          ))}
         </div>
         {list.length === 0 && (
           <div style={{ textAlign: 'center', padding: '50px 20px', color: alpha(th.ink, 0.4) }}>
@@ -3459,9 +3478,9 @@ function Candidates({ th, go, params }) {
   );
 }
 
-function CandCard({ c, th, myUid, onClick }) {
+function CandCard({ c, th, myUid, onClick, linkMode, onLink }) {
   return (
-    <button onClick={onClick} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
+    <button onClick={onClick} style={{ all: 'unset', cursor: linkMode ? 'default' : 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
       <div style={{ position: 'relative', height: 116, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {c.photos && c.photos[0]
           ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -3478,7 +3497,7 @@ function CandCard({ c, th, myUid, onClick }) {
           </div>
         )}
       </div>
-      <div style={{ padding: '10px 12px 12px' }}>
+      <div style={{ padding: '10px 12px 12px', flex: 1 }}>
         <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{c.name}, {c.age}</div>
         <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}</div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 9px' }}>
@@ -3486,6 +3505,14 @@ function CandCard({ c, th, myUid, onClick }) {
           <span style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
         </div>
       </div>
+      {linkMode && onLink && (
+        <button onClick={(e) => { e.stopPropagation(); onLink(); }}
+          style={{ width: '100%', padding: '9px 0', border: 'none', background: th.primary, color: '#fff',
+            fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+          <Icon name="plus" size={13} /> הוסף לרשימה שלי
+        </button>
+      )}
     </button>
   );
 }
@@ -3965,7 +3992,7 @@ function AddSheet({ open, onClose, th, go }) {
   const paths = [
     { icon: 'edit',  title: 'אני אמלא/ת עבורו/ה', body: 'שולחים הזמנה, המועמד/ת מאשר/ת, ואת/ה ממלא/ת את הכרטיסייה.', act: () => { onClose(); setInviteOpen(true); } },
     { icon: 'link',  title: 'המועמד/ת ימלא/תמלא',  body: 'שולחים קישור, המועמד/ת ממלא/ת את הפרטים ואת/ה מאשר/ת לפני פרסום.', act: () => { onClose(); setInviteOpen(true); } },
-    { icon: 'users', title: 'כבר במערכת',           body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.', act: onClose },
+    { icon: 'users', title: 'כבר במערכת',           body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.', act: () => { onClose(); go('cands', { linkMode: true }); } },
   ];
 
   return (
