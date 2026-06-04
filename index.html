@@ -2598,7 +2598,7 @@ function AdminPanel({ th, go }) {
               </Btn>
             </div>
 
-            <InvitationsSheet open={invitesOpen} onClose={() => setInvitesOpen(false)} th={th} mmUid={profile?.uid} />
+            <InvitationsSheet open={invitesOpen} onClose={() => setInvitesOpen(false)} th={th} mmUid={profile?.uid} go={go} />
             {candidates.length > 0 && candidates.some(c => !c.photos?.length || !c.sabaBut) && (
               <Btn th={th} full variant="ghost" style={{ marginBottom: 14, color: th.gold, boxShadow: `inset 0 0 0 1.5px ${alpha(th.gold,0.4)}` }}
                 onClick={updateSeedPhotos}>
@@ -3283,7 +3283,7 @@ const { useState: useSb, useMemo: useMb } = React;
 // ════════════════════════════════════════════════════════════
 // INVITATIONS TRACKER — reusable for all matchmakers
 // ════════════════════════════════════════════════════════════
-function InvitationsSheet({ open, onClose, th, mmUid }) {
+function InvitationsSheet({ open, onClose, th, mmUid, go }) {
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -3332,6 +3332,7 @@ function InvitationsSheet({ open, onClose, th, mmUid }) {
       ) : invites.map(inv => {
         const isPending  = inv.status === 'pending';
         const isAccepted = inv.status === 'accepted' || inv.status === 'filled';
+        const canFill    = isAccepted && inv.flow === 'mm_fills' && inv.candidateId && go;
         const statusColor = isPending ? th.gold : isAccepted ? th.success : alpha(th.ink,0.4);
         const statusLabel = { pending:'ממתין/ה', accepted:'נענה/תה', filled:'מילא/ה פרטים' }[inv.status] || inv.status;
         const flowLabel   = inv.flow === 'mm_fills' ? 'אמלא אני' : 'ממלא/ת בעצמו/ה';
@@ -3339,7 +3340,9 @@ function InvitationsSheet({ open, onClose, th, mmUid }) {
           ? new Date(inv.createdAt.seconds * 1000).toLocaleDateString('he-IL', { day:'numeric', month:'short' })
           : '—';
         return (
-          <div key={inv.id} style={{ background:th.card, borderRadius:th.r, padding:'12px 14px', marginBottom:8, boxShadow:`0 3px 10px ${alpha(th.ink,0.05)}` }}>
+          <div key={inv.id}
+            onClick={canFill ? () => { onClose(); go('editCand', { id: inv.candidateId }); } : undefined}
+            style={{ background:th.card, borderRadius:th.r, padding:'12px 14px', marginBottom:8, boxShadow:`0 3px 10px ${alpha(th.ink,0.05)}`, cursor: canFill ? 'pointer' : 'default', border: canFill ? `1.5px solid ${alpha(th.primary,0.15)}` : '1.5px solid transparent' }}>
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
               <Avatar grad={gradForId(inv.id)} name={inv.recipientName || '?'} size={40} />
               <div style={{ flex:1, minWidth:0 }}>
@@ -3348,8 +3351,13 @@ function InvitationsSheet({ open, onClose, th, mmUid }) {
                 </div>
                 <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>{flowLabel} · {dateStr}</div>
               </div>
-              <div style={{ background:alpha(statusColor,0.12), color:statusColor, borderRadius:999, padding:'4px 11px', fontFamily:th.display, fontWeight:700, fontSize:12, flexShrink:0 }}>
-                {statusLabel}
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
+                <div style={{ background:alpha(statusColor,0.12), color:statusColor, borderRadius:999, padding:'4px 11px', fontFamily:th.display, fontWeight:700, fontSize:12 }}>
+                  {statusLabel}
+                </div>
+                {canFill && (
+                  <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.primary }}>מלא/י פרטים ←</div>
+                )}
               </div>
             </div>
             {isAccepted && inv.candidateName && (
@@ -3401,6 +3409,7 @@ function Candidates({ th, go, params }) {
   const list = useMb(() => candidates.filter(c => {
     // Neglected filter overrides everything
     if (neglectedIds !== null) return neglectedIds.has(c.id);
+    if (scope === 'mine' && c.status === 'pending_mm') return false; // hidden until mm fills details
     if (scope === 'mine' && c.mmId !== myUid && !c.coMms?.includes(myUid)) return false;
     if (scope === 'all'  && (c.mmId === myUid || c.coMms?.includes(myUid))) return false;
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
@@ -3508,7 +3517,7 @@ function Candidates({ th, go, params }) {
 
       <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} filters={filters} setFilters={setFilters} />
       <AddSheet open={addOpen} onClose={() => setAddOpen(false)} th={th} go={go} />
-      <InvitationsSheet open={invOpen} onClose={() => { setInvOpen(false); db.collection('invitations').where('mmId','==',myUid).where('status','==','pending').get().then(s=>setPendingCount(s.size)).catch(()=>{}); }} th={th} mmUid={myUid} />
+      <InvitationsSheet open={invOpen} onClose={() => { setInvOpen(false); db.collection('invitations').where('mmId','==',myUid).where('status','==','pending').get().then(s=>setPendingCount(s.size)).catch(()=>{}); }} th={th} mmUid={myUid} go={go} />
     </>
   );
 }
@@ -3961,8 +3970,17 @@ function EditCandidateScreen({ th, go, params }) {
   );
   return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
-      <AppHeader th={th} title={c.name || 'מועמד/ת חדש/ה'} sub={c.pendingApproval ? 'ממתין/ה לאישורך' : 'עריכת פרטים'} onBack={() => go('back')} />
+      <AppHeader th={th} title={c.name || 'מועמד/ת חדש/ה'} sub={c.status === 'pending_mm' ? 'ממתין/ה למילוי פרטים' : c.pendingApproval ? 'ממתין/ה לאישורך' : 'עריכת פרטים'} onBack={() => go('back')} />
       <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
+        {c.status === 'pending_mm' && (
+          <div style={{ background:alpha(th.primary,0.07), border:`1.5px solid ${alpha(th.primary,0.2)}`, borderRadius:th.r, padding:14, marginBottom:16, display:'flex', gap:10 }}>
+            <Icon name="edit" size={18} style={{ color:th.primary, flexShrink:0, marginTop:2 }} />
+            <div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>מלא/י את פרטי המועמד/ת</div>
+              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.4 }}>לאחר שמירה יופיע/תופיע ברשימת המועמדים שלך.</div>
+            </div>
+          </div>
+        )}
         {c.pendingApproval && (
           <div style={{ background:alpha(th.gold,0.12), border:`1.5px solid ${alpha(th.gold,0.3)}`, borderRadius:th.r, padding:14, marginBottom:16, display:'flex', gap:10 }}>
             <Icon name="info" size={18} style={{ color:th.gold, flexShrink:0, marginTop:2 }} />
@@ -3973,7 +3991,12 @@ function EditCandidateScreen({ th, go, params }) {
           </div>
         )}
         <CandidateForm th={th} initial={c}
-          onSave={async (data) => { await updateCandidate(c.id, data); go('back'); }}
+          onSave={async (data) => {
+            const update = { ...data };
+            if (c.status === 'pending_mm') update.status = firebase.firestore.FieldValue.delete();
+            await updateCandidate(c.id, update);
+            go('back');
+          }}
           onCancel={() => go('back')}
           onUpload={(file) => uploadPhoto(c.id, file)} />
         {c.pendingApproval && (
