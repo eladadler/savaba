@@ -2826,7 +2826,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
         }
         {isLast
           ? <Btn th={th} full onClick={() => onSave(f)}>שמור</Btn>
-          : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא →</Btn>
+          : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
         }
       </div>
     </div>
@@ -3654,7 +3654,7 @@ function InviteFlow({ open, onClose, th, mmId, mmName }) {
                 style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: 15, background: th.card, color: th.ink, outline: 'none' }} />
             </div>
           </div>
-          <Btn th={th} full disabled={!recipFirst.trim() || !recipLast.trim()} onClick={() => setStep(2)}>הבא →</Btn>
+          <Btn th={th} full disabled={!recipFirst.trim() || !recipLast.trim()} onClick={() => setStep(2)}>הבא ←</Btn>
         </>
       )}
 
@@ -4021,7 +4021,7 @@ function CandidateSelfFill({ th, go, params }) {
                 )}
                 <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.age || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
               </>
-            : <Btn th={th} full onClick={() => { if (step===0 && (!f.name||!f.age)) { alert('נא למלא שם וגיל'); return; } setStep(s => s+1); }}>הבא →</Btn>
+            : <Btn th={th} full onClick={() => { if (step===0 && (!f.name||!f.age)) { alert('נא למלא שם וגיל'); return; } setStep(s => s+1); }}>הבא ←</Btn>
           }
         </div>
       </div>
