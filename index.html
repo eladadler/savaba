@@ -4135,79 +4135,102 @@ function EditCandidateScreen({ th, go, params }) {
 // NOTIFICATION DRAWER
 // ════════════════════════════════════════════════════════════
 function NotificationDrawer({ th, go, notifications, markNotificationRead, deleteNotification }) {
+  const { offers, candidates, matchmakers } = useContext(DataCtx);
+  const { user } = useContext(AuthCtx);
+  const myUid = user?.uid;
   const [open, setOpen] = useState(false);
-  const unread = notifications.filter(n => !n.read).length;
 
-  const navigate = (n) => {
-    if (!n.read) markNotificationRead(n.id);
+  // Candidate-related notifications — aggregated into one item
+  const candNotifs = notifications.filter(n => ['invite_accepted','cand_filled','corep_approved'].includes(n.type));
+  const unreadCand = candNotifs.filter(n => !n.read).length;
+
+  // Offers where I'm the receiver and haven't responded yet
+  const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id||'x'), photos:[] };
+  const findM = id => { const mm = matchmakers?.[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName||mm.name||'—' }; };
+  const offersNeedingMe = React.useMemo(() =>
+    (offers||[]).filter(o => o.bMm === myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה'),
+    [offers, myUid]);
+
+  const totalUnread = unreadCand + offersNeedingMe.length;
+
+  const goToCands = () => {
+    candNotifs.filter(n => !n.read).forEach(n => markNotificationRead(n.id));
     setOpen(false);
-    if (n.type === 'corep_approved') {
-      go('cands');
-    } else {
-      go('editCand', { id: n.candidateId || n.candId });
-    }
+    go('cands');
   };
-
-  const deleteAll = () => notifications.forEach(n => deleteNotification(n.id));
-
-  // per-type config
-  const cfg = (n) => {
-    if (n.type === 'corep_approved')   return { icon:'🤝', title:`${n.candName} אישר/ה ייצוג שלך`,    body:'המועמד/ת מופיע/ה כעת ברשימת ״שלי״',     cta:'עבור/י לרשימה' };
-    if (n.type === 'invite_accepted')  return { icon:'✅', title:`${n.candidateName} אישר/ה הזמנה`,   body:'ממתין/ה שתמלא/י את הפרטים שלו/ה',       cta:'מלא/י פרטים עכשיו' };
-    if (n.type === 'cand_filled')      return { icon:'📋', title:`${n.candidateName} מילא/ה פרטים`,   body:'ממתין/ה לאישורך לפני פרסום',             cta:'עבור/י לאישור' };
-    return { icon:'🔔', title: n.candidateName || 'התראה', body:'', cta: null };
-  };
+  const deleteAll = () => candNotifs.forEach(n => deleteNotification(n.id));
 
   return (
     <>
       <button onClick={() => setOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
         <Icon name="bell" size={21} />
-        {unread > 0 && (
-          <span style={{ position:'absolute', top:6, insetInlineEnd:6, minWidth:16, height:16, borderRadius:99, background:th.error, color:'#fff', fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px', border:`2px solid ${th.card}` }}>{unread}</span>
+        {totalUnread > 0 && (
+          <span style={{ position:'absolute', top:6, insetInlineEnd:6, minWidth:16, height:16, borderRadius:99, background:th.error, color:'#fff', fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px', border:`2px solid ${th.card}` }}>{totalUnread}</span>
         )}
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} th={th} title={
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%' }}>
           <span>התראות</span>
-          {notifications.length > 0 && (
+          {candNotifs.length > 0 && (
             <button onClick={deleteAll} style={{ border:'none', background:alpha(th.error,0.08), color:th.error, borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontSize:12, fontWeight:600, cursor:'pointer' }}>
               נקה הכל
             </button>
           )}
         </div>
       }>
-        {notifications.length === 0
-          ? <div style={{ textAlign:'center', fontFamily:th.body, color:alpha(th.ink,0.4), padding:'24px 0' }}>אין התראות</div>
-          : notifications.map(n => {
-            const { icon, title, body, cta } = cfg(n);
-            return (
-              <div key={n.id} style={{ borderRadius:th.r, marginBottom:8, overflow:'hidden', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}`, position:'relative' }}>
-                {/* delete X button */}
-                <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} style={{ position:'absolute', top:8, left:10, border:'none', background:'transparent', color:alpha(th.ink,0.3), cursor:'pointer', padding:4, lineHeight:1, fontSize:16, fontWeight:400 }}>×</button>
-                {/* main row — tappable */}
-                <button onClick={() => navigate(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', paddingLeft:32, display:'block', textAlign:'right' }}>
+        {offersNeedingMe.length === 0 && candNotifs.length === 0 && (
+          <div style={{ textAlign:'center', fontFamily:th.body, color:alpha(th.ink,0.4), padding:'24px 0' }}>אין התראות</div>
+        )}
+
+        {/* ── Per-offer approval items ── */}
+        {offersNeedingMe.map(o => {
+          const myCand   = findC(o.bId);
+          const theirC   = findC(o.aId);
+          const initMm   = findM(o.aMm);
+          return (
+            <div key={o.id} style={{ borderRadius:th.r, marginBottom:8, overflow:'hidden', background:alpha(th.primary,0.07), border:`1.5px solid ${alpha(th.primary,0.18)}` }}>
+              <button onClick={() => { setOpen(false); go('offerDetail', { id: o.id }); }}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', display:'block', textAlign:'right' }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
+                  💍 {myCand.name} · {theirC.name}
+                </div>
+                <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6) }}>
+                  {initMm.name} שלח/ה הצעת שידוך — ממתינה לאישורך
+                </div>
+              </button>
+              <button onClick={() => { setOpen(false); go('offerDetail', { id: o.id }); }}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'block', width:'100%', padding:'9px 14px', background:alpha(th.primary,0.09), borderTop:`1px solid ${alpha(th.primary,0.12)}`, fontFamily:th.display, fontWeight:800, fontSize:12.5, color:th.primary, textAlign:'right' }}>
+                צפה בהצעה ←
+              </button>
+            </div>
+          );
+        })}
+
+        {/* ── Aggregated candidate notifications ── */}
+        {candNotifs.length > 0 && (
+          <div style={{ borderRadius:th.r, marginBottom:8, overflow:'hidden', background: unreadCand > 0 ? alpha(th.primary,0.07) : th.card, border:`1.5px solid ${unreadCand > 0 ? alpha(th.primary,0.18) : 'transparent'}` }}>
+            <button onClick={goToCands}
+              style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', display:'block', textAlign:'right' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ flex:1 }}>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
-                    {icon} {title}
+                    👥 מועמדים מחכים להתייחסותך
                   </div>
-                  {body && (
-                    <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55) }}>{body}</div>
-                  )}
-                  {n.type === 'cand_filled' && (n.candidateAge || n.candidateRegion) && (
-                    <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.4), marginTop:2 }}>
-                      {[n.candidateAge && `גיל ${n.candidateAge}`, n.candidateRegion, n.candidateReligiosity].filter(Boolean).join(' · ')}
-                    </div>
-                  )}
-                </button>
-                {/* CTA button — only for actionable types */}
-                {cta && (
-                  <button onClick={() => navigate(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'block', width:'100%', padding:'9px 14px', background:alpha(th.primary,0.09), borderTop:`1px solid ${alpha(th.primary,0.12)}`, fontFamily:th.display, fontWeight:800, fontSize:12.5, color:th.primary, textAlign:'right' }}>
-                    {cta} ←
-                  </button>
+                  <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6) }}>
+                    {candNotifs.length === 1 ? 'מועמד/ת אחד/ת' : `${candNotifs.length} מועמדים`} מחייבים פעולה
+                  </div>
+                </div>
+                {unreadCand > 0 && (
+                  <span style={{ background:th.primary, color:'#fff', borderRadius:99, minWidth:22, height:22, fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 5px', flexShrink:0 }}>{unreadCand}</span>
                 )}
               </div>
-            );
-          })
-        }
+            </button>
+            <button onClick={goToCands}
+              style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'block', width:'100%', padding:'9px 14px', background:alpha(th.primary,0.09), borderTop:`1px solid ${alpha(th.primary,0.12)}`, fontFamily:th.display, fontWeight:800, fontSize:12.5, color:th.primary, textAlign:'right' }}>
+              עבור/י למועמדים ←
+            </button>
+          </div>
+        )}
       </Sheet>
     </>
   );
@@ -4548,7 +4571,18 @@ function MatchFlow({ th, go, params }) {
   const notifyFirst  = isSelfMatch ? (firstCandId || first?.id) : null;
   const notifySecond = isSelfMatch ? (notifyFirst === first?.id ? second : first) : null;
 
-  const candidates2 = useMc(() => candidates.filter(c => c.gender !== first?.gender && c.id !== first?.id && c.available && (!relFilter || c.religiosity === relFilter)), [candidates, first, relFilter]);
+  const isFemale2 = g => g === 'f' || g === 'אשה' || g === 'אישה';
+  const isMale2   = g => g === 'm' || g === 'גבר';
+  const firstIsFemale = isFemale2(first?.gender);
+  // No useMemo — always recompute so gender filter is never stale
+  const candidates2 = candidates.filter(c => {
+    if (firstIsFemale ? !isMale2(c.gender) : !isFemale2(c.gender)) return false;
+    if (c.id === first?.id) return false;
+    if (c.available === false) return false;
+    if (c.status === 'pending_mm') return false;
+    if (relFilter && c.religiosity !== relFilter) return false;
+    return true;
+  });
 
   const sendOffer = async () => {
     if (!first || !second || sending) return;
@@ -5818,7 +5852,196 @@ const TWEAK_DEFAULTS = {
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
 const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
-const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', candInquiry:'cands', offers:'match', chat:'match', matchFlow:'match', ai:'ai', set:'set' };
+const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', candInquiry:'cands', offers:'match', chat:'match', matchFlow:'match', offerDetail:'match', ai:'ai', set:'set' };
+
+// ════════════════════════════════════════════════════════════
+// OFFER DETAIL (full-screen offer card, used from bell notification)
+// ════════════════════════════════════════════════════════════
+function OfferDetail({ th, go, params }) {
+  const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
+  const { user } = useContext(AuthCtx);
+  const myUid = user?.uid;
+  const [confirmReject, setConfirmReject] = useState(false);
+
+  const o = offers.find(x => x.id === params?.id);
+
+  if (!o) return (
+    <>
+      <AppHeader th={th} title="הצעת שידוך" onBack={() => go('back')} />
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:th.body, color:alpha(th.ink,0.4) }}>הצעה לא נמצאה</div>
+    </>
+  );
+
+  const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id||'x'), photos:[] };
+  const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName||mm.name||'—', grad: mm.grad||gradForId(id) }; };
+
+  const iAmA      = o.aMm === myUid;
+  const myCand    = findC(iAmA ? o.aId : o.bId);
+  const theirC    = findC(iAmA ? o.bId : o.aId);
+  const theirMm   = findM(iAmA ? o.bMm : o.aMm);
+  const initMm    = findM(o.aMm);
+  const finalDone = o.status === 'אושרה';
+  const finalFail = o.status === 'נדחתה';
+
+  const aCandSt   = o.aCandStatus || (finalDone ? 'אישר' : null);
+  const bCandSt   = o.bCandStatus || (finalDone ? 'אישר' : null);
+  const s2        = o.bStatus || null;
+  const allApproved = s2==='אישר' && aCandSt==='אישר' && bCandSt==='אישר';
+
+  const pipeSteps = [
+    { st: 'אישר',  label: iAmA ? 'אני' : initMm.name.split(' ')[0] },
+    { st: s2,      label: iAmA ? theirMm.name.split(' ')[0] : 'אני' },
+    { st: aCandSt, label: findC(o.aId).name.split(' ')[0] },
+    { st: bCandSt, label: findC(o.bId).name.split(' ')[0] },
+  ];
+  const activeIdx    = pipeSteps.findIndex(p => p.st !== 'אישר');
+  const needsMyAction = !iAmA && activeIdx === 1;
+
+  const waPhone = theirMm.phone ? String(theirMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
+  const waUrl   = waPhone ? `https://wa.me/${waPhone}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה: ${myCand.name} ו${theirC.name}`)}` : 'https://wa.me/';
+
+  return (
+    <>
+      <AppHeader th={th} title="הצעת שידוך" sub={`${myCand.name} · ${theirC.name}`} onBack={() => go('back')} />
+      <div style={{ flex:1, overflowY:'auto', padding:'14px 18px 90px' }}>
+        <div style={{
+          background: allApproved
+            ? `linear-gradient(150deg, ${alpha(th.success,0.09)}, ${alpha(th.success,0.03)})`
+            : th.card,
+          borderRadius: th.r, padding: 14,
+          boxShadow: allApproved
+            ? `0 6px 26px ${alpha(th.success,0.2)}, 0 0 0 1.5px ${alpha(th.success,0.32)}`
+            : `0 6px 18px ${alpha(th.ink,0.06)}`,
+        }}>
+          {/* Header */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink }}>{myCand.name} · {theirC.name}</div>
+            {allApproved
+              ? <div style={{ display:'flex', alignItems:'center', gap:5 }}><span style={{ fontSize:18 }}>🎉</span><Tag th={th} tone={th.success} soft={false}>אושרה!</Tag></div>
+              : <Tag th={th} tone={statusTone(o.status, th)} soft={false}>{o.status}</Tag>
+            }
+          </div>
+
+          {/* Candidate boxes */}
+          <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+            {[
+              { cand:myCand, label:'המועמד/ת שלי', id: iAmA ? o.aId : o.bId, primary:true },
+              { cand:theirC, label:'הצד השני',       id: iAmA ? o.bId : o.aId, primary:false },
+            ].map(({ cand, label, id, primary }) => (
+              <button key={id} onClick={() => go('candidate', { id })}
+                style={{ all:'unset', cursor:'pointer', flex:1, background: primary ? alpha(th.primary,0.07) : alpha(th.ink,0.04), border:`1.5px solid ${primary ? alpha(th.primary,0.2) : alpha(th.ink,0.08)}`, borderRadius:th.rSm, padding:'9px 12px', display:'flex', alignItems:'center', gap:8, boxSizing:'border-box' }}>
+                <Avatar grad={cand.grad} name={cand.name} size={34} photo={cand.photos?.[0]} />
+                <div style={{ minWidth:0, flex:1 }}>
+                  <div style={{ fontFamily:th.body, fontSize:10, fontWeight:700, color: primary ? th.primary : alpha(th.ink,0.45) }}>{label}</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{cand.name}</div>
+                </div>
+                <Icon name="chevL" size={13} style={{ color: primary ? alpha(th.primary,0.4) : alpha(th.ink,0.25), flexShrink:0 }} />
+              </button>
+            ))}
+          </div>
+
+          {/* 4-step pipeline */}
+          <div style={{ background: allApproved ? alpha(th.success,0.07) : alpha(th.ink,0.025), borderRadius:th.rSm, padding:'10px 12px', marginBottom:10 }}>
+            {allApproved && (
+              <div style={{ textAlign:'center', marginBottom:9 }}>
+                <div style={{ fontSize:24, lineHeight:1 }}>🎉</div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.success, marginTop:3 }}>כולם אישרו — יהי מזל טוב! 💍</div>
+              </div>
+            )}
+            <div style={{ display:'flex', alignItems:'center' }}>
+              {pipeSteps.map((step, idx) => {
+                const done   = step.st === 'אישר';
+                const fail   = step.st === 'דחה';
+                const active = !done && !fail && idx === activeIdx;
+                const bg     = done ? th.success : fail ? th.error : active ? th.primary : alpha(th.ink,0.13);
+                return (
+                  <React.Fragment key={idx}>
+                    <div style={{ width:22, height:22, borderRadius:'50%', flexShrink:0, background:bg, boxShadow: active ? `0 0 0 3px ${alpha(th.primary,0.22)}` : done&&allApproved ? `0 0 0 2px ${alpha(th.success,0.3)}` : 'none', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      {done ? <Icon name="check" size={11} style={{ color:'#fff' }} /> : fail ? <Icon name="x" size={11} style={{ color:'#fff' }} /> : <span style={{ fontFamily:th.display, fontWeight:800, fontSize:9, color:active?'#fff':alpha(th.ink,0.35) }}>{idx+1}</span>}
+                    </div>
+                    {idx < 3 && <div style={{ flex:1, height:2, margin:'0 2px', background:done?th.success:alpha(th.ink,0.1) }} />}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            <div style={{ display:'flex', marginTop:5 }}>
+              {pipeSteps.map((step, idx) => {
+                const done   = step.st === 'אישר';
+                const fail   = step.st === 'דחה';
+                const active = !done && !fail && idx === activeIdx;
+                return (
+                  <div key={idx} style={{ flex:1, textAlign:'center', minWidth:0, paddingInline:1 }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:9.5, color:done?th.success:fail?th.error:active?th.primary:alpha(th.ink,0.38), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{step.label}</div>
+                    <div style={{ fontFamily:th.body, fontSize:8.5, color:alpha(th.ink,0.4), marginTop:1 }}>
+                      {done ? '✓' : fail ? '✗' : active && needsMyAction && idx===1 ? '← נדרש' : active ? '…' : ''}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {!allApproved && !finalFail && activeIdx >= 0 && (
+              needsMyAction ? (
+                <div style={{ marginTop:9, display:'flex', gap:8 }}>
+                  <button onClick={async () => { await updateOffer(o.id, { bStatus:'אישר' }); go('back'); }}
+                    style={{ flex:1, padding:'8px 0', borderRadius:th.rSm, border:'none', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:13, background:alpha(th.success,0.13), color:th.success, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+                    <Icon name="check" size={14} /> אשר
+                  </button>
+                  <button onClick={() => setConfirmReject(true)}
+                    style={{ flex:1, padding:'8px 0', borderRadius:th.rSm, border:`1px solid ${alpha(th.error,0.25)}`, cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:13, background:alpha(th.error,0.08), color:th.error, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+                    <Icon name="x" size={14} /> דחה
+                  </button>
+                </div>
+              ) : (
+                <div style={{ marginTop:7, background:alpha(th.gold,0.1), borderRadius:th.rSm, padding:'5px 9px', display:'flex', alignItems:'center', gap:5 }}>
+                  <Icon name="bell" size={12} style={{ color:th.gold, flexShrink:0 }} />
+                  <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.72) }}>ממתין ל<b>{pipeSteps[activeIdx].label}</b></span>
+                </div>
+              )
+            )}
+            {finalFail && (
+              <div style={{ marginTop:7, background:alpha(th.error,0.08), borderRadius:th.rSm, padding:'5px 9px', display:'flex', alignItems:'center', gap:5 }}>
+                <Icon name="x" size={12} style={{ color:th.error, flexShrink:0 }} />
+                <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.7) }}>ההצעה לא התקדמה</span>
+              </div>
+            )}
+          </div>
+
+          {/* Footer: other MM + WhatsApp + Chat */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, background:alpha(th.ink,0.03), borderRadius:th.rSm, padding:'8px 10px' }}>
+            <Avatar grad={theirMm.grad} name={theirMm.name} size={28} photo={theirMm.photoURL} />
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>שדכן/ית הצד השני</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{theirMm.name}</div>
+            </div>
+            <a href={waUrl} target="_blank" rel="noreferrer"
+              style={{ display:'flex', alignItems:'center', justifyContent:'center', width:34, height:34, borderRadius:'50%', background:'#25D36612', border:'1px solid #25D36628', color:'#25D366', textDecoration:'none', flexShrink:0 }}>
+              <Icon name="whatsapp" size={17} style={{ color:'#25D366' }} />
+            </a>
+            <button onClick={() => go('chat', { id: o.id })}
+              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5, color:th.primary, flexShrink:0, padding:'6px 10px', borderRadius:999, background:alpha(th.primary,0.08) }}>
+              <Icon name="chat" size={17} />
+              <span style={{ fontFamily:th.body, fontWeight:700, fontSize:12.5 }}>צ'אט</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirm reject Sheet */}
+      <Sheet open={confirmReject} onClose={() => setConfirmReject(false)} th={th} title="דחיית הצעת שידוך">
+        <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), marginBottom:18, lineHeight:1.5 }}>
+          לדחות את הצעת השידוך בין <b>{myCand.name}</b> ל-<b>{theirC.name}</b>? פעולה זו בלתי הפיכה.
+        </div>
+        <div style={{ display:'flex', gap:10 }}>
+          <Btn th={th} full variant="ghost" onClick={() => setConfirmReject(false)}>ביטול</Btn>
+          <Btn th={th} full style={{ background:th.error, color:'#fff' }}
+            onClick={async () => { await updateOffer(o.id, { bStatus:'דחה', status:'נדחתה' }); setConfirmReject(false); go('back'); }}>
+            דחה לצמיתות
+          </Btn>
+        </div>
+      </Sheet>
+    </>
+  );
+}
 
 function renderScreen(cur, th, go, profile) {
   const p = cur.params;
@@ -5839,6 +6062,7 @@ function renderScreen(cur, th, go, profile) {
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
     case 'candSelfFill':  return <CandidateSelfFill th={th} go={go} params={p} />;
     case 'editCand':      return <EditCandidateScreen th={th} go={go} params={p} />;
+    case 'offerDetail':   return <OfferDetail th={th} go={go} params={p} />;
     default:              return <Home th={th} go={go} />;
   }
 }
