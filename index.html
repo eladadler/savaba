@@ -3734,7 +3734,7 @@ function InvitationLanding({ th, go, token }) {
     setBusy(true);
     try {
       const ref = await db.collection('candidates').add({
-        name: profile?.displayName || '', age: 0, gender: '', region: '', religiosity: '',
+        name: '', age: 0, gender: '', region: '', religiosity: '',
         family: '', kids: 0, oneLine: '', seesWith: '', sabaBut: '',
         interests: [], partner: [], discrete: '', available: true, photos: [],
         mmId: invite.mmId, candidateUid: user.uid,
