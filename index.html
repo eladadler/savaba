@@ -2502,8 +2502,10 @@ function AdminPanel({ th, go }) {
     const cand = candidates.find(c => c.id === id);
     return cand ? !cand.candidateUid : false;
   };
-  const visibleCands = hideSeed ? candidates.filter(c => !c.candidateUid) : candidates;
+  const visibleCands = hideSeed ? candidates.filter(c => !!c.candidateUid) : candidates;
   const visibleMms   = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeedMm(id))) : matchmakers;
+  const myCands      = visibleCands.filter(c => c.mmId === profile?.uid);
+  const otherCands   = visibleCands.filter(c => c.mmId !== profile?.uid);
 
   const db_avatar = (seed, gender) =>
     `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -2610,35 +2612,70 @@ function AdminPanel({ th, go }) {
               </Btn>
             )}
             {newCand && <CandidateForm th={th} onSave={async (data) => { const id = await addCandidate(data); setNewCand(false); go('candidate', { id }); }} onCancel={() => setNewCand(false)} />}
-            {visibleCands.map(c => {
-              return (
-              <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
-                {editCand === c.id
-                  ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); go('candidate', { id: c.id }); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
-                  : (
-                    <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                        <Avatar grad={gradForId(c.id)} name={c.name} size={44} photo={c.photos?.[0]} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
-                          <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
+
+            {/* ── helper to render a candidate row ── */}
+            {(() => {
+              const CandRow = ({ c }) => (
+                <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+                  {editCand === c.id
+                    ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); go('candidate', { id: c.id }); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
+                    : (
+                      <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                          <Avatar grad={gradForId(c.id)} name={c.name} size={44} photo={c.photos?.[0]} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
+                            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
+                          </div>
+                          {c.candidateUid && (
+                            <button onClick={() => { startImpersonate(c.candidateUid, { uid: c.candidateUid, displayName: c.name, name: c.name }, 'candidate'); go('candidateMode'); }}
+                              title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
+                          )}
+                          <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
+                          <button onClick={() => setConfirmDelete(c.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
                         </div>
-                        {c.candidateUid && (
-                          <button onClick={() => { startImpersonate(c.candidateUid, { uid: c.candidateUid, displayName: c.name, name: c.name }, 'candidate'); go('candidateMode'); }}
-                            title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
+                        {c.photos?.length > 0 && (
+                          <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
+                            {c.photos.map((url, i) => <img key={i} src={url} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />)}
+                          </div>
                         )}
-                        <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
-                        <button onClick={() => setConfirmDelete(c.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
+                      </>
+                    )}
+                </div>
+              );
+
+              const SectionHeader = ({ label, count }) => (
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, marginTop:4 }}>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{label}</div>
+                  <div style={{ background:alpha(th.ink,0.08), borderRadius:999, padding:'2px 10px', fontFamily:th.body, fontSize:12, fontWeight:700, color:alpha(th.ink,0.5) }}>{count}</div>
+                </div>
+              );
+
+              return (
+                <>
+                  <SectionHeader label="המועמדים שלי" count={myCands.length} />
+                  {myCands.length === 0 && <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.4), textAlign:'center', padding:'12px 0 18px' }}>אין מועמדים</div>}
+                  {myCands.map(c => <CandRow key={c.id} c={c} />)}
+
+                  <div style={{ height:1, background:alpha(th.ink,0.1), margin:'14px 0' }} />
+                  <SectionHeader label="מועמדים של שדכנים אחרים" count={otherCands.length} />
+                  {otherCands.length === 0 && <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.4), textAlign:'center', padding:'12px 0 18px' }}>אין מועמדים</div>}
+                  {otherCands.map(c => {
+                    const mm = matchmakers[c.mmId];
+                    return (
+                      <div key={c.id}>
+                        {c.mmId !== otherCands[otherCands.indexOf(c)-1]?.mmId && (
+                          <div style={{ fontFamily:th.body, fontSize:11.5, fontWeight:700, color:alpha(th.ink,0.4), padding:'4px 2px 6px' }}>
+                            {mm?.displayName || mm?.name || c.mmId}
+                          </div>
+                        )}
+                        <CandRow c={c} />
                       </div>
-                      {c.photos?.length > 0 && (
-                        <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
-                          {c.photos.map((url, i) => <img key={i} src={url} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />)}
-                        </div>
-                      )}
-                    </>
-                  )}
-              </div>
-            );})}
+                    );
+                  })}
+                </>
+              );
+            })()}
           </>
         )}
 
