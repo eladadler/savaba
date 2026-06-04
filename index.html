@@ -3603,13 +3603,13 @@ function InviteFlow({ open, onClose, th, mmId, mmName }) {
   const [step, setStep]         = useState(1); // 1=name, 2=flow-type, 3=link
   const [recipFirst, setFirst]  = useState('');
   const [recipLast,  setLast]   = useState('');
-  const [flow, setFlow]         = useState('mm_fills');
+  const [flow, setFlow]         = useState('cand_fills');
   const [token, setToken]       = useState('');
   const [creating, setCreating] = useState(false);
   const [copied,   setCopied]   = useState(false);
 
   const recipientName = `${recipFirst.trim()} ${recipLast.trim()}`.trim();
-  const reset = () => { setStep(1); setFirst(''); setLast(''); setFlow('mm_fills'); setToken(''); setCopied(false); };
+  const reset = () => { setStep(1); setFirst(''); setLast(''); setFlow('cand_fills'); setToken(''); setCopied(false); };
 
   const generate = async () => {
     setCreating(true);
@@ -3667,8 +3667,8 @@ function InviteFlow({ open, onClose, th, mmId, mmName }) {
           </div>
           <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginBottom: 14 }}>מי ימלא את הפרטים?</div>
           {[
-            { val: 'mm_fills', label: 'אני אמלא', desc: 'המועמד/ת פותח/ת את הקישור ומאשר/ת בלבד.' },
             { val: 'cand_fills', label: 'המועמד/ת ימלא/תמלא', desc: 'המועמד/ת ממלא/ת את כל הפרטים ותמונות בעצמו/ה.' },
+            { val: 'mm_fills',   label: 'אני אמלא',             desc: 'המועמד/ת פותח/ת את הקישור ומאשר/ת בלבד.' },
           ].map(opt => (
             <button key={opt.val} onClick={() => setFlow(opt.val)} style={{
               all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%',
@@ -4100,9 +4100,8 @@ function AddSheet({ open, onClose, th, go }) {
   const [inviteOpen, setInviteOpen] = useState(false);
 
   const paths = [
-    { icon: 'edit',  title: 'אני אמלא/ת עבורו/ה', body: 'שולחים הזמנה, המועמד/ת מאשר/ת, ואת/ה ממלא/ת את הכרטיסייה.', act: () => { onClose(); setInviteOpen(true); } },
-    { icon: 'link',  title: 'המועמד/ת ימלא/תמלא',  body: 'שולחים קישור, המועמד/ת ממלא/ת את הפרטים ואת/ה מאשר/ת לפני פרסום.', act: () => { onClose(); setInviteOpen(true); } },
-    { icon: 'users', title: 'כבר במערכת',           body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.', act: () => { onClose(); go('cands', { linkMode: true }); } },
+    { icon: 'person', title: 'מועמד/ת חדש/ה',  body: 'שולחים הזמנה — המועמד/ת או השדכן ימלאו את הפרטים.', act: () => { onClose(); setInviteOpen(true); } },
+    { icon: 'users',  title: 'כבר במערכת',      body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.',  act: () => { onClose(); go('cands', { linkMode: true }); } },
   ];
 
   return (
