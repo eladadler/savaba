@@ -4017,7 +4017,7 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
   const [open, setOpen] = useState(false);
   const unread = notifications.filter(n => !n.read).length;
 
-  const handleTap = (n) => {
+  const navigate = (n) => {
     if (!n.read) markNotificationRead(n.id);
     setOpen(false);
     if (n.type === 'corep_approved') {
@@ -4025,6 +4025,16 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
     } else {
       go('editCand', { id: n.candidateId || n.candId });
     }
+  };
+
+  const clearAll = () => notifications.filter(n => !n.read).forEach(n => markNotificationRead(n.id));
+
+  // per-type config
+  const cfg = (n) => {
+    if (n.type === 'corep_approved')   return { icon:'🤝', title:`${n.candName} אישר/ה ייצוג שלך`,    body:'המועמד/ת מופיע/ה כעת ברשימת ״שלי״',     cta:'עבור/י לרשימה' };
+    if (n.type === 'invite_accepted')  return { icon:'✅', title:`${n.candidateName} אישר/ה הזמנה`,   body:'ממתין/ה שתמלא/י את הפרטים שלו/ה',       cta:'מלא/י פרטים עכשיו' };
+    if (n.type === 'cand_filled')      return { icon:'📋', title:`${n.candidateName} מילא/ה פרטים`,   body:'ממתין/ה לאישורך לפני פרסום',             cta:'עבור/י לאישור' };
+    return { icon:'🔔', title: n.candidateName || 'התראה', body:'', cta: null };
   };
 
   return (
@@ -4035,32 +4045,45 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead }) {
           <span style={{ position:'absolute', top:6, insetInlineEnd:6, minWidth:16, height:16, borderRadius:99, background:th.error, color:'#fff', fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px', border:`2px solid ${th.card}` }}>{unread}</span>
         )}
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} th={th} title="התראות">
+      <Sheet open={open} onClose={() => setOpen(false)} th={th} title={
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%' }}>
+          <span>התראות</span>
+          {unread > 0 && (
+            <button onClick={clearAll} style={{ border:'none', background:alpha(th.ink,0.07), color:alpha(th.ink,0.5), borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontSize:12, fontWeight:600, cursor:'pointer' }}>
+              סמן הכל כנקרא
+            </button>
+          )}
+        </div>
+      }>
         {notifications.length === 0
           ? <div style={{ textAlign:'center', fontFamily:th.body, color:alpha(th.ink,0.4), padding:'24px 0' }}>אין התראות</div>
-          : notifications.map(n => (
-            <button key={n.id} onClick={() => handleTap(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', borderRadius:th.r, marginBottom:8, display:'block', textAlign:'right', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}` }}>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
-                {n.type === 'corep_approved'
-                  ? `🤝 ${n.candName} אישר/ה ייצוג שלך`
-                  : n.type === 'invite_accepted'
-                    ? `✓ ${n.candidateName} אישר/ה הזמנה`
-                    : `📋 ${n.candidateName} הצטרף/ה`}
+          : notifications.map(n => {
+            const { icon, title, body, cta } = cfg(n);
+            return (
+              <div key={n.id} style={{ borderRadius:th.r, marginBottom:8, overflow:'hidden', background: n.read ? th.card : alpha(th.primary,0.07), border:`1.5px solid ${n.read ? 'transparent' : alpha(th.primary,0.18)}` }}>
+                {/* main row — tappable */}
+                <button onClick={() => navigate(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', display:'block', textAlign:'right' }}>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
+                    {icon} {title}
+                  </div>
+                  {body && (
+                    <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55) }}>{body}</div>
+                  )}
+                  {n.type === 'cand_filled' && (n.candidateAge || n.candidateRegion) && (
+                    <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.4), marginTop:2 }}>
+                      {[n.candidateAge && `גיל ${n.candidateAge}`, n.candidateRegion, n.candidateReligiosity].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
+                </button>
+                {/* CTA button — only for actionable types */}
+                {cta && (
+                  <button onClick={() => navigate(n)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'block', width:'100%', padding:'9px 14px', background:alpha(th.primary,0.09), borderTop:`1px solid ${alpha(th.primary,0.12)}`, fontFamily:th.display, fontWeight:800, fontSize:12.5, color:th.primary, textAlign:'right' }}>
+                    {cta} ←
+                  </button>
+                )}
               </div>
-              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55), marginBottom:n.type === 'cand_filled' && n.candidateAge ? 3 : 0 }}>
-                {n.type === 'corep_approved'
-                  ? 'המועמד/ת מופיע/ה כעת ברשימת ״שלי״'
-                  : n.type === 'invite_accepted'
-                    ? 'ממתין/ה שתמלא/י את הפרטים'
-                    : 'ממתין/ה לאישור ופרסום'}
-              </div>
-              {n.type === 'cand_filled' && (n.candidateAge || n.candidateRegion) && (
-                <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.4) }}>
-                  {[n.candidateAge && `גיל ${n.candidateAge}`, n.candidateRegion, n.candidateReligiosity].filter(Boolean).join(' · ')}
-                </div>
-              )}
-            </button>
-          ))
+            );
+          })
         }
       </Sheet>
     </>
