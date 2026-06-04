@@ -3558,16 +3558,23 @@ function Candidates({ th, go, params }) {
               linkMode={linkMode}
               requestSent={sentRequests.has(c.id)}
               onLink={async () => {
-                if (!c.candidateUid) return;
-                await db.collection('coRepRequests').add({
-                  mmId: myUid,
-                  mmName: profile?.displayName || 'שדכן/ית',
-                  candId: c.id,
-                  candName: c.name,
-                  candidateUid: c.candidateUid,
-                  status: 'pending',
-                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                });
+                if (c.candidateUid) {
+                  // candidate has an account → send approval request
+                  await db.collection('coRepRequests').add({
+                    mmId: myUid,
+                    mmName: profile?.displayName || 'שדכן/ית',
+                    candId: c.id,
+                    candName: c.name,
+                    candidateUid: c.candidateUid,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  });
+                } else {
+                  // matchmaker-managed candidate → claim directly (no one to approve)
+                  await claimCandidate(c.id);
+                  setScope('mine');
+                  setLinkMode(false);
+                }
                 setSentRequests(prev => new Set([...prev, c.id]));
               }}
             />
@@ -3622,17 +3629,17 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent }) {
       </div>
       {linkMode && (
         <button
-          onClick={(e) => { e.stopPropagation(); if (!requestSent && c.candidateUid && onLink) onLink(); }}
-          style={{ width: '100%', padding: '9px 0', border: 'none', cursor: requestSent || !c.candidateUid ? 'default' : 'pointer',
-            background: requestSent ? alpha(th.success, 0.13) : c.candidateUid ? th.primary : alpha(th.ink, 0.07),
-            color: requestSent ? th.success : c.candidateUid ? '#fff' : alpha(th.ink, 0.35),
+          onClick={(e) => { e.stopPropagation(); if (!requestSent && onLink) onLink(); }}
+          style={{ width: '100%', padding: '9px 0', border: 'none', cursor: requestSent ? 'default' : 'pointer',
+            background: requestSent ? alpha(th.success, 0.13) : th.primary,
+            color: requestSent ? th.success : '#fff',
             fontFamily: th.display, fontWeight: 800, fontSize: 12,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
           {requestSent
-            ? <><Icon name="check" size={12} /> נשלחה בקשה</>
+            ? <><Icon name="check" size={12} /> {c.candidateUid ? 'נשלחה בקשה' : 'נוסף!'}</>
             : c.candidateUid
               ? <><Icon name="plus" size={12} /> שלח/י בקשת ייצוג</>
-              : 'טרם נרשמ/ה למערכת'}
+              : <><Icon name="plus" size={12} /> הוסף לרשימה שלי</>}
         </button>
       )}
     </button>
