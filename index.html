@@ -2500,6 +2500,7 @@ function AdminPanel({ th, go }) {
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
   const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
   const [waitingPanelLight, setWaitingPanelLight] = useState(() => localStorage.getItem('waitingPanelLight') !== 'false');
+  const [cardStyle, setCardStyle] = useState(() => localStorage.getItem('candCardStyle') || 'square');
   const [invitesOpen, setInvitesOpen] = useState(false);
   const toggleHideSeed = () => setHideSeed(v => { localStorage.setItem('hideSeed', String(!v)); return !v; });
   const toggleWaitingPanel = () => setWaitingPanelLight(v => {
@@ -2508,6 +2509,12 @@ function AdminPanel({ th, go }) {
     if (next) localStorage.removeItem('waitingPanelLight');
     else localStorage.setItem('waitingPanelLight', 'false');
     window.dispatchEvent(new Event('waitingPanelChanged'));
+    return next;
+  });
+  const toggleCardStyle = () => setCardStyle(v => {
+    const next = v === 'square' ? 'compact' : 'square';
+    localStorage.setItem('candCardStyle', next);
+    window.dispatchEvent(new Event('storage'));
     return next;
   });
 
@@ -2600,6 +2607,15 @@ function AdminPanel({ th, go }) {
           </div>
           <span style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color: waitingPanelLight ? th.primary : alpha(th.ink,0.5) }}>
             {waitingPanelLight ? 'פאנל בית: בהיר (ברירת מחדל)' : 'פאנל בית: כהה (קלאסי)'}
+          </span>
+        </button>
+        {/* card photo style toggle */}
+        <button onClick={toggleCardStyle} style={{ display:'flex', alignItems:'center', gap:7, border:'none', background: cardStyle === 'square' ? alpha(th.primary,0.1) : alpha(th.ink,0.08), borderRadius:999, padding:'6px 14px', cursor:'pointer', transition:'background 0.2s' }}>
+          <div style={{ width:28, height:16, background: cardStyle === 'square' ? th.primary : alpha(th.ink,0.2), borderRadius:999, position:'relative', transition:'background 0.2s', flexShrink:0 }}>
+            <div style={{ position:'absolute', top:2, width:12, height:12, borderRadius:'50%', background:'white', transition:'left 0.2s', left: cardStyle === 'square' ? 14 : 2 }} />
+          </div>
+          <span style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color: cardStyle === 'square' ? th.primary : alpha(th.ink,0.5) }}>
+            {cardStyle === 'square' ? 'כרטיסיה: ריבועית (ברירת מחדל)' : 'כרטיסיה: קומפקטית (קלאסי)'}
           </span>
         </button>
       </div>
@@ -3527,6 +3543,12 @@ function Candidates({ th, go, params }) {
   const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
   const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
   const [sentRequests, setSentRequests] = useSb(new Set());
+  const [cardStyle, setCardStyle] = useSb(() => localStorage.getItem('candCardStyle') || 'square');
+  useEd(() => {
+    const onStorage = () => setCardStyle(localStorage.getItem('candCardStyle') || 'square');
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   // Neglected filter from home banner — set of candidate IDs to show
   const [neglectedIds, setNeglectedIds] = useSb(
@@ -3621,6 +3643,7 @@ function Candidates({ th, go, params }) {
             <CandCard key={c.id} c={c} th={th} myUid={myUid}
               onClick={() => linkMode ? null : go('candidate', { id: c.id })}
               linkMode={linkMode}
+              photoStyle={cardStyle}
               requestSent={sentRequests.has(c.id)}
               onLink={async () => {
                 if (c.candidateUid) {
@@ -3665,13 +3688,14 @@ function Candidates({ th, go, params }) {
   );
 }
 
-function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent }) {
+function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoStyle }) {
+  const isSquare = photoStyle !== 'compact';
   return (
     <button onClick={onClick} style={{ all: 'unset', cursor: linkMode ? 'default' : 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ position: 'relative', height: 116, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', ...(isSquare ? { aspectRatio: '1' } : { height: 116 }), background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {c.photos && c.photos[0]
-          ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <span style={{ fontFamily: th.display, fontSize: 44, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>}
+          ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: isSquare ? 'center 20%' : 'center' }} />
+          : <span style={{ fontFamily: th.display, fontSize: isSquare ? 56 : 44, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>}
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
           <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)} soft={false}>{c.available ? 'פנוי/ה' : 'תפוס/ה'}</Tag>
         </div>
