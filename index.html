@@ -3245,7 +3245,7 @@ function Home({ th, go }) {
   // ── Real action counts ──────────────────────────────────────────
   // 1. Offers where I'm the receiver and haven't responded yet
   const offersNeedingMe = React.useMemo(() =>
-    offers.filter(o => o.bMm === myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה'),
+    offers.filter(o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה'),
     [offers, myUid]);
 
   // 2. My candidates not in any active offer within the past 7 days
@@ -4270,7 +4270,7 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id||'x'), photos:[] };
   const findM = id => { const mm = matchmakers?.[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName||mm.name||'—' }; };
   const offersNeedingMe = React.useMemo(() =>
-    (offers||[]).filter(o => o.bMm === myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה'),
+    (offers||[]).filter(o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה'),
     [offers, myUid]);
 
   const totalUnread = unreadCand + offersNeedingMe.length;
@@ -5029,7 +5029,7 @@ function Offers({ th, go, params }) {
   // Apply sub-filter from home banner — when active, search across ALL offers (not tab-limited)
   let list;
   if (subFilter === 'needsMyApproval') {
-    list = offers.filter(o => o.bMm === myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה');
+    list = offers.filter(o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה');
   } else if (subFilter === 'awaitingCand') {
     list = offers.filter(o =>
       (o.aMm === myUid || o.bMm === myUid) && o.bStatus === 'אישר' && (!o.aCandStatus || !o.bCandStatus) && o.status !== 'נדחתה' && o.status !== 'אושרה');
