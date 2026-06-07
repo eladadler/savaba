@@ -5125,23 +5125,29 @@ function Offers({ th, go, params }) {
             <div key={o.id} style={{
               background: allApproved
                 ? `linear-gradient(150deg, ${alpha(th.success,0.09)}, ${alpha(th.success,0.03)})`
+                : needsMyAction
+                ? `linear-gradient(150deg, ${alpha(th.primary,0.06)}, ${alpha(th.primary,0.02)})`
                 : th.card,
               borderRadius: th.r, padding: 14, marginBottom: 22,
               boxShadow: allApproved
                 ? `0 6px 26px ${alpha(th.success,0.2)}, 0 0 0 1.5px ${alpha(th.success,0.32)}`
+                : needsMyAction
+                ? `0 6px 22px ${alpha(th.primary,0.18)}, 0 0 0 2px ${th.primary}`
                 : `0 6px 18px ${alpha(th.ink, 0.06)}`,
             }}>
 
               {/* Header: names + status badge */}
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink }}>{myCand.name} · {theirC.name}</div>
-                {allApproved
+                <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  {needsMyAction && <span style={{ fontFamily:th.body, fontSize:11.5, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 8px' }}>ממתין לתגובתך</span>}
+                  {allApproved
                   ? <div style={{ display:'flex', alignItems:'center', gap:5 }}>
                       <span style={{ fontSize:18 }}>🎉</span>
                       <Tag th={th} tone={th.success} soft={false}>אושרה!</Tag>
                     </div>
-                  : <Tag th={th} tone={statusTone(o.status, th)} soft={false}>{o.status}</Tag>
-                }
+                  : <Tag th={th} tone={statusTone(o.status, th)} soft={false}>{o.status}</Tag>}
+                </div>
               </div>
 
               {/* Candidate boxes — tappable → candidate profile */}
