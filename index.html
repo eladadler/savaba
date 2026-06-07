@@ -30,6 +30,7 @@
   @keyframes sabaFade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes sabaUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes sabaPop { 0% { opacity: 0; transform: scale(0.8); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+  @keyframes sabaChatBeat { 0%,100%{box-shadow:0 0 0 0 rgba(232,84,122,0.5),0 2px 8px rgba(232,84,122,0.3)} 55%{box-shadow:0 0 0 7px rgba(232,84,122,0),0 2px 8px rgba(232,84,122,0.3)} }
   /* img fade-in: starts transparent, animates in once painted */
   img { animation: sabaFade 0.28s ease both; will-change: opacity; }
 </style>
@@ -4991,6 +4992,34 @@ function Offers({ th, go, params }) {
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || gradForId(id) }; };
   const [tab, setTab] = useSd('pending');
   const [subFilter, setSubFilter] = useSd(params?.filter || null);
+  const [chatUnread, setChatUnread] = useSd({});
+
+  // Subscribe to mm_chats to detect unread messages from the other matchmaker
+  useEd(() => {
+    if (!myUid) return;
+    const unsub = db.collection('mm_chats')
+      .where('participants', 'array-contains', myUid)
+      .onSnapshot(snap => {
+        const unread = {};
+        snap.forEach(doc => {
+          const data = doc.data();
+          const oid = data.offerId || doc.id;
+          const msgs = data.messages || [];
+          const last = msgs[msgs.length - 1];
+          if (!last || last.from === myUid) return;     // last msg is mine → read
+          const lastAt = last.at || 0;
+          const lastRead = parseInt(localStorage.getItem('chatRead_' + oid) || '0');
+          if (lastAt > lastRead) unread[oid] = true;
+        });
+        setChatUnread(unread);
+      });
+    return unsub;
+  }, [myUid]);
+
+  const markChatRead = (oid) => {
+    localStorage.setItem('chatRead_' + oid, String(Date.now()));
+    setChatUnread(prev => { const n = { ...prev }; delete n[oid]; return n; });
+  };
 
   const pending  = offers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה' || o.status === 'ממתין למועמד' || o.status === 'ממתין למועמד ב');
   const approved = offers.filter(o => o.status === 'אושרה');
@@ -5229,12 +5258,15 @@ function Offers({ th, go, params }) {
                   style={{ display:'flex', alignItems:'center', justifyContent:'center', width:34, height:34, borderRadius:'50%', background:'#25D36612', border:`1px solid #25D36628`, color:'#25D366', textDecoration:'none', flexShrink:0 }}>
                   <Icon name="whatsapp" size={17} style={{ color:'#25D366' }} />
                 </a>
-                {/* Chat button */}
-                <button onClick={() => go('chat', { id: o.id })}
-                  style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5, color:th.primary, flexShrink:0, padding:'6px 10px', borderRadius:999, background:alpha(th.primary,0.08) }}>
+                {/* Chat button — pulses when there are unread messages */}
+                <button onClick={() => { markChatRead(o.id); go('chat', { id: o.id }); }}
+                  style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5, flexShrink:0, padding:'6px 10px', borderRadius:999,
+                    color: chatUnread[o.id] ? '#fff' : th.primary,
+                    background: chatUnread[o.id] ? th.primary : alpha(th.primary,0.08),
+                    animation: chatUnread[o.id] ? 'sabaChatBeat 1.6s ease-in-out infinite' : 'none' }}>
                   <Icon name="chat" size={17} />
                   <span style={{ fontFamily:th.body, fontWeight:700, fontSize:12.5 }}>צ'אט</span>
-                  {o.unread > 0 && <span style={{ background:th.primary, color:'#fff', borderRadius:999, minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{o.unread}</span>}
+                  {chatUnread[o.id] && <span style={{ width:7, height:7, borderRadius:'50%', background:'rgba(255,255,255,0.85)', flexShrink:0 }} />}
                 </button>
               </div>
             </div>
@@ -5258,8 +5290,13 @@ function Chat({ th, go, params }) {
   const endRef = useRd(null);
   useEd(() => { endRef.current?.parentNode?.scrollTo(0, 99999); }, [msgs]);
 
-  // Firestore real-time listener — messages persist across renders/sessions
+  // Mark chat as read when this screen opens
   const chatOid = params?.id;
+  useEd(() => {
+    if (chatOid) localStorage.setItem('chatRead_' + chatOid, String(Date.now()));
+  }, [chatOid]);
+
+  // Firestore real-time listener — messages persist across renders/sessions
   useEd(() => {
     if (!chatOid || !user?.uid) return;
     const unsub = db.collection('mm_chats').doc(chatOid).onSnapshot(snap => {
@@ -6010,8 +6047,25 @@ function OfferDetail({ th, go, params }) {
   const { user } = useContext(AuthCtx);
   const myUid = user?.uid;
   const [confirmReject, setConfirmReject] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
 
   const o = offers.find(x => x.id === params?.id);
+
+  // Subscribe to this chat's unread status
+  useEd(() => {
+    const oid = params?.id;
+    if (!oid || !myUid) return;
+    const unsub = db.collection('mm_chats').doc(oid).onSnapshot(snap => {
+      const data = snap.data();
+      const msgs = data?.messages || [];
+      const last = msgs[msgs.length - 1];
+      if (!last || last.from === myUid) { setHasUnread(false); return; }
+      const lastAt = last.at || 0;
+      const lastRead = parseInt(localStorage.getItem('chatRead_' + oid) || '0');
+      setHasUnread(lastAt > lastRead);
+    });
+    return unsub;
+  }, [params?.id, myUid]);
 
   if (!o) return (
     <>
@@ -6165,10 +6219,14 @@ function OfferDetail({ th, go, params }) {
               style={{ display:'flex', alignItems:'center', justifyContent:'center', width:34, height:34, borderRadius:'50%', background:'#25D36612', border:'1px solid #25D36628', color:'#25D366', textDecoration:'none', flexShrink:0 }}>
               <Icon name="whatsapp" size={17} style={{ color:'#25D366' }} />
             </a>
-            <button onClick={() => go('chat', { id: o.id })}
-              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5, color:th.primary, flexShrink:0, padding:'6px 10px', borderRadius:999, background:alpha(th.primary,0.08) }}>
+            <button onClick={() => { localStorage.setItem('chatRead_' + o.id, String(Date.now())); setHasUnread(false); go('chat', { id: o.id }); }}
+              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5, flexShrink:0, padding:'6px 10px', borderRadius:999,
+                color: hasUnread ? '#fff' : th.primary,
+                background: hasUnread ? th.primary : alpha(th.primary,0.08),
+                animation: hasUnread ? 'sabaChatBeat 1.6s ease-in-out infinite' : 'none' }}>
               <Icon name="chat" size={17} />
               <span style={{ fontFamily:th.body, fontWeight:700, fontSize:12.5 }}>צ'אט</span>
+              {hasUnread && <span style={{ width:7, height:7, borderRadius:'50%', background:'rgba(255,255,255,0.85)', flexShrink:0 }} />}
             </button>
           </div>
         </div>
