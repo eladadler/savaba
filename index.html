@@ -6411,6 +6411,9 @@ function AppInner({ inviteToken }) {
   const matchBadge = React.useMemo(() =>
     (data.offers||[]).filter(o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה').length,
     [data.offers, myUid]);
+  const candsBadge = React.useMemo(() =>
+    (data.candidates||[]).filter(c => c.mmId === myUid && (c.status === 'pending_mm' || c.pendingApproval)).length,
+    [data.candidates, myUid]);
 
   return (
     <>
@@ -6420,7 +6423,7 @@ function AppInner({ inviteToken }) {
           {data.loading
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
             : renderScreen(cur, th, go, profile)}
-          {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge }} />}
+          {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
         </div>
       </div>
       <TweaksPanel title="Tweaks">
