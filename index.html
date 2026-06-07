@@ -5122,8 +5122,6 @@ function Offers({ th, go, params }) {
             <div key={o.id} style={{
               background: allApproved
                 ? `linear-gradient(150deg, ${alpha(th.success,0.09)}, ${alpha(th.success,0.03)})`
-                : needsMyAction
-                ? `linear-gradient(150deg, ${alpha(th.primary,0.06)}, ${alpha(th.primary,0.02)})`
                 : th.card,
               borderRadius: th.r, padding: 14, marginBottom: 22,
               boxShadow: allApproved
