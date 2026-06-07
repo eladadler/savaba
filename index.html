@@ -5258,6 +5258,22 @@ function Chat({ th, go, params }) {
   const endRef = useRd(null);
   useEd(() => { endRef.current?.parentNode?.scrollTo(0, 99999); }, [msgs]);
 
+  // Firestore real-time listener — messages persist across renders/sessions
+  const chatOid = params?.id;
+  useEd(() => {
+    if (!chatOid || !user?.uid) return;
+    const unsub = db.collection('mm_chats').doc(chatOid).onSnapshot(snap => {
+      const data = snap.data();
+      const rawMsgs = data?.messages || [];
+      setMsgs(rawMsgs.map(m => ({
+        from: m.from === user.uid ? 'me' : 'm2',
+        text: m.text,
+        t: m.at ? new Date(m.at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) : 'עכשיו',
+      })));
+    });
+    return unsub;
+  }, [chatOid, user?.uid]);
+
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id||'x'), photos:[] };
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName||mm.name||'—', grad: mm.grad||gradForId(id) }; };
 
@@ -5275,7 +5291,18 @@ function Chat({ th, go, params }) {
   const myCand   = iAmA ? a : b;
   const theirCand = iAmA ? b : a;
 
-  const send = (t) => { if (!t.trim()) return; setMsgs(m => [...m, { from: 'me', text: t, t: 'עכשיו' }]); setText(''); };
+  const send = async (t) => {
+    if (!t.trim()) return;
+    const msgText = t.trim();
+    setText('');
+    await db.collection('mm_chats').doc(o.id).set({
+      offerId: o.id,
+      participants: [user.uid, theirMmId].filter(Boolean),
+      lastAt: firebase.firestore.FieldValue.serverTimestamp(),
+      lastMsg: msgText,
+      messages: firebase.firestore.FieldValue.arrayUnion({ from: user.uid, text: msgText, at: Date.now() }),
+    }, { merge: true });
+  };
   const incoming = (t) => setMsgs(m => [...m, { from: 'm2', text: t, t: 'עכשיו' }]);
 
   // Test helpers — simulate other matchmaker's response in Firestore
