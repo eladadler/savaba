@@ -1478,13 +1478,10 @@ function BottomNav({ active, onNav, th, badges = {} }) {
                 fill={on && (tb.icon === 'heart' || tb.icon === 'spark') ? th.primary : 'none'} />
               {badge > 0 && (
                 <span style={{
-                  position: 'absolute', top: -5, left: -6,
-                  background: th.primary, color: '#fff',
-                  borderRadius: 99, minWidth: 17, height: 17,
-                  fontSize: 10.5, fontWeight: 800, lineHeight: 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 4px', boxShadow: `0 0 0 2px ${th.cream}`,
-                }}>{badge}</span>
+                  position: 'absolute', top: -2, left: -2,
+                  width: 9, height: 9, borderRadius: '50%',
+                  background: th.primary, boxShadow: `0 0 0 2px ${th.cream}`,
+                }} />
               )}
             </div>
             <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: 11 }}>{tb.label}</span>
