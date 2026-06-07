@@ -5523,15 +5523,15 @@ function AIRecs({ th, go }) {
       const isFemale = c => c.gender === 'f' || c.gender === 'אשה';
       if (isFemale(a) === isFemale(b)) return -1;   // same gender → skip
       let s = 50;
-      // Religiosity: +20 exact match, +8 compatible, -25 incompatible
+      // Religiosity: +20 exact match, +8 compatible, -25 incompatible (high priority)
       if (a.religiosity === b.religiosity) s += 20;
       else if (compatRelig(a.religiosity, b.religiosity)) s += 8;
       else s -= 25;
-      // Shared interests: +6 each, max +20
+      // Shared interests: +9 each, max +30 (top priority after religiosity)
       const shared = (a.interests||[]).filter(i => (b.interests||[]).includes(i));
-      s += Math.min(shared.length * 6, 20);
-      // Same region +8
-      if (a.region && a.region === b.region) s += 8;
+      s += Math.min(shared.length * 9, 30);
+      // Same region +4 (lower priority than interests)
+      if (a.region && a.region === b.region) s += 4;
       // Age proximity
       const diff = Math.abs((a.age||28) - (b.age||28));
       if (diff <= 3) s += 10; else if (diff <= 7) s += 5; else if (diff > 14) s -= 15;
