@@ -3387,9 +3387,9 @@ function Home({ th, go }) {
 
   const myOffers = offers.filter(o => o.aMm === myUid || o.bMm === myUid);
   const stats = [
-    { n: mine.length,                                                                 label: t('home_stat_cands') },
-    { n: myOffers.filter(o => o.status === 'אושרה').length,                          label: t('home_stat_approved') },
-    { n: myOffers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה').length,  label: t('home_stat_offers') },
+    { n: mine.length,                                                                 label: t('home_stat_cands'),    to: () => go('cands') },
+    { n: myOffers.filter(o => o.status === 'אושרה').length,                          label: t('home_stat_approved'), to: () => go('offers', { tab: 'approved' }) },
+    { n: myOffers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה').length,  label: t('home_stat_offers'),   to: () => go('offers') },
   ];
 
   return (
@@ -3500,10 +3500,10 @@ function Home({ th, go }) {
         {/* STATS */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
           {stats.map((st, k) => (
-            <div key={k} style={{ flex: 1, background: th.card, borderRadius: th.r, padding: '14px 8px', textAlign: 'center', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+            <button key={k} onClick={st.to} style={{ all:'unset', flex: 1, cursor:'pointer', background: th.card, borderRadius: th.r, padding: '14px 8px', textAlign: 'center', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
               <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.primary }}>{st.n}</div>
               <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -5123,7 +5123,7 @@ function Offers({ th, go, params }) {
   const myUid = user?.uid;
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || gradForId(id) }; };
-  const [tab, setTab] = useSd('pending');
+  const [tab, setTab] = useSd(params?.tab || 'pending');
   const [subFilter, setSubFilter] = useSd(params?.filter || null);
   const [chatUnread, setChatUnread] = useSd({});
 
