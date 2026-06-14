@@ -3362,34 +3362,28 @@ function Home({ th, go }) {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
-        {/* WAITING banner — two styles, toggled by admin */}
-        {lightPanel ? (
+        {/* WAITING banner — hidden when no candidates yet, replaced by onboarding CTA */}
+        {mine.length === 0 ? (
+          <button onClick={() => go('cands', { autoAdd: true })} style={{ all:'unset', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:16, width:'100%', boxSizing:'border-box', background:`linear-gradient(150deg, ${alpha(th.primary,0.09)}, ${alpha(th.gold,0.07)})`, border:`1.5px solid ${alpha(th.primary,0.22)}`, borderRadius:th.rLg, padding:'28px 22px', marginBottom:18, boxShadow:`0 8px 32px ${alpha(th.primary,0.1)}` }}>
+            <div style={{ width:72, height:72, borderRadius:'50%', background:`linear-gradient(135deg, ${th.primary}, ${alpha(th.gold,0.85)})`, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 10px 28px ${alpha(th.primary,0.38)}` }}>
+              <Icon name="user-plus" size={32} style={{ color:'#fff' }} />
+            </div>
+            <div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:19, color:th.ink, lineHeight:1.2, marginBottom:8 }}>הוסף את המועמד/ת הראשון/ה</div>
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55), lineHeight:1.55 }}>בנה/י את המאגר שלך ותתחיל/י לשדך. זה לוקח פחות מדקה ✨</div>
+            </div>
+            <div style={{ background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, borderRadius:999, padding:'10px 30px', boxShadow:`0 6px 20px ${alpha(th.primary,0.38)}` }}>הוסף עכשיו</div>
+          </button>
+        ) : lightPanel ? (
           /* ── Light / card style ── */
           <div style={{ background: th.card, borderRadius: th.rLg, padding: '16px 18px 8px', marginBottom: 18, boxShadow: `0 6px 24px ${alpha(th.ink, 0.08)}` }}>
-            {/* title row */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-start', gap: 6, marginBottom: 12 }}>
               <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink }}>{t('home_waiting_title')}</span>
               <span style={{ fontSize: 17 }}>💛</span>
             </div>
             <div style={{ height: 1, background: alpha(th.ink, 0.07), marginBottom: 4 }} />
-            {/* items — or all-clear state */}
             {waiting.length === 0 ? (
-              mine.length === 0 ? (
-                <button onClick={() => go('cands', { autoAdd: true })} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:14, width:'100%', boxSizing:'border-box', padding:'14px 16px', margin:'2px -4px', background:`linear-gradient(135deg, ${alpha(th.primary,0.12)}, ${alpha(th.primary,0.06)})`, border:`2px solid ${alpha(th.primary,0.35)}`, borderRadius:th.r, boxShadow:`0 4px 18px ${alpha(th.primary,0.15)}` }}>
-                  <div style={{ width:46, height:46, borderRadius:'50%', background:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 6px 16px ${alpha(th.primary,0.45)}` }}>
-                    <Icon name="user-plus" size={22} style={{ color:'#fff' }} />
-                  </div>
-                  <div style={{ flex:1, textAlign:'right' }}>
-                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.primary }}>הוסף את המועמד/ת הראשון/ה שלך</div>
-                    <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55), marginTop:3 }}>לחץ/י כדי להתחיל לבנות את המאגר שלך ✨</div>
-                  </div>
-                  <Icon name="chevron-left" size={20} style={{ color:th.primary, flexShrink:0 }} />
-                </button>
-              ) : (
-                <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4) }}>
-                  ✅ הכל מסודר — אין פעולות ממתינות
-                </div>
-              )
+              <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4) }}>✅ הכל מסודר — אין פעולות ממתינות</div>
             ) : waiting.map((w, k) => (
               <React.Fragment key={k}>
                 <button onClick={w.to} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap: 10, width:'100%', boxSizing:'border-box', padding:'11px 0' }}>
@@ -3405,7 +3399,7 @@ function Home({ th, go }) {
             ))}
           </div>
         ) : (
-          /* ── Dark / gradient style (original) ── */
+          /* ── Dark / gradient style ── */
           <div style={{ background: `linear-gradient(135deg, ${th.ink}, ${alpha(th.primary, 0.85)})`, borderRadius: th.rLg, padding: 18, marginBottom: 18, color: th.cream, boxShadow: `0 16px 34px ${alpha(th.ink, 0.28)}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <Logo size={22} color={th.gold} flaw={th.cream} />
