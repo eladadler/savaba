@@ -3372,9 +3372,22 @@ function Home({ th, go }) {
             <div style={{ height: 1, background: alpha(th.ink, 0.07), marginBottom: 4 }} />
             {/* items — or all-clear state */}
             {waiting.length === 0 ? (
-              <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4) }}>
-                ✅ הכל מסודר — אין פעולות ממתינות
-              </div>
+              mine.length === 0 ? (
+                <button onClick={() => go('cands', { autoAdd: true })} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:12, width:'100%', boxSizing:'border-box', padding:'12px 0' }}>
+                  <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.primary,0.12), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <Icon name="user-plus" size={18} style={{ color:th.primary }} />
+                  </div>
+                  <div style={{ flex:1, textAlign:'right' }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>הוסף את המועמד/ת הראשון/ה שלך</div>
+                    <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:2 }}>לחץ/י כדי להתחיל לבנות את המאגר שלך</div>
+                  </div>
+                  <Icon name="chevron-left" size={16} style={{ color:alpha(th.ink,0.3), flexShrink:0 }} />
+                </button>
+              ) : (
+                <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4) }}>
+                  ✅ הכל מסודר — אין פעולות ממתינות
+                </div>
+              )
             ) : waiting.map((w, k) => (
               <React.Fragment key={k}>
                 <button onClick={w.to} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap: 10, width:'100%', boxSizing:'border-box', padding:'11px 0' }}>
@@ -3577,7 +3590,7 @@ function Candidates({ th, go, params }) {
   const [scope, setScope]       = useSb(params?.linkMode ? 'all' : 'mine'); // mine | all
   const [q, setQ]               = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
-  const [addOpen, setAddOpen]   = useSb(false);
+  const [addOpen, setAddOpen]   = useSb(params?.autoAdd === true);
   const [invOpen, setInvOpen]   = useSb(false);
   const [pendingCount, setPendingCount] = useSb(0);
   const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45 });
