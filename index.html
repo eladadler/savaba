@@ -1559,9 +1559,11 @@ const inputBase = (th) => ({
   borderRadius: th.rSm, padding: '12px 14px', fontFamily: th.body, fontSize: 15,
   color: th.ink, background: th.card, outline: 'none',
 });
-function TextInput({ value, onChange, th, placeholder, type = 'text' }) {
+function TextInput({ value, onChange, onBlur, th, placeholder, type = 'text' }) {
   return <input type={type} value={value || ''} placeholder={placeholder}
-    onChange={(e) => onChange?.(e.target.value)} style={inputBase(th)} />;
+    onChange={(e) => onChange?.(e.target.value)}
+    onBlur={onBlur}
+    style={inputBase(th)} />;
 }
 function TextArea({ value, onChange, th, placeholder, rows = 3 }) {
   return <textarea rows={rows} value={value || ''} placeholder={placeholder}
@@ -3136,16 +3138,28 @@ function Onboarding({ th, go }) {
 // ════════════════════════════════════════════════════════════
 function Register({ th, go }) {
   const { user } = useContext(AuthCtx);
-  const { lists } = useContext(DataCtx);
   const { texts: tx, defaults: dx } = useContext(TextsCtx);
   const t = (key) => tx[key] || dx[key] || '';
-  const liveRegions = (lists.regions && lists.regions.length) ? lists.regions : REGIONS;
-  const [f, setF] = useS({ name: '', phone: '', region: '', gender: '', bio: '' });
+  const [step, setStep] = useS(1);
+  const [firstName, setFirstName] = useS('');
+  const [lastName, setLastName] = useS('');
+  const [phone, setPhone] = useS('');
+  const [phoneError, setPhoneError] = useS('');
   const [photoURL, setPhotoURL] = useS('');
   const [uploading, setUploading] = useS(false);
   const [saving, setSaving] = useS(false);
-  const set = (k) => (v) => setF(s => ({ ...s, [k]: v }));
-  const valid = f.name && f.phone && f.region && f.gender;
+
+  const isPhoneValid = (p) => {
+    const d = p.replace(/\D/g, '');
+    return (d.length === 10 && d.startsWith('05')) || (d.length === 12 && d.startsWith('9725'));
+  };
+
+  const step1Valid = firstName.trim() && lastName.trim() && phone && isPhoneValid(phone);
+
+  const handlePhoneBlur = () => {
+    if (phone && !isPhoneValid(phone)) setPhoneError('מספר לא תקין — לדוגמה: 050-0000000');
+    else setPhoneError('');
+  };
 
   const handlePhoto = async (e) => {
     const file = e.target.files[0];
@@ -3161,15 +3175,12 @@ function Register({ th, go }) {
   };
 
   const handleSave = async () => {
-    if (!valid || !user) return;
+    if (!user) return;
     setSaving(true);
     try {
       await db.collection('users').doc(user.uid).update({
-        displayName: f.name,
-        phone: f.phone,
-        region: f.region,
-        gender: f.gender,
-        bio: f.bio,
+        displayName: `${firstName.trim()} ${lastName.trim()}`,
+        phone: phone.trim(),
         ...(photoURL ? { photoURL } : {}),
         profileComplete: true,
       });
@@ -3177,47 +3188,76 @@ function Register({ th, go }) {
     } catch(err) { alert('שגיאה: ' + err.message); setSaving(false); }
   };
 
-  return (
+  const StepDots = ({ active }) => (
+    <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 28 }}>
+      {[1, 2].map(n => (
+        <div key={n} style={{ height: 4, borderRadius: 2, transition: 'all 0.25s',
+          width: active === n ? 28 : 16,
+          background: active === n ? th.primary : alpha(th.ink, 0.15) }} />
+      ))}
+    </div>
+  );
+
+  if (step === 1) return (
     <>
       <AppHeader th={th} title={t('register_title')} sub={t('register_sub')} onBack={() => go('onboarding')} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 22 }}>
+        <StepDots active={1} />
+        <Field th={th} label="שם פרטי" required>
+          <TextInput th={th} value={firstName} onChange={setFirstName} placeholder="נועה" />
+        </Field>
+        <Field th={th} label="שם משפחה" required>
+          <TextInput th={th} value={lastName} onChange={setLastName} placeholder="לוי" />
+        </Field>
+        <Field th={th} label="טלפון (ווצאפ)" required hint="לא יוצג למועמדים — משמש לתיאומים">
+          <TextInput th={th} type="tel" value={phone}
+            onChange={v => { setPhone(v); if (phoneError) setPhoneError(''); }}
+            onBlur={handlePhoneBlur} placeholder="050-0000000" />
+          {phoneError && <div style={{ fontFamily: th.body, fontSize: 12, color: '#d93025', marginTop: 5 }}>{phoneError}</div>}
+        </Field>
+        <div style={{ marginTop: 8 }}>
+          <Btn th={th} full size="l" disabled={!step1Valid} onClick={() => setStep(2)}>המשך</Btn>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <AppHeader th={th} title="תמונת פרופיל" onBack={() => setStep(1)} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
+        <StepDots active={2} />
+        <div style={{ background: alpha(th.gold, 0.09), border: `1px solid ${alpha(th.gold, 0.22)}`, borderRadius: th.r, padding: '13px 15px', marginBottom: 26 }}>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 5 }}>למה כדאי להוסיף תמונה?</div>
+          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.68), lineHeight: 1.55 }}>
+            שדכנים עם תמונה זוכים ליותר אמון מצד מועמדים ומשפחותיהם. התמונה תופיע רק לשדכנים אחרים שאיתם תעבוד — לא למועמדים.
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
           <label style={{ cursor: 'pointer' }}>
             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
             {photoURL
-              ? <img src={photoURL} alt="" decoding="async" style={{ width: 108, height: 108, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${th.primary}` }} />
-              : <div style={{ width: 108, height: 108, borderRadius: '50%', background: alpha(th.primary, 0.1), border: `2px dashed ${alpha(th.ink, 0.25)}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: alpha(th.ink, 0.5) }}>
-                  <Icon name="camera" size={28} />
-                  <span style={{ fontFamily: th.body, fontSize: 12 }}>{uploading ? 'מעלה…' : 'תמונה'}</span>
+              ? <img src={photoURL} alt="" decoding="async" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${th.primary}` }} />
+              : <div style={{ width: 120, height: 120, borderRadius: '50%', background: alpha(th.primary, 0.08), border: `2px dashed ${alpha(th.ink, 0.2)}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Icon name="camera" size={32} style={{ color: alpha(th.ink, 0.38) }} />
+                  <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.45) }}>{uploading ? 'מעלה…' : 'בחר/י תמונה'}</span>
                 </div>}
           </label>
-          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginTop: 8 }}>לחץ/י להוספת תמונת פרופיל</div>
+          {photoURL && (
+            <label style={{ cursor: 'pointer', marginTop: 10 }}>
+              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+              <span style={{ fontFamily: th.body, fontSize: 13, color: th.primary }}>החלף תמונה</span>
+            </label>
+          )}
         </div>
-
-        <Field th={th} label="שם פרטי ומשפחה" required>
-          <TextInput th={th} value={f.name} onChange={set('name')} placeholder="נועה לוי" />
-        </Field>
-        <Field th={th} label="טלפון (לוואטסאפ)" required hint="לא יוצג למועמדים — משמש לתיאומים">
-          <TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} placeholder="050-0000000" />
-        </Field>
-        <Field th={th} label="אזור מגורים" required>
-          <Select th={th} value={f.region} onChange={set('region')} options={liveRegions} />
-        </Field>
-        <Field th={th} label="מין" required>
-          <Segmented th={th} value={f.gender} onChange={set('gender')} options={['אישה', 'גבר']} />
-        </Field>
-        <Field th={th} label="קצת עלייך" hint="לא חובה — אפשר להשלים מאוחר יותר בהגדרות">
-          <TextArea th={th} value={f.bio} onChange={set('bio')} placeholder="שדכנית בלב, מאמינה שלכל אחד יש את הסבבה־והכל שלו…" rows={3} />
-        </Field>
-
-        <div style={{ marginTop: 8 }}>
-          <Btn th={th} full size="l" disabled={!valid || saving || uploading} onClick={handleSave}>
-            {saving ? 'שומר…' : 'יאללה, מתחילים'}
-          </Btn>
-          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.45), marginTop: 12 }}>
-            הרשמה פשוטה. את/ה תמיד יכול/ה להשלים פרטים בהמשך.
+        <Btn th={th} full size="l" disabled={saving || uploading} onClick={handleSave}>
+          {saving ? 'שומר…' : photoURL ? 'יאללה, מתחילים!' : 'המשך בלי תמונה'}
+        </Btn>
+        {!photoURL && (
+          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), marginTop: 10 }}>
+            אפשר להוסיף תמונה גם בהמשך דרך ההגדרות
           </div>
-        </div>
+        )}
       </div>
     </>
   );
