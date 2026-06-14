@@ -3406,15 +3406,46 @@ function Home({ th, go }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
         {/* WAITING banner — hidden when no candidates yet, replaced by onboarding CTA */}
         {mine.length === 0 ? (
-          <button onClick={() => go('cands', { autoAdd: true })} style={{ all:'unset', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:16, width:'100%', boxSizing:'border-box', background:`linear-gradient(150deg, ${alpha(th.primary,0.09)}, ${alpha(th.gold,0.07)})`, border:`1.5px solid ${alpha(th.primary,0.22)}`, borderRadius:th.rLg, padding:'28px 22px', marginBottom:18, boxShadow:`0 8px 32px ${alpha(th.primary,0.1)}` }}>
-            <div style={{ width:72, height:72, borderRadius:'50%', background:`linear-gradient(135deg, ${th.primary}, ${alpha(th.gold,0.85)})`, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 10px 28px ${alpha(th.primary,0.38)}` }}>
-              <Icon name="user-plus" size={32} style={{ color:'#fff' }} />
+          <button onClick={() => go('cands', { autoAdd: true })} style={{ all:'unset', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', textAlign:'center', gap:18, width:'100%', boxSizing:'border-box', background:`linear-gradient(160deg, #fce8ea 0%, #fdf3f5 60%, #fef5e4 100%)`, border:`1.5px solid ${alpha(th.primary,0.15)}`, borderRadius:th.rLg, padding:'32px 24px 26px', marginBottom:18, boxShadow:`0 4px 24px ${alpha(th.primary,0.08)}` }}>
+            {/* illustration */}
+            <div style={{ position:'relative', width:110, height:100 }}>
+              {/* sparkles */}
+              <svg width="110" height="100" viewBox="0 0 110 100" style={{ position:'absolute', top:0, left:0, overflow:'visible' }}>
+                {/* gold 4-pointed stars */}
+                {[[18,12],[92,18],[8,72],[98,65],[55,6]].map(([cx,cy],i) => (
+                  <g key={i} transform={`translate(${cx},${cy})`}>
+                    <path d={`M0,-6 L1.5,-1.5 L6,0 L1.5,1.5 L0,6 L-1.5,1.5 L-6,0 L-1.5,-1.5 Z`} fill={i===4?'#f0b429':'#f0b429'} opacity={i===2||i===3?0.55:0.85} transform={`scale(${i===4?0.7:i===1?0.85:1})`}/>
+                  </g>
+                ))}
+                {/* small pink dot accents */}
+                <circle cx="22" cy="85" r="4" fill={alpha('#e8547a',0.35)} />
+                <circle cx="90" cy="40" r="3" fill={alpha('#e8547a',0.25)} />
+              </svg>
+              {/* back card */}
+              <div style={{ position:'absolute', top:14, left:'50%', transform:'translateX(-50%) rotate(-8deg)', width:64, height:80, borderRadius:14, background:'#fff', boxShadow:`0 6px 20px ${alpha(th.primary,0.18)}`, opacity:0.9 }} />
+              {/* front card */}
+              <div style={{ position:'absolute', top:8, left:'50%', transform:'translateX(-50%) rotate(4deg)', width:64, height:80, borderRadius:14, background:'#fff', boxShadow:`0 8px 24px ${alpha(th.primary,0.22)}`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:6 }}>
+                {/* person icon */}
+                <div style={{ width:30, height:30, borderRadius:'50%', background:`linear-gradient(135deg, ${alpha(th.primary,0.25)}, ${alpha(th.primary,0.12)})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" fill={th.primary} opacity="0.7"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={th.primary} strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
+                  </svg>
+                </div>
+                {/* lines */}
+                <div style={{ width:38, height:4, borderRadius:4, background:alpha(th.ink,0.1) }} />
+                <div style={{ width:26, height:4, borderRadius:4, background:alpha(th.ink,0.07) }} />
+                {/* heart */}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill={th.primary} opacity="0.75">
+                  <path d="M12 21C12 21 3 14.5 3 8.5a4.5 4.5 0 018.5-2 4.5 4.5 0 018.5 2C20 14.5 12 21 12 21z"/>
+                </svg>
+              </div>
             </div>
-            <div>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:19, color:th.ink, lineHeight:1.2, marginBottom:8 }}>{t('home_cta_title')}</div>
-              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55), lineHeight:1.55 }}>{t('home_cta_sub')}</div>
+            <div style={{ paddingInline:8 }}>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, lineHeight:1.25, marginBottom:8 }}>{t('home_cta_title')}</div>
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.5), lineHeight:1.6 }}>{t('home_cta_sub')}</div>
             </div>
-            <div style={{ background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, borderRadius:999, padding:'10px 30px', boxShadow:`0 6px 20px ${alpha(th.primary,0.38)}` }}>{t('home_cta_btn')}</div>
+            <div style={{ background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:15, borderRadius:999, padding:'12px 40px', boxShadow:`0 6px 18px ${alpha(th.primary,0.32)}` }}>{t('home_cta_btn')}</div>
           </button>
         ) : lightPanel ? (
           /* ── Light / card style ── */
