@@ -2652,10 +2652,8 @@ function AdminPanel({ th, go }) {
                             <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
                             <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
                           </div>
-                          {c.candidateUid && (
-                            <button onClick={() => { startImpersonate(c.candidateUid, { uid: c.candidateUid, displayName: c.name, name: c.name }, 'candidate'); go('candidateMode'); }}
-                              title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
-                          )}
+                          <button onClick={() => { const fakeUid = c.candidateUid || c.id; startImpersonate(fakeUid, { uid: fakeUid, displayName: c.name, name: c.name }, 'candidate'); go('candidateMode'); }}
+                            title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
                           <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
                           <button onClick={() => setConfirmDelete(c.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
                         </div>
@@ -6121,8 +6119,10 @@ function CandidateMode({ th, go }) {
   const { user } = useContext(AuthCtx);
   const { candidates, offers, matchmakers, updateCandidate, updateOffer } = useContext(DataCtx);
 
-  // Find this user's own candidate profile
-  const me = candidates.find(c => c.candidateUid === user?.uid);
+  const { isImpersonating } = useContext(AuthCtx);
+  // Find this user's own candidate profile (also match by doc ID when admin impersonates a candidate without account)
+  const me = candidates.find(c => c.candidateUid === user?.uid)
+          || (isImpersonating ? candidates.find(c => c.id === user?.uid) : null);
 
   // Find matchmakers who manage this candidate
   const myMms = me
