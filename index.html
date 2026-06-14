@@ -3477,8 +3477,8 @@ function Home({ th, go }) {
         </div>
 
         {/* CANDIDATES preview — tabbed */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: 12 }}>
-          <div style={{ display: 'flex', gap: 4, background: alpha(th.ink, 0.07), borderRadius: 999, padding: 3 }}>
+        <div style={{ textAlign: 'right', marginBottom: 12 }}>
+          <div style={{ display: 'inline-flex', gap: 4, background: alpha(th.ink, 0.07), borderRadius: 999, padding: 3 }}>
             {[{ id:'others', label:t('home_tab_others') }, { id:'mine', label:t('home_tab_mine') }].map(tab => (
               <button key={tab.id} onClick={() => setCandTab(tab.id)} style={{ border:'none', cursor:'pointer', borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontWeight:700, fontSize:12.5, transition:'all 0.18s',
                 background: candTab === tab.id ? th.card : 'transparent',
