@@ -3028,6 +3028,15 @@ const DEFAULT_TEXTS = {
   invite_what_next_self: 'תתבקש/י למלא את הפרטים שלך ולהעלות תמונות. השדכן/ית יאשר/תאשר לפני פרסום.',
 };
 
+const SCREEN_TEXTS = {
+  onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
+  register:      ['register_title','register_sub'],
+  home:          ['home_greeting','home_waiting_title'],
+  ai:            ['ai_info_text'],
+  inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
+  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
+};
+
 // ════════════════════════════════════════════════════════════
 // SCREENS — use DataCtx instead of static globals
 // ════════════════════════════════════════════════════════════
@@ -6428,6 +6437,26 @@ function AppInner({ inviteToken }) {
   const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
   const cur  = stack[stack.length - 1];
 
+  // ── Edit mode (admin only) ──────────────────────────────────
+  const [editMode, setEditMode]     = React.useState(false);
+  const [drafts, setDrafts]         = React.useState({});
+  const [savingTexts, setSavingTexts] = React.useState(false);
+  const isAdmin      = profile?.isAdmin;
+  const screenKeys   = SCREEN_TEXTS[cur.name] || [];
+  const setDraft     = (key, val) => setDrafts(d => ({ ...d, [key]: val }));
+  const cancelEdit   = () => { setEditMode(false); setDrafts({}); };
+  React.useEffect(() => { setEditMode(false); setDrafts({}); }, [cur.name]);
+  const saveTexts = async () => {
+    const entries = Object.entries(drafts);
+    if (!entries.length) { setEditMode(false); return; }
+    setSavingTexts(true);
+    try {
+      for (const [key, val] of entries) await data.updateText(key, val);
+      setDrafts({}); setEditMode(false);
+    } catch(e) { alert('שגיאה בשמירה: ' + e.message); }
+    setSavingTexts(false);
+  };
+
   // Handle invite token: route to inviteLanding once profile is loaded
   React.useEffect(() => {
     if (!profile) return;
@@ -6470,7 +6499,8 @@ function AppInner({ inviteToken }) {
     [data.candidates, myUid]);
 
   return (
-    <>
+    <TextsCtx.Provider value={{ texts: { ...data.texts, ...drafts }, defaults: DEFAULT_TEXTS }}>
+      <>
       <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
           <ImpersonateBanner th={th} />
@@ -6478,6 +6508,39 @@ function AppInner({ inviteToken }) {
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
             : renderScreen(cur, th, go, profile)}
           {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
+
+          {/* Admin floating edit-mode button */}
+          {isAdmin && !data.loading && screenKeys.length > 0 && !editMode && (
+            <button onClick={() => setEditMode(true)} style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 16, zIndex: 40, border:'none', borderRadius:999, padding:'8px 14px', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:12.5, background:th.card, color:alpha(th.ink,0.6), display:'flex', alignItems:'center', gap:6, boxShadow:`0 2px 14px ${alpha(th.ink,0.13)}` }}>
+              <Icon name="pencil" size={14} />
+              עריכת טקסטים
+            </button>
+          )}
+
+          {/* Edit mode Sheet */}
+          <Sheet open={editMode} onClose={cancelEdit} th={th} title="עריכת טקסטים" height="82%">
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), marginBottom:18, lineHeight:1.5 }}>
+              השינויים מתעדכנים בזמן אמת במסך. לחץ/י שמור כדי לשמור לצמיתות.
+            </div>
+            {screenKeys.map(key => (
+              <div key={key} style={{ marginBottom:20 }}>
+                <div style={{ fontFamily:th.body, fontSize:11.5, color:th.gold, fontWeight:700, marginBottom:6 }}>{TEXT_KEYS[key]}</div>
+                <textarea
+                  value={drafts[key] !== undefined ? drafts[key] : (data.texts[key] || DEFAULT_TEXTS[key] || '')}
+                  onChange={e => setDraft(key, e.target.value)}
+                  rows={['body','desc','next','text'].some(s => key.includes(s)) ? 3 : 1}
+                  style={{ width:'100%', boxSizing:'border-box', borderRadius:8, border:`1.5px solid ${drafts[key] !== undefined ? th.primary : alpha(th.ink,0.15)}`, padding:'8px 10px', fontFamily:th.body, fontSize:14, resize:'vertical', outline:'none', direction:'rtl', background: drafts[key] !== undefined ? alpha(th.primary,0.03) : 'transparent' }}
+                />
+                {drafts[key] !== undefined && <div style={{ fontFamily:th.body, fontSize:11, color:th.primary, marginTop:3 }}>✎ שונה</div>}
+              </div>
+            ))}
+            <div style={{ display:'flex', gap:8, paddingTop:4 }}>
+              <Btn th={th} full disabled={savingTexts} onClick={saveTexts}>
+                {savingTexts ? 'שומר…' : Object.keys(drafts).length ? `שמור ${Object.keys(drafts).length} שינויים` : 'שמור'}
+              </Btn>
+              <Btn th={th} variant="ghost" onClick={cancelEdit}>ביטול</Btn>
+            </div>
+          </Sheet>
         </div>
       </div>
       <TweaksPanel title="Tweaks">
@@ -6491,7 +6554,8 @@ function AppInner({ inviteToken }) {
         <TweakRadio label="עיגול פינות" value={t.radius} options={['חד','רך','מעוגל']} onChange={v => setTweak('radius',v)} />
         <TweakRadio label="צפיפות" value={t.density} options={['קומפקטי','רגיל','מרווח']} onChange={v => setTweak('density',v)} />
       </TweaksPanel>
-    </>
+      </>
+    </TextsCtx.Provider>
   );
 }
 
@@ -6547,9 +6611,7 @@ function App() {
       startImpersonate, stopImpersonate,
     }}>
       <DataCtx.Provider value={data}>
-        <TextsCtx.Provider value={{ texts: data.texts, defaults: DEFAULT_TEXTS }}>
-          <AppInner inviteToken={inviteToken} />
-        </TextsCtx.Provider>
+        <AppInner inviteToken={inviteToken} />
       </DataCtx.Provider>
     </AuthCtx.Provider>
   );
