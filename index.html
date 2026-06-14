@@ -3857,6 +3857,7 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
           })()}
         </div>
         {false && c.mmId !== myUid && <div style={{ position: 'absolute', top: 8, left: 8 }}><Tag th={th} tone={th.gold} soft={false}>{(window.findMm(c.mmId).name || '—').split(' ')[0]}</Tag></div>}
+        {c.hidden && <div style={{ position:'absolute', top:8, left:8, background:'rgba(0,0,0,0.55)', backdropFilter:'blur(4px)', borderRadius:999, padding:'3px 8px', display:'flex', alignItems:'center', gap:4 }}><Icon name="eye" size={12} style={{ color:'rgba(255,255,255,0.75)' }} /><span style={{ fontFamily:'inherit', fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.85)' }}>מוסתר</span></div>}
         {c.photoCount > 1 && (
           <div style={{ position: 'absolute', bottom: 7, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4 }}>
             {Array.from({ length: c.photoCount }).map((_, i) => (
@@ -4581,9 +4582,11 @@ function CandidateDetail({ th, go, params }) {
   const [dotsOpen, setDotsOpen] = useSb(false);
   const [delStep, setDelStep] = useSb(null); // null | 'mine' | 'all'
   const [localAvailable, setLocalAvailable] = useSb(c?.available ?? true);
+  const [localHidden, setLocalHidden] = useSb(c?.hidden ?? false);
   const { user } = React.useContext(AuthCtx);
   const { updateCandidate, deleteCandidate } = React.useContext(DataCtx);
   useEd(() => { setLocalAvailable(c?.available ?? true); }, [c?.available]);
+  useEd(() => { setLocalHidden(c?.hidden ?? false); }, [c?.hidden]);
   const myUid = user?.uid;
   const variant = th.cardVariant;
   const isMine = c && (c.mmId === myUid || c.coMms?.includes(myUid));
@@ -4670,14 +4673,14 @@ function CandidateDetail({ th, go, params }) {
               </button>
 
               {/* ── Hide / Show ── */}
-              <button onClick={() => updateCandidate(c.id, { hidden: !c.hidden })}
-                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background:th.card, border:`1.5px solid ${alpha(th.ink,0.1)}`, borderRadius:th.r, padding:14 }}>
+              <button onClick={() => { const next = !localHidden; setLocalHidden(next); updateCandidate(c.id, { hidden: next }); }}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background: localHidden ? alpha(th.gold,0.08) : th.card, border:`1.5px solid ${localHidden ? alpha(th.gold,0.35) : alpha(th.ink,0.1)}`, borderRadius:th.r, padding:14 }}>
                 <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.gold,0.12), color:th.gold, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <Icon name={c.hidden ? 'eye' : 'eye'} size={22} />
+                  <Icon name="eye" size={22} />
                 </div>
                 <div>
-                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>{c.hidden ? 'הצג במאגר' : 'הסתר מהמאגר'}</div>
-                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>{c.hidden ? 'המועמד/ת יחזור/תחזור לרשימה הכללית' : 'לא יופיע/תופיע אצל שדכנים אחרים'}</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>{localHidden ? 'הצג במאגר' : 'הסתר מהמאגר'}</div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>{localHidden ? 'המועמד/ת יחזור/תחזור לרשימה הכללית' : 'לא יופיע/תופיע אצל שדכנים אחרים'}</div>
                 </div>
               </button>
 
@@ -4796,8 +4799,9 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete }) {
       <PhotoGallery c={c} th={th} height={360}>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 170, background: `linear-gradient(to top, ${alpha(th.ink, 0.74)}, transparent)`, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 50, right: 20, left: 20, color: '#fff', pointerEvents: 'none' }}>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{ marginBottom: 10, display:'flex', gap:6, flexWrap:'wrap' }}>
             <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.7)} soft={false}>{c.available ? 'פנוי/ה להצעות' : 'תפוס/ה'}</Tag>
+            {c.hidden && <Tag th={th} tone={th.gold} soft={false}><Icon name="eye" size={12} style={{ marginLeft:4 }} /> מוסתר משדכנים</Tag>}
           </div>
           <div style={{ fontFamily: th.display, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{c.name}, {c.age}</div>
           <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.92, marginTop: 4 }}>{c.region} · {c.religiosity}</div>
