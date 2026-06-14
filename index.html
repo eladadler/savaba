@@ -3000,8 +3000,24 @@ const TEXT_KEYS = {
   onb_slide2_body:  'אונבורדינג — גוף שקף 2',
   onb_slide3_title: 'אונבורדינג — כותרת שקף 3',
   onb_slide3_body:  'אונבורדינג — גוף שקף 3',
-  home_greeting:    'בית — ברכה',
-  home_waiting_title: 'בית — כותרת "מה מחכה"',
+  home_greeting:       'בית — ברכה',
+  home_waiting_title:  'בית — כותרת "מה מחכה"',
+  home_stat_cands:     'בית — כרטיסיית מועמדים פעילים',
+  home_stat_approved:  'בית — כרטיסיית שידוכים אושרו',
+  home_stat_offers:    'בית — כרטיסיית הצעות פעילות',
+  home_tab_others:     'בית — טאב קרוסלה: אחרים',
+  home_tab_mine:       'בית — טאב קרוסלה: שלי',
+  home_cta_title:      'בית — CTA כניסה ראשונה: כותרת',
+  home_cta_sub:        'בית — CTA כניסה ראשונה: תיאור',
+  home_cta_btn:        'בית — CTA כניסה ראשונה: כפתור',
+  home_ai_title:       'בית — כרטיסיית AI: כותרת',
+  home_ai_sub:         'בית — כרטיסיית AI: תיאור',
+  cands_title:         'מועמדים — כותרת מסך',
+  cands_count_suffix:  'מועמדים — סיומת ספירה',
+  cands_tab_mine:      'מועמדים — טאב: שלי',
+  cands_tab_all:       'מועמדים — טאב: שאר המאגר',
+  cands_search:        'מועמדים — placeholder חיפוש',
+  cands_add_btn:       'מועמדים — כפתור הוספה',
   ai_info_text:     'AI — טקסט הסבר',
   register_title:   'הרשמה — כותרת',
   register_sub:     'הרשמה — תת-כותרת',
@@ -3017,8 +3033,24 @@ const DEFAULT_TEXTS = {
   onb_slide2_body:  'כל הרווקים והרווקות שלך במקום אחד — מסודר, חי ונושם.',
   onb_slide3_title: 'AI מציע, את/ה מחליט/ה',
   onb_slide3_body:  'אפשר לשדך לבד, אפשר להיעזר ברובוט, העיקר שנזכה במצוות!',
-  home_greeting:    'מה קורה היום?',
+  home_greeting:      'מה קורה היום?',
   home_waiting_title: 'מה מחכה לך',
+  home_stat_cands:    'מועמדים פעילים',
+  home_stat_approved: 'שידוכים אושרו',
+  home_stat_offers:   'הצעות פעילות',
+  home_tab_others:    'מועמדים אחרים',
+  home_tab_mine:      'שלי',
+  home_cta_title:     'הוסף את המועמד/ת הראשון/ה',
+  home_cta_sub:       'בנה/י את המאגר שלך ותתחיל/י לשדך. זה לוקח פחות מדקה ✨',
+  home_cta_btn:       'הוסף עכשיו',
+  home_ai_title:      'גלה/י התאמות AI חדשות',
+  home_ai_sub:        'בדוק/י מי מתאים למי — הרובוט עבד בשבילך',
+  cands_title:        'מועמדים',
+  cands_count_suffix: 'ברשימה',
+  cands_tab_mine:     'שלי',
+  cands_tab_all:      'שאר המאגר',
+  cands_search:       'חיפוש מועמד…',
+  cands_add_btn:      'הוסף',
   ai_info_text:     'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
   register_title:   'נעים להכיר',
   register_sub:     'כמה פרטים ונצא לדרך',
@@ -3031,7 +3063,8 @@ const DEFAULT_TEXTS = {
 const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
   register:      ['register_title','register_sub'],
-  home:          ['home_greeting','home_waiting_title'],
+  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub'],
+  cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
   ai:            ['ai_info_text'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
@@ -3354,9 +3387,9 @@ function Home({ th, go }) {
 
   const myOffers = offers.filter(o => o.aMm === myUid || o.bMm === myUid);
   const stats = [
-    { n: mine.length,                                                                 label: 'מועמדים פעילים' },
-    { n: myOffers.filter(o => o.status === 'אושרה').length,                          label: 'שידוכים אושרו' },
-    { n: myOffers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה').length,  label: 'הצעות פעילות' },
+    { n: mine.length,                                                                 label: t('home_stat_cands') },
+    { n: myOffers.filter(o => o.status === 'אושרה').length,                          label: t('home_stat_approved') },
+    { n: myOffers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה').length,  label: t('home_stat_offers') },
   ];
 
   return (
@@ -3378,10 +3411,10 @@ function Home({ th, go }) {
               <Icon name="user-plus" size={32} style={{ color:'#fff' }} />
             </div>
             <div>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:19, color:th.ink, lineHeight:1.2, marginBottom:8 }}>הוסף את המועמד/ת הראשון/ה</div>
-              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55), lineHeight:1.55 }}>בנה/י את המאגר שלך ותתחיל/י לשדך. זה לוקח פחות מדקה ✨</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:19, color:th.ink, lineHeight:1.2, marginBottom:8 }}>{t('home_cta_title')}</div>
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55), lineHeight:1.55 }}>{t('home_cta_sub')}</div>
             </div>
-            <div style={{ background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, borderRadius:999, padding:'10px 30px', boxShadow:`0 6px 20px ${alpha(th.primary,0.38)}` }}>הוסף עכשיו</div>
+            <div style={{ background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, borderRadius:999, padding:'10px 30px', boxShadow:`0 6px 20px ${alpha(th.primary,0.38)}` }}>{t('home_cta_btn')}</div>
           </button>
         ) : lightPanel ? (
           /* ── Light / card style ── */
@@ -3447,7 +3480,7 @@ function Home({ th, go }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <button onClick={() => go('tab', { tab: 'cands' })} style={{ border: 'none', background: 'none', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: 13.5, cursor: 'pointer' }}>הכל</button>
           <div style={{ display: 'flex', gap: 4, background: alpha(th.ink, 0.07), borderRadius: 999, padding: 3 }}>
-            {[{ id:'others', label:'מועמדים אחרים' }, { id:'mine', label:'שלי' }].map(tab => (
+            {[{ id:'others', label:t('home_tab_others') }, { id:'mine', label:t('home_tab_mine') }].map(tab => (
               <button key={tab.id} onClick={() => setCandTab(tab.id)} style={{ border:'none', cursor:'pointer', borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontWeight:700, fontSize:12.5, transition:'all 0.18s',
                 background: candTab === tab.id ? th.card : 'transparent',
                 color: candTab === tab.id ? th.primary : alpha(th.ink, 0.5),
@@ -3487,8 +3520,8 @@ function Home({ th, go }) {
             <Icon name="spark" size={26} style={{ color:'#fff' }} fill="#fff" />
           </div>
           <div style={{ flex:1, textAlign:'right' }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, lineHeight:1.2 }}>גלה/י התאמות AI חדשות</div>
-            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.6), marginTop:4 }}>בדוק/י מי מתאים למי — הרובוט עבד בשבילך</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, lineHeight:1.2 }}>{t('home_ai_title')}</div>
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.6), marginTop:4 }}>{t('home_ai_sub')}</div>
           </div>
           <Icon name="chevron-left" size={20} style={{ color:th.gold, flexShrink:0 }} />
         </button>
@@ -3603,6 +3636,8 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
 function Candidates({ th, go, params }) {
   const { candidates, claimCandidate } = useContext(DataCtx);
   const { profile }    = useContext(AuthCtx);
+  const { texts: tx, defaults: dx } = useContext(TextsCtx);
+  const t = (key) => tx[key] || dx[key] || '';
   const [scope, setScope]       = useSb(params?.linkMode ? 'all' : 'mine'); // mine | all
   const [q, setQ]               = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
@@ -3653,11 +3688,11 @@ function Candidates({ th, go, params }) {
 
   return (
     <>
-      <AppHeader th={th} title="מועמדים" sub={`${list.length} ברשימה`} action={
+      <AppHeader th={th} title={t('cands_title')} sub={`${list.length} ${t('cands_count_suffix')}`} action={
         <div style={{ display:'flex', gap:8, alignItems:'center' }}>
           {/* add-candidate button */}
           <button onClick={() => setAddOpen(true)} style={{ border:'none', background:th.primary, height:38, borderRadius:999, paddingInline:14, display:'flex', alignItems:'center', gap:5, color:'#fff', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:13, boxShadow:`0 6px 18px ${alpha(th.primary,0.35)}`, whiteSpace:'nowrap' }}>
-            <Icon name="plus" size={15} /> הוסף
+            <Icon name="plus" size={15} /> {t('cands_add_btn')}
           </button>
           {/* invite tracker bell */}
           <button onClick={() => setInvOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
@@ -3672,7 +3707,7 @@ function Candidates({ th, go, params }) {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={19} /></span>
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder="חיפוש מועמד…" style={{ width: '100%', boxSizing: 'border-box', padding: '11px 40px 11px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14.5, background: th.card, outline: 'none', color: th.ink }} />
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('cands_search')} style={{ width: '100%', boxSizing: 'border-box', padding: '11px 40px 11px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14.5, background: th.card, outline: 'none', color: th.ink }} />
           </div>
           <button onClick={() => setFilterOpen(true)} style={{ position:'relative', border:'none', background: activeFilters > 0 ? alpha(th.primary, 0.1) : th.card, width:46, height:46, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color: activeFilters > 0 ? th.primary : th.ink, cursor:'pointer', flexShrink:0, boxShadow: activeFilters > 0 ? `0 0 0 1.5px ${alpha(th.primary,0.35)}, 0 2px 8px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.07)' }}>
             <Icon name="filter" size={21} />
@@ -3682,7 +3717,7 @@ function Candidates({ th, go, params }) {
 
         {/* scope toggle */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-          {[['mine', 'שלי'], ['all', 'שאר המאגר']].map(([id, lbl]) => (
+          {[['mine', t('cands_tab_mine')], ['all', t('cands_tab_all')]].map(([id, lbl]) => (
             <button key={id} onClick={() => { setScope(id); if (id === 'mine') setLinkMode(false); }} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: scope === id ? th.ink : th.card, color: scope === id ? th.cream : alpha(th.ink, 0.55), boxShadow: scope === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>{lbl}</button>
           ))}
         </div>
