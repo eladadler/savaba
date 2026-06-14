@@ -3704,6 +3704,7 @@ function Candidates({ th, go, params }) {
     if (scope === 'mine' && c.status === 'pending_mm') return false; // hidden until mm fills details
     if (scope === 'mine' && c.mmId !== myUid && !c.coMms?.includes(myUid)) return false;
     if (scope === 'all'  && (c.mmId === myUid || c.coMms?.includes(myUid))) return false;
+    if (scope === 'all'  && c.hidden) return false;
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
     if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
     if (filters.region && c.region !== filters.region) return false;
@@ -4534,7 +4535,9 @@ function CandidateDetail({ th, go, params }) {
   const c = findCand(params?.id) || CANDIDATES[0];
   const [showDiscrete, setShowDiscrete] = useSb(false);
   const [dotsOpen, setDotsOpen] = useSb(false);
+  const [delStep, setDelStep] = useSb(null); // null | 'mine' | 'all'
   const { user } = React.useContext(AuthCtx);
+  const { updateCandidate, deleteCandidate } = React.useContext(DataCtx);
   const myUid = user?.uid;
   const variant = th.cardVariant;
   const isMine = c && (c.mmId === myUid || c.coMms?.includes(myUid));
@@ -4558,18 +4561,108 @@ function CandidateDetail({ th, go, params }) {
         <button onClick={() => go('back')} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="back" size={20} /></button>
         <button onClick={() => setDotsOpen(true)} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="dots" size={20} /></button>
       </div>
-      <Sheet open={dotsOpen} onClose={() => setDotsOpen(false)} th={th} title={c.name}>
+      <Sheet open={dotsOpen} onClose={() => { setDotsOpen(false); setDelStep(null); }} th={th} title={c.name}>
         {isMine ? (
-          <button onClick={() => { setDotsOpen(false); go('editCand', { id: c.id }); }}
-            style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background:th.card, border:`1.5px solid ${alpha(th.ink,0.1)}`, borderRadius:th.r, padding:14 }}>
-            <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.primary,0.1), color:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <Icon name="edit" size={22} />
+          delStep ? (
+            /* ── Delete confirmation ── */
+            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+              <div style={{ background:alpha(th.error||'#e53e3e',0.08), border:`1.5px solid ${alpha(th.error||'#e53e3e',0.25)}`, borderRadius:th.r, padding:'14px 16px', textAlign:'center' }}>
+                <div style={{ fontSize:28, marginBottom:8 }}>⚠️</div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, marginBottom:6 }}>
+                  {delStep === 'mine' ? 'הסרה מהרשימה שלך' : 'מחיקה לצמיתות'}
+                </div>
+                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.65), lineHeight:1.55 }}>
+                  {delStep === 'mine'
+                    ? `${c.name} יוסר/תוסר מהרשימה שלך בלבד. שדכנים אחרים לא יושפעו.`
+                    : `${c.name} יימחק/תימחק לצמיתות מהמערכת אצל כולם. לא ניתן לשחזר.`}
+                </div>
+              </div>
+              <button onClick={async () => {
+                if (delStep === 'mine') {
+                  if (c.mmId === myUid) await deleteCandidate(c.id);
+                  else await updateCandidate(c.id, { coMms: firebase.firestore.FieldValue.arrayRemove(myUid) });
+                } else {
+                  await deleteCandidate(c.id);
+                }
+                setDotsOpen(false); setDelStep(null); go('back');
+              }} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', textAlign:'center', background:th.error||'#e53e3e', color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:15, borderRadius:th.r, padding:'13px 0' }}>
+                {delStep === 'mine' ? 'כן, הסר מהרשימה שלי' : 'כן, מחק לצמיתות'}
+              </button>
+              <button onClick={() => setDelStep(null)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', textAlign:'center', fontFamily:th.body, fontWeight:700, fontSize:14, color:alpha(th.ink,0.5), padding:'8px 0' }}>
+                ביטול
+              </button>
             </div>
-            <div>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>ערוך פרטים</div>
-              <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>עדכן/י שם, גיל, אישיות, תמונות ועוד</div>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {/* ── Availability toggle ── */}
+              <div style={{ display:'flex', alignItems:'center', gap:13, background:th.card, border:`1.5px solid ${alpha(th.ink,0.1)}`, borderRadius:th.r, padding:14 }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.success,0.1), color:th.success, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon name="heart" size={22} />
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>זמינות</div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>{c.available ? 'פנוי/ה להצעות' : 'לא פנוי/ה כרגע'}</div>
+                </div>
+                <button onClick={() => updateCandidate(c.id, { available: !c.available })}
+                  style={{ width:50, height:28, borderRadius:999, border:'none', cursor:'pointer', flexShrink:0, position:'relative',
+                    background: c.available ? th.success : alpha(th.ink,0.2), transition:'background 0.2s' }}>
+                  <div style={{ position:'absolute', top:3, width:22, height:22, borderRadius:'50%', background:'#fff', boxShadow:'0 1px 4px rgba(0,0,0,0.2)', transition:'left 0.2s',
+                    left: c.available ? 25 : 3 }} />
+                </button>
+              </div>
+
+              {/* ── Edit ── */}
+              <button onClick={() => { setDotsOpen(false); go('editCand', { id: c.id }); }}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background:th.card, border:`1.5px solid ${alpha(th.ink,0.1)}`, borderRadius:th.r, padding:14 }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.primary,0.1), color:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon name="edit" size={22} />
+                </div>
+                <div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>ערוך פרטים</div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>שם, גיל, אישיות, תמונות ועוד</div>
+                </div>
+              </button>
+
+              {/* ── Hide / Show ── */}
+              <button onClick={() => updateCandidate(c.id, { hidden: !c.hidden })}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background:th.card, border:`1.5px solid ${alpha(th.ink,0.1)}`, borderRadius:th.r, padding:14 }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.gold,0.12), color:th.gold, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon name={c.hidden ? 'eye' : 'eye'} size={22} />
+                </div>
+                <div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>{c.hidden ? 'הצג במאגר' : 'הסתר מהמאגר'}</div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>{c.hidden ? 'המועמד/ת יחזור/תחזור לרשימה הכללית' : 'לא יופיע/תופיע אצל שדכנים אחרים'}</div>
+                </div>
+              </button>
+
+              {/* ── Divider ── */}
+              <div style={{ height:1, background:alpha(th.ink,0.08), marginBlock:2 }} />
+
+              {/* ── Delete from my list ── */}
+              <button onClick={() => setDelStep('mine')}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background:alpha(th.error||'#e53e3e',0.05), border:`1.5px solid ${alpha(th.error||'#e53e3e',0.18)}`, borderRadius:th.r, padding:14 }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.error||'#e53e3e',0.1), color:th.error||'#e53e3e', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon name="x" size={22} />
+                </div>
+                <div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.error||'#e53e3e' }}>מחק מהרשימה שלי</div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>מסיר אצלך בלבד — לא משפיע על שדכנים אחרים</div>
+                </div>
+              </button>
+
+              {/* ── Delete everywhere ── */}
+              <button onClick={() => setDelStep('all')}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, background:alpha(th.error||'#e53e3e',0.05), border:`1.5px solid ${alpha(th.error||'#e53e3e',0.18)}`, borderRadius:th.r, padding:14 }}>
+                <div style={{ width:42, height:42, borderRadius:12, background:alpha(th.error||'#e53e3e',0.1), color:th.error||'#e53e3e', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon name="trash" size={22} />
+                </div>
+                <div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.error||'#e53e3e' }}>מחק לצמיתות</div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>מוחק אצל כל השדכנים — בלתי הפיך</div>
+                </div>
+              </button>
             </div>
-          </button>
+          )
         ) : (
           <div style={{ textAlign:'center', padding:'18px 0', fontFamily:th.body, color:alpha(th.ink,0.4), fontSize:14 }}>
             אין פעולות זמינות למועמד/ת זו
