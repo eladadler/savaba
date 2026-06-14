@@ -3038,7 +3038,7 @@ const DEFAULT_TEXTS = {
   home_stat_cands:    'מועמדים פעילים',
   home_stat_approved: 'שידוכים אושרו',
   home_stat_offers:   'הצעות פעילות',
-  home_tab_others:    'מועמדים אחרים',
+  home_tab_others:    'מועמדים של אחרים',
   home_tab_mine:      'שלי',
   home_cta_title:     'הוסף את המועמד/ת הראשון/ה',
   home_cta_sub:       'בנה/י את המאגר שלך ותתחיל/י לשדך. זה לוקח פחות מדקה ✨',
@@ -3477,8 +3477,7 @@ function Home({ th, go }) {
         </div>
 
         {/* CANDIDATES preview — tabbed */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <button onClick={() => go('tab', { tab: 'cands' })} style={{ border: 'none', background: 'none', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: 13.5, cursor: 'pointer' }}>הכל</button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 12 }}>
           <div style={{ display: 'flex', gap: 4, background: alpha(th.ink, 0.07), borderRadius: 999, padding: 3 }}>
             {[{ id:'others', label:t('home_tab_others') }, { id:'mine', label:t('home_tab_mine') }].map(tab => (
               <button key={tab.id} onClick={() => setCandTab(tab.id)} style={{ border:'none', cursor:'pointer', borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontWeight:700, fontSize:12.5, transition:'all 0.18s',
