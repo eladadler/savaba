@@ -1045,6 +1045,9 @@ function Icon({ name, size = 24, stroke = 2, style, fill = 'none' }) {
     eye: <><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></>,
     rose: <><path d="M12 13v8M12 13c-2.5 0-4-2-4-4.5 0-2 1.8-3.5 4-3.5s4 1.5 4 3.5C16 11 14.5 13 12 13Z"/><path d="M12 16c-2 0-3.5 1-3.5 1M12 16c2 0 3.5 1 3.5 1"/></>,
     robot: <><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 8V5M12 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/><circle cx="9.5" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 16h5"/></>,
+    mic: <><path d="M12 2.5a3.5 3.5 0 0 1 3.5 3.5v5a3.5 3.5 0 0 1-7 0V6A3.5 3.5 0 0 1 12 2.5Z" fill={fill}/><path d="M4.5 11a7.5 7.5 0 0 0 15 0M12 18.5V22M9 22h6"/></>,
+    play: <path d="M7 4.5l14 7.5-14 7.5V4.5Z" fill={fill}/>,
+    stop: <rect x="5" y="5" width="14" height="14" rx="2" fill={fill}/>,
   };
   return <svg {...p}>{paths[name] || null}</svg>;
 }
@@ -1213,6 +1216,13 @@ function useFirebaseData(uid) {
     return url;
   }, []);
 
+  const uploadVoice = useCallback(async (candidateId, blob) => {
+    const path = `candidates/${candidateId}/voice_${Date.now()}.webm`;
+    const ref  = storage.ref(path);
+    await ref.put(blob, { contentType: blob.type || 'audio/webm' });
+    return await ref.getDownloadURL();
+  }, []);
+
   const addOffer = useCallback((data) =>
     db.collection('offers').add({
       ...data,
@@ -1248,7 +1258,7 @@ function useFirebaseData(uid) {
   return {
     candidates, offers, matchmakers, texts, lists, notifications, loading,
     addCandidate, updateCandidate, deleteCandidate,
-    uploadPhoto, addOffer, updateOffer, updateText, setUserAdmin, updateList,
+    uploadPhoto, uploadVoice, addOffer, updateOffer, updateText, setUserAdmin, updateList,
     markNotificationRead, deleteNotification, approveCandidate, claimCandidate,
   };
 }
@@ -2500,7 +2510,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
 function AdminPanel({ th, go }) {
   const { profile, startImpersonate }  = useContext(AuthCtx);
   const { candidates, matchmakers, texts, lists, addCandidate, updateCandidate,
-          deleteCandidate, uploadPhoto, updateText, setUserAdmin, updateList } = useContext(DataCtx);
+          deleteCandidate, uploadPhoto, uploadVoice, updateText, setUserAdmin, updateList } = useContext(DataCtx);
   const [tab, setTab]         = useState('candidates');
   const [editCand, setEditCand] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null); // candidate id pending delete
@@ -2643,7 +2653,7 @@ function AdminPanel({ th, go }) {
               const CandRow = ({ c }) => (
                 <div key={c.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
                   {editCand === c.id
-                    ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); go('candidate', { id: c.id }); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} />
+                    ? <CandidateForm th={th} initial={c} onSave={async (data) => { await updateCandidate(c.id, data); setEditCand(null); go('candidate', { id: c.id }); }} onCancel={() => setEditCand(null)} onUpload={(file) => uploadPhoto(c.id, file)} onUploadVoice={(blob) => uploadVoice(c.id, blob)} />
                     : (
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -2816,7 +2826,7 @@ function AdminPanel({ th, go }) {
   );
 }
 
-function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
+function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice }) {
   const { lists } = useContext(DataCtx);
   const liveRegions       = (lists.regions      && lists.regions.length)      ? lists.regions      : REGIONS;
   const liveReligiosity   = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
@@ -2834,8 +2844,46 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState(initial?.photos || []);
 
+  const [voiceRecording, setVoiceRecording] = useState(false);
+  const [voiceRec, setVoiceRec] = useState(null);
+  const [voiceBlob, setVoiceBlob] = useState(null);
+  const [voiceUrl, setVoiceUrl] = useState(initial?.voiceNote || null);
+  const [voiceUploading, setVoiceUploading] = useState(false);
+  const voiceChunksRef = React.useRef([]);
+
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      voiceChunksRef.current = [];
+      const mr = new MediaRecorder(stream);
+      mr.ondataavailable = e => { if (e.data.size > 0) voiceChunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        const blob = new Blob(voiceChunksRef.current, { type: mr.mimeType || 'audio/webm' });
+        setVoiceBlob(blob);
+        stream.getTracks().forEach(t => t.stop());
+      };
+      mr.start();
+      setVoiceRec(mr);
+      setVoiceRecording(true);
+    } catch { alert('לא ניתן לגשת למיקרופון'); }
+  };
+
+  const stopVoiceRecording = () => {
+    if (voiceRec) { voiceRec.stop(); setVoiceRec(null); setVoiceRecording(false); }
+  };
+
+  const saveVoice = async () => {
+    if (!voiceBlob || !onUploadVoice) return;
+    setVoiceUploading(true);
+    try {
+      const url = await onUploadVoice(voiceBlob);
+      setVoiceUrl(url);
+      setVoiceBlob(null);
+    } finally { setVoiceUploading(false); }
+  };
+
   const steps = onUpload
-    ? ['פרטים בסיסיים', 'תמונות', 'אישיות', 'תחומי עניין', 'פרטים נוספים']
+    ? ['פרטים בסיסיים', 'תמונות', 'הקלטה קולית', 'אישיות', 'תחומי עניין', 'פרטים נוספים']
     : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', 'פרטים נוספים'];
 
   const isLast = step === steps.length - 1;
@@ -2967,6 +3015,45 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
         </div>
       )}
 
+      {stepName === 'הקלטה קולית' && (
+        <div style={{ textAlign:'center', padding:'8px 0' }}>
+          <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.6, marginBottom:20 }}>
+            הקלט/י כמה מילים על המועמד/ת<br/>
+            <span style={{ fontSize:12.5, opacity:0.8 }}>הקלטה מוסיפה אישיות — שדכנים אחרים ישמעו אותך</span>
+          </div>
+          {voiceUrl && (
+            <div style={{ marginBottom:16 }}>
+              <audio controls src={voiceUrl} style={{ width:'100%', maxWidth:340, borderRadius:8 }} />
+              <button onClick={() => { setVoiceUrl(null); setVoiceBlob(null); }}
+                style={{ fontFamily:th.body, fontSize:13, color:th.error, background:'none', border:'none', cursor:'pointer', fontWeight:700, marginTop:8 }}>
+                × הסר הקלטה
+              </button>
+            </div>
+          )}
+          {!voiceUrl && (
+            <>
+              <button
+                onClick={voiceRecording ? stopVoiceRecording : startVoiceRecording}
+                style={{ width:88, height:88, borderRadius:'50%', border:`3px solid ${voiceRecording ? th.error : th.primary}`, background:voiceRecording ? alpha(th.error,0.09) : alpha(th.primary,0.09), cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', transition:'all 0.2s', boxShadow:voiceRecording ? `0 0 0 10px ${alpha(th.error,0.1)}` : 'none' }}>
+                <Icon name={voiceRecording ? 'stop' : 'mic'} size={38} color={voiceRecording ? th.error : th.primary} fill={voiceRecording ? alpha(th.error,0.25) : alpha(th.primary,0.15)} />
+              </button>
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:voiceRecording ? th.error : alpha(th.ink,0.5), fontWeight:voiceRecording ? 700 : 400, marginBottom:14, transition:'color 0.2s' }}>
+                {voiceRecording ? '⏺ מקליט… לחץ/י להפסקה' : 'לחץ/י להתחיל הקלטה'}
+              </div>
+              {voiceBlob && !voiceRecording && (
+                <div>
+                  <audio controls src={URL.createObjectURL(voiceBlob)} style={{ width:'100%', maxWidth:340, borderRadius:8, marginBottom:12 }} />
+                  <button onClick={saveVoice} disabled={voiceUploading}
+                    style={{ background:th.primary, color:'#fff', border:'none', borderRadius:999, padding:'10px 28px', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:voiceUploading ? 'default' : 'pointer', opacity:voiceUploading ? 0.7 : 1 }}>
+                    {voiceUploading ? 'שומר…' : '✓ שמור הקלטה'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
       {stepName === 'אישיות' && (
         <>
           <Field th={th} label="סבבה והכל, אבל…" hint='למשל: "שואל את גוגל Maps כשהוא יודע בדיוק לאן הוא הולך"'>
@@ -3002,7 +3089,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
           : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
         }
         {isLast
-          ? <Btn th={th} full onClick={() => onSave({ ...f, ...(onUpload ? { photos } : {}) })}>שמור</Btn>
+          ? <Btn th={th} full onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}) })}>שמור</Btn>
           : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
         }
       </div>
@@ -4477,7 +4564,7 @@ function CandidateSelfFill({ th, go, params }) {
 // EDIT CANDIDATE SCREEN — matchmaker edits after invite accepted
 // ════════════════════════════════════════════════════════════
 function EditCandidateScreen({ th, go, params }) {
-  const { candidates, updateCandidate, uploadPhoto, approveCandidate } = useContext(DataCtx);
+  const { candidates, updateCandidate, uploadPhoto, uploadVoice, approveCandidate } = useContext(DataCtx);
   const c = candidates.find(x => x.id === params?.id);
   if (!c) return (
     <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
@@ -4514,7 +4601,7 @@ function EditCandidateScreen({ th, go, params }) {
             go('back');
           }}
           onCancel={() => go('back')}
-          onUpload={(file) => uploadPhoto(c.id, file)} />
+          onUpload={(file) => uploadPhoto(c.id, file)} onUploadVoice={(blob) => uploadVoice(c.id, blob)} />
         {c.pendingApproval && (
           <Btn th={th} full variant="success" style={{ marginTop:14 }}
             onClick={async () => { await approveCandidate(c.id); go('back'); }}>
@@ -4916,6 +5003,31 @@ function infoPairs(c) {
 }
 
 // ── VARIANT 1 — קלאסי (warm, friendly) ─────────────────────────
+function VoiceNotePlayer({ url, th }) {
+  const [playing, setPlaying] = useState(false);
+  const audioRef = React.useRef(null);
+  if (!url) return null;
+  const toggle = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (playing) { a.pause(); setPlaying(false); }
+    else { a.play().catch(() => {}); setPlaying(true); }
+  };
+  return (
+    <div onClick={toggle} style={{ display:'flex', alignItems:'center', gap:12, background:alpha(th.primary,0.08), borderRadius:th.r, padding:'12px 16px', marginBottom:12, cursor:'pointer', border:`1.5px solid ${alpha(th.primary,0.15)}` }}>
+      <audio ref={audioRef} src={url} onEnded={() => setPlaying(false)} />
+      <button onClick={e => { e.stopPropagation(); toggle(); }}
+        style={{ width:44, height:44, borderRadius:'50%', border:'none', background:playing ? th.primary : alpha(th.primary,0.15), cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'background 0.2s' }}>
+        <Icon name={playing ? 'stop' : 'play'} size={20} color={playing ? '#fff' : th.primary} fill={playing ? '#fff' : alpha(th.primary,0.6)} />
+      </button>
+      <div>
+        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>🎙️ הקלטת השדכן/ית</div>
+        <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5), marginTop:2 }}>{playing ? 'מושמע…' : 'לחץ/י להאזנה'}</div>
+      </div>
+    </div>
+  );
+}
+
 function ClassicBody({ c, th, showDiscrete, setShowDiscrete }) {
   const Section = ({ label, children, icon }) => (
     <div style={{ background: th.card, borderRadius: th.r, padding: 16, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
@@ -4950,6 +5062,8 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete }) {
       <div style={{ padding: '0 16px 24px', marginTop: -28, position: 'relative' }}>
         {/* the saba badge overlaps the hero */}
         <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={c.sabaBut} size="l" /></div>
+
+        {c.voiceNote && <VoiceNotePlayer url={c.voiceNote} th={th} />}
 
         <Section label="במשפט אחד" icon="user">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p>
@@ -4988,6 +5102,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete }) {
           <div style={{ fontFamily: th.display, fontSize: 24, color: th.ink, lineHeight: 1.3, position: 'relative', textWrap: 'pretty' }}>{c.sabaBut}</div>
           <div style={{ fontFamily: th.body, fontSize: 13.5, color: th.gold, fontWeight: 700, marginTop: 12 }}>— סבבה והכל, אבל…</div>
         </div>
+        {c.voiceNote && <div style={{ marginTop:20 }}><VoiceNotePlayer url={c.voiceNote} th={th} /></div>}
         <Rule />
         <Label>במשפט אחד</Label>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p>
@@ -5048,6 +5163,8 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete }) {
           <div style={{ fontFamily: th.display, fontSize: 16, color: th.ink, lineHeight: 1.25 }}>{c.sabaBut}</div>
         </div>
       </div>
+
+      {c.voiceNote && <div style={{ marginTop:12 }}><VoiceNotePlayer url={c.voiceNote} th={th} /></div>}
 
       <Block label="במשפט אחד"><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
       <Hr />
