@@ -4595,6 +4595,7 @@ function CandidateDetail({ th, go, params }) {
   const myUid = user?.uid;
   const variant = th.cardVariant;
   const isMine = c && (c.mmId === myUid || c.coMms?.includes(myUid));
+  const cView = { ...c, hidden: localHidden, available: localAvailable };
 
   const footer = (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
@@ -4604,9 +4605,9 @@ function CandidateDetail({ th, go, params }) {
   );
 
   const body =
-    variant === 'מגזין' ? <MagBody c={c} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
-    : variant === 'מינימלי' ? <MinBody c={c} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
-    : <ClassicBody c={c} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />;
+    variant === 'מגזין' ? <MagBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
+    : variant === 'מינימלי' ? <MinBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
+    : <ClassicBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, position: 'relative' }}>
