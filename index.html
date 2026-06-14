@@ -2852,6 +2852,17 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
   const [voiceUploading, setVoiceUploading] = useState(false);
   const voiceChunksRef = React.useRef([]);
 
+  useEffect(() => {
+    if (!voiceBlob || !onUploadVoice) return;
+    let canceled = false;
+    setVoiceUploading(true);
+    onUploadVoice(voiceBlob)
+      .then(url => { if (!canceled) { setVoiceUrl(url); setVoiceBlob(null); } })
+      .catch(() => { if (!canceled) alert('שגיאה בהעלאת ההקלטה — נסה/י שוב'); })
+      .finally(() => { if (!canceled) setVoiceUploading(false); });
+    return () => { canceled = true; };
+  }, [voiceBlob]);
+
   const startVoiceRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -2871,16 +2882,6 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
 
   const stopVoiceRecording = () => {
     if (voiceRec) { voiceRec.stop(); setVoiceRec(null); setVoiceRecording(false); }
-  };
-
-  const saveVoice = async () => {
-    if (!voiceBlob || !onUploadVoice) return;
-    setVoiceUploading(true);
-    try {
-      const url = await onUploadVoice(voiceBlob);
-      setVoiceUrl(url);
-      setVoiceBlob(null);
-    } finally { setVoiceUploading(false); }
   };
 
   const steps = onUpload
@@ -3022,16 +3023,25 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
             הקלט/י כמה מילים על המועמד/ת<br/>
             <span style={{ fontSize:12.5, opacity:0.8 }}>הקלטה מוסיפה אישיות — שדכנים אחרים ישמעו אותך</span>
           </div>
+
           {voiceUrl && (
             <div style={{ marginBottom:16 }}>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary, marginBottom:10 }}>✓ ההקלטה נשמרה</div>
               <audio controls src={voiceUrl} style={{ width:'100%', maxWidth:340, borderRadius:8 }} />
               <button onClick={() => { setVoiceUrl(null); setVoiceBlob(null); }}
-                style={{ fontFamily:th.body, fontSize:13, color:th.error, background:'none', border:'none', cursor:'pointer', fontWeight:700, marginTop:8 }}>
-                × הסר הקלטה
+                style={{ fontFamily:th.body, fontSize:13, color:th.error, background:'none', border:'none', cursor:'pointer', fontWeight:700, marginTop:10 }}>
+                × הסר והקלט מחדש
               </button>
             </div>
           )}
-          {!voiceUrl && (
+
+          {voiceUploading && (
+            <div style={{ fontFamily:th.body, fontSize:14, color:th.primary, margin:'20px 0' }}>
+              ⏳ שומר הקלטה…
+            </div>
+          )}
+
+          {!voiceUrl && !voiceUploading && (
             <>
               <button
                 onClick={voiceRecording ? stopVoiceRecording : startVoiceRecording}
@@ -3041,15 +3051,6 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
               <div style={{ fontFamily:th.body, fontSize:13.5, color:voiceRecording ? th.error : alpha(th.ink,0.5), fontWeight:voiceRecording ? 700 : 400, marginBottom:14, transition:'color 0.2s' }}>
                 {voiceRecording ? '⏺ מקליט… לחץ/י להפסקה' : 'לחץ/י להתחיל הקלטה'}
               </div>
-              {voiceBlob && !voiceRecording && (
-                <div>
-                  <audio controls src={URL.createObjectURL(voiceBlob)} style={{ width:'100%', maxWidth:340, borderRadius:8, marginBottom:12 }} />
-                  <button onClick={saveVoice} disabled={voiceUploading}
-                    style={{ background:th.primary, color:'#fff', border:'none', borderRadius:999, padding:'10px 28px', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:voiceUploading ? 'default' : 'pointer', opacity:voiceUploading ? 0.7 : 1 }}>
-                    {voiceUploading ? 'שומר…' : '✓ שמור הקלטה'}
-                  </button>
-                </div>
-              )}
             </>
           )}
         </div>
