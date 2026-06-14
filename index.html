@@ -4580,8 +4580,10 @@ function CandidateDetail({ th, go, params }) {
   const [showDiscrete, setShowDiscrete] = useSb(false);
   const [dotsOpen, setDotsOpen] = useSb(false);
   const [delStep, setDelStep] = useSb(null); // null | 'mine' | 'all'
+  const [localAvailable, setLocalAvailable] = useSb(c?.available ?? true);
   const { user } = React.useContext(AuthCtx);
   const { updateCandidate, deleteCandidate } = React.useContext(DataCtx);
+  useEd(() => { setLocalAvailable(c?.available ?? true); }, [c?.available]);
   const myUid = user?.uid;
   const variant = th.cardVariant;
   const isMine = c && (c.mmId === myUid || c.coMms?.includes(myUid));
@@ -4645,13 +4647,13 @@ function CandidateDetail({ th, go, params }) {
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink }}>זמינות</div>
-                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>{c.available ? 'פנוי/ה להצעות' : 'לא פנוי/ה כרגע'}</div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:2 }}>{localAvailable ? 'פנוי/ה להצעות' : 'לא פנוי/ה כרגע'}</div>
                 </div>
-                <button onClick={() => updateCandidate(c.id, { available: !c.available })}
+                <button onClick={() => { const next = !localAvailable; setLocalAvailable(next); updateCandidate(c.id, { available: next }); }}
                   style={{ width:50, height:28, borderRadius:999, border:'none', cursor:'pointer', flexShrink:0, position:'relative',
-                    background: c.available ? th.success : alpha(th.ink,0.2), transition:'background 0.2s' }}>
+                    background: localAvailable ? th.success : alpha(th.ink,0.2), transition:'background 0.2s' }}>
                   <div style={{ position:'absolute', top:3, width:22, height:22, borderRadius:'50%', background:'#fff', boxShadow:'0 1px 4px rgba(0,0,0,0.2)', transition:'left 0.2s',
-                    left: c.available ? 25 : 3 }} />
+                    left: localAvailable ? 25 : 3 }} />
                 </button>
               </div>
 
