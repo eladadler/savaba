@@ -3588,6 +3588,7 @@ const { useState: useSb, useMemo: useMb } = React;
 function InvitationsSheet({ open, onClose, th, mmUid, go }) {
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [coRepReqs, setCoRepReqs] = useState([]);
 
   useEffect(() => {
     if (!open || !mmUid) return;
@@ -3602,11 +3603,58 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
       .finally(() => setLoading(false));
   }, [open, mmUid]);
 
+  useEffect(() => {
+    if (!open || !mmUid) return;
+    return db.collection('coRepRequests')
+      .where('toMmId', '==', mmUid)
+      .where('status', '==', 'pending')
+      .onSnapshot(s => setCoRepReqs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+  }, [open, mmUid]);
+
+  const approveCoRepMM = async (req) => {
+    await db.collection('candidates').doc(req.candId)
+      .update({ coMms: firebase.firestore.FieldValue.arrayUnion(req.fromMmId) });
+    await db.collection('coRepRequests').doc(req.id)
+      .update({ status: 'accepted', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await db.collection('notifications').add({
+      toUid: req.fromMmId, type: 'corep_approved',
+      candId: req.candId, candName: req.candName,
+      read: false, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  };
+
+  const declineCoRepMM = async (req) => {
+    await db.collection('coRepRequests').doc(req.id)
+      .update({ status: 'declined', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  };
+
   const pending   = invites.filter(i => i.status === 'pending').length;
   const accepted  = invites.filter(i => i.status === 'accepted' || i.status === 'filled').length;
 
   return (
     <Sheet open={open} onClose={onClose} th={th} title="מעקב הזמנות">
+      {/* co-rep requests from other shadchanim */}
+      {coRepReqs.length > 0 && (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 10 }}>
+            🤝 בקשות ייצוג משותף
+          </div>
+          {coRepReqs.map(req => (
+            <div key={req.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, border: `1.5px solid ${alpha(th.primary, 0.2)}`, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 2 }}>
+                {req.fromMmName} מבקש/ת לייצג את {req.candName}
+              </div>
+              <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), marginBottom: 12 }}>
+                אישור יאפשר לשדכן/ית הזה/ה להציע את {req.candName} לשידוכים גם מטעמו/ה
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => approveCoRepMM(req)} style={{ flex: 1, padding: '9px 0', borderRadius: th.rSm, border: 'none', background: th.success, color: '#fff', fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>✓ אשר/י</button>
+                <button onClick={() => declineCoRepMM(req)} style={{ flex: 1, padding: '9px 0', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.error || '#e53e3e', 0.3)}`, background: alpha(th.error || '#e53e3e', 0.08), color: th.error || '#e53e3e', fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>✗ דחה/י</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {/* summary row */}
       {invites.length > 0 && (
         <div style={{ display:'flex', gap:8, marginBottom:14 }}>
@@ -3692,6 +3740,7 @@ function Candidates({ th, go, params }) {
   const [addOpen, setAddOpen]   = useSb(params?.autoAdd === true);
   const [invOpen, setInvOpen]   = useSb(false);
   const [pendingCount, setPendingCount] = useSb(0);
+  const [coRepPending, setCoRepPending] = useSb(0);
   const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45, maritalStatus: [], hasChildren: '', childrenMin: 1 });
   const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
   const [sentRequests, setSentRequests] = useSb(new Set());
@@ -3714,6 +3763,15 @@ function Candidates({ th, go, params }) {
     if (!myUid) return;
     db.collection('invitations').where('mmId','==',myUid).where('status','==','pending').get()
       .then(s => setPendingCount(s.size)).catch(() => {});
+  }, [myUid]);
+
+  // live count of incoming co-rep requests (other shadchanim asking to join my candidates)
+  useEd(() => {
+    if (!myUid) return;
+    return db.collection('coRepRequests')
+      .where('toMmId', '==', myUid)
+      .where('status', '==', 'pending')
+      .onSnapshot(s => setCoRepPending(s.size));
   }, [myUid]);
 
   const list = useMb(() => candidates.filter(c => {
@@ -3749,7 +3807,7 @@ function Candidates({ th, go, params }) {
           {/* invite tracker bell */}
           <button onClick={() => setInvOpen(true)} style={{ position:'relative', border:'none', background:th.card, width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color:th.ink, cursor:'pointer', boxShadow:'0 2px 8px rgba(0,0,0,0.07)' }}>
             <Icon name="bell" size={21} />
-            {pendingCount > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.gold, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{pendingCount}</span>}
+            {(pendingCount + coRepPending) > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.gold, color:'#fff', borderRadius:'50%', minWidth:18, height:18, fontSize:11, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 4px' }}>{pendingCount + coRepPending}</span>}
           </button>
         </div>
       } />
@@ -3814,10 +3872,16 @@ function Candidates({ th, go, params }) {
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                   });
                 } else {
-                  // matchmaker-managed candidate → claim directly (no one to approve)
-                  await claimCandidate(c.id);
-                  setScope('mine');
-                  setLinkMode(false);
+                  // matchmaker-managed candidate → send request to primary shadchan for approval
+                  await db.collection('coRepRequests').add({
+                    fromMmId: myUid,
+                    fromMmName: profile?.displayName || 'שדכן/ית',
+                    toMmId: c.mmId,
+                    candId: c.id,
+                    candName: c.name,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  });
                 }
                 setSentRequests(prev => new Set([...prev, c.id]));
               }}
@@ -3888,10 +3952,8 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
             fontFamily: th.display, fontWeight: 800, fontSize: 12,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
           {requestSent
-            ? <><Icon name="check" size={12} /> {c.candidateUid ? 'נשלחה בקשה' : 'נוסף!'}</>
-            : c.candidateUid
-              ? <><Icon name="plus" size={12} /> שלח/י בקשת ייצוג</>
-              : <><Icon name="plus" size={12} /> הוסף לרשימה שלי</>}
+            ? <><Icon name="check" size={12} /> נשלחה בקשת ייצוג</>
+            : <><Icon name="plus" size={12} /> שלח/י בקשת ייצוג</>}
         </button>
       )}
     </button>
