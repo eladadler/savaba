@@ -3365,12 +3365,9 @@ function Home({ th, go }) {
           /* ── Light / card style ── */
           <div style={{ background: th.card, borderRadius: th.rLg, padding: '16px 18px 8px', marginBottom: 18, boxShadow: `0 6px 24px ${alpha(th.ink, 0.08)}` }}>
             {/* title row */}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 12 }}>
-              <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.4), fontWeight: 500 }}>היום</span>
-              <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink }}>{t('home_waiting_title')}</span>
-                <span style={{ fontSize: 17 }}>💛</span>
-              </div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-start', gap: 6, marginBottom: 12 }}>
+              <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink }}>{t('home_waiting_title')}</span>
+              <span style={{ fontSize: 17 }}>💛</span>
             </div>
             <div style={{ height: 1, background: alpha(th.ink, 0.07), marginBottom: 4 }} />
             {/* items — or all-clear state */}
