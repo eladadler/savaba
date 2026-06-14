@@ -3831,9 +3831,15 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
           ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: isSquare ? 'center 20%' : 'center' }} />
           : <span style={{ fontFamily: th.display, fontSize: isSquare ? 56 : 44, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>}
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
-          <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)} soft={false}>{c.available ? 'פנוי/ה' : 'תפוס/ה'}</Tag>
+          {(() => {
+            const isFemale = c.gender === 'f' || c.gender === 'אשה';
+            const isMale   = c.gender === 'm' || c.gender === 'גבר';
+            const avail  = isFemale ? 'פנויה'  : isMale ? 'פנוי'  : 'פנוי/ה';
+            const taken  = isFemale ? 'תפוסה'  : isMale ? 'תפוס'  : 'תפוס/ה';
+            return <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)} soft={false}>{c.available ? avail : taken}</Tag>;
+          })()}
         </div>
-        {c.mmId !== myUid && <div style={{ position: 'absolute', top: 8, left: 8 }}><Tag th={th} tone={th.gold} soft={false}>{(window.findMm(c.mmId).name || '—').split(' ')[0]}</Tag></div>}
+        {false && c.mmId !== myUid && <div style={{ position: 'absolute', top: 8, left: 8 }}><Tag th={th} tone={th.gold} soft={false}>{(window.findMm(c.mmId).name || '—').split(' ')[0]}</Tag></div>}
         {c.photoCount > 1 && (
           <div style={{ position: 'absolute', bottom: 7, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4 }}>
             {Array.from({ length: c.photoCount }).map((_, i) => (
