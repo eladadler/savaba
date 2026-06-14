@@ -3367,6 +3367,18 @@ function Home({ th, go }) {
     notifications.filter(n => n.type === 'corep_approved' && !n.read),
     [notifications]);
 
+  // 3b. Unread message notifications — grouped by chatId
+  const newMsgNotifs = React.useMemo(() =>
+    notifications.filter(n => n.type === 'new_msg' && !n.read),
+    [notifications]);
+  const newMsgChats = React.useMemo(() => Object.values(
+    newMsgNotifs.reduce((acc, n) => {
+      if (!acc[n.chatId] || (n.createdAt?.seconds || 0) > (acc[n.chatId].createdAt?.seconds || 0))
+        acc[n.chatId] = n;
+      return acc;
+    }, {})
+  ), [newMsgNotifs]);
+
   // 3. My offers where both MMs approved but a candidate hasn't responded yet
   const offersAwaitingCand = React.useMemo(() =>
     offers.filter(o =>
@@ -3399,6 +3411,17 @@ function Home({ th, go }) {
         ? `${coRepApprovedNotifs[0].candName} אישר/ה שתייצג אותו/ה`
         : `${coRepApprovedNotifs.length} מועמדים אישרו ייצוג שלך`,
       to: () => { coRepApprovedNotifs.forEach(n => markNotificationRead(n.id)); go('cands'); },
+    },
+    newMsgChats.length > 0 && {
+      icon: 'chat', tone: th.primary, big: String(newMsgNotifs.length),
+      text: newMsgChats.length === 1
+        ? `הודעה חדשה על ${newMsgChats[0].candName} מ-${newMsgChats[0].fromMmName}`
+        : `${newMsgChats.length} שיחות עם הודעות חדשות`,
+      to: () => {
+        const first = newMsgChats[0];
+        newMsgNotifs.filter(n => n.chatId === first.chatId).forEach(n => markNotificationRead(n.id));
+        go('candInquiry', { candId: first.candId, toMm: first.fromMmId });
+      },
     },
   ].filter(Boolean);
 
