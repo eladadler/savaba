@@ -2826,7 +2826,12 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload }) {
   const livePartnerTraits = (lists.partnerTraits && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
 
   const [step, setStep] = useState(0);
-  const [f, setF] = useState(initial || { name:'', age:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true });
+  const normFamily = (v) => v?.includes('גרוש') ? 'גרוש/ה' : v?.includes('אלמן') || v?.includes('אלמנ') ? 'אלמן/ה' : 'רווק/ה';
+  const [f, setF] = useState(() => {
+    const base = initial || { name:'', age:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true };
+    const fam = base.family || '';
+    return { ...base, family: ['רווק/ה','גרוש/ה','אלמן/ה'].includes(fam) ? fam : normFamily(fam), kids: base.kids || 0 };
+  });
   const set = (k) => (v) => setF(s => ({ ...s, [k]: v }));
   const [uploading, setUploading] = useState(false);
   const [photos, setPhotos] = useState(initial?.photos || []);
