@@ -4516,6 +4516,17 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
   const candNotifs = notifications.filter(n => ['invite_accepted','cand_filled','corep_approved'].includes(n.type));
   const unreadCand = candNotifs.filter(n => !n.read).length;
 
+  // Message notifications — grouped by chatId, one card per conversation
+  const msgNotifs = notifications.filter(n => n.type === 'new_msg');
+  const msgByChatId = Object.values(
+    msgNotifs.reduce((acc, n) => {
+      if (!acc[n.chatId] || (n.createdAt?.seconds || 0) > (acc[n.chatId].createdAt?.seconds || 0))
+        acc[n.chatId] = n;
+      return acc;
+    }, {})
+  );
+  const unreadMsg = msgNotifs.filter(n => !n.read).length;
+
   // Offers where I'm the receiver and haven't responded yet
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id||'x'), photos:[] };
   const findM = id => { const mm = matchmakers?.[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName||mm.name||'—' }; };
@@ -4523,14 +4534,17 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
     (offers||[]).filter(o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה'),
     [offers, myUid]);
 
-  const totalUnread = unreadCand + offersNeedingMe.length;
+  const totalUnread = unreadCand + offersNeedingMe.length + unreadMsg;
 
   const goToCands = () => {
     candNotifs.filter(n => !n.read).forEach(n => markNotificationRead(n.id));
     setOpen(false);
     go('cands');
   };
-  const deleteAll = () => candNotifs.forEach(n => deleteNotification(n.id));
+  const deleteAll = () => {
+    candNotifs.forEach(n => deleteNotification(n.id));
+    msgNotifs.forEach(n => deleteNotification(n.id));
+  };
 
   return (
     <>
@@ -4543,14 +4557,14 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
       <Sheet open={open} onClose={() => setOpen(false)} th={th} title={
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%' }}>
           <span>התראות</span>
-          {candNotifs.length > 0 && (
+          {(candNotifs.length > 0 || msgNotifs.length > 0) && (
             <button onClick={deleteAll} style={{ border:'none', background:alpha(th.error,0.08), color:th.error, borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontSize:12, fontWeight:600, cursor:'pointer' }}>
               נקה הכל
             </button>
           )}
         </div>
       }>
-        {offersNeedingMe.length === 0 && candNotifs.length === 0 && (
+        {offersNeedingMe.length === 0 && candNotifs.length === 0 && msgByChatId.length === 0 && (
           <div style={{ textAlign:'center', fontFamily:th.body, color:alpha(th.ink,0.4), padding:'24px 0' }}>אין התראות</div>
         )}
 
@@ -4573,6 +4587,37 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
               <button onClick={() => { setOpen(false); go('offerDetail', { id: o.id }); }}
                 style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'block', width:'100%', padding:'9px 14px', background:alpha(th.primary,0.09), borderTop:`1px solid ${alpha(th.primary,0.12)}`, fontFamily:th.display, fontWeight:800, fontSize:12.5, color:th.primary, textAlign:'right' }}>
                 צפה בהצעה ←
+              </button>
+            </div>
+          );
+        })}
+
+        {/* ── Message notifications (one card per conversation) ── */}
+        {msgByChatId.map(n => {
+          const unreadInChat = msgNotifs.filter(m => m.chatId === n.chatId && !m.read).length;
+          const markChat = () => msgNotifs.filter(m => m.chatId === n.chatId).forEach(m => markNotificationRead(m.id));
+          const openChat = () => { markChat(); setOpen(false); go('candInquiry', { candId: n.candId, toMm: n.fromMmId }); };
+          return (
+            <div key={n.chatId} style={{ borderRadius:th.r, marginBottom:8, overflow:'hidden',
+              background: unreadInChat > 0 ? alpha(th.primary,0.07) : th.card,
+              border:`1.5px solid ${unreadInChat > 0 ? alpha(th.primary,0.18) : 'transparent'}` }}>
+              <button onClick={openChat}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', padding:'12px 14px', display:'block', textAlign:'right' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>
+                      💬 הודעה חדשה על {n.candName}
+                    </div>
+                    <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6) }}>מ-{n.fromMmName}</div>
+                  </div>
+                  {unreadInChat > 0 && (
+                    <span style={{ background:th.primary, color:'#fff', borderRadius:99, minWidth:22, height:22, fontSize:12, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 5px', flexShrink:0 }}>{unreadInChat}</span>
+                  )}
+                </div>
+              </button>
+              <button onClick={openChat}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'block', width:'100%', padding:'9px 14px', background:alpha(th.primary,0.09), borderTop:`1px solid ${alpha(th.primary,0.12)}`, fontFamily:th.display, fontWeight:800, fontSize:12.5, color:th.primary, textAlign:'right' }}>
+                עבור/י לשיחה ←
               </button>
             </div>
           );
@@ -4659,7 +4704,6 @@ function CandidateDetail({ th, go, params }) {
 
   const footer = (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
-      <button onClick={() => {}} style={{ width: 52, borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.15)}`, background: th.card, color: th.success, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}><Icon name="whatsapp" size={24} /></button>
       <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>שדך/י את {c.name}</Btn>
     </div>
   );
@@ -4786,8 +4830,8 @@ function CandidateDetail({ th, go, params }) {
       </Sheet>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {body}
-        {/* Matchmaker section — only for other matchmakers' candidates */}
-        {c.mmId && c.mmId !== myUid && (() => {
+        {/* Matchmaker section — only for candidates not in my list */}
+        {c.mmId && !isMine && (() => {
           const mm = window.findMm(c.mmId);
           return (
             <div style={{ padding: '0 16px 28px', background: th.cream }}>
@@ -5991,7 +6035,7 @@ function AIRecs({ th, go }) {
 // ════════════════════════════════════════════════════════════
 function CandInquiry({ th, go, params }) {
   const { candidates, matchmakers } = useContext(DataCtx);
-  const { user } = useContext(AuthCtx);
+  const { user, profile } = useContext(AuthCtx);
   const myUid   = user?.uid;
   const candId  = params?.candId;
   const toMmId  = params?.toMm;
@@ -6033,6 +6077,17 @@ function CandInquiry({ th, go, params }) {
         lastMsg: msgText,
         messages: firebase.firestore.FieldValue.arrayUnion({ from: myUid, text: msgText, at: Date.now() }),
       }, { merge: true });
+      await db.collection('notifications').add({
+        toUid: toMmId,
+        type: 'new_msg',
+        fromMmId: myUid,
+        fromMmName: profile?.displayName || 'שדכן/ית',
+        candId,
+        candName: c.name,
+        chatId,
+        read: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
     } catch(e) { console.error(e); }
     setSending(false);
   };
