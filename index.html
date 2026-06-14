@@ -3398,7 +3398,7 @@ function Home({ th, go }) {
         <Avatar grad={gradForId(me.uid||'me')} name={me.displayName||me.email||''} size={46} photo={me.photoURL} />
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום {(me.displayName||'').split(' ')[0]},</div>
-          <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>{t('home_greeting')}</div>
+          <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>{mine.length === 0 ? 'ברוכים הבאים!' : t('home_greeting')}</div>
         </div>
         <NotificationDrawer th={th} go={go} notifications={notifications} markNotificationRead={markNotificationRead} deleteNotification={deleteNotification} />
       </div>
