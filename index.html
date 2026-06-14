@@ -3414,7 +3414,6 @@ function Home({ th, go }) {
           <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום {(me.displayName||'').split(' ')[0]},</div>
           <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>{mine.length === 0 ? 'ברוכים הבאים!' : t('home_greeting')}</div>
         </div>
-        <NotificationDrawer th={th} go={go} notifications={notifications} markNotificationRead={markNotificationRead} deleteNotification={deleteNotification} />
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
