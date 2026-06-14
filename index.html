@@ -1463,7 +1463,7 @@ function BottomNav({ active, onNav, th, badges = {} }) {
   const tabs = [
     { id: 'home',  label: 'בית',     icon: 'home' },
     { id: 'cands', label: 'מועמדים', icon: 'users' },
-    { id: 'match', label: 'שידוכים', icon: 'heart' },
+    { id: 'match', label: 'הצעות', icon: 'heart' },
     { id: 'ai',    label: 'AI',      icon: 'spark' },
     { id: 'set',   label: 'הגדרות',  icon: 'gear' },
   ];
@@ -5606,7 +5606,7 @@ function Offers({ th, go, params }) {
 
   return (
     <>
-      <AppHeader th={th} title="שידוכים" sub={`${pending.length + approved.length} פעילות`} onBack={() => go('tab', { tab: 'home' })} />
+      <AppHeader th={th} title="הצעות" sub={`${pending.length + approved.length} פעילות`} onBack={() => go('tab', { tab: 'home' })} />
       <div style={{ display: 'flex', gap: 6, padding: '4px 18px 6px', flexShrink: 0 }}>
         {tabs.map(({ id, lbl, count, dot }) => (
           <button key={id} onClick={() => { setTab(id); setSubFilter(null); }} style={{ flex: 1, padding: '8px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}`, position:'relative' }}>
