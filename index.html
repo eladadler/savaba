@@ -6344,6 +6344,16 @@ function CandidateMode({ th, go }) {
     ? Object.values(matchmakers).filter(mm => mm.id === me.mmId || (me.coMms || []).includes(mm.id))
     : [];
 
+  // Browse candidates of opposite gender
+  const browseMale = me ? (me.gender === 'גבר' || me.gender === 'm') : false;
+  const browseOppGenders = browseMale ? ['אשה', 'f'] : ['גבר', 'm'];
+  const browseCands = me
+    ? candidates.filter(c => browseOppGenders.includes(c.gender) && c.available !== false && c.id !== me.id)
+    : [];
+  const browseMm = myMms[0] || null;
+  const browseMmPhone = browseMm?.phone ? String(browseMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
+  const browseMmFirst = browseMm ? (browseMm.displayName || browseMm.name || 'שדכן/ית').split(' ')[0] : 'שדכן/ית';
+
   // Active offers for this candidate — including self-match offers when it's my turn
   const myOffers = me ? offers.filter(o => {
     if (o.status === 'נדחתה' || o.status === 'אושרה') return false;
@@ -6544,60 +6554,46 @@ function CandidateMode({ th, go }) {
         </div>
 
         {/* BROWSE CANDIDATES */}
-        {(() => {
-          const isMale = me.gender === 'גבר' || me.gender === 'm';
-          const oppGenders = isMale ? ['אשה', 'f'] : ['גבר', 'm'];
-          const browseable = candidates.filter(c =>
-            oppGenders.includes(c.gender) && c.available !== false && c.id !== me.id
-          );
-          const primaryMm = myMms[0];
-          const mmPhone = primaryMm?.phone ? String(primaryMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
-          const mmFirst = primaryMm ? (primaryMm.displayName || primaryMm.name || 'שדכן/ית').split(' ')[0] : 'שדכן/ית';
-          return (
-            <>
-              <div style={{ fontFamily:th.display, fontSize:17, fontWeight:800, color:th.ink, marginBottom:10, display:'flex', alignItems:'center', gap:7 }}>
-                <Icon name="users" size={19} style={{ color:th.primary }} /> גלה/י מועמד{isMale ? 'ות' : 'ים'}
-              </div>
-              {browseable.length === 0 ? (
-                <div style={{ background:alpha(th.ink,0.04), borderRadius:th.r, padding:'22px 16px', textAlign:'center', marginBottom:22 }}>
-                  <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.5) }}>אין מועמד{isMale ? 'ות' : 'ים'} זמינ{isMale ? 'ות' : 'ים'} כרגע</div>
-                </div>
-              ) : (
-                <div style={{ overflowX:'auto', marginInline:-18, paddingInline:18, paddingBottom:8, marginBottom:22 }}>
-                  <div style={{ display:'flex', gap:12, width:'max-content' }}>
-                    {browseable.map(c => {
-                      const waMsg = `היי ${mmFirst}, ראיתי את הפרופיל של ${c.name} ואשמח לדעת עוד. תוכל/י לברר?`;
-                      const waUrl = mmPhone ? `https://wa.me/${mmPhone}?text=${encodeURIComponent(waMsg)}` : null;
-                      return (
-                        <div key={c.id} style={{ width:158, borderRadius:th.r, overflow:'hidden', background:th.card, boxShadow:`0 6px 18px ${alpha(th.ink,0.08)}`, flexShrink:0, display:'flex', flexDirection:'column' }}>
-                          <div style={{ position:'relative', height:190, background:`linear-gradient(150deg,${c.grad[0]},${c.grad[1]})`, overflow:'hidden' }}>
-                            {c.photos?.[0]
-                              ? <img src={c.photos[0]} alt="" loading="lazy" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 20%' }} />
-                              : <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:th.display, fontSize:54, color:'rgba(255,255,255,0.9)', fontWeight:800 }}>{c.name.charAt(0)}</span>}
-                            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:72, background:`linear-gradient(to top,rgba(0,0,0,0.68),transparent)` }} />
-                            <div style={{ position:'absolute', bottom:9, right:10, color:'#fff' }}>
-                              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, lineHeight:1.1 }}>{c.name}{c.age ? `, ${c.age}` : ''}</div>
-                              <div style={{ fontFamily:th.body, fontSize:11, opacity:0.85 }}>{c.region}</div>
-                            </div>
-                          </div>
-                          <div style={{ padding:'9px 11px 6px', flex:1 }}>
-                            <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.55) }}>{c.religiosity}</div>
-                            {c.oneLine && <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.7), marginTop:4, lineHeight:1.4, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{c.oneLine}</div>}
-                          </div>
-                          <a href={waUrl || '#'} target="_blank" rel="noopener"
-                            onClick={e => { if (!waUrl) e.preventDefault(); }}
-                            style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'9px 10px', background:waUrl ? alpha('#25D366',0.11) : alpha(th.ink,0.04), color:waUrl ? '#1a7a3e' : alpha(th.ink,0.4), fontFamily:th.display, fontWeight:800, fontSize:12, textDecoration:'none', borderTop:`1px solid ${alpha(th.ink,0.07)}`, cursor:waUrl ? 'pointer' : 'default' }}>
-                            <Icon name="whatsapp" size={15} /> עניין/ה אותי
-                          </a>
-                        </div>
-                      );
-                    })}
+        <div style={{ fontFamily:th.display, fontSize:17, fontWeight:800, color:th.ink, marginBottom:10, display:'flex', alignItems:'center', gap:7 }}>
+          <Icon name="users" size={19} style={{ color:th.primary }} /> גלה/י מועמד{browseMale ? 'ות' : 'ים'}
+        </div>
+        {browseCands.length === 0 ? (
+          <div style={{ background:alpha(th.ink,0.04), borderRadius:th.r, padding:'22px 16px', textAlign:'center', marginBottom:22 }}>
+            <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.5) }}>אין מועמד{browseMale ? 'ות' : 'ים'} זמינ{browseMale ? 'ות' : 'ים'} כרגע</div>
+          </div>
+        ) : (
+          <div style={{ overflowX:'auto', marginInline:-18, paddingInline:18, paddingBottom:8, marginBottom:22 }}>
+            <div style={{ display:'flex', gap:12, width:'max-content' }}>
+              {browseCands.map(c => {
+                const waMsg = `היי ${browseMmFirst}, ראיתי את הפרופיל של ${c.name} ואשמח לדעת עוד. תוכל/י לברר?`;
+                const waUrl = browseMmPhone ? `https://wa.me/${browseMmPhone}?text=${encodeURIComponent(waMsg)}` : null;
+                return (
+                  <div key={c.id} style={{ width:158, borderRadius:th.r, overflow:'hidden', background:th.card, boxShadow:`0 6px 18px ${alpha(th.ink,0.08)}`, flexShrink:0, display:'flex', flexDirection:'column' }}>
+                    <div style={{ position:'relative', height:190, background:`linear-gradient(150deg,${c.grad[0]},${c.grad[1]})`, overflow:'hidden' }}>
+                      {c.photos && c.photos[0]
+                        ? <img src={c.photos[0]} alt="" loading="lazy" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 20%' }} />
+                        : <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:th.display, fontSize:54, color:'rgba(255,255,255,0.9)', fontWeight:800 }}>{(c.name || '?').charAt(0)}</span>}
+                      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:72, background:'linear-gradient(to top,rgba(0,0,0,0.68),transparent)' }} />
+                      <div style={{ position:'absolute', bottom:9, right:10, color:'#fff' }}>
+                        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, lineHeight:1.1 }}>{c.name}{c.age ? `, ${c.age}` : ''}</div>
+                        <div style={{ fontFamily:th.body, fontSize:11, opacity:0.85 }}>{c.region}</div>
+                      </div>
+                    </div>
+                    <div style={{ padding:'9px 11px 6px', flex:1 }}>
+                      <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.55) }}>{c.religiosity}</div>
+                      {c.oneLine && <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.7), marginTop:4, lineHeight:1.4, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{c.oneLine}</div>}
+                    </div>
+                    <a href={waUrl || '#'} target="_blank" rel="noopener"
+                      onClick={function(e){ if (!waUrl) e.preventDefault(); }}
+                      style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5, padding:'9px 10px', background:waUrl ? alpha('#25D366',0.11) : alpha(th.ink,0.04), color:waUrl ? '#1a7a3e' : alpha(th.ink,0.4), fontFamily:th.display, fontWeight:800, fontSize:12, textDecoration:'none', borderTop:'1px solid rgba(0,0,0,0.07)', cursor:waUrl ? 'pointer' : 'default' }}>
+                      <Icon name="whatsapp" size={15} /> עניין/ה אותי
+                    </a>
                   </div>
-                </div>
-              )}
-            </>
-          );
-        })()}
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* actions */}
         <button onClick={() => go('home')} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', textAlign: 'center', padding: 13, borderRadius: th.r, background: alpha(th.ink, 0.05), fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink, marginBottom: 10 }}>מעבר למצב שדכן/ית</button>
