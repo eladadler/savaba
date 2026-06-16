@@ -6366,7 +6366,7 @@ function CandBrowse({ th, go, me }) {
 
   return (
     <>
-      <AppHeader th={th} title={meIsMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו | gender="${me.gender}" id=${me.id}`} />
+      <AppHeader th={th} title={meIsMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו | gender="${me.gender}" family="${me.family}"`} />
       <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 16px' }}>
         <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:12 }}>
           <div style={{ position:'relative', flex:1 }}>
