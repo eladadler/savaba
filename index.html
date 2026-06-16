@@ -6339,11 +6339,15 @@ function CandBrowse({ th, go, me }) {
   const [filterOpen, setFilterOpen] = useSb(false);
   const [filters, setFilters] = useSb({ rel: [], region: '', ageMin: 18, ageMax: 55, maritalStatus: [] });
 
-  const isMale = me.gender === 'גבר' || me.gender === 'm';
-  const oppGenders = isMale ? ['אשה', 'f'] : ['גבר', 'm'];
+  const isFemaleG = g => g === 'f' || g === 'אשה' || g === 'אישה';
+  const isMaleG   = g => g === 'm' || g === 'גבר' || g === 'גברים';
+  const meIsMale  = isMaleG(me.gender);
 
   const list = React.useMemo(() => candidates.filter(c => {
-    if (!oppGenders.includes(c.gender)) return false;
+    if (c.id === me.id) return false; // don't show myself
+    const cIsMale   = isMaleG(c.gender);
+    const cIsFemale = isFemaleG(c.gender);
+    if (meIsMale ? !cIsFemale : !cIsMale) return false;
     if (c.available === false) return false;
     if (c.hidden) return false;
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
@@ -6352,7 +6356,7 @@ function CandBrowse({ th, go, me }) {
     if (c.age < filters.ageMin || c.age > filters.ageMax) return false;
     if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
     return true;
-  }), [candidates, q, filters, isMale]);
+  }), [candidates, q, filters, meIsMale]);
 
   const activeFilters = (filters.region ? 1 : 0) + filters.rel.length + filters.maritalStatus.length;
   const liveRegions = (lists.regions && lists.regions.length) ? lists.regions : REGIONS;
@@ -6361,7 +6365,7 @@ function CandBrowse({ th, go, me }) {
 
   return (
     <>
-      <AppHeader th={th} title={isMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו`} />
+      <AppHeader th={th} title={meIsMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו`} />
       <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 16px' }}>
         <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:12 }}>
           <div style={{ position:'relative', flex:1 }}>
