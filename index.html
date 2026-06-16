@@ -6342,6 +6342,7 @@ function CandBrowse({ th, go, me }) {
   const isFemaleG = g => g === 'f' || g === 'אשה' || g === 'אישה';
   const isMaleG   = g => g === 'm' || g === 'גבר' || g === 'גברים';
   const meIsMale  = isMaleG(me.gender);
+  console.log('[CandBrowse] me.gender=', JSON.stringify(me.gender), '| meIsMale=', meIsMale, '| me.id=', me.id);
 
   const list = React.useMemo(() => candidates.filter(c => {
     if (c.id === me.id) return false; // don't show myself
@@ -6365,7 +6366,7 @@ function CandBrowse({ th, go, me }) {
 
   return (
     <>
-      <AppHeader th={th} title={meIsMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו`} />
+      <AppHeader th={th} title={meIsMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו | gender="${me.gender}" id=${me.id}`} />
       <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 16px' }}>
         <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:12 }}>
           <div style={{ position:'relative', flex:1 }}>
