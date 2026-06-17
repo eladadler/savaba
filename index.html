@@ -3195,6 +3195,10 @@ const TEXT_KEYS = {
   add_sheet_new_sub:   'הוספת מועמד — אפשרות חדש/ה: תיאור',
   add_sheet_rep_title: 'הוספת מועמד — אפשרות ייצוג: כותרת',
   add_sheet_rep_sub:   'הוספת מועמד — אפשרות ייצוג: תיאור',
+  review_banner_title:         'אישור מועמד — כותרת באנר',
+  review_banner_body:          'אישור מועמד — טקסט ראשי',
+  review_banner_empty_suffix:  'אישור מועמד — סיומת שדות ריקים',
+  review_approve_btn:          'אישור מועמד — כפתור אישור',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -3235,6 +3239,10 @@ const DEFAULT_TEXTS = {
   add_sheet_new_sub:   'מועמד/ת חדש/ה שאינ/ה במערכת',
   add_sheet_rep_title: 'ייצוג מועמד/ת שכבר במערכת',
   add_sheet_rep_sub:   'מועמד/ת קיים/ת שיש לייצג',
+  review_banner_title:        'ממתין/ה לאישורך',
+  review_banner_body:         'המועמד/ת מילא/ה פרטים.',
+  review_banner_empty_suffix: 'כדאי להשלים לפני האישור.',
+  review_approve_btn:         '✓ אשר/י — פרסם כרטיסייה',
 };
 
 const SCREEN_TEXTS = {
@@ -3246,6 +3254,7 @@ const SCREEN_TEXTS = {
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
+  editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn'],
 };
 
 // ════════════════════════════════════════════════════════════
@@ -4617,6 +4626,8 @@ function CandidateSelfFill({ th, go, params }) {
 // ════════════════════════════════════════════════════════════
 function EditCandidateScreen({ th, go, params }) {
   const { candidates, updateCandidate, uploadPhoto, uploadVoice, approveCandidate } = useContext(DataCtx);
+  const { texts: tx, defaults: dx } = useContext(TextsCtx);
+  const t = (key) => tx[key] || dx[key] || '';
   const c = candidates.find(x => x.id === params?.id);
   if (!c) return (
     <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
@@ -4640,15 +4651,23 @@ function EditCandidateScreen({ th, go, params }) {
           const emptyCount = [!c.sabaBut, !c.oneLine, !c.seesWith,
             !(c.interests?.length), !(c.partner?.length), !c.voiceNote].filter(Boolean).length;
           return (
-            <div style={{ background:alpha(th.gold,0.12), border:`1.5px solid ${alpha(th.gold,0.3)}`, borderRadius:th.r, padding:14, marginBottom:16, display:'flex', gap:10 }}>
-              <Icon name="info" size={18} style={{ color:th.gold, flexShrink:0, marginTop:2 }} />
-              <div>
-                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>ממתין/ה לאישורך</div>
-                <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.4 }}>
-                  המועמד/ת מילא/ה פרטים.
-                  {emptyCount > 0 && <span> יש <b style={{ color:th.gold }}>{emptyCount} שדות ריקים</b> — כדאי להשלים לפני האישור.</span>}
+            <div style={{ background:`linear-gradient(135deg, ${alpha(th.gold,0.18)}, ${alpha(th.gold,0.08)})`, border:`2px solid ${alpha(th.gold,0.5)}`, borderRadius:th.r, padding:'16px 16px 14px', marginBottom:18, boxShadow:`0 4px 16px ${alpha(th.gold,0.2)}` }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom: emptyCount > 0 ? 8 : 0 }}>
+                <div style={{ width:36, height:36, borderRadius:'50%', background:th.gold, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 3px 10px ${alpha(th.gold,0.4)}` }}>
+                  <Icon name="bell" size={17} fill="#fff" stroke={0} style={{ color:'#fff' }} />
                 </div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink }}>{t('review_banner_title')}</div>
               </div>
+              {emptyCount > 0 && (
+                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.72), lineHeight:1.5, paddingRight:46 }}>
+                  {t('review_banner_body')} יש <b style={{ color:th.gold, fontSize:15 }}>{emptyCount} שדות ריקים</b> — {t('review_banner_empty_suffix')}
+                </div>
+              )}
+              {emptyCount === 0 && (
+                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.72), lineHeight:1.5, paddingRight:46 }}>
+                  {t('review_banner_body')}
+                </div>
+              )}
             </div>
           );
         })()}
@@ -4665,7 +4684,7 @@ function EditCandidateScreen({ th, go, params }) {
         {c.pendingApproval && (
           <Btn th={th} full variant="success" style={{ marginTop:14 }}
             onClick={async () => { await approveCandidate(c.id); go('back'); }}>
-            ✓ אשר/י — פרסם כרטיסייה
+            {t('review_approve_btn')}
           </Btn>
         )}
       </div>
