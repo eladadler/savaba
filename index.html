@@ -6752,12 +6752,14 @@ function CandidateMode({ th, go }) {
   const [candTab, setCandTab] = useSb('home');
 
   // Listen for pending co-rep requests addressed to this candidate
+  // Filter status in JS to avoid requiring a Firestore composite index
   useEffect(() => {
     if (!user?.uid) return;
     const unsub = db.collection('coRepRequests')
       .where('candidateUid', '==', user.uid)
-      .where('status', '==', 'pending')
-      .onSnapshot(s => setCoRepReqs(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+      .onSnapshot(s => setCoRepReqs(
+        s.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'pending')
+      ));
     return unsub;
   }, [user?.uid]);
 
