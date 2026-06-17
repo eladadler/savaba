@@ -3968,7 +3968,7 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
 // CANDIDATES LIST
 // ════════════════════════════════════════════════════════════
 function Candidates({ th, go, params }) {
-  const { candidates, claimCandidate } = useContext(DataCtx);
+  const { candidates, claimCandidate, coRepRequests } = useContext(DataCtx);
   const { profile }    = useContext(AuthCtx);
   const { texts: tx, defaults: dx } = useContext(TextsCtx);
   const t = (key) => tx[key] || dx[key] || '';
@@ -4098,6 +4098,14 @@ function Candidates({ th, go, params }) {
               photoStyle={cardStyle}
               requestSent={sentRequests.has(c.id)}
               onLink={async () => {
+                // Don't create a duplicate if a pending request already exists
+                const alreadyPending = coRepRequests?.some(r =>
+                  r.candId === c.id && (r.mmId === myUid || r.fromMmId === myUid)
+                );
+                if (alreadyPending) {
+                  setSentRequests(prev => new Set([...prev, c.id]));
+                  return;
+                }
                 if (c.candidateUid) {
                   // candidate has an account → request goes to candidate's app
                   await db.collection('coRepRequests').add({
@@ -6776,11 +6784,19 @@ function CandidateMode({ th, go }) {
   const otherCandId = currentOffer ? (iAmA ? currentOffer.bId : currentOffer.aId) : null;
   const otherCand = otherCandId ? candidates.find(c => c.id === otherCandId) : null;
 
-  // Co-rep requests for this candidate — loaded in DataCtx (with admin-level permissions)
-  // so impersonation doesn't hit security-rule issues
-  const coRepReqs = me?.id
-    ? coRepRequests.filter(r => r.candId === me.id || r.candidateUid === me.candidateUid)
-    : [];
+  // Co-rep requests for this candidate — loaded in DataCtx (admin-level permissions bypass
+  // impersonation security-rule issues). Deduplicate by requesting matchmaker.
+  const coRepReqs = useMemo(() => {
+    if (!me?.id) return [];
+    const seen = new Set();
+    return coRepRequests.filter(r => {
+      if (r.candId !== me.id && r.candidateUid !== me.candidateUid) return false;
+      const mmKey = r.mmId || r.fromMmId;
+      if (seen.has(mmKey)) return false;
+      seen.add(mmKey);
+      return true;
+    });
+  }, [coRepRequests, me?.id, me?.candidateUid]);
 
   const [decided, setDecided] = useSe(null);
   const [submitting, setSubmitting] = useSe(false);
