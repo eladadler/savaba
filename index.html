@@ -3862,9 +3862,11 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
           <div style={{ fontSize:12, marginTop:6, color:alpha(th.ink,0.35) }}>הזמנות שתשלח יופיעו כאן</div>
         </div>
       ) : invites.map(inv => {
-        const isPending  = inv.status === 'pending';
-        const isAccepted = inv.status === 'accepted' || inv.status === 'filled';
-        const canFill    = isAccepted && inv.flow === 'mm_fills' && inv.candidateId && go;
+        const isPending   = inv.status === 'pending';
+        const isAccepted  = inv.status === 'accepted' || inv.status === 'filled';
+        const canFill     = isAccepted && inv.flow === 'mm_fills' && inv.candidateId && go;
+        const canReview   = inv.status === 'filled' && inv.flow === 'cand_fills' && inv.candidateId && go;
+        const isClickable = canFill || canReview;
         const statusColor = isPending ? th.gold : isAccepted ? th.success : alpha(th.ink,0.4);
         const statusLabel = { pending:'ממתין/ה', accepted:'נענה/תה', filled:'מילא/ה פרטים' }[inv.status] || inv.status;
         const flowLabel   = inv.flow === 'mm_fills' ? 'אמלא אני' : 'ממלא/ת בעצמו/ה';
@@ -3873,8 +3875,8 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
           : '—';
         return (
           <div key={inv.id}
-            onClick={canFill ? () => { onClose(); go('editCand', { id: inv.candidateId, prefillName: inv.recipientName }); } : undefined}
-            style={{ background:th.card, borderRadius:th.r, padding:'12px 14px', marginBottom:8, boxShadow:`0 3px 10px ${alpha(th.ink,0.05)}`, cursor: canFill ? 'pointer' : 'default', border: canFill ? `1.5px solid ${alpha(th.primary,0.15)}` : '1.5px solid transparent' }}>
+            onClick={isClickable ? () => { onClose(); go('editCand', { id: inv.candidateId, prefillName: inv.recipientName }); } : undefined}
+            style={{ background:th.card, borderRadius:th.r, padding:'12px 14px', marginBottom:8, boxShadow:`0 3px 10px ${alpha(th.ink,0.05)}`, cursor: isClickable ? 'pointer' : 'default', border: isClickable ? `1.5px solid ${alpha(th.primary,0.15)}` : '1.5px solid transparent' }}>
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
               <Avatar grad={gradForId(inv.id)} name={inv.recipientName || '?'} size={40} />
               <div style={{ flex:1, minWidth:0 }}>
@@ -3887,9 +3889,8 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
                 <div style={{ background:alpha(statusColor,0.12), color:statusColor, borderRadius:999, padding:'4px 11px', fontFamily:th.display, fontWeight:700, fontSize:12 }}>
                   {statusLabel}
                 </div>
-                {canFill && (
-                  <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.primary }}>מלא/י פרטים ←</div>
-                )}
+                {canFill   && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.primary }}>מלא/י פרטים ←</div>}
+                {canReview && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.gold }}>בדוק/י ואשר/י ←</div>}
               </div>
             </div>
             {isAccepted && inv.candidateName && (
