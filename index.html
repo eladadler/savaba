@@ -4352,7 +4352,7 @@ function InvitationLanding({ th, go, token }) {
           </div>
         </div>
         <Btn th={th} full size="l" onClick={invite.flow === 'mm_fills' ? accept : () => go('candSelfFill', { token, invite })} disabled={busy}>
-          {busy ? 'שניה…' : invite.flow === 'mm_fills' ? '✓ אני מאשר/ת' : 'מלא/י את הפרטים שלי →'}
+          {busy ? 'שניה…' : invite.flow === 'mm_fills' ? '✓ אני מאשר/ת' : '← מלא/י את הפרטים שלי'}
         </Btn>
       </div>
     </div>
@@ -4453,9 +4453,9 @@ function CandidateSelfFill({ th, go, params }) {
 
         {step === 0 && (
           <>
-            <Field th={th} label="שם מלא *"><TextInput th={th} value={f.name} onChange={set('name')} placeholder="שם פרטי ומשפחה" /></Field>
-            <Field th={th} label="טלפון *"><TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} placeholder="050-0000000" /></Field>
-            <Field th={th} label="גיל *"><TextInput th={th} type="number" value={f.age} onChange={set('age')} placeholder="25" /></Field>
+            <Field th={th} label="שם מלא *"><TextInput th={th} value={f.name} onChange={set('name')} /></Field>
+            <Field th={th} label="טלפון *"><TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} /></Field>
+            <Field th={th} label="גיל *"><TextInput th={th} type="number" value={f.age} onChange={set('age')} /></Field>
             <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
             <Field th={th} label="אזור מגורים *"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
             <Field th={th} label="זרם דתי"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
@@ -4561,13 +4561,13 @@ function CandidateSelfFill({ th, go, params }) {
         {step === 2 && (
           <>
             <Field th={th} label='סבבה והכל, אבל…' hint="משהו מצחיק/ייחודי עליך">
-              <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder='למשל: "מפחד/ת מיונים אבל רוצה לגור ליד הים"' rows={2} />
+              <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} rows={2} />
             </Field>
             <Field th={th} label="ספר/י על עצמך במשפט">
-              <TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder="מה הכי מגדיר אותך?" />
+              <TextInput th={th} value={f.oneLine} onChange={set('oneLine')} />
             </Field>
             <Field th={th} label="מחפש/ת">
-              <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} placeholder="מה חשוב לך בבן/ת זוג?" rows={3} />
+              <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} rows={3} />
             </Field>
           </>
         )}
