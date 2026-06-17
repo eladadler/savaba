@@ -1134,6 +1134,7 @@ function useFirebaseData(uid) {
   const [texts,         setTexts]         = useState({});
   const [lists,         setLists]         = useState({});
   const [notifications, setNotifications] = useState([]);
+  const [coRepRequests, setCoRepRequests] = useState([]);
   const [loading,       setLoading]       = useState(true);
 
   useEffect(() => {
@@ -1185,6 +1186,13 @@ function useFirebaseData(uid) {
         err => console.warn('notifications listener error (index may be missing):', err.message)
       );
     unsubs.push(notifUnsub);
+
+    unsubs.push(db.collection('coRepRequests')
+      .where('status', '==', 'pending')
+      .onSnapshot(
+        s => setCoRepRequests(s.docs.map(d => ({ id: d.id, ...d.data() }))),
+        err => console.warn('coRepRequests listener error:', err.message)
+      ));
 
     return () => unsubs.forEach(u => u());
   }, [uid]);
@@ -1260,7 +1268,7 @@ function useFirebaseData(uid) {
     [uid]);
 
   return {
-    candidates, offers, matchmakers, texts, lists, notifications, loading,
+    candidates, offers, matchmakers, texts, lists, notifications, coRepRequests, loading,
     addCandidate, updateCandidate, deleteCandidate,
     uploadPhoto, uploadVoice, addOffer, updateOffer, updateText, setUserAdmin, updateList,
     markNotificationRead, deleteNotification, approveCandidate, claimCandidate,
@@ -6741,7 +6749,7 @@ function CandViewCand({ th, go, params }) {
 // ════════════════════════════════════════════════════════════
 function CandidateMode({ th, go }) {
   const { user, isImpersonating } = useContext(AuthCtx);
-  const { candidates, offers, matchmakers, updateCandidate, updateOffer } = useContext(DataCtx);
+  const { candidates, offers, matchmakers, coRepRequests, updateCandidate, updateOffer } = useContext(DataCtx);
 
   // Find this user's own candidate profile (also match by doc ID when admin impersonates a candidate without account)
   const me = candidates.find(c => c.candidateUid === user?.uid)
@@ -6768,31 +6776,24 @@ function CandidateMode({ th, go }) {
   const otherCandId = currentOffer ? (iAmA ? currentOffer.bId : currentOffer.aId) : null;
   const otherCand = otherCandId ? candidates.find(c => c.id === otherCandId) : null;
 
+  // Co-rep requests for this candidate — loaded in DataCtx (with admin-level permissions)
+  // so impersonation doesn't hit security-rule issues
+  const coRepReqs = me?.id
+    ? coRepRequests.filter(r => r.candId === me.id || r.candidateUid === me.candidateUid)
+    : [];
+
   const [decided, setDecided] = useSe(null);
   const [submitting, setSubmitting] = useSe(false);
-  const [coRepReqs, setCoRepReqs] = useSe([]);
   const [candTab, setCandTab] = useSb('home');
 
-  // Listen for pending co-rep requests for this candidate
-  // Query by candId (always stored) — works for both registered and unregistered candidates,
-  // and for admin impersonation regardless of whether candidateUid matches user.uid
-  useEffect(() => {
-    if (!me?.id) return;
-    const unsub = db.collection('coRepRequests')
-      .where('candId', '==', me.id)
-      .onSnapshot(s => setCoRepReqs(
-        s.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'pending')
-      ));
-    return unsub;
-  }, [me?.id]);
-
   const approveCoRep = async (req) => {
+    const representingMmId = req.mmId || req.fromMmId;
     await db.collection('candidates').doc(req.candId)
-      .update({ coMms: firebase.firestore.FieldValue.arrayUnion(req.mmId) });
+      .update({ coMms: firebase.firestore.FieldValue.arrayUnion(representingMmId) });
     await db.collection('coRepRequests').doc(req.id)
       .update({ status: 'accepted', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('notifications').add({
-      toUid: req.mmId, type: 'corep_approved',
+      toUid: representingMmId, type: 'corep_approved',
       candId: req.candId, candName: req.candName,
       read: false, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
@@ -6947,10 +6948,10 @@ function CandidateMode({ th, go }) {
             {coRepReqs.map(req => (
               <div key={req.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow:`0 4px 14px ${alpha(th.ink,0.06)}`, border:`1.5px solid ${alpha(th.primary,0.15)}` }}>
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink, marginBottom:4 }}>
-                  {req.mmName} מעוניין/ת לייצג אותך
+                  {req.mmName || req.fromMmName} מעוניין/ת לייצג אותך
                 </div>
                 <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6), marginBottom:12, lineHeight:1.4 }}>
-                  אם תאשר/י — {req.mmName} יוכל/תוכל להציע אותך לשידוכים גם מטעמו/ה
+                  אם תאשר/י — {req.mmName || req.fromMmName} יוכל/תוכל להציע אותך לשידוכים גם מטעמו/ה
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
                   <button onClick={() => approveCoRep(req)} style={{ flex:1, padding:'9px 0', borderRadius:th.rSm, border:'none', background:th.success, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:13, cursor:'pointer' }}>✓ אשר/י</button>
