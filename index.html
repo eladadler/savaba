@@ -2514,7 +2514,8 @@ function AdminPanel({ th, go }) {
           deleteCandidate, uploadPhoto, uploadVoice, updateText, setUserAdmin, updateList } = useContext(DataCtx);
   const [tab, setTab]         = useState('candidates');
   const [editCand, setEditCand] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null); // candidate id pending delete
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [genderFix, setGenderFix] = useState(null); // cand id awaiting gender selection before impersonation
   const [newCand,  setNewCand]  = useState(false);
   const [editKey,  setEditKey]  = useState(null);
   const [editVal,  setEditVal]  = useState('');
@@ -2663,11 +2664,30 @@ function AdminPanel({ th, go }) {
                             <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
                             <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
                           </div>
-                          <button onClick={() => { const fakeUid = c.candidateUid || c.id; startImpersonate(fakeUid, { uid: fakeUid, displayName: c.name, name: c.name }, 'candidate'); go('candidateMode'); }}
-                            title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
+                          <button onClick={() => {
+                            if (!c.gender) { setGenderFix(c.id); return; }
+                            const fakeUid = c.candidateUid || c.id;
+                            startImpersonate(fakeUid, { uid: fakeUid, displayName: c.name, name: c.name, gender: c.gender }, 'candidate');
+                            go('candidateMode');
+                          }} title="צפה כמועמד/ת" style={{ border:'none', background:alpha('#7B2D00',0.08), color:'#7B2D00', borderRadius:8, width:34, height:34, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>🎭</button>
                           <button onClick={() => setEditCand(c.id)} style={{ border: 'none', background: alpha(th.ink, 0.06), color: th.ink, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="edit" size={17} /></button>
                           <button onClick={() => setConfirmDelete(c.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="trash" size={17} /></button>
                         </div>
+                        {genderFix === c.id && (
+                          <div style={{ background: alpha(th.primary, 0.07), border: `1px solid ${alpha(th.primary, 0.18)}`, borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                            <span style={{ fontFamily: th.body, fontSize: 13, color: th.ink, flex: 1 }}>מגדר חסר — בחר/י כדי להמשיך:</span>
+                            {['גבר', 'אשה'].map(g => (
+                              <button key={g} onClick={async () => {
+                                await updateCandidate(c.id, { gender: g });
+                                setGenderFix(null);
+                                const fakeUid = c.candidateUid || c.id;
+                                startImpersonate(fakeUid, { uid: fakeUid, displayName: c.name, name: c.name, gender: g }, 'candidate');
+                                go('candidateMode');
+                              }} style={{ border: 'none', background: th.primary, color: '#fff', borderRadius: 8, padding: '6px 16px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13 }}>{g}</button>
+                            ))}
+                            <button onClick={() => setGenderFix(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: alpha(th.ink, 0.4), fontSize: 16, padding: '2px 6px' }}>✕</button>
+                          </div>
+                        )}
                       </>
                     )}
                 </div>
@@ -6335,14 +6355,16 @@ function Toggle({ on, onChange, th }) {
 // ════════════════════════════════════════════════════════════
 function CandBrowse({ th, go, me }) {
   const { candidates, lists } = useContext(DataCtx);
+  const { profile } = useContext(AuthCtx);
   const [q, setQ] = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
   const [filters, setFilters] = useSb({ rel: [], region: '', ageMin: 18, ageMax: 55, maritalStatus: [] });
 
   const isFemaleG = g => g === 'f' || g === 'אשה' || g === 'אישה';
   const isMaleG   = g => g === 'm' || g === 'גבר' || g === 'גברים';
-  const meIsMale  = isMaleG(me.gender);
-  console.log('[CandBrowse] me.gender=', JSON.stringify(me.gender), '| meIsMale=', meIsMale, '| me.id=', me.id);
+  // fallback to impersonation profile.gender when Firestore field is missing
+  const meGender  = me.gender || profile?.gender || '';
+  const meIsMale  = isMaleG(meGender);
 
   const list = React.useMemo(() => candidates.filter(c => {
     if (c.id === me.id) return false; // don't show myself
@@ -6366,7 +6388,7 @@ function CandBrowse({ th, go, me }) {
 
   return (
     <>
-      <AppHeader th={th} title={meIsMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו | gender="${me.gender}" family="${me.family}"`} />
+      <AppHeader th={th} title={meIsMale ? 'מועמדות' : 'מועמדים'} sub={`${list.length} נמצאו`} />
       <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 16px' }}>
         <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:12 }}>
           <div style={{ position:'relative', flex:1 }}>
