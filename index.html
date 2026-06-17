@@ -4810,24 +4810,80 @@ function AddSheet({ open, onClose, th, go }) {
   const { profile } = useContext(AuthCtx);
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const paths = [
-    { icon: 'person', title: 'מועמד/ת חדש/ה',  body: 'שולחים הזמנה — המועמד/ת או השדכן ימלאו את הפרטים.', act: () => { onClose(); setInviteOpen(true); } },
-    { icon: 'users',  title: 'כבר במערכת',      body: '"אשמח להיות מיוצג/ת גם על ידך" — מועמד/ת קיים/ת מצטרף/ת אלייך.',  act: () => { onClose(); go('cands', { linkMode: true }); } },
-  ];
-
   return (
     <>
-      <Sheet open={open} onClose={onClose} th={th} title="הוספת מועמד/ת">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {paths.map((p, k) => (
-            <button key={k} onClick={p.act} style={{ all: 'unset', cursor: 'pointer', display: 'flex', gap: 13, alignItems: 'flex-start', background: th.card, border: `1.5px solid ${alpha(th.ink, 0.1)}`, borderRadius: th.r, padding: 14 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: alpha(th.primary, 0.12), color: th.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={p.icon} size={22} /></div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{p.title}</div>
-                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6), lineHeight: 1.35, marginTop: 2 }}>{p.body}</div>
-              </div>
+      <Sheet open={open} onClose={onClose} th={th}>
+        <div style={{ direction: 'rtl' }}>
+          {/* close button — left in RTL (flex-end) */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <button onClick={onClose} style={{ border: 'none', background: alpha(th.ink, 0.06), borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="x" size={18} />
             </button>
-          ))}
+          </div>
+
+          {/* hero illustration */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+            <svg width="140" height="118" viewBox="0 0 140 118" fill="none">
+              <rect x="12" y="20" width="82" height="68" rx="11" fill={alpha(th.primary, 0.13)} transform="rotate(-10 53 54)" />
+              <rect x="42" y="13" width="82" height="68" rx="11" fill={alpha(th.primary, 0.22)} transform="rotate(7 83 47)" />
+              <rect x="28" y="18" width="82" height="74" rx="11" fill="white" stroke={alpha(th.primary, 0.1)} strokeWidth="1" />
+              <circle cx="69" cy="47" r="16" fill={alpha(th.primary, 0.1)} />
+              <circle cx="69" cy="40" r="8" fill={alpha(th.primary, 0.52)} />
+              <ellipse cx="69" cy="57" rx="11" ry="7" fill={alpha(th.primary, 0.3)} />
+              <path d="M64.5 77 Q69 72.5 73.5 77 Q78 81.5 69 88 Q60 81.5 64.5 77Z" fill={th.primary} fillOpacity="0.5" />
+              <rect x="47" y="83" width="44" height="3.5" rx="1.75" fill={alpha(th.primary, 0.12)} />
+            </svg>
+          </div>
+
+          {/* title */}
+          <div style={{ textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: 22, color: th.ink, marginBottom: 8 }}>
+            הוספת מועמד/ת
+          </div>
+
+          {/* subtitle */}
+          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), lineHeight: 1.6, marginBottom: 22 }}>
+            בחרו כיצד תרצו להוסיף את המועמד/ת<br />
+            ייצוג מועמד/ת חדש/ת בנוסף לשדיכון/ית שלו/ה
+          </div>
+
+          {/* option cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 6 }}>
+            {/* new candidate */}
+            <button onClick={() => { onClose(); setInviteOpen(true); }} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: th.r, padding: '14px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', direction: 'rtl' }}>
+              <div style={{ width: 54, height: 54, borderRadius: 13, background: alpha(th.primary, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <rect x="3" y="2" width="19" height="25" rx="4" fill="white" stroke={alpha(th.primary, 0.25)} strokeWidth="1.5" />
+                  <circle cx="12.5" cy="11" r="4" fill={alpha(th.primary, 0.45)} />
+                  <ellipse cx="12.5" cy="20" rx="6" ry="3.5" fill={alpha(th.primary, 0.28)} />
+                  <circle cx="23" cy="24" r="7" fill={th.primary} />
+                  <path d="M20 24h6M23 21v6" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>הוספת מועמד/ת חדש/ה</div>
+                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>מועמד/ת חדש/ה שאינ/ה במערכת</div>
+              </div>
+              <Icon name="chevL" size={20} style={{ color: alpha(th.ink, 0.28), flexShrink: 0 }} />
+            </button>
+
+            {/* existing candidate */}
+            <button onClick={() => { onClose(); go('cands', { linkMode: true }); }} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, background: 'white', borderRadius: th.r, padding: '14px 16px', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', direction: 'rtl' }}>
+              <div style={{ width: 54, height: 54, borderRadius: 13, background: alpha(th.primary, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                  <rect x="7" y="11" width="19" height="16" rx="4" fill={alpha(th.primary, 0.18)} transform="rotate(-6 16 19)" />
+                  <rect x="5" y="9" width="19" height="16" rx="4" fill={alpha(th.primary, 0.32)} transform="rotate(4 14 17)" />
+                  <rect x="4" y="5" width="21" height="19" rx="4" fill="white" stroke={alpha(th.primary, 0.22)} strokeWidth="1.2" />
+                  <circle cx="14.5" cy="12" r="3.5" fill={alpha(th.primary, 0.48)} />
+                  <ellipse cx="14.5" cy="19.5" rx="5.5" ry="3.2" fill={alpha(th.primary, 0.28)} />
+                </svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>ייצוג מועמד/ת שכבר במערכת</div>
+                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>מועמד/ת קיים/ת שיש לייצג</div>
+              </div>
+              <Icon name="chevL" size={20} style={{ color: alpha(th.ink, 0.28), flexShrink: 0 }} />
+            </button>
+          </div>
         </div>
       </Sheet>
       <InviteFlow open={inviteOpen} onClose={() => setInviteOpen(false)} th={th}
