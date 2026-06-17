@@ -2915,8 +2915,8 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
     : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', ...(showMmNote ? ['דבר השדכן'] : []), 'פרטים נוספים'];
 
   const EmptyHighlight = ({ isEmpty, children }) => !reviewMode || !isEmpty ? children : (
-    <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.gold, 0.55)}`, background: alpha(th.gold, 0.04), padding: 10, position: 'relative' }}>
-      <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.gold, marginBottom: 6 }}>
+    <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.primary, 0.45)}`, background: alpha(th.primary, 0.04), padding: 10, position: 'relative' }}>
+      <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary, marginBottom: 6 }}>
         כדאי למלא — יחזק את הכרטיסייה
       </div>
       {children}
@@ -3055,8 +3055,8 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       {stepName === 'הקלטה קולית' && (
         <div style={{ textAlign:'center', padding:'8px 0' }}>
           {reviewMode && !voiceUrl && (
-            <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.gold, 0.55)}`, background: alpha(th.gold, 0.04), padding: '8px 12px', marginBottom: 14, textAlign: 'right' }}>
-              <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.gold }}>כדאי להוסיף הקלטה — מוסיפה אמינות לכרטיסייה</div>
+            <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.primary, 0.45)}`, background: alpha(th.primary, 0.04), padding: '8px 12px', marginBottom: 14, textAlign: 'right' }}>
+              <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary }}>כדאי להוסיף הקלטה — מוסיפה אמינות לכרטיסייה</div>
             </div>
           )}
           <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.6, marginBottom:20 }}>
@@ -4667,20 +4667,20 @@ function EditCandidateScreen({ th, go, params }) {
           const emptyCount = [!c.sabaBut, !c.oneLine, !c.seesWith,
             !(c.interests?.length), !(c.partner?.length), !c.voiceNote].filter(Boolean).length;
           return (
-            <div style={{ background:`linear-gradient(135deg, ${alpha(th.gold,0.18)}, ${alpha(th.gold,0.08)})`, border:`2px solid ${alpha(th.gold,0.5)}`, borderRadius:th.r, padding:'16px 16px 14px', marginBottom:18, boxShadow:`0 4px 16px ${alpha(th.gold,0.2)}` }}>
+            <div style={{ background:`linear-gradient(135deg, ${alpha(th.primary,0.14)}, ${alpha(th.primary,0.06)})`, border:`2.5px solid ${alpha(th.primary,0.55)}`, borderRadius:th.r, padding:'16px 16px 14px', marginBottom:18, boxShadow:`0 6px 22px ${alpha(th.primary,0.22)}` }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom: emptyCount > 0 ? 8 : 0 }}>
-                <div style={{ width:36, height:36, borderRadius:'50%', background:th.gold, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 3px 10px ${alpha(th.gold,0.4)}` }}>
+                <div style={{ width:36, height:36, borderRadius:'50%', background:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 3px 10px ${alpha(th.primary,0.45)}` }}>
                   <Icon name="bell" size={17} fill="#fff" stroke={0} style={{ color:'#fff' }} />
                 </div>
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink }}>{t('review_banner_title')}</div>
               </div>
               {emptyCount > 0 && (
-                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.72), lineHeight:1.5, paddingRight:46 }}>
-                  {t('review_banner_body')} יש <b style={{ color:th.gold, fontSize:15 }}>{emptyCount} שדות ריקים</b> — {t('review_banner_empty_suffix')}
+                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.5, paddingRight:46 }}>
+                  {t('review_banner_body')} יש <b style={{ color:th.primary, fontSize:15 }}>{emptyCount} שדות ריקים</b> — {t('review_banner_empty_suffix')}
                 </div>
               )}
               {emptyCount === 0 && (
-                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.72), lineHeight:1.5, paddingRight:46 }}>
+                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.5, paddingRight:46 }}>
                   {t('review_banner_body')}
                 </div>
               )}
