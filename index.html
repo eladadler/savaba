@@ -2850,8 +2850,10 @@ function AdminPanel({ th, go }) {
   );
 }
 
-function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote }) {
+function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote, onApprove }) {
   const { lists } = useContext(DataCtx);
+  const { texts: _tx, defaults: _dx } = useContext(TextsCtx);
+  const _t = (key) => _tx[key] || _dx[key] || '';
   const liveRegions       = (lists.regions      && lists.regions.length)      ? lists.regions      : REGIONS;
   const liveReligiosity   = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
   const liveInterests     = (lists.interests     && lists.interests.length)    ? lists.interests    : INTERESTS;
@@ -3142,15 +3144,22 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-        {step > 0
-          ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
-          : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
-        }
-        {isLast
-          ? <Btn th={th} full onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>שמור</Btn>
-          : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
-        }
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
+        {isLast && onApprove && (
+          <Btn th={th} full variant="success" onClick={() => onApprove({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>
+            {_t('review_approve_btn')}
+          </Btn>
+        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {step > 0
+            ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
+            : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
+          }
+          {isLast
+            ? <Btn th={th} full variant={onApprove ? 'ghost' : 'primary'} onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>{onApprove ? 'שמור בלבד' : 'שמור'}</Btn>
+            : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
+          }
+        </div>
       </div>
     </div>
   );
@@ -4680,13 +4689,11 @@ function EditCandidateScreen({ th, go, params }) {
           }}
           onCancel={() => go('back')}
           onUpload={(file) => uploadPhoto(c.id, file)} onUploadVoice={(blob) => uploadVoice(c.id, blob)}
-          reviewMode={!!c.pendingApproval} showMmNote={th.showMmNote} />
-        {c.pendingApproval && (
-          <Btn th={th} full variant="success" style={{ marginTop:14 }}
-            onClick={async () => { await approveCandidate(c.id); go('back'); }}>
-            {t('review_approve_btn')}
-          </Btn>
-        )}
+          reviewMode={!!c.pendingApproval} showMmNote={th.showMmNote}
+          onApprove={c.pendingApproval ? async (data) => {
+            await updateCandidate(c.id, { ...data, pendingApproval: false });
+            go('back');
+          } : undefined} />
       </div>
     </div>
   );
