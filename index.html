@@ -6460,7 +6460,8 @@ function CandViewCand({ th, go, params }) {
   );
 
   const candUrl = window.location.origin + window.location.pathname + '#cand/' + c.id;
-  const waMsg = `היי ${myMmFirst} 👋\n\nראיתי את הפרופיל של ${c.name} ואני מאוד מעוניין/ת לברר התאמה.\nאשמח אם תוכל/י לפנות לשדכן/ית שלה/שלו (${theirMmName}) 🙏\n\nקישור לכרטיסייה:\n${candUrl}`;
+  const myName = me?.name || me?.displayName || '';
+  const waMsg = `היי ${myMmFirst} 👋\n\nאני ${myName}.\nראיתי את הפרופיל של ${c.name} ואני מאוד מעוניין/ת לברר התאמה.\nאשמח אם תוכל/י לפנות לשדכן/ית שלה/שלו (${theirMmName}) 🙏\n\nקישור לכרטיסייה:\n${candUrl}`;
   const waUrl = myMmPhone ? `https://wa.me/${myMmPhone}?text=${encodeURIComponent(waMsg)}` : null;
 
   return (
