@@ -6761,17 +6761,18 @@ function CandidateMode({ th, go }) {
   const [coRepReqs, setCoRepReqs] = useSe([]);
   const [candTab, setCandTab] = useSb('home');
 
-  // Listen for pending co-rep requests addressed to this candidate
-  // Filter status in JS to avoid requiring a Firestore composite index
+  // Listen for pending co-rep requests for this candidate
+  // Query by candId (always stored) — works for both registered and unregistered candidates,
+  // and for admin impersonation regardless of whether candidateUid matches user.uid
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!me?.id) return;
     const unsub = db.collection('coRepRequests')
-      .where('candidateUid', '==', user.uid)
+      .where('candId', '==', me.id)
       .onSnapshot(s => setCoRepReqs(
         s.docs.map(d => ({ id: d.id, ...d.data() })).filter(r => r.status === 'pending')
       ));
     return unsub;
-  }, [user?.uid]);
+  }, [me?.id]);
 
   const approveCoRep = async (req) => {
     await db.collection('candidates').doc(req.candId)
