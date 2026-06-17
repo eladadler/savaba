@@ -6461,7 +6461,18 @@ function CandViewCand({ th, go, params }) {
 
   const candUrl = window.location.origin + window.location.pathname + '#cand/' + c.id;
   const myName = me?.name || profile?.displayName || me?.displayName || '';
-  const waMsg = `היי ${myMmFirst} 👋\n\nזה אני, ${myName}.\nראיתי את הפרופיל של ${c.name} ואני מאוד מעוניין/ת לברר התאמה.\nאשמח אם תוכל/י לפנות לשדכן/ית שלה/שלו (${theirMmName}) 🙏\n\nקישור לכרטיסייה:\n${candUrl}`;
+  const isFemG = g => g === 'f' || g === 'אשה' || g === 'אישה';
+  const meIsFem      = isFemG(me?.gender || profile?.gender || '');
+  const myMmGender   = myMm?.gender || '';
+  const myMmIsFem    = myMmGender ? isFemG(myMmGender) : null;   // null = unknown
+  const theirMmGndr  = theirMm?.gender || '';
+  const theirMmIsFem = theirMmGndr ? isFemG(theirMmGndr) : null;
+  const cIsFem       = isFemG(c.gender);
+  const waInterested = meIsFem ? 'מעוניינת' : 'מעוניין';
+  const waMmCan      = myMmIsFem === null ? 'תוכל/י' : myMmIsFem ? 'תוכלי' : 'תוכל';
+  const waTheirTitle = theirMmIsFem === null ? 'שדכן/ית' : theirMmIsFem ? 'שדכנית' : 'שדכן';
+  const waCandPoss   = cIsFem ? 'שלה' : 'שלו';
+  const waMsg = `היי ${myMmFirst} 👋\n\nזה אני, ${myName}.\nראיתי את הפרופיל של ${c.name} ואני מאוד ${waInterested} לברר התאמה.\nאשמח אם ${waMmCan} לפנות ל${waTheirTitle} ${waCandPoss} (${theirMmName}) 🙏\n\nקישור לכרטיסייה:\n${candUrl}`;
   const waUrl = myMmPhone ? `https://wa.me/${myMmPhone}?text=${encodeURIComponent(waMsg)}` : null;
 
   return (
