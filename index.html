@@ -2911,8 +2911,8 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   };
 
   const steps = onUpload
-    ? ['פרטים בסיסיים', 'תמונות', 'הקלטה קולית', 'אישיות', 'תחומי עניין', 'פרטים נוספים', ...(showMmNote ? ['דבר השדכן'] : [])]
-    : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', 'פרטים נוספים', ...(showMmNote ? ['דבר השדכן'] : [])];
+    ? ['פרטים בסיסיים', 'תמונות', 'הקלטה קולית', 'אישיות', 'תחומי עניין', ...(showMmNote ? ['דבר השדכן'] : []), 'פרטים נוספים']
+    : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', ...(showMmNote ? ['דבר השדכן'] : []), 'פרטים נוספים'];
 
   const EmptyHighlight = ({ isEmpty, children }) => !reviewMode || !isEmpty ? children : (
     <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.gold, 0.55)}`, background: alpha(th.gold, 0.04), padding: 10, position: 'relative' }}>
@@ -3130,9 +3130,26 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       )}
 
       {stepName === 'פרטים נוספים' && (
-        <Field th={th} label="פרטים דיסקרטיים" hint="גלוי לך בלבד — שדכנים אחרים לא יראו שדה זה">
-          <TextArea th={th} value={f.discrete} onChange={set('discrete')} rows={3} placeholder='מידע רגיש שחשוב לדעת…' />
-        </Field>
+        <div>
+          <div style={{ background: alpha(th.ink, 0.04), border: `1.5px solid ${alpha(th.ink, 0.12)}`, borderRadius: th.r, padding: '12px 14px', marginBottom: 14, display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+            <div style={{ flexShrink: 0, width: 36, height: 36, borderRadius: '50%', background: alpha(th.ink, 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={alpha(th.ink, 0.65)} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink, marginBottom: 3 }}>
+                גלוי לך בלבד
+              </div>
+              <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), lineHeight: 1.5 }}>
+                שדכנים אחרים לא רואים שדה זה.<br/>
+                אם למועמד/ת יש כמה שדכנים — כל אחד רואה רק את מה <em>שהוא</em> כתב כאן.
+              </div>
+            </div>
+          </div>
+          <TextArea th={th} value={f.discrete} onChange={set('discrete')} rows={4} placeholder='מידע רגיש שחשוב לדעת…' />
+        </div>
       )}
 
       {stepName === 'דבר השדכן' && (
