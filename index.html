@@ -2,7 +2,7 @@
 <html lang="he">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>סבבה והכל</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <!-- Open Graph / WhatsApp preview -->
@@ -24,6 +24,8 @@
   html, body { margin: 0; padding: 0; height: 100%; background: #2a2630; }
   body { font-family: "Assistant", sans-serif; overflow: hidden; }
   #root { height: 100%; }
+  /* iOS Safari: keep container inside visible viewport, above browser toolbar */
+  .app-shell { height: 100svh; }
   button { font-family: inherit; }
   input, textarea, select { font-family: inherit; }
   ::-webkit-scrollbar { width: 0; height: 0; }
@@ -1472,7 +1474,7 @@ function BottomNav({ active, onNav, th, badges = {} }) {
       flexShrink: 0, background: alpha(th.card, 0.92),
       backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
       borderTop: `1px solid ${alpha(th.ink, 0.08)}`,
-      paddingTop: 8, paddingBottom: 26, paddingInline: 6,
+      paddingTop: 8, paddingBottom: 'max(26px, env(safe-area-inset-bottom))', paddingInline: 6,
       display: 'flex', justifyContent: 'space-around',
     }}>
       {tabs.map(tb => {
@@ -6520,7 +6522,7 @@ function CandViewCand({ th, go, params }) {
           )}
         </div>
       </div>
-      <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'12px 18px 16px', background:th.card, borderTop:`1px solid ${alpha(th.ink,0.08)}`, boxShadow:`0 -4px 20px ${alpha(th.ink,0.07)}` }}>
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, paddingTop:12, paddingInline:18, paddingBottom:'max(16px, env(safe-area-inset-bottom))', background:th.card, borderTop:`1px solid ${alpha(th.ink,0.08)}`, boxShadow:`0 -4px 20px ${alpha(th.ink,0.07)}` }}>
         {waUrl ? (
           <a href={waUrl} target="_blank" rel="noopener"
             style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'14px 0', borderRadius:th.r, background:'#25D366', color:'#fff', textDecoration:'none', fontFamily:th.display, fontWeight:800, fontSize:15, boxShadow:'0 6px 18px rgba(37,211,102,0.3)' }}>
@@ -7250,7 +7252,7 @@ function AppInner({ inviteToken }) {
   return (
     <TextsCtx.Provider value={{ texts: { ...data.texts, ...drafts }, defaults: DEFAULT_TEXTS }}>
       <>
-      <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
+      <div className="app-shell" style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
           <ImpersonateBanner th={th} />
           {data.loading
