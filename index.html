@@ -990,6 +990,7 @@ function makeTheme(t) {
     r, rSm: Math.max(6, r * 0.6), rLg: r * 1.5,
     d, sp: (n) => Math.round(n * d),
     cardVariant: t.cardVariant || 'קלאסי',
+    showMmNote: t.showMmNote !== false,
   };
 }
 
@@ -2849,7 +2850,7 @@ function AdminPanel({ th, go }) {
   );
 }
 
-function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice }) {
+function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote }) {
   const { lists } = useContext(DataCtx);
   const liveRegions       = (lists.regions      && lists.regions.length)      ? lists.regions      : REGIONS;
   const liveReligiosity   = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
@@ -2873,6 +2874,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
   const [voiceUrl, setVoiceUrl] = useState(initial?.voiceNote || null);
   const [voiceUploading, setVoiceUploading] = useState(false);
   const voiceChunksRef = React.useRef([]);
+  const [mmNote, setMmNote] = useState(initial?.mmNote || '');
 
   useEffect(() => {
     if (!voiceBlob || !onUploadVoice) return;
@@ -2907,8 +2909,17 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
   };
 
   const steps = onUpload
-    ? ['פרטים בסיסיים', 'תמונות', 'הקלטה קולית', 'אישיות', 'תחומי עניין', 'פרטים נוספים']
-    : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', 'פרטים נוספים'];
+    ? ['פרטים בסיסיים', 'תמונות', 'הקלטה קולית', 'אישיות', 'תחומי עניין', 'פרטים נוספים', ...(showMmNote ? ['דבר השדכן'] : [])]
+    : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', 'פרטים נוספים', ...(showMmNote ? ['דבר השדכן'] : [])];
+
+  const EmptyHighlight = ({ isEmpty, children }) => !reviewMode || !isEmpty ? children : (
+    <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.gold, 0.55)}`, background: alpha(th.gold, 0.04), padding: 10, position: 'relative' }}>
+      <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.gold, marginBottom: 6 }}>
+        כדאי למלא — יחזק את הכרטיסייה
+      </div>
+      {children}
+    </div>
+  );
 
   const isLast = step === steps.length - 1;
   const stepName = steps[step];
@@ -3041,6 +3052,11 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
 
       {stepName === 'הקלטה קולית' && (
         <div style={{ textAlign:'center', padding:'8px 0' }}>
+          {reviewMode && !voiceUrl && (
+            <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.gold, 0.55)}`, background: alpha(th.gold, 0.04), padding: '8px 12px', marginBottom: 14, textAlign: 'right' }}>
+              <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.gold }}>כדאי להוסיף הקלטה — מוסיפה אמינות לכרטיסייה</div>
+            </div>
+          )}
           <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.6, marginBottom:20 }}>
             הקלט/י כמה מילים על המועמד/ת<br/>
             <span style={{ fontSize:12.5, opacity:0.8 }}>הקלטה מוסיפה אישיות — שדכנים אחרים ישמעו אותך</span>
@@ -3080,24 +3096,34 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
 
       {stepName === 'אישיות' && (
         <>
-          <Field th={th} label="סבבה והכל, אבל…" hint='למשל: "שואל את גוגל Maps כשהוא יודע בדיוק לאן הוא הולך"'>
-            <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder='משהו אמיתי ומצחיק שמאפיין אותו/ה…' rows={2} />
-          </Field>
-          <Field th={th} label="במשפט אחד"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder='הגדרה קצרה של האדם…' /></Field>
-          <Field th={th} label="רואה את עצמו/ה עם">
-            <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} placeholder='תאר/י את הזוגיות שהוא/היא מדמיין/ת לעצמו/ה…' rows={3} />
-          </Field>
+          <EmptyHighlight isEmpty={!f.sabaBut}>
+            <Field th={th} label="סבבה והכל, אבל…" hint='למשל: "שואל את גוגל Maps כשהוא יודע בדיוק לאן הוא הולך"'>
+              <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder='משהו אמיתי ומצחיק שמאפיין אותו/ה…' rows={2} />
+            </Field>
+          </EmptyHighlight>
+          <EmptyHighlight isEmpty={!f.oneLine}>
+            <Field th={th} label="במשפט אחד"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder='הגדרה קצרה של האדם…' /></Field>
+          </EmptyHighlight>
+          <EmptyHighlight isEmpty={!f.seesWith}>
+            <Field th={th} label="רואה את עצמו/ה עם">
+              <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} placeholder='תאר/י את הזוגיות שהוא/היא מדמיין/ת לעצמו/ה…' rows={3} />
+            </Field>
+          </EmptyHighlight>
         </>
       )}
 
       {stepName === 'תחומי עניין' && (
         <>
-          <Field th={th} label="תחומי עניין">
-            <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} options={liveInterests} tone={th.primary} />
-          </Field>
-          <Field th={th} label="חשוב בפרטנר">
-            <MultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner: v}))} options={livePartnerTraits} tone={th.gold} />
-          </Field>
+          <EmptyHighlight isEmpty={!(f.interests?.length)}>
+            <Field th={th} label="תחומי עניין">
+              <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} options={liveInterests} tone={th.primary} />
+            </Field>
+          </EmptyHighlight>
+          <EmptyHighlight isEmpty={!(f.partner?.length)}>
+            <Field th={th} label="חשוב בפרטנר">
+              <MultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner: v}))} options={livePartnerTraits} tone={th.gold} />
+            </Field>
+          </EmptyHighlight>
         </>
       )}
 
@@ -3107,13 +3133,22 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice 
         </Field>
       )}
 
+      {stepName === 'דבר השדכן' && (
+        <div>
+          <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), lineHeight:1.6, marginBottom:14 }}>
+            כתוב/י משפט או שניים על המועמד/ת מנקודת מבטך — יופיע בכרטיסייה עם תמונתך ושמך.
+          </div>
+          <TextArea th={th} value={mmNote} onChange={setMmNote} placeholder='למה אני משדך/ת את האדם הזה? מה מיוחד בו/ה?' rows={4} />
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
         {step > 0
           ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
           : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
         }
         {isLast
-          ? <Btn th={th} full onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}) })}>שמור</Btn>
+          ? <Btn th={th} full onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>שמור</Btn>
           : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
         }
       </div>
@@ -4136,23 +4171,22 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
 // INVITE FLOW — matchmaker creates invitation link
 // ════════════════════════════════════════════════════════════
 function InviteFlow({ open, onClose, th, mmId, mmName }) {
-  const [step, setStep]         = useState(1); // 1=name, 2=flow-type, 3=link
+  const [step, setStep]         = useState(1); // 1=name, 2=link
   const [recipFirst, setFirst]  = useState('');
   const [recipLast,  setLast]   = useState('');
-  const [flow, setFlow]         = useState('cand_fills');
   const [token, setToken]       = useState('');
   const [creating, setCreating] = useState(false);
   const [copied,   setCopied]   = useState(false);
 
   const recipientName = `${recipFirst.trim()} ${recipLast.trim()}`.trim();
-  const reset = () => { setStep(1); setFirst(''); setLast(''); setFlow('cand_fills'); setToken(''); setCopied(false); };
+  const reset = () => { setStep(1); setFirst(''); setLast(''); setToken(''); setCopied(false); };
 
   const generate = async () => {
     setCreating(true);
     try {
-      const tok = await createInvitation(mmId, mmName, flow, recipientName);
+      const tok = await createInvitation(mmId, mmName, 'cand_fills', recipientName);
       setToken(tok);
-      setStep(3);
+      setStep(2);
     } finally { setCreating(false); }
   };
 
@@ -4190,43 +4224,14 @@ function InviteFlow({ open, onClose, th, mmId, mmName }) {
                 style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: 15, background: th.card, color: th.ink, outline: 'none' }} />
             </div>
           </div>
-          <Btn th={th} full disabled={!recipFirst.trim() || !recipLast.trim()} onClick={() => setStep(2)}>הבא ←</Btn>
+          <Btn th={th} full disabled={!recipFirst.trim() || !recipLast.trim() || creating} onClick={generate}>
+            {creating ? 'יוצר קישור…' : 'צור קישור הזמנה ←'}
+          </Btn>
         </>
       )}
 
-      {/* ── Step 2: flow type ── */}
+      {/* ── Step 2: link ready ── */}
       {step === 2 && (
-        <>
-          <div style={{ display:'flex', alignItems:'center', gap:8, background:alpha(th.primary,0.07), borderRadius:th.rSm, padding:'8px 12px', marginBottom:14 }}>
-            <Icon name="person" size={16} style={{ color: th.primary }} />
-            <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{recipientName}</span>
-          </div>
-          <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginBottom: 14 }}>מי ימלא את הפרטים?</div>
-          {[
-            { val: 'cand_fills', label: 'המועמד/ת ימלא/תמלא', desc: 'המועמד/ת ממלא/ת את כל הפרטים ותמונות בעצמו/ה.' },
-            { val: 'mm_fills',   label: 'אני אמלא',             desc: 'המועמד/ת פותח/ת את הקישור ומאשר/ת בלבד.' },
-          ].map(opt => (
-            <button key={opt.val} onClick={() => setFlow(opt.val)} style={{
-              all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%',
-              padding: '13px 15px', borderRadius: th.r, marginBottom: 10, display: 'block', textAlign: 'right',
-              border: `2px solid ${flow === opt.val ? th.primary : alpha(th.ink, 0.12)}`,
-              background: flow === opt.val ? alpha(th.primary, 0.06) : th.card,
-            }}>
-              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: flow === opt.val ? th.primary : th.ink, marginBottom: 3 }}>{opt.label}</div>
-              <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), lineHeight: 1.4 }}>{opt.desc}</div>
-            </button>
-          ))}
-          <div style={{ display:'flex', gap:8, marginTop:4 }}>
-            <Btn th={th} variant="ghost" onClick={() => setStep(1)}>← חזרה</Btn>
-            <Btn th={th} full onClick={generate} disabled={creating}>
-              {creating ? 'יוצר קישור…' : 'צור קישור הזמנה'}
-            </Btn>
-          </div>
-        </>
-      )}
-
-      {/* ── Step 3: link ready ── */}
-      {step === 3 && (
         <>
           <div style={{ background: alpha(th.success, 0.1), border: `1.5px solid ${alpha(th.success, 0.25)}`, borderRadius: th.r, padding: 14, marginBottom: 16, textAlign: 'center' }}>
             <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.success, marginBottom: 4 }}>✓ קישור מוכן לשליחה!</div>
@@ -4351,7 +4356,7 @@ function CandidateSelfFill({ th, go, params }) {
   const livePartnerTraits = (lists.partnerTraits  && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
   const { token, invite } = params;
   const [f, setF] = useState({
-    name: profile?.displayName || '', age: '', gender: 'אשה',
+    name: profile?.displayName || '', phone: '', age: '', gender: 'אשה',
     region: '', religiosity: '', family: 'רווק/ה', kids: 0,
     sabaBut: '', oneLine: '', seesWith: '', interests: [], partner: [], discrete: '', available: true,
   });
@@ -4376,11 +4381,11 @@ function CandidateSelfFill({ th, go, params }) {
   const setPrimaryPhoto = (i) => setPhotos(p => { const a = [...p]; [a[0], a[i]] = [a[i], a[0]]; return a; });
 
   const submit = async () => {
-    if (!f.name || !f.age) return alert('נא למלא שם וגיל');
+    if (!f.name || !f.phone || !f.age || !f.region) return alert('נא למלא את כל שדות החובה');
     setSub(true);
     try {
       const ref = await db.collection('candidates').add({
-        ...f, age: +f.age, photos,
+        ...f, age: +f.age, phone: f.phone.trim(), photos,
         mmId: invite.mmId, candidateUid: user.uid,
         pendingApproval: true, available: true,
         grad: gradForId(user.uid),
@@ -4433,12 +4438,13 @@ function CandidateSelfFill({ th, go, params }) {
 
         {step === 0 && (
           <>
-            <Field th={th} label="שם מלא" required><TextInput th={th} value={f.name} onChange={set('name')} placeholder="שם פרטי ומשפחה" /></Field>
-            <Field th={th} label="גיל" required><TextInput th={th} type="number" value={f.age} onChange={set('age')} placeholder="25" /></Field>
-            <Field th={th} label="מין" required><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
-            <Field th={th} label="אזור מגורים"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
+            <Field th={th} label="שם מלא *"><TextInput th={th} value={f.name} onChange={set('name')} placeholder="שם פרטי ומשפחה" /></Field>
+            <Field th={th} label="טלפון *"><TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} placeholder="050-0000000" /></Field>
+            <Field th={th} label="גיל *"><TextInput th={th} type="number" value={f.age} onChange={set('age')} placeholder="25" /></Field>
+            <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
+            <Field th={th} label="אזור מגורים *"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
             <Field th={th} label="זרם דתי"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
-            <Field th={th} label="סטטוס משפחתי"><Segmented th={th} value={f.family} onChange={set('family')} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
+            <Field th={th} label="סטטוס משפחתי *"><Segmented th={th} value={f.family} onChange={set('family')} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
             <Field th={th} label="ילדים">
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 <Segmented th={th} value={(f.kids||0) > 0 ? 'עם ילדים' : 'ללא ילדים'} onChange={v => setF(s => ({ ...s, kids: v === 'עם ילדים' ? 1 : 0 }))} options={['ללא ילדים', 'עם ילדים']} />
@@ -4574,9 +4580,14 @@ function CandidateSelfFill({ th, go, params }) {
                     נא להעלות לפחות תמונה אחת
                   </div>
                 )}
-                <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.age || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
+                <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.phone || !f.age || !f.region || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
               </>
-            : <Btn th={th} full onClick={() => { if (step===0 && (!f.name||!f.age)) { alert('נא למלא שם וגיל'); return; } setStep(s => s+1); }}>הבא ←</Btn>
+            : <Btn th={th} full onClick={() => {
+                if (step === 0 && (!f.name || !f.phone || !f.age || !f.region)) {
+                  alert('נא למלא את כל שדות החובה (המסומנים ב-*)'); return;
+                }
+                setStep(s => s+1);
+              }}>הבא ←</Btn>
           }
         </div>
       </div>
@@ -4608,15 +4619,22 @@ function EditCandidateScreen({ th, go, params }) {
             </div>
           </div>
         )}
-        {c.pendingApproval && (
-          <div style={{ background:alpha(th.gold,0.12), border:`1.5px solid ${alpha(th.gold,0.3)}`, borderRadius:th.r, padding:14, marginBottom:16, display:'flex', gap:10 }}>
-            <Icon name="info" size={18} style={{ color:th.gold, flexShrink:0, marginTop:2 }} />
-            <div>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>ממתין/ה לאישורך</div>
-              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.4 }}>המועמד/ת מילא/ה פרטים. עבור/י על הכרטיסייה ואשר/י כדי שתופיע במערכת.</div>
+        {c.pendingApproval && (() => {
+          const emptyCount = [!c.sabaBut, !c.oneLine, !c.seesWith,
+            !(c.interests?.length), !(c.partner?.length), !c.voiceNote].filter(Boolean).length;
+          return (
+            <div style={{ background:alpha(th.gold,0.12), border:`1.5px solid ${alpha(th.gold,0.3)}`, borderRadius:th.r, padding:14, marginBottom:16, display:'flex', gap:10 }}>
+              <Icon name="info" size={18} style={{ color:th.gold, flexShrink:0, marginTop:2 }} />
+              <div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:3 }}>ממתין/ה לאישורך</div>
+                <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.4 }}>
+                  המועמד/ת מילא/ה פרטים.
+                  {emptyCount > 0 && <span> יש <b style={{ color:th.gold }}>{emptyCount} שדות ריקים</b> — כדאי להשלים לפני האישור.</span>}
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
         <CandidateForm th={th} initial={{ ...c, name: c.name || params?.prefillName || '' }}
           onSave={async (data) => {
             const update = { ...data };
@@ -4625,7 +4643,8 @@ function EditCandidateScreen({ th, go, params }) {
             go('back');
           }}
           onCancel={() => go('back')}
-          onUpload={(file) => uploadPhoto(c.id, file)} onUploadVoice={(blob) => uploadVoice(c.id, blob)} />
+          onUpload={(file) => uploadPhoto(c.id, file)} onUploadVoice={(blob) => uploadVoice(c.id, blob)}
+          reviewMode={!!c.pendingApproval} showMmNote={th.showMmNote} />
         {c.pendingApproval && (
           <Btn th={th} full variant="success" style={{ marginTop:14 }}
             onClick={async () => { await approveCandidate(c.id); go('back'); }}>
@@ -4828,13 +4847,14 @@ function CandidateDetail({ th, go, params }) {
   const [localAvailable, setLocalAvailable] = useSb(c?.available ?? true);
   const [localHidden, setLocalHidden] = useSb(c?.hidden ?? false);
   const { user } = React.useContext(AuthCtx);
-  const { updateCandidate, deleteCandidate } = React.useContext(DataCtx);
+  const { updateCandidate, deleteCandidate, matchmakers } = React.useContext(DataCtx);
   useEd(() => { setLocalAvailable(c?.available ?? true); }, [c?.available]);
   useEd(() => { setLocalHidden(c?.hidden ?? false); }, [c?.hidden]);
   const myUid = user?.uid;
   const variant = th.cardVariant;
   const isMine = c && (c.mmId === myUid || c.coMms?.includes(myUid));
   const cView = { ...c, hidden: localHidden, available: localAvailable };
+  const mm = matchmakers?.[c?.mmId] || null;
 
   const footer = (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
@@ -4843,9 +4863,9 @@ function CandidateDetail({ th, go, params }) {
   );
 
   const body =
-    variant === 'מגזין' ? <MagBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
-    : variant === 'מינימלי' ? <MinBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />
-    : <ClassicBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} />;
+    variant === 'מגזין' ? <MagBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} />
+    : variant === 'מינימלי' ? <MinBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} />
+    : <ClassicBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} />;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, position: 'relative' }}>
@@ -5071,7 +5091,26 @@ function VoiceNotePlayer({ url, th, fab }) {
   );
 }
 
-function ClassicBody({ c, th, showDiscrete, setShowDiscrete }) {
+function MmNoteCard({ c, mm, th }) {
+  if (!c.mmNote || !mm) return null;
+  const mmName = mm.displayName || mm.name || 'השדכן/ית';
+  return (
+    <div style={{ background: alpha(th.primary, 0.06), border: `1.5px solid ${alpha(th.primary, 0.18)}`,
+      borderRadius: th.r, padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
+      <Avatar grad={mm.grad || gradForId(mm.id || mm.uid || 'x')} name={mmName} size={38} photo={mm.photoURL} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.primary, marginBottom: 5 }}>
+          {mmName} ממליץ/ה:
+        </div>
+        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.82), lineHeight: 1.55 }}>
+          {c.mmNote}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
   const Section = ({ label, children, icon }) => (
     <div style={{ background: th.card, borderRadius: th.r, padding: 16, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
@@ -5106,6 +5145,7 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete }) {
       <div style={{ padding: '0 16px 24px', marginTop: -28, position: 'relative' }}>
         {/* the saba badge overlaps the hero */}
         <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={c.sabaBut} size="l" /></div>
+        {th.showMmNote && <MmNoteCard c={c} mm={mm} th={th} />}
 
         <Section label="במשפט אחד" icon="user">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p>
@@ -5122,7 +5162,7 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete }) {
 }
 
 // ── VARIANT 2 — מגזין (editorial) ──────────────────────────────
-function MagBody({ c, th, showDiscrete, setShowDiscrete }) {
+function MagBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
   const Rule = () => <div style={{ height: 1.5, background: alpha(th.gold, 0.4), margin: '22px 0' }} />;
   const Label = ({ children }) => <div style={{ fontFamily: th.display, fontSize: 12, color: th.gold, letterSpacing: 2, marginBottom: 10 }}>{children}</div>;
   return (
@@ -5146,6 +5186,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete }) {
           <div style={{ fontFamily: th.body, fontSize: 13.5, color: th.gold, fontWeight: 700, marginTop: 12 }}>— סבבה והכל, אבל…</div>
         </div>
         <Rule />
+        {th.showMmNote && c.mmNote && <><MmNoteCard c={c} mm={mm} th={th} /><Rule /></>}
         <Label>במשפט אחד</Label>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p>
         <Rule />
@@ -5177,7 +5218,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete }) {
 }
 
 // ── VARIANT 3 — מינימלי (clean, airy) ──────────────────────────
-function MinBody({ c, th, showDiscrete, setShowDiscrete }) {
+function MinBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
   const Hr = () => <div style={{ height: 1, background: alpha(th.ink, 0.09), margin: '0 0' }} />;
   const Block = ({ label, children }) => (
     <div style={{ padding: '20px 0' }}>
@@ -5207,6 +5248,7 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete }) {
       </div>
 
       {c.voiceNote && <div style={{ marginTop:12 }}><VoiceNotePlayer url={c.voiceNote} th={th} /></div>}
+      {th.showMmNote && c.mmNote && <div style={{ marginTop:12 }}><MmNoteCard c={c} mm={mm} th={th} /></div>}
 
       <Block label="במשפט אחד"><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
       <Hr />
@@ -6847,7 +6889,7 @@ Object.assign(window, { Toggle, CandidateMode, Settings });
 // ════════════════════════════════════════════════════════════
 const TWEAK_DEFAULTS = {
   "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
-  "density": "רגיל", "cardVariant": "קלאסי"
+  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
 const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
@@ -7297,6 +7339,8 @@ function AppInner({ inviteToken }) {
       <TweaksPanel title="Tweaks">
         <TweakSection label="כרטיסיית מועמד" />
         <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
+        <TweakSection label="תוכן הכרטיסייה" />
+        <TweakToggle label="דבר השדכן" value={t.showMmNote} onChange={v => setTweak('showMmNote', v)} />
         <TweakSection label="צבע" />
         <TweakColor label="צבע ראשי" value={t.primaryColor} options={['#E8547A','#C0436B','#7B4B8A','#E0533F','#2B6E5C']} onChange={v => setTweak('primaryColor',v)} />
         <TweakSection label="טיפוגרפיה" />
