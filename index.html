@@ -4078,19 +4078,29 @@ function Candidates({ th, go, params }) {
               photoStyle={cardStyle}
               requestSent={sentRequests.has(c.id)}
               onLink={async () => {
-                if (!c.candidateUid) {
-                  alert(`${c.name} לא נרשמ/ה עדיין לאפליקציה — לא ניתן לשלוח בקשת ייצוג.\nניתן לשלוח בקשת ייצוג רק למועמדים שכבר נרשמו ומחזיקים חשבון.`);
-                  return;
+                if (c.candidateUid) {
+                  // candidate has an account → request goes to candidate's app
+                  await db.collection('coRepRequests').add({
+                    mmId: myUid,
+                    mmName: profile?.displayName || 'שדכן/ית',
+                    candId: c.id,
+                    candName: c.name,
+                    candidateUid: c.candidateUid,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  });
+                } else {
+                  // no account yet → request goes to primary matchmaker for approval
+                  await db.collection('coRepRequests').add({
+                    fromMmId: myUid,
+                    fromMmName: profile?.displayName || 'שדכן/ית',
+                    toMmId: c.mmId,
+                    candId: c.id,
+                    candName: c.name,
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  });
                 }
-                await db.collection('coRepRequests').add({
-                  mmId: myUid,
-                  mmName: profile?.displayName || 'שדכן/ית',
-                  candId: c.id,
-                  candName: c.name,
-                  candidateUid: c.candidateUid,
-                  status: 'pending',
-                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                });
                 setSentRequests(prev => new Set([...prev, c.id]));
               }}
             />
