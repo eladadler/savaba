@@ -3188,6 +3188,13 @@ const TEXT_KEYS = {
   invite_name_title: 'הזמנה — שאלת שם',
   invite_what_next_mm:   'הזמנה — מה קורה אחרי (שדכן ממלא)',
   invite_what_next_self: 'הזמנה — מה קורה אחרי (מועמד ממלא)',
+  add_sheet_title:    'הוספת מועמד — כותרת',
+  add_sheet_sub1:     'הוספת מועמד — תיאור שורה 1',
+  add_sheet_sub2:     'הוספת מועמד — תיאור שורה 2',
+  add_sheet_new_title: 'הוספת מועמד — אפשרות חדש/ה: כותרת',
+  add_sheet_new_sub:   'הוספת מועמד — אפשרות חדש/ה: תיאור',
+  add_sheet_rep_title: 'הוספת מועמד — אפשרות ייצוג: כותרת',
+  add_sheet_rep_sub:   'הוספת מועמד — אפשרות ייצוג: תיאור',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -3221,6 +3228,13 @@ const DEFAULT_TEXTS = {
   invite_name_title: 'מה שמך?',
   invite_what_next_mm:   'השדכן/ית ימלא/תמלא את הפרטים שלך ויצור/תיצור עבורך כרטיסייה.',
   invite_what_next_self: 'תתבקש/י למלא את הפרטים שלך ולהעלות תמונות. השדכן/ית יאשר/תאשר לפני פרסום.',
+  add_sheet_title:     'הוספת מועמד/ת',
+  add_sheet_sub1:      'בחרו כיצד תרצו להוסיף את המועמד/ת',
+  add_sheet_sub2:      'ייצוג מועמד/ת חדש/ת בנוסף לשדיכון/ית שלו/ה',
+  add_sheet_new_title: 'הוספת מועמד/ת חדש/ה',
+  add_sheet_new_sub:   'מועמד/ת חדש/ה שאינ/ה במערכת',
+  add_sheet_rep_title: 'ייצוג מועמד/ת שכבר במערכת',
+  add_sheet_rep_sub:   'מועמד/ת קיים/ת שיש לייצג',
 };
 
 const SCREEN_TEXTS = {
@@ -3231,6 +3245,7 @@ const SCREEN_TEXTS = {
   ai:            ['ai_info_text'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
+  addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
 };
 
 // ════════════════════════════════════════════════════════════
@@ -4808,6 +4823,8 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
 
 function AddSheet({ open, onClose, th, go }) {
   const { profile } = useContext(AuthCtx);
+  const { texts: tx, defaults: dx } = useContext(TextsCtx);
+  const t = (key) => tx[key] || dx[key] || '';
   const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
@@ -4837,13 +4854,13 @@ function AddSheet({ open, onClose, th, go }) {
 
           {/* title */}
           <div style={{ textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: 22, color: th.ink, marginBottom: 8 }}>
-            הוספת מועמד/ת
+            {t('add_sheet_title')}
           </div>
 
           {/* subtitle */}
           <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), lineHeight: 1.6, marginBottom: 22 }}>
-            בחרו כיצד תרצו להוסיף את המועמד/ת<br />
-            ייצוג מועמד/ת חדש/ת בנוסף לשדיכון/ית שלו/ה
+            {t('add_sheet_sub1')}<br />
+            {t('add_sheet_sub2')}
           </div>
 
           {/* option cards */}
@@ -4860,8 +4877,8 @@ function AddSheet({ open, onClose, th, go }) {
                 </svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>הוספת מועמד/ת חדש/ה</div>
-                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>מועמד/ת חדש/ה שאינ/ה במערכת</div>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{t('add_sheet_new_title')}</div>
+                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>{t('add_sheet_new_sub')}</div>
               </div>
               <Icon name="chevL" size={20} style={{ color: alpha(th.ink, 0.28), flexShrink: 0 }} />
             </button>
@@ -4878,8 +4895,8 @@ function AddSheet({ open, onClose, th, go }) {
                 </svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>ייצוג מועמד/ת שכבר במערכת</div>
-                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>מועמד/ת קיים/ת שיש לייצג</div>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{t('add_sheet_rep_title')}</div>
+                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>{t('add_sheet_rep_sub')}</div>
               </div>
               <Icon name="chevL" size={20} style={{ color: alpha(th.ink, 0.28), flexShrink: 0 }} />
             </button>
