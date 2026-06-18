@@ -5780,10 +5780,10 @@ function MatchFlow({ th, go, params }) {
                 onClick={() => setConfirmModal(false)}>
                 <div onClick={e => e.stopPropagation()} style={{ background: th.cream, borderTopLeftRadius: th.rLg, borderTopRightRadius: th.rLg, padding: '24px 20px 36px', width: '100%', maxWidth: 480, animation: 'sabaUp .25s cubic-bezier(.2,.9,.3,1)' }}>
                   <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 18, color: th.ink, marginBottom: 8 }}>
-                    האם {first.name} כבר אישר/ה?
+                    האם {first.name} כבר בתמונה?
                   </div>
                   <p style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.65), lineHeight: 1.55, margin: '0 0 20px' }}>
-                    לפני שנפנה לשדכן/ית של {second.name}, חשוב לוודא שהמועמד/ת שלך כבר הסכים/ה להצעה.
+                    לא חובה — אבל כדאי לדעת שהמועמד/ת שלך מעוניין/ת לפני שנפנה לשדכן/ית של {second.name}.
                   </p>
                   <div style={{ display: 'flex', gap: 10 }}>
                     <Btn th={th} full variant="ghost" onClick={() => setConfirmModal(false)}>עוד לא</Btn>
