@@ -3859,7 +3859,6 @@ function Home({ th, go }) {
         : `${newMsgChats.length} שיחות עם הודעות חדשות`,
       to: () => {
         const first = newMsgChats[0];
-        newMsgNotifs.filter(n => n.chatId === first.chatId).forEach(n => markNotificationRead(n.id));
         go('candInquiry', { candId: first.candId, toMm: first.fromMmId });
       },
     },
@@ -6793,7 +6792,7 @@ function AIRecs({ th, go }) {
 // CANDIDATE INQUIRY CHAT — matchmaker ↔ matchmaker about a candidate
 // ════════════════════════════════════════════════════════════
 function CandInquiry({ th, go, params }) {
-  const { candidates, matchmakers } = useContext(DataCtx);
+  const { candidates, matchmakers, notifications, markNotificationRead } = useContext(DataCtx);
   const { user, profile } = useContext(AuthCtx);
   const myUid   = user?.uid;
   const candId  = params?.candId;
@@ -6822,6 +6821,14 @@ function CandInquiry({ th, go, params }) {
   }, [chatId]);
 
   useEd(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+
+  // Mark incoming new_msg notifications for this chat as read when the screen opens
+  useEd(() => {
+    if (!chatId || !myUid) return;
+    notifications
+      .filter(n => n.type === 'new_msg' && n.chatId === chatId && !n.read)
+      .forEach(n => markNotificationRead(n.id));
+  }, [chatId]);
 
   const send = async () => {
     if (!text.trim() || sending) return;
