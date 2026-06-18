@@ -7378,19 +7378,26 @@ function OfferDetail({ th, go, params }) {
   const theirCand = iAmA ? candB : candA;
   const theirMm   = iAmA ? mmB : mmA;
 
-  const aCandApp  = !!(o.aCandApproved || o.candAApprovedByMm);
-  const bCandApp  = !!o.bCandApproved;
-  const myApp     = iAmA ? aCandApp : bCandApp;
-  const theirApp  = iAmA ? bCandApp : aCandApp;
-  const bothApp   = aCandApp && bCandApp;
-  const finalFail = o.status === 'נדחתה';
+  const aCandApp   = !!(o.aCandApproved || o.candAApprovedByMm);
+  const bCandApp   = !!o.bCandApproved;
+  const bothApp    = aCandApp && bCandApp;
+  const finalFail  = o.status === 'נדחתה';
+  const iAmBothMm  = o.aMm === myUid && o.bMm === myUid;
 
-  const markApproved = async () => {
+  // Columns: always [mine, theirs]. For self-match (both mine) both cols are mine.
+  const approvalCols = iAmBothMm
+    ? [
+        { cand:candA, approved:aCandApp, mine:true,  field:'aCandApproved', newOtherApp:bCandApp },
+        { cand:candB, approved:bCandApp, mine:true,  field:'bCandApproved', newOtherApp:aCandApp },
+      ]
+    : [
+        { cand:myCand,    approved: iAmA ? aCandApp : bCandApp, mine:true,  field: iAmA ? 'aCandApproved' : 'bCandApproved', newOtherApp: iAmA ? bCandApp : aCandApp },
+        { cand:theirCand, approved: iAmA ? bCandApp : aCandApp, mine:false, field: null, newOtherApp: null },
+      ];
+
+  const markApproved = async (field, newOtherApp) => {
     setApproving(true);
-    const field = iAmA ? 'aCandApproved' : 'bCandApproved';
-    const newA  = iAmA ? true : aCandApp;
-    const newB  = iAmA ? bCandApp : true;
-    await updateOffer(o.id, { [field]: true, ...(newA && newB ? { status: 'אושרה' } : {}) });
+    await updateOffer(o.id, { [field]: true, ...(newOtherApp ? { status: 'אושרה' } : {}) });
     setApproving(false);
   };
 
@@ -7443,39 +7450,45 @@ function OfferDetail({ th, go, params }) {
         <div style={{ background:th.card, borderRadius:th.r, padding:14, marginBottom:14, boxShadow:cardShadow }}>
           <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:10, letterSpacing:'.04em', textTransform:'uppercase' }}>אישורים</div>
           <div style={{ display:'flex', gap:8 }}>
-            {[
-              { cand:candA, mm:mmA, approved:aCandApp, isMyCol: o.aMm===myUid },
-              { cand:candB, mm:mmB, approved:bCandApp, isMyCol: o.bMm===myUid },
-            ].map(({ cand, mm, approved, isMyCol }) => (
+            {approvalCols.map(({ cand, approved, mine, field, newOtherApp }) => (
               <div key={cand.id} style={{ flex:1, borderRadius:th.rSm, padding:10,
-                background: approved ? alpha(th.success,0.08) : isMyCol ? alpha(th.primary,0.07) : alpha(th.ink,0.04),
-                border:`1.5px solid ${approved ? alpha(th.success,0.3) : isMyCol ? alpha(th.primary,0.2) : alpha(th.ink,0.08)}` }}>
-                <div style={{ fontFamily:th.body, fontSize:10, fontWeight:700, color:isMyCol?th.primary:alpha(th.ink,0.4), marginBottom:6 }}>
-                  {isMyCol ? '◆ המועמד/ת שלי' : 'הצד השני'}
+                background: approved ? alpha(th.success,0.08) : mine ? alpha(th.primary,0.07) : alpha(th.ink,0.04),
+                border:`1.5px solid ${approved ? alpha(th.success,0.3) : mine ? alpha(th.primary,0.2) : alpha(th.ink,0.08)}` }}>
+
+                {/* Label */}
+                <div style={{ fontFamily:th.body, fontSize:10, fontWeight:800,
+                  color: mine ? th.primary : alpha(th.ink,0.38), marginBottom:7,
+                  display:'flex', alignItems:'center', gap:4 }}>
+                  {mine && <span style={{ fontSize:8 }}>◆</span>}
+                  {mine ? 'המועמד/ת שלי' : 'הצד השני'}
                 </div>
+
+                {/* Candidate name — clickable → card */}
                 <button onClick={() => go('candidate', { id:cand.id })}
                   style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:7, marginBottom:10, width:'100%' }}>
                   <Avatar grad={cand.grad} name={cand.name} size={32} photo={cand.photos?.[0]} />
                   <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{cand.name}</span>
                   <Icon name="chevL" size={12} style={{ color:alpha(th.ink,0.25), flexShrink:0 }} />
                 </button>
+
+                {/* Status */}
                 {approved ? (
                   <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 9px', borderRadius:th.rSm, background:alpha(th.success,0.12) }}>
                     <Icon name="check" size={13} style={{ color:th.success }} />
-                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:th.success }}>אישר/ה שידוך</span>
+                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:th.success }}>{cand.name.split(' ')[0]} אישר/ה</span>
                   </div>
-                ) : isMyCol && !finalFail ? (
-                  <button disabled={approving} onClick={markApproved}
-                    style={{ all:'unset', cursor:approving?'default':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'8px 0', borderRadius:th.rSm, background:th.primary, width:'100%', boxSizing:'border-box', opacity:approving?0.6:1 }}>
+                ) : mine && !finalFail ? (
+                  <button disabled={approving} onClick={() => markApproved(field, newOtherApp)}
+                    style={{ all:'unset', cursor:approving?'default':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 0', borderRadius:th.rSm, background:th.primary, width:'100%', boxSizing:'border-box', opacity:approving?0.6:1 }}>
                     <Icon name="check" size={13} style={{ color:'#fff' }} />
                     <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12.5, color:'#fff' }}>
-                      {approving ? 'שומר…' : 'המועמד/ת שלי מאשר/ת'}
+                      {approving ? 'שומר…' : `${cand.name.split(' ')[0]} מאשר/ת`}
                     </span>
                   </button>
                 ) : (
                   <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 9px', borderRadius:th.rSm, background:alpha(th.ink,0.06) }}>
                     <Icon name="bell" size={12} style={{ color:th.gold }} />
-                    <span style={{ fontFamily:th.body, fontWeight:600, fontSize:12, color:alpha(th.ink,0.55) }}>טרם אישר/ה</span>
+                    <span style={{ fontFamily:th.body, fontWeight:600, fontSize:12, color:alpha(th.ink,0.5) }}>ממתין לאישור</span>
                   </div>
                 )}
               </div>
