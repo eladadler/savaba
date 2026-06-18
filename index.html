@@ -5449,7 +5449,23 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
 
 Object.assign(window, { ClassicBody, MagBody, MinBody });
 // screens-c.jsx — Match flow (wizard)
-const { useState: useSc, useMemo: useMc } = React;
+const { useState: useSc, useMemo: useMc, useEffect: useEc } = React;
+
+function calcScore(a, b) {
+  let score = 0, total = 0;
+  if (a.age && b.age) {
+    const diff = Math.abs(Number(a.age) - Number(b.age));
+    score += diff <= 2 ? 10 : diff <= 5 ? 7 : diff <= 8 ? 4 : 1;
+    total += 10;
+  }
+  if (a.region && b.region) { score += a.region === b.region ? 10 : 5; total += 10; }
+  if (a.religiosity && b.religiosity) { score += a.religiosity === b.religiosity ? 10 : 3; total += 10; }
+  if (a.interests?.length && b.interests?.length) {
+    const shared = a.interests.filter(i => b.interests.includes(i)).length;
+    score += Math.min(10, shared * 3); total += 10;
+  }
+  return total > 0 ? Math.round((score / total) * 100) : 50;
+}
 
 // mini selectable candidate row
 function CandRow({ c, th, selected, onClick, trailing }) {
@@ -5472,15 +5488,22 @@ function MatchFlow({ th, go, params }) {
   const { lists, candidates, addOffer } = useContext(DataCtx);
   const { profile } = useContext(AuthCtx);
   const liveReligiosity = (lists.religiosity && lists.religiosity.length) ? lists.religiosity : RELIGIOSITY;
+  const liveRegions     = (lists.regions     && lists.regions.length)     ? lists.regions     : REGIONS;
   const first = candidates.find(c => c.id === params?.id) || candidates[0];
   const presetSecond = params?.withId ? candidates.find(c => c.id === params.withId) : null;
   const [step, setStep] = useSc(presetSecond ? 3 : 1); // 1 first, 2 choose, 3 proposal, 4 success
   const [second, setSecond] = useSc(presetSecond);
   const [note, setNote] = useSc('');
-  const [relFilter, setRelFilter] = useSc('');
+  const [matchFilters, setMatchFilters] = useSc({ rel: [], region: '', ageMin: 18, ageMax: 60, maritalStatus: [] });
+  const [filterOpen, setFilterOpen] = useSc(false);
+  const [q2, setQ2] = useSc('');
   const [sending, setSending] = useSc(false);
   const [firstCandId, setFirstCandId] = useSc(null); // for self-match: who gets notified first
   const [previewCand, setPreviewCand] = useSc(null); // candidate being previewed in step 2
+  const [aiScore, setAiScore] = useSc(null);
+  const [aiText, setAiText] = useSc(null);
+  const [aiLoading, setAiLoading] = useSc(false);
+  const [confirmModal, setConfirmModal] = useSc(false);
 
   const myUid = profile?.uid;
   const isSelfMatch = !!(second && first?.mmId === myUid && second?.mmId === myUid);
@@ -5488,18 +5511,45 @@ function MatchFlow({ th, go, params }) {
   const notifyFirst  = isSelfMatch ? (firstCandId || first?.id) : null;
   const notifySecond = isSelfMatch ? (notifyFirst === first?.id ? second : first) : null;
 
+  useEc(() => {
+    if (step !== 3 || !first || !second || isSelfMatch) return;
+    setAiScore(calcScore(first, second));
+    setAiLoading(true); setAiText(null);
+    (async () => {
+      try {
+        const cfg = await db.collection('config').doc('settings').get();
+        const apiKey = cfg.data()?.anthropicKey;
+        if (!apiKey) return;
+        const prof = c => [c.name, c.age ? `גיל ${c.age}` : '', c.region, c.religiosity, (c.interests||[]).slice(0,3).join('/')].filter(Boolean).join(', ');
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 100,
+            messages: [{ role: 'user', content: `אתה שדכן. כתוב משפט אחד בעברית (עד 20 מילה) מדוע ${first.name} ו${second.name} עשויים להתאים.\nא: ${prof(first)}\nב: ${prof(second)}` }] })
+        });
+        const d = await res.json();
+        setAiText(d.content?.[0]?.text?.trim() || null);
+      } catch(e) { console.warn('AI analysis:', e); }
+      finally { setAiLoading(false); }
+    })();
+  }, [step, first?.id, second?.id, isSelfMatch]);
+
   const isFemale2 = g => g === 'f' || g === 'אשה' || g === 'אישה';
   const isMale2   = g => g === 'm' || g === 'גבר';
   const firstIsFemale = isFemale2(first?.gender);
-  // No useMemo — always recompute so gender filter is never stale
+  // No useMemo — always recompute so filter is never stale
   const candidates2 = candidates.filter(c => {
     if (firstIsFemale ? !isMale2(c.gender) : !isFemale2(c.gender)) return false;
     if (c.id === first?.id) return false;
     if (c.available === false) return false;
     if (c.status === 'pending_mm') return false;
-    if (relFilter && c.religiosity !== relFilter) return false;
+    if (q2 && !c.name.includes(q2) && !(c.oneLine || '').includes(q2)) return false;
+    if (matchFilters.region && c.region !== matchFilters.region) return false;
+    if (matchFilters.rel.length && !matchFilters.rel.includes(c.religiosity)) return false;
+    if (c.age < matchFilters.ageMin || c.age > matchFilters.ageMax) return false;
+    if (matchFilters.maritalStatus.length && !matchFilters.maritalStatus.includes(c.family)) return false;
     return true;
-  });
+  }).sort((a, b) => calcScore(first, b) - calcScore(first, a));
 
   const sendOffer = async () => {
     if (!first || !second || sending) return;
@@ -5593,21 +5643,39 @@ function MatchFlow({ th, go, params }) {
           </>
         )}
 
-        {step === 2 && (
-          <>
-            <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 10 }}>מי מתאים/ה ל{first.name}?</div>
-            <div style={{ display: 'flex', gap: 7, overflowX: 'auto', marginBottom: 14, paddingBottom: 4 }}>
-              <Chip th={th} label="הכל" active={!relFilter} onClick={() => setRelFilter('')} tone={th.gold} />
-              {liveReligiosity.slice(0, 6).map(r => <Chip key={r} th={th} label={r} active={relFilter === r} onClick={() => setRelFilter(relFilter === r ? '' : r)} tone={th.gold} />)}
-            </div>
-            {candidates2.map(c => (
-              <CandRow key={c.id} c={c} th={th} selected={second?.id === c.id} onClick={() => setPreviewCand(c)}
-                trailing={second?.id === c.id ? <div style={{ color: th.primary }}><Icon name="check" size={24} /></div> : null} />
-            ))}
-            {candidates2.length === 0 && <div style={{ textAlign: 'center', color: alpha(th.ink, 0.4), padding: 30, fontFamily: th.body }}>אין התאמות בפילטר הזה</div>}
-            <div style={{ height: second ? 72 : 20 }} />
-          </>
-        )}
+        {step === 2 && (() => {
+          const activeMatchFilters = (matchFilters.region ? 1 : 0) + matchFilters.rel.length + matchFilters.maritalStatus.length;
+          return (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink }}>מי מתאים/ה ל{first.name}?</div>
+                <button onClick={() => setFilterOpen(true)}
+                  style={{ position: 'relative', border: 'none', background: activeMatchFilters > 0 ? alpha(th.primary, 0.1) : th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: activeMatchFilters > 0 ? th.primary : th.ink, cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                  <Icon name="filter" size={19} />
+                  {activeMatchFilters > 0 && <span style={{ position: 'absolute', top: -3, left: -3, background: th.primary, color: '#fff', borderRadius: '50%', minWidth: 17, height: 17, fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{activeMatchFilters}</span>}
+                </button>
+              </div>
+              <div style={{ position: 'relative', marginBottom: 12 }}>
+                <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={18} /></span>
+                <input value={q2} onChange={e => setQ2(e.target.value)} placeholder="חיפוש שם..."
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px 38px 10px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14, background: th.card, outline: 'none', color: th.ink }} />
+              </div>
+              {candidates2.map(c => {
+                const score = calcScore(first, c);
+                const scoreColor = score >= 70 ? th.success : score >= 50 ? th.gold : alpha(th.ink, 0.45);
+                return (
+                  <CandRow key={c.id} c={c} th={th} selected={second?.id === c.id} onClick={() => setPreviewCand(c)}
+                    trailing={second?.id === c.id
+                      ? <div style={{ color: th.primary }}><Icon name="check" size={24} /></div>
+                      : <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: scoreColor, minWidth: 40, textAlign: 'center' }}>{score}%</div>
+                    } />
+                );
+              })}
+              {candidates2.length === 0 && <div style={{ textAlign: 'center', color: alpha(th.ink, 0.4), padding: 30, fontFamily: th.body }}>אין התאמות בפילטר הזה</div>}
+              <div style={{ height: second ? 72 : 20 }} />
+            </>
+          );
+        })()}
 
         {step === 3 && second && (
           <>
@@ -5626,12 +5694,23 @@ function MatchFlow({ th, go, params }) {
                 </div>
               </div>
               <div style={{ background: alpha(th.gold, 0.12), borderRadius: th.r, padding: 13 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <Icon name="spark" size={16} style={{ color: th.gold }} fill={th.gold} />
-                  <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink }}>למה זה יכול לעבוד</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Icon name="spark" size={16} style={{ color: th.gold }} fill={th.gold} />
+                    <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink }}>ניתוח התאמה</span>
+                  </div>
+                  {aiScore !== null && (
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 24, color: aiScore >= 70 ? th.success : aiScore >= 50 ? th.gold : alpha(th.ink, 0.45), lineHeight: 1 }}>
+                      {aiScore}%
+                    </div>
+                  )}
                 </div>
-                <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
-                  שניהם מ{first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים אבל קרובים בנפש'}, חולקים תחומי עניין ומחפשים חיבור אמיתי. תחושת בטן אומרת — שווה לנסות.
+                <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5, fontStyle: aiLoading ? 'italic' : 'normal' }}>
+                  {isSelfMatch
+                    ? `שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים אבל קרובים בנפש'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`
+                    : aiLoading ? <span style={{ color: alpha(th.ink, 0.4) }}>AI מנתח את ההתאמה…</span>
+                      : aiText || `שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`
+                  }
                 </p>
               </div>
             </div>
@@ -5660,13 +5739,65 @@ function MatchFlow({ th, go, params }) {
                 <div style={{ background:alpha(th.success,0.09), borderRadius:th.rSm, padding:'10px 14px', marginBottom:14, fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.7), lineHeight:1.5 }}>
                   ✓ שני המועמדים שלך — ההצעה מאושרת אוטומטית מצדך. {(candidates.find(c=>c.id===(firstCandId||first.id))||first).name} יקבל/תקבל ראשון.
                 </div>
+                <Btn th={th} full size="l" style={{ marginTop: 4 }} disabled={sending} onClick={sendOffer} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>{sending ? 'שולח…' : 'שלח/י שידוך ישיר'}</Btn>
               </>
             ) : (
-              <Field th={th} label={`מילה אישית לשדכן/ית של ${second?.name}`} hint="לא חובה — אבל תמיד עוזר">
-                <TextArea th={th} value={note} onChange={setNote} placeholder="היי! חשבתי שאולי יש כאן משהו… בא לך שנבדוק?" rows={3} />
-              </Field>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                {first.phone ? (
+                  <a href={`https://wa.me/${String(first.phone).replace(/[^0-9]/g,'')}?text=${encodeURIComponent(`שלום ${first.name}! יש לי הצעה שיכולה להתאים לך 😊 בא/י לראות את הכרטיסייה: https://eladadler.github.io/savaba/#cand/${second.id}`)}`}
+                    target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                    <Btn th={th} full size="l" style={{ background: '#25D366', color: '#fff' }}
+                      icon={<Icon name="whatsapp" size={19} style={{ color: '#fff' }} />}>
+                      שלח/י ל{first.name} בוואטסאפ
+                    </Btn>
+                  </a>
+                ) : (
+                  <Btn th={th} full size="l" variant="soft" disabled icon={<Icon name="whatsapp" size={19} />}>
+                    אין מספר טלפון ל{first.name}
+                  </Btn>
+                )}
+                <Btn th={th} full size="l" disabled={sending}
+                  onClick={() => setConfirmModal(true)}
+                  icon={<Icon name="chat" size={19} fill="#fff" stroke={0} />}>
+                  פנה/י לשדכן/ית של {second.name}
+                </Btn>
+              </div>
             )}
-            <Btn th={th} full size="l" style={{ marginTop: 4 }} disabled={sending} onClick={sendOffer} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>{sending ? 'שולח…' : isSelfMatch ? 'שלח/י שידוך ישיר' : 'שלח/י הצעה'}</Btn>
+
+            {/* Confirmation modal — did my candidate already approve? */}
+            {confirmModal && (
+              <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: alpha(th.ink, 0.5), display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+                onClick={() => setConfirmModal(false)}>
+                <div onClick={e => e.stopPropagation()} style={{ background: th.cream, borderTopLeftRadius: th.rLg, borderTopRightRadius: th.rLg, padding: '24px 20px 36px', width: '100%', maxWidth: 480, animation: 'sabaUp .25s cubic-bezier(.2,.9,.3,1)' }}>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 18, color: th.ink, marginBottom: 8 }}>
+                    האם {first.name} כבר אישר/ה?
+                  </div>
+                  <p style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.65), lineHeight: 1.55, margin: '0 0 20px' }}>
+                    לפני שנפנה לשדכן/ית של {second.name}, חשוב לוודא שהמועמד/ת שלך כבר הסכים/ה להצעה.
+                  </p>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <Btn th={th} full variant="ghost" onClick={() => setConfirmModal(false)}>עוד לא</Btn>
+                    <Btn th={th} full disabled={sending} onClick={async () => {
+                      setConfirmModal(false); setSending(true);
+                      try {
+                        await addOffer({
+                          aId: first.id, aMm: first.mmId || myUid,
+                          bId: second.id, bMm: second.mmId,
+                          status: 'נשלחה',
+                          aStatus: 'אישר', bStatus: 'ממתין',
+                          candAApprovedByMm: true,
+                          note: note.trim(), unread: 0,
+                        });
+                        setStep(4);
+                      } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
+                      setSending(false);
+                    }}>
+                      {sending ? 'שולח…' : `כן, ${first.name} אישר/ה`}
+                    </Btn>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -5679,6 +5810,23 @@ function MatchFlow({ th, go, params }) {
           </Btn>
         </div>
       )}
+
+      {/* MatchFlow filter sheet */}
+      <Sheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} title="פילטרים">
+        <Field th={th} label={`טווח גיל: ${matchFilters.ageMin}–${matchFilters.ageMax}`}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <input type="range" min={18} max={60} value={matchFilters.ageMin} onChange={e => setMatchFilters(s => ({ ...s, ageMin: Math.min(+e.target.value, s.ageMax) }))} style={{ flex: 1, accentColor: th.primary }} />
+            <input type="range" min={18} max={60} value={matchFilters.ageMax} onChange={e => setMatchFilters(s => ({ ...s, ageMax: Math.max(+e.target.value, s.ageMin) }))} style={{ flex: 1, accentColor: th.primary }} />
+          </div>
+        </Field>
+        <Field th={th} label="אזור"><MultiChips th={th} value={matchFilters.region ? [matchFilters.region] : []} onChange={v => setMatchFilters(s => ({ ...s, region: v[v.length - 1] === s.region ? '' : v[v.length - 1] || '' }))} options={liveRegions} /></Field>
+        <Field th={th} label="קרבה לדת"><MultiChips th={th} value={matchFilters.rel} onChange={v => setMatchFilters(s => ({ ...s, rel: v }))} options={liveReligiosity} tone={th.gold} /></Field>
+        <Field th={th} label="סטטוס משפחתי"><MultiChips th={th} value={matchFilters.maritalStatus} onChange={v => setMatchFilters(s => ({ ...s, maritalStatus: v }))} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
+        <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+          <Btn th={th} variant="ghost" onClick={() => setMatchFilters({ rel: [], region: '', ageMin: 18, ageMax: 60, maritalStatus: [] })}>נקה</Btn>
+          <Btn th={th} full onClick={() => setFilterOpen(false)}>הצג תוצאות</Btn>
+        </div>
+      </Sheet>
 
       {/* Candidate profile preview sheet — slides up when a row is tapped in step 2 */}
       {previewCand && (
@@ -5743,11 +5891,6 @@ function MatchFlow({ th, go, params }) {
                           <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.45) }}>שדכן/ית של {previewCand.name}</div>
                         </div>
                       </div>
-                      <Btn th={th} full variant="soft" size="s"
-                        icon={<Icon name="chat" size={14} />}
-                        onClick={() => { setPreviewCand(null); go('candInquiry', { candId: previewCand.id, toMm: previewCand.mmId }); }}>
-                        שאל/י שאלה על {previewCand.name}
-                      </Btn>
                     </div>
                   );
                 })()}
@@ -6905,7 +7048,7 @@ function CandidateMode({ th, go }) {
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>מעבר למצב שדכן/ית</div>
                 <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>כניסה לאפליקציית השדכנים</div>
               </div>
-              <Icon name="back" size={18} style={{ color:alpha(th.ink,0.3) }} />
+              <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
             </button>
           </div>
           <div style={{ background:alpha(th.ink,0.04), borderRadius:th.r, padding:'11px 14px' }}>
