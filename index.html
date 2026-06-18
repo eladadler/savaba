@@ -5518,7 +5518,8 @@ function MatchFlow({ th, go, params }) {
   const [aiScore, setAiScore] = useSc(null);
   const [aiText, setAiText] = useSc(null);
   const [aiLoading, setAiLoading] = useSc(false);
-  const [confirmModal, setConfirmModal] = useSc(false);
+  const [confirmModal, setConfirmModal] = useSc(false); // false | 'step1' | 'step2'
+  const [candApproved, setCandApproved] = useSc(null);
 
   const myUid = profile?.uid;
   const offerExists = (idA, idB) => (offers || []).some(o =>
@@ -5785,7 +5786,7 @@ function MatchFlow({ th, go, params }) {
                   </Btn>
                 )}
                 <Btn th={th} full size="l" disabled={sending}
-                  onClick={() => { setConfirmModal(true); setMmMsg(''); }}
+                  onClick={() => { setConfirmModal('step1'); setMmMsg(''); setCandApproved(null); }}
                   icon={<Icon name="chat" size={19} fill="#fff" stroke={0} />}>
                   פנה/י לשדכן/ית של {second.name}
                 </Btn>
@@ -5797,65 +5798,70 @@ function MatchFlow({ th, go, params }) {
               <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: alpha(th.ink, 0.5), display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
                 onClick={() => { setConfirmModal(false); setMmMsg(''); }}>
                 <div onClick={e => e.stopPropagation()} style={{ background: th.cream, borderTopLeftRadius: th.rLg, borderTopRightRadius: th.rLg, padding: '24px 20px 36px', width: '100%', maxWidth: 480, animation: 'sabaUp .25s cubic-bezier(.2,.9,.3,1)' }}>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink, marginBottom: 4 }}>
-                    האם יצא לך לבדוק אם המועמד/ת שלך בעניין?{' '}
-                    <span style={{ fontFamily: th.body, fontWeight: 600, fontSize: 14, color: alpha(th.ink, 0.45) }}>(לא חובה)</span>
-                  </div>
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: th.ink, marginBottom: 6, marginTop: 16 }}>
-                      הודעה לשדכן/ית של {second.name}{' '}
-                      <span style={{ color: th.error, fontSize: 13 }}>*</span>
-                    </div>
-                    <textarea
-                      value={mmMsg}
-                      onChange={e => setMmMsg(e.target.value)}
-                      placeholder={`כתוב/י מילה על ההצעה לשדכן/ית של ${second.name}…`}
-                      rows={3}
-                      style={{ width: '100%', boxSizing: 'border-box', fontFamily: th.body, fontSize: 14, color: th.ink, background: th.card, border: `1.5px solid ${mmMsg.trim() ? alpha(th.primary, 0.45) : alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '10px 12px', resize: 'none', outline: 'none', lineHeight: 1.5, direction: 'rtl' }}
-                    />
-                    {!mmMsg.trim() && (
-                      <div style={{ fontFamily: th.body, fontSize: 12, color: th.error, marginTop: 4 }}>
-                        נדרש להוסיף הודעה לפני הפנייה
+
+                  {confirmModal === 'step1' && (
+                    <>
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink, marginBottom: 20 }}>
+                        האם יצא לך לבדוק אם המועמד/ת שלך בעניין?{' '}
+                        <span style={{ fontFamily: th.body, fontWeight: 600, fontSize: 14, color: alpha(th.ink, 0.45) }}>(לא חובה)</span>
                       </div>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <Btn th={th} full disabled={sending || !mmMsg.trim()} onClick={async () => {
-                      if (offerExists(first.id, second.id)) { setConfirmModal(false); alert('כבר קיימת הצעה בין מועמדים אלה'); return; }
-                      setConfirmModal(false); setSending(true);
-                      try {
-                        await addOffer({
-                          aId: first.id, aMm: first.mmId || myUid,
-                          bId: second.id, bMm: second.mmId,
-                          status: 'נשלחה',
-                          aStatus: 'אישר', bStatus: 'ממתין',
-                          candAApprovedByMm: true,
-                          note: mmMsg.trim(), unread: 0,
-                        });
-                        setStep(4);
-                      } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
-                      setSending(false);
-                    }}>
-                      {sending ? 'שולח…' : `כן, ${isFemale2(first.gender) ? 'היא' : 'הוא'} בעניין`}
-                    </Btn>
-                    <Btn th={th} full variant="ghost" disabled={sending || !mmMsg.trim()} onClick={async () => {
-                      if (offerExists(first.id, second.id)) { setConfirmModal(false); alert('כבר קיימת הצעה בין מועמדים אלה'); return; }
-                      setConfirmModal(false); setSending(true);
-                      try {
-                        await addOffer({
-                          aId: first.id, aMm: first.mmId || myUid,
-                          bId: second.id, bMm: second.mmId,
-                          status: 'נשלחה',
-                          aStatus: 'אישר', bStatus: 'ממתין',
-                          note: mmMsg.trim(), unread: 0,
-                        });
-                        setStep(4);
-                      } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
-                      setSending(false);
-                    }}>
-                      {sending ? 'שולח…' : 'מעדיף/ה לבדוק קודם עם השדכן/ית'}
-                    </Btn>
-                  </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <Btn th={th} full onClick={() => { setCandApproved(true); setConfirmModal('step2'); }}>
+                          {`כן, ${isFemale2(first.gender) ? 'היא' : 'הוא'} בעניין`}
+                        </Btn>
+                        <Btn th={th} full variant="ghost" onClick={() => { setCandApproved(false); setConfirmModal('step2'); }}>
+                          מעדיף/ה לבדוק קודם עם השדכן/ית
+                        </Btn>
+                      </div>
+                    </>
+                  )}
+
+                  {confirmModal === 'step2' && (
+                    <>
+                      <button onClick={() => setConfirmModal('step1')} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: 16 }}>
+                        <Icon name="chevL" size={16} style={{ color: alpha(th.ink, 0.5) }} /> חזרה
+                      </button>
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink, marginBottom: 6 }}>
+                        כתוב/י הודעה לשדכן/ית של {second.name}
+                      </div>
+                      <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: 14, lineHeight: 1.5 }}>
+                        ההודעה תגיע לשדכן/ית יחד עם בקשת ההתאמה
+                      </div>
+                      <textarea
+                        autoFocus
+                        value={mmMsg}
+                        onChange={e => setMmMsg(e.target.value)}
+                        placeholder={`למה לדעתך ${first.name} ו${second.name} מתאימים?`}
+                        rows={4}
+                        style={{ width: '100%', boxSizing: 'border-box', fontFamily: th.body, fontSize: 14, color: th.ink, background: th.card, border: `1.5px solid ${mmMsg.trim() ? alpha(th.primary, 0.45) : alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '10px 12px', resize: 'none', outline: 'none', lineHeight: 1.5, direction: 'rtl', marginBottom: 6 }}
+                      />
+                      {!mmMsg.trim() && (
+                        <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.4), marginBottom: 14 }}>
+                          יש לכתוב הודעה לפני השליחה
+                        </div>
+                      )}
+                      {mmMsg.trim() && <div style={{ marginBottom: 14 }} />}
+                      <Btn th={th} full size="l" disabled={sending || !mmMsg.trim()} onClick={async () => {
+                        if (offerExists(first.id, second.id)) { setConfirmModal(false); alert('כבר קיימת הצעה בין מועמדים אלה'); return; }
+                        setConfirmModal(false); setSending(true);
+                        try {
+                          await addOffer({
+                            aId: first.id, aMm: first.mmId || myUid,
+                            bId: second.id, bMm: second.mmId,
+                            status: 'נשלחה',
+                            aStatus: 'אישר', bStatus: 'ממתין',
+                            ...(candApproved ? { candAApprovedByMm: true } : {}),
+                            note: mmMsg.trim(), unread: 0,
+                          });
+                          setStep(4);
+                        } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
+                        setSending(false);
+                      }} icon={<Icon name="send" size={18} fill="#fff" stroke={0} />}>
+                        {sending ? 'שולח…' : 'שלח/י פנייה'}
+                      </Btn>
+                    </>
+                  )}
+
                 </div>
               </div>
             )}
