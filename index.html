@@ -2858,7 +2858,7 @@ function AdminPanel({ th, go }) {
   );
 }
 
-function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote, onApprove }) {
+function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote, onApprove, onSaveStep }) {
   const { lists } = useContext(DataCtx);
   const { texts: _tx, defaults: _dx } = useContext(TextsCtx);
   const _t = (key) => _tx[key] || _dx[key] || '';
@@ -3181,6 +3181,9 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
             ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
             : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
           }
+          {!isLast && onSaveStep && (
+            <Btn th={th} variant="soft" onClick={() => onSaveStep({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>שמור וצא</Btn>
+          )}
           {isLast
             ? <Btn th={th} full variant={onApprove ? 'ghost' : 'primary'} onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>{onApprove ? 'שמור בלבד' : 'שמור'}</Btn>
             : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
@@ -4728,6 +4731,12 @@ function EditCandidateScreen({ th, go, params }) {
         })()}
         <CandidateForm th={th} initial={{ ...c, name: c.name || params?.prefillName || '' }}
           onSave={async (data) => {
+            const update = { ...data };
+            if (c.status === 'pending_mm') update.status = firebase.firestore.FieldValue.delete();
+            await updateCandidate(c.id, update);
+            go('back');
+          }}
+          onSaveStep={async (data) => {
             const update = { ...data };
             if (c.status === 'pending_mm') update.status = firebase.firestore.FieldValue.delete();
             await updateCandidate(c.id, update);
