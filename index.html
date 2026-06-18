@@ -5744,7 +5744,7 @@ function MatchFlow({ th, go, params }) {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
                 {first.phone ? (
-                  <a href={`https://wa.me/${String(first.phone).replace(/[^0-9]/g,'')}?text=${encodeURIComponent(`שלום ${first.name}! יש לי הצעה שיכולה להתאים לך 😊 בא/י לראות את הכרטיסייה: https://eladadler.github.io/savaba/#cand/${second.id}`)}`}
+                  <a href={`https://wa.me/${String(first.phone).replace(/[^0-9]/g,'').replace(/^0/,'972')}?text=${encodeURIComponent(`שלום ${first.name}! יש לי הצעה שיכולה להתאים לך 😊 בא/י לראות את הכרטיסייה: https://eladadler.github.io/savaba/#cand/${second.id}`)}`}
                     target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <Btn th={th} full size="l" style={{ background: '#25D366', color: '#fff' }}
                       icon={<Icon name="whatsapp" size={19} style={{ color: '#fff' }} />}>
