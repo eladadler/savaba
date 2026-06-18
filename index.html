@@ -5744,7 +5744,9 @@ function MatchFlow({ th, go, params }) {
   const [filterOpen, setFilterOpen] = useSc(false);
   const [q2, setQ2] = useSc('');
   const [sending, setSending] = useSc(false);
-  const [firstCandId, setFirstCandId] = useSc(null); // for self-match: who gets notified first
+  const [firstCandId, setFirstCandId] = useSc(null); // kept for legacy; no longer used in UI
+  const [selfCandAApproved, setSelfCandAApproved] = useSc(false);
+  const [selfCandBApproved, setSelfCandBApproved] = useSc(false);
   const [previewCand, setPreviewCand] = useSc(null); // candidate being previewed in step 2
   const [aiScore, setAiScore] = useSc(null);
   const [aiText, setAiText] = useSc(null);
@@ -5815,16 +5817,15 @@ function MatchFlow({ th, go, params }) {
     setSending(true);
     try {
       if (isSelfMatch) {
-        const a = candidates.find(c => c.id === notifyFirst);
-        const b = notifySecond;
+        const bothApproved = selfCandAApproved && selfCandBApproved;
         await addOffer({
-          aId: a.id, aMm: myUid,
-          bId: b.id, bMm: myUid,
-          status: 'ממתין למועמד',
-          aStatus: 'אישר', bStatus: 'אישר', // matchmaker already approved both
+          aId: first.id, aMm: myUid,
+          bId: second.id, bMm: myUid,
+          status: bothApproved ? 'אושרה' : 'ממתין למועמד',
+          aStatus: 'אישר', bStatus: 'אישר',
           selfMatch: true,
-          candAStatus: 'ממתין',  // first candidate awaiting decision
-          candBStatus: 'טרם',   // second candidate not yet their turn
+          candAStatus: selfCandAApproved ? 'אישר' : 'ממתין',
+          candBStatus: selfCandBApproved ? 'אישר' : 'ממתין',
           note: note.trim(), unread: 0,
         });
       } else {
@@ -5851,8 +5852,8 @@ function MatchFlow({ th, go, params }) {
 
   // STEP 4 — success
   if (step === 4) {
-    const candA = isSelfMatch ? candidates.find(c => c.id === notifyFirst) || first : first;
-    const candB = isSelfMatch ? notifySecond || second : second;
+    const candA = first;
+    const candB = second;
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(170deg, ${th.cream}, ${tint(th.success, 0.86)})`, padding: 28, textAlign: 'center' }}>
         <div style={{ animation: 'sabaPop .5s cubic-bezier(.2,.9,.3,1)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 24 }}>
@@ -5860,10 +5861,10 @@ function MatchFlow({ th, go, params }) {
           <div style={{ zIndex: 2, background: th.success, color: '#fff', borderRadius: '50%', width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${alpha(th.success, 0.4)}` }}><Icon name="heart" size={26} fill="#fff" stroke={0} /></div>
           <Avatar grad={candB.grad} name={candB.name} size={84} photo={candB.photos && candB.photos[0]} style={{ marginInlineStart: -12 }} />
         </div>
-        <h1 style={{ fontFamily: th.display, fontSize: 28, color: th.ink, margin: '0 0 10px' }}>{isSelfMatch ? 'שידוך ישיר!' : 'ההצעה בדרך!'}</h1>
+        <h1 style={{ fontFamily: th.display, fontSize: 28, color: th.ink, margin: '0 0 10px' }}>{isSelfMatch ? 'ההצעה נוצרה!' : 'ההצעה בדרך!'}</h1>
         <p style={{ fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.65), lineHeight: 1.5, maxWidth: 300, margin: '0 0 28px' }}>
           {isSelfMatch
-            ? <>{candA.name} יקבל/תקבל את ההצעה ראשון/ה. אם יאשר/תאשר — {candB.name} יקבל/תקבל הצעה.</>
+            ? <>{selfCandAApproved && selfCandBApproved ? `שני הצדדים אישרו — השידוך מאושר! 🎉` : `ההצעה נשמרה. תוכל/י לעדכן את אישור המועמדים ממסך ההצעות.`}</>
             : (() => {
                 const bMm = matchmakers?.[candB.mmId];
                 const bMmName = bMm?.displayName || bMm?.name || null;
@@ -5995,29 +5996,40 @@ function MatchFlow({ th, go, params }) {
 
             {isSelfMatch ? (
               <>
-                <div style={{ background: alpha(th.primary, 0.07), border: `1.5px solid ${alpha(th.primary,0.2)}`, borderRadius: th.r, padding: 14, marginBottom: 14 }}>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.primary, marginBottom: 10 }}>מי יקבל את ההצעה ראשון?</div>
-                  {[first, second].map(c => {
-                    const chosen = (firstCandId || first.id) === c.id;
-                    return (
-                      <button key={c.id} onClick={() => setFirstCandId(c.id)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, marginBottom:6, background: chosen ? alpha(th.primary,0.1) : alpha(th.ink,0.04), border:`1.5px solid ${chosen ? th.primary : 'transparent'}`, transition:'all .15s' }}>
-                        <Avatar grad={c.grad} name={c.name} size={36} photo={c.photos?.[0]} />
+                <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:14 }}>
+                  {[{ cand: first, approved: selfCandAApproved, setApproved: setSelfCandAApproved },
+                    { cand: second, approved: selfCandBApproved, setApproved: setSelfCandBApproved }].map(({ cand, approved, setApproved }) => (
+                    <div key={cand.id} style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {cand.phone ? (
+                        <a href={`https://wa.me/${String(cand.phone).replace(/[^0-9]/g,'').replace(/^0/,'972')}?text=${encodeURIComponent(`שלום ${cand.name}! יש לי הצעה שיכולה להתאים לך 😊 בא/י לראות את הכרטיסייה: https://eladadler.github.io/savaba/#cand/${cand.id === first.id ? second.id : first.id}`)}`}
+                          target="_blank" rel="noreferrer" style={{ textDecoration:'none' }}>
+                          <Btn th={th} full size="m" style={{ background:'#25D366', color:'#fff' }}
+                            icon={<Icon name="whatsapp" size={17} style={{ color:'#fff' }} />}>
+                            שלח/י ל{cand.name} בוואטסאפ
+                          </Btn>
+                        </a>
+                      ) : (
+                        <Btn th={th} full size="m" variant="soft" disabled icon={<Icon name="whatsapp" size={17} />}>
+                          אין מספר טלפון ל{cand.name}
+                        </Btn>
+                      )}
+                      <button onClick={() => setApproved(!approved)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background: approved ? alpha(th.success,0.1) : alpha(th.ink,0.04), border:`1.5px solid ${approved ? th.success : alpha(th.ink,0.1)}`, transition:'all .15s' }}>
+                        <Avatar grad={cand.grad} name={cand.name} size={34} photo={cand.photos?.[0]} />
                         <div style={{ flex:1 }}>
-                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{c.name}</div>
-                          <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.5) }}>{c.region}</div>
+                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{cand.name}</div>
+                          <div style={{ fontFamily:th.body, fontSize:11.5, color: approved ? th.success : alpha(th.ink,0.45) }}>{approved ? 'אישר/ה את ההצעה ✓' : 'טרם אישר/ה — לחץ/י לסימון'}</div>
                         </div>
-                        {chosen && <Icon name="check" size={20} style={{ color:th.primary }} />}
+                        <div style={{ width:22, height:22, borderRadius:'50%', border:`2px solid ${approved ? th.success : alpha(th.ink,0.2)}`, background: approved ? th.success : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .2s', flexShrink:0 }}>
+                          {approved && <Icon name="check" size={14} style={{ color:'#fff' }} />}
+                        </div>
                       </button>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
                 <Field th={th} label="הערה אישית (לרשומות שלך)" hint="לא חובה">
                   <TextArea th={th} value={note} onChange={setNote} placeholder="למה חשבתי על השידוך הזה…" rows={2} />
                 </Field>
-                <div style={{ background:alpha(th.success,0.09), borderRadius:th.rSm, padding:'10px 14px', marginBottom:14, fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.7), lineHeight:1.5 }}>
-                  ✓ שני המועמדים שלך — ההצעה מאושרת אוטומטית מצדך. {(candidates.find(c=>c.id===(firstCandId||first.id))||first).name} יקבל/תקבל ראשון.
-                </div>
-                <Btn th={th} full size="l" style={{ marginTop: 4 }} disabled={sending} onClick={sendOffer} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>{sending ? 'שולח…' : 'שלח/י שידוך ישיר'}</Btn>
+                <Btn th={th} full size="l" style={{ marginTop: 4 }} disabled={sending} onClick={sendOffer} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>{sending ? 'שולח…' : 'צור הצעה'}</Btn>
               </>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
