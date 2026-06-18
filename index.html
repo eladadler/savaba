@@ -6377,11 +6377,12 @@ function Offers({ th, go, params }) {
         )}
         {sortedList.map(o => {
           const iAmA      = o.aMm === user?.uid;
+          const isSelfMatchOffer = o.aMm === user?.uid && o.bMm === user?.uid;
           const myCand    = findC(iAmA ? o.aId : o.bId);
           const theirC    = findC(iAmA ? o.bId : o.aId);
           const theirMm   = findM(iAmA ? o.bMm : o.aMm);
-          const aCandApp  = !!(o.aCandApproved || o.candAApprovedByMm);
-          const bCandApp  = !!o.bCandApproved;
+          const aCandApp  = !!(o.aCandApproved || o.candAApprovedByMm || o.candAStatus === 'אישר');
+          const bCandApp  = !!(o.bCandApproved || o.candBStatus === 'אישר');
           const myApp     = iAmA ? aCandApp : bCandApp;
           const theirApp  = iAmA ? bCandApp : aCandApp;
           const bothApp   = aCandApp && bCandApp;
@@ -6422,8 +6423,8 @@ function Offers({ th, go, params }) {
               {/* Row 2: two candidate chips */}
               <div style={{ display:'flex', gap:8 }}>
                 {[
-                  { cand: myCand, approved: myApp,    mine: true  },
-                  { cand: theirC, approved: theirApp,  mine: false },
+                  { cand: myCand, approved: myApp,   mine: true },
+                  { cand: theirC, approved: theirApp, mine: isSelfMatchOffer },
                 ].map(({ cand, approved, mine }) => (
                   <div key={cand.id} style={{ flex:1, borderRadius:th.rSm, padding:'8px 10px',
                     background: approved ? alpha(th.success,0.08) : mine ? alpha(th.primary,0.06) : alpha(th.ink,0.04),
