@@ -5788,12 +5788,15 @@ function MatchFlow({ th, go, params }) {
   const isFemale2 = g => g === 'f' || g === 'אשה' || g === 'אישה';
   const isMale2   = g => g === 'm' || g === 'גבר';
   const firstIsFemale = isFemale2(first?.gender);
+  const firstIsMine = first?.mmId === myUid;
   // No useMemo — always recompute so filter is never stale
   const candidates2 = candidates.filter(c => {
     if (firstIsFemale ? !isMale2(c.gender) : !isFemale2(c.gender)) return false;
     if (c.id === first?.id) return false;
     if (c.available === false) return false;
     if (c.status === 'pending_mm') return false;
+    // If first candidate is someone else's, second must be mine
+    if (!firstIsMine && c.mmId !== myUid) return false;
     if (q2 && !c.name.includes(q2) && !(c.oneLine || '').includes(q2)) return false;
     if (matchFilters.region && c.region !== matchFilters.region) return false;
     if (matchFilters.rel.length && !matchFilters.rel.includes(c.religiosity)) return false;
@@ -5895,9 +5898,14 @@ function MatchFlow({ th, go, params }) {
             <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 6 }}>מתחילים עם {first.name}</div>
             <p style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginTop: 0, marginBottom: 14, lineHeight: 1.4 }}>זה/זו המועמד/ת הראשון/ה בשידוך. עכשיו נמצא את ההתאמה.</p>
             <CandRow c={first} th={th} selected />
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: alpha(th.gold, 0.12), borderRadius: th.r, padding: 12, marginTop: 4 }}>
-              <Icon name="info" size={18} style={{ color: th.gold, flexShrink: 0 }} />
-              <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.4 }}>חוק הבית: לפחות אחד מבני הזוג חייב להיות מועמד/ת <b>שלך</b>.</span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: alpha(firstIsMine ? th.success : th.gold, 0.12), borderRadius: th.r, padding: 12, marginTop: 4 }}>
+              <Icon name="info" size={18} style={{ color: firstIsMine ? th.success : th.gold, flexShrink: 0 }} />
+              <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.4 }}>
+                {firstIsMine
+                  ? <>המועמד/ת <b>שלך</b> — תוכל/י לבחור התאמה מכל המועמדים במערכת.</>
+                  : <>המועמד/ת של שדכן/ית אחר/ת — תוכל/י לבחור התאמה <b>רק מהמועמדים שלך</b>.</>
+                }
+              </span>
             </div>
             <Btn th={th} full size="l" style={{ marginTop: 20 }} onClick={() => setStep(2)}>בחר/י התאמה</Btn>
           </>
@@ -5907,7 +5915,7 @@ function MatchFlow({ th, go, params }) {
           const activeMatchFilters = (matchFilters.region ? 1 : 0) + matchFilters.rel.length + matchFilters.maritalStatus.length;
           return (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: !firstIsMine ? 6 : 10 }}>
                 <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink }}>מי מתאים/ה ל{first.name}?</div>
                 <button onClick={() => setFilterOpen(true)}
                   style={{ position: 'relative', border: 'none', background: activeMatchFilters > 0 ? alpha(th.primary, 0.1) : th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: activeMatchFilters > 0 ? th.primary : th.ink, cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
@@ -5915,6 +5923,12 @@ function MatchFlow({ th, go, params }) {
                   {activeMatchFilters > 0 && <span style={{ position: 'absolute', top: -3, left: -3, background: th.primary, color: '#fff', borderRadius: '50%', minWidth: 17, height: 17, fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{activeMatchFilters}</span>}
                 </button>
               </div>
+              {!firstIsMine && (
+                <div style={{ display:'flex', gap:7, alignItems:'center', background:alpha(th.gold,0.11), borderRadius:th.rSm, padding:'8px 12px', marginBottom:10 }}>
+                  <Icon name="info" size={15} style={{ color:th.gold, flexShrink:0 }} />
+                  <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.4 }}>מוצגים רק המועמדים/ות <b>שלך</b></span>
+                </div>
+              )}
               <div style={{ position: 'relative', marginBottom: 12 }}>
                 <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={18} /></span>
                 <input value={q2} onChange={e => setQ2(e.target.value)} placeholder="חיפוש שם..."
