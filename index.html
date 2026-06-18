@@ -8365,7 +8365,12 @@ function AppInner({ inviteToken }) {
 
 function App() {
   const { user, profile } = useAuthState();
-  const data = useFirebaseData(user?.uid);
+  // impersonate must come before useFirebaseData so we can pass the effective uid
+  const [impersonate, setImpersonate] = React.useState(null);
+  const startImpersonate = React.useCallback((uid, prof, type) =>
+    setImpersonate({ uid, profile: { ...prof, uid }, type }), []);
+  const stopImpersonate = React.useCallback(() => setImpersonate(null), []);
+  const data = useFirebaseData(impersonate?.uid || user?.uid);
   const [t]  = useTweaks(TWEAK_DEFAULTS);
   const th   = makeTheme(t);
   const [inviteToken] = React.useState(() => {
@@ -8374,11 +8379,6 @@ function App() {
     const clean = raw.split(/https?:\/\//)[0];
     return clean || null;
   });
-  // All hooks must come before any conditional returns (Rules of Hooks)
-  const [impersonate, setImpersonate] = React.useState(null);
-  const startImpersonate = React.useCallback((uid, prof, type) =>
-    setImpersonate({ uid, profile: { ...prof, uid }, type }), []);
-  const stopImpersonate = React.useCallback(() => setImpersonate(null), []);
 
   if (user === undefined) {
     return (
