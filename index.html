@@ -5007,6 +5007,7 @@ function CandidateDetail({ th, go, params }) {
   useEd(() => { setLocalAvailable(c?.available ?? true); }, [c?.available]);
   useEd(() => { setLocalHidden(c?.hidden ?? false); }, [c?.hidden]);
   const myUid = user?.uid;
+  const viewOnly = !!params?.viewOnly;
   const variant = th.cardVariant;
   const isPrimary   = c?.mmId === myUid;
   const isSecondary = !isPrimary && !!(c?.coMms?.includes(myUid));
@@ -5166,8 +5167,8 @@ function CandidateDetail({ th, go, params }) {
       </Sheet>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {body}
-        {/* Matchmaker section — only for candidates not in my list */}
-        {c.mmId && !isMine && (() => {
+        {/* Matchmaker section — only for candidates not in my list, and not in view-only mode */}
+        {c.mmId && !isMine && !viewOnly && (() => {
           const mm = window.findMm(c.mmId);
           return (
             <div style={{ padding: '0 16px 28px', background: th.cream }}>
@@ -5190,7 +5191,7 @@ function CandidateDetail({ th, go, params }) {
           );
         })()}
       </div>
-      {footer}
+      {!viewOnly && footer}
     </div>
   );
 }
@@ -7651,7 +7652,7 @@ function AppInner({ inviteToken }) {
     if (hash.startsWith('#cand/') && stack.length === 1 && stack[0].name !== 'candidate') {
       const candId = hash.slice('#cand/'.length);
       if (candId) {
-        setStack([{ name: 'home', params: {} }, { name: 'candidate', params: { id: candId } }]);
+        setStack([{ name: 'home', params: {} }, { name: 'candidate', params: { id: candId, viewOnly: true } }]);
         window.history.replaceState(null, '', window.location.pathname + window.location.search);
         return;
       }
