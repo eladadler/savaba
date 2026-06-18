@@ -3413,6 +3413,29 @@ const TEXT_KEYS = {
   review_banner_body:          'אישור מועמד — טקסט ראשי',
   review_banner_empty_suffix:  'אישור מועמד — סיומת שדות ריקים',
   review_approve_btn:          'אישור מועמד — כפתור אישור',
+  cand_available:           'מועמד/ת — סטטוס: פנוי/ה',
+  cand_available_sub:       'מועמד/ת — סטטוס: פנוי/ה (תיאור)',
+  cand_busy:                'מועמד/ת — סטטוס: עסוק/ה',
+  cand_busy_sub:            'מועמד/ת — סטטוס: עסוק/ה (תיאור)',
+  cand_offers_title:        'מועמד/ת — בית: כותרת הצעות',
+  cand_no_offer:            'מועמד/ת — בית: אין הצעה',
+  cand_no_offer_sub:        'מועמד/ת — בית: אין הצעה (תיאור)',
+  cand_offer_tag:           'מועמד/ת — בית: תג הצעה חדשה',
+  cand_offer_view_hint:     'מועמד/ת — בית: רמז לצפייה מלאה',
+  cand_decline_btn:         'מועמד/ת — בית: כפתור דחייה',
+  cand_browse_hint_m:       'מועמד/ת — בית: רמז גלישה (גבר)',
+  cand_browse_hint_f:       'מועמד/ת — בית: רמז גלישה (אשה)',
+  cand_browse_hint_sub:     'מועמד/ת — בית: רמז גלישה (תיאור)',
+  cand_mms_title:           'מועמד/ת — בית: כותרת שדכנים שלי',
+  cand_browse_search:       'מועמד/ת — גלישה: placeholder חיפוש',
+  cand_browse_empty:        'מועמד/ת — גלישה: אין תוצאות',
+  cand_settings_mm:         'מועמד/ת — הגדרות: מעבר לשדכן',
+  cand_settings_mm_sub:     'מועמד/ת — הגדרות: מעבר לשדכן (תיאור)',
+  cand_settings_engage:     'מועמד/ת — הגדרות: נישואין',
+  cand_settings_engage_sub: 'מועמד/ת — הגדרות: נישואין (תיאור)',
+  cand_settings_delete:     'מועמד/ת — הגדרות: מחיקת פרופיל',
+  cand_settings_delete_sub: 'מועמד/ת — הגדרות: מחיקת פרופיל (תיאור)',
+  cand_footer:              'מועמד/ת — כיתוב גרסה',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -3457,6 +3480,29 @@ const DEFAULT_TEXTS = {
   review_banner_body:         'המועמד/ת מילא/ה פרטים.',
   review_banner_empty_suffix: 'כדאי להשלים לפני האישור.',
   review_approve_btn:         '✓ אשר/י — פרסם כרטיסייה',
+  cand_available:           'פנוי/ה להצעות',
+  cand_available_sub:       'שדכנים יכולים להציע לך',
+  cand_busy:                'במנוחה מהצעות',
+  cand_busy_sub:            'לא תקבל/י הצעות חדשות',
+  cand_offers_title:        'הצעות אחרונות',
+  cand_no_offer:            'אין הצעה פעילה כרגע',
+  cand_no_offer_sub:        'השדכן/ית שלך יעדכן/תעדכן כשתגיע הצעה',
+  cand_offer_tag:           'הצעה חדשה',
+  cand_offer_view_hint:     'הקש לכרטיסייה המלאה →',
+  cand_decline_btn:         'לא הפעם',
+  cand_browse_hint_m:       'גלה מועמדות שמחכות לך',
+  cand_browse_hint_f:       'גלי מועמדים שמחכים לך',
+  cand_browse_hint_sub:     'לחץ/י כאן או על הטאב בתפריט למטה ↓',
+  cand_mms_title:           'השדכן/ית שלי',
+  cand_browse_search:       'חיפוש שם...',
+  cand_browse_empty:        'לא נמצאו. נסה/י לשנות פילטרים.',
+  cand_settings_mm:         'מעבר למצב שדכן/ית',
+  cand_settings_mm_sub:     'כניסה לאפליקציית השדכנים',
+  cand_settings_engage:     'מתחתן/ת!',
+  cand_settings_engage_sub: 'הכרזה על נישואין — מזל טוב לנו!',
+  cand_settings_delete:     'מחיקת פרופיל',
+  cand_settings_delete_sub: 'הסרת הכרטיסייה שלך מהמערכת',
+  cand_footer:              'גרסה 1.0 · סבבה, והכל אבל…',
 };
 
 const SCREEN_TEXTS = {
@@ -3469,6 +3515,16 @@ const SCREEN_TEXTS = {
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
   editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn'],
+  candidateMode: [
+    'cand_available','cand_available_sub','cand_busy','cand_busy_sub',
+    'cand_offers_title','cand_no_offer','cand_no_offer_sub',
+    'cand_offer_tag','cand_offer_view_hint','cand_decline_btn',
+    'cand_browse_hint_m','cand_browse_hint_f','cand_browse_hint_sub','cand_mms_title',
+    'cand_browse_search','cand_browse_empty',
+    'cand_settings_mm','cand_settings_mm_sub',
+    'cand_settings_engage','cand_settings_engage_sub',
+    'cand_settings_delete','cand_settings_delete_sub','cand_footer',
+  ],
 };
 
 // ════════════════════════════════════════════════════════════
@@ -6879,6 +6935,8 @@ function Toggle({ on, onChange, th }) {
 function CandBrowse({ th, go, me }) {
   const { candidates, lists } = useContext(DataCtx);
   const { profile } = useContext(AuthCtx);
+  const { texts: _tx, defaults: _dx } = useContext(TextsCtx);
+  const t = (key) => _tx[key] || _dx[key] || '';
   const [q, setQ] = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
   const [filters, setFilters] = useSb({ rel: [], region: '', ageMin: 18, ageMax: 55, maritalStatus: [] });
@@ -6916,7 +6974,7 @@ function CandBrowse({ th, go, me }) {
         <div style={{ display:'flex', gap:8, alignItems:'center', marginBottom:12 }}>
           <div style={{ position:'relative', flex:1 }}>
             <span style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', color:alpha(th.ink,0.4) }}><Icon name="search" size={19} /></span>
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder="חיפוש שם..."
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('cand_browse_search')}
               style={{ width:'100%', boxSizing:'border-box', padding:'11px 40px 11px 14px', borderRadius:999, border:`1.5px solid ${alpha(th.ink,0.12)}`, fontFamily:th.body, fontSize:14.5, background:th.card, outline:'none', color:th.ink }} />
           </div>
           <button onClick={() => setFilterOpen(true)}
@@ -6934,7 +6992,7 @@ function CandBrowse({ th, go, me }) {
         {list.length === 0 && (
           <div style={{ textAlign:'center', padding:'50px 20px', color:alpha(th.ink,0.4) }}>
             <Icon name="search" size={40} />
-            <div style={{ fontFamily:th.body, marginTop:10, fontSize:15 }}>לא נמצאו. נסה/י לשנות פילטרים.</div>
+            <div style={{ fontFamily:th.body, marginTop:10, fontSize:15 }}>{t('cand_browse_empty')}</div>
           </div>
         )}
       </div>
@@ -7065,6 +7123,8 @@ function CandViewCand({ th, go, params }) {
 function CandidateMode({ th, go }) {
   const { user, isImpersonating } = useContext(AuthCtx);
   const { candidates, offers, matchmakers, coRepRequests, lists, updateCandidate, updateOffer, deleteCandidate, reportEngagement, reportDeletion } = useContext(DataCtx);
+  const { texts: _tx, defaults: _dx } = useContext(TextsCtx);
+  const t = (key) => _tx[key] || _dx[key] || '';
 
   // Find this user's own candidate profile (also match by doc ID when admin impersonates a candidate without account)
   const me = candidates.find(c => c.candidateUid === user?.uid)
@@ -7450,8 +7510,8 @@ function CandidateMode({ th, go }) {
                 <Icon name="users" size={20} style={{ color:th.primary }} />
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>מעבר למצב שדכן/ית</div>
-                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>כניסה לאפליקציית השדכנים</div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>{t('cand_settings_mm')}</div>
+                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>{t('cand_settings_mm_sub')}</div>
               </div>
               <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
             </button>
@@ -7466,8 +7526,8 @@ function CandidateMode({ th, go }) {
                   💍
                 </div>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>מתחתן/ת!</div>
-                  <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>הכרזה על נישואין — מזל טוב לנו!</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>{t('cand_settings_engage')}</div>
+                  <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>{t('cand_settings_engage_sub')}</div>
                 </div>
                 <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
               </button>
@@ -7488,8 +7548,8 @@ function CandidateMode({ th, go }) {
                 <Icon name="trash" size={18} style={{ color:th.error }} />
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.error }}>מחיקת פרופיל</div>
-                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>הסרת הכרטיסייה שלך מהמערכת</div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.error }}>{t('cand_settings_delete')}</div>
+                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>{t('cand_settings_delete_sub')}</div>
               </div>
               <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
             </button>
@@ -7497,7 +7557,7 @@ function CandidateMode({ th, go }) {
 
           <div style={{ background:alpha(th.ink,0.04), borderRadius:th.r, padding:'11px 14px' }}>
             <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), lineHeight:1.5 }}>
-              גרסה 1.0 · סבבה, והכל אבל…
+              {t('cand_footer')}
             </div>
           </div>
         </div>
@@ -7520,8 +7580,8 @@ function CandidateMode({ th, go }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: alpha('#fff', 0.6), borderRadius: th.r, padding: '10px 14px', marginTop: 14 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{me.available ? 'פנוי/ה להצעות' : 'במנוחה מהצעות'}</div>
-            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.55) }}>{me.available ? 'שדכנים יכולים להציע לך' : 'לא תקבל/י הצעות חדשות'}</div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{me.available ? t('cand_available') : t('cand_busy')}</div>
+            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.55) }}>{me.available ? t('cand_available_sub') : t('cand_busy_sub')}</div>
           </div>
           <Toggle on={!!me.available} onChange={toggleAvailable} th={th} />
         </div>
@@ -7531,7 +7591,7 @@ function CandidateMode({ th, go }) {
 
         {/* OFFERS */}
         <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
-          <Icon name="heart" size={19} style={{ color: th.primary }} fill={th.primary} stroke={0} /> הצעות אחרונות
+          <Icon name="heart" size={19} style={{ color: th.primary }} fill={th.primary} stroke={0} /> {t('cand_offers_title')}
           {myOffers.length > 1 && (
             <span style={{ marginRight: 'auto', display:'flex', alignItems:'center', gap:6 }}>
               <button onClick={() => setOfferIdx(i => Math.max(0, i-1))} disabled={safeIdx === 0}
@@ -7549,18 +7609,18 @@ function CandidateMode({ th, go }) {
 
         {!currentOffer || !otherCand ? (
           <div style={{ background: alpha(th.ink, 0.04), borderRadius: th.r, padding: '22px 16px', textAlign: 'center', marginBottom: 22 }}>
-            <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.5) }}>אין הצעה פעילה כרגע</div>
-            <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.4), marginTop: 4 }}>השדכן/ית שלך יעדכן/תעדכן כשתגיע הצעה</div>
+            <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.5) }}>{t('cand_no_offer')}</div>
+            <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.4), marginTop: 4 }}>{t('cand_no_offer_sub')}</div>
           </div>
         ) : (
           <div style={{ background: th.card, borderRadius: th.rLg, overflow: 'hidden', marginBottom: 22, boxShadow: `0 10px 26px ${alpha(th.ink, 0.1)}` }}>
             {/* photo — clickable to open full card */}
             <div style={{ position:'relative', cursor:'pointer' }} onClick={() => go('candViewCand', { id: otherCand.id, meId: me.id })}>
               <PhotoGallery c={otherCand} th={th} height={220}>
-                <div style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'none' }}><Tag th={th} tone={th.primary} soft={false}>הצעה חדשה</Tag></div>
+                <div style={{ position: 'absolute', top: 12, right: 12, pointerEvents: 'none' }}><Tag th={th} tone={th.primary} soft={false}>{t('cand_offer_tag')}</Tag></div>
                 <div style={{ position: 'absolute', top: 12, left: 12, pointerEvents: 'none' }}>
                   <div style={{ background:alpha('#fff',0.85), borderRadius:999, padding:'3px 9px', fontFamily:th.body, fontSize:11.5, fontWeight:700, color:alpha(th.ink,0.7) }}>
-                    הקש לכרטיסייה המלאה →
+                    {t('cand_offer_view_hint')}
                   </div>
                 </div>
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90, background: `linear-gradient(to top, ${alpha(th.ink,0.7)}, transparent)`, pointerEvents: 'none' }} />
@@ -7589,7 +7649,7 @@ function CandidateMode({ th, go }) {
                 })()}
                 <button onClick={declineOffer}
                   style={{ flex:1, padding:'12px 0', borderRadius:th.r, border:`1.5px solid ${alpha(th.error,0.3)}`, background:alpha(th.error,0.07), color:th.error, fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer' }}>
-                  לא הפעם
+                  {t('cand_decline_btn')}
                 </button>
               </div>
             </div>
@@ -7609,10 +7669,10 @@ function CandidateMode({ th, go }) {
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:'#fff', lineHeight:1.25, marginBottom:5 }}>
-                  {browseMale ? 'גלה מועמדות שמחכות לך' : 'גלי מועמדים שמחכים לך'}
+                  {browseMale ? t('cand_browse_hint_m') : t('cand_browse_hint_f')}
                 </div>
                 <div style={{ fontFamily:th.body, fontSize:13, color:alpha('#fff',0.8), lineHeight:1.4 }}>
-                  לחץ/י כאן או על הטאב בתפריט למטה ↓
+                  {t('cand_browse_hint_sub')}
                 </div>
               </div>
               <div style={{ width:36, height:36, borderRadius:'50%', background:alpha('#fff',0.2), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -7649,7 +7709,7 @@ function CandidateMode({ th, go }) {
         )}
 
         {/* MY MATCHMAKERS */}
-        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>השדכן/ית שלי</div>
+        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>{t('cand_mms_title')}</div>
         <div style={{ background: th.card, borderRadius: th.r, padding: 6, marginBottom: 22, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
           {myMms.length === 0 ? (
             <div style={{ padding: '14px 10px', fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.45), textAlign: 'center' }}>לא נמצאו שדכנים</div>
