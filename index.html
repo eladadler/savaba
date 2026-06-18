@@ -1157,7 +1157,9 @@ function useFirebaseData(uid) {
     }));
 
     unsubs.push(db.collection('offers').onSnapshot(s => {
-      setOffers(s.docs.map(d => ({ id: d.id, ...d.data() })));
+      const arr = s.docs.map(d => ({ id: d.id, ...d.data() }));
+      arr.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+      setOffers(arr);
     }));
 
     unsubs.push(db.collection('users').onSnapshot(s => {
