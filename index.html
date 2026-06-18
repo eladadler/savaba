@@ -2963,6 +2963,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       {stepName === 'פרטים בסיסיים' && (
         <>
           <Field th={th} label="שם"><TextInput th={th} value={f.name} onChange={set('name')} /></Field>
+          <Field th={th} label="טלפון"><TextInput th={th} type="tel" value={f.phone || ''} onChange={set('phone')} placeholder="05X-XXXXXXX" /></Field>
           <Field th={th} label="גיל"><TextInput th={th} type="number" value={f.age} onChange={v => setF(s => ({...s, age: +v}))} /></Field>
           <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה', 'גבר']} /></Field>
           <Field th={th} label="אזור"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
