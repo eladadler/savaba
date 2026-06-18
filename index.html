@@ -5499,7 +5499,7 @@ function CandRow({ c, th, selected, onClick, trailing, disabled }) {
 }
 
 function MatchFlow({ th, go, params }) {
-  const { lists, candidates, offers, addOffer } = useContext(DataCtx);
+  const { lists, candidates, offers, addOffer, matchmakers } = useContext(DataCtx);
   const { profile } = useContext(AuthCtx);
   const liveReligiosity = (lists.religiosity && lists.religiosity.length) ? lists.religiosity : RELIGIOSITY;
   const liveRegions     = (lists.regions     && lists.regions.length)     ? lists.regions     : REGIONS;
@@ -5630,7 +5630,11 @@ function MatchFlow({ th, go, params }) {
         <p style={{ fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.65), lineHeight: 1.5, maxWidth: 300, margin: '0 0 28px' }}>
           {isSelfMatch
             ? <>{candA.name} יקבל/תקבל את ההצעה ראשון/ה. אם יאשר/תאשר — {candB.name} יקבל/תקבל הצעה.</>
-            : <>שלחנו את ההצעה לשדכן/ית של {candB.name}. ברגע שתתקבל — {candA.name} יעודכן/תעודכן.</>
+            : (() => {
+                const bMm = matchmakers?.[candB.mmId];
+                const bMmName = bMm?.displayName || bMm?.name || null;
+                return <>שלחנו את ההצעה ל{bMmName ? <strong>{bMmName}</strong> : 'שדכן/ית'}, שדכן/ית של {candB.name}. ברגע שתתקבל — {candA.name} יעודכן/תעודכן.</>;
+              })()
           }
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
