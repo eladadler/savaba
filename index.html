@@ -7416,6 +7416,12 @@ function OfferDetail({ th, go, params }) {
     );
   };
 
+  // Prepend the original note (written during match flow) as first chat message
+  const allMsgs = [
+    ...(o.note ? [{ from: o.aMm, text: o.note, at: o.createdAt?.seconds ? o.createdAt.seconds * 1000 : 0, _isNote: true }] : []),
+    ...msgs,
+  ];
+
   const cardShadow = bothApp
     ? `0 6px 26px ${alpha(th.success,0.2)}, 0 0 0 1.5px ${alpha(th.success,0.32)}`
     : `0 4px 14px ${alpha(th.ink,0.06)}`;
@@ -7531,15 +7537,20 @@ function OfferDetail({ th, go, params }) {
             <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם {theirMm.name}</span>
           </div>
           <div style={{ maxHeight:260, overflowY:'auto', display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
-            {msgs.length === 0 && (
+            {allMsgs.length === 0 && (
               <div style={{ textAlign:'center', padding:'22px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.35) }}>
                 אין הודעות עדיין — שלח/י הודעה ראשונה
               </div>
             )}
-            {msgs.map((m, i) => {
+            {allMsgs.map((m, i) => {
               const mine = m.from === myUid;
               return (
-                <div key={i} style={{ display:'flex', justifyContent:mine?'flex-end':'flex-start' }}>
+                <div key={i} style={{ display:'flex', justifyContent:mine?'flex-end':'flex-start', flexDirection:'column', alignItems:mine?'flex-end':'flex-start' }}>
+                  {m._isNote && (
+                    <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.35), marginBottom:3, paddingInline:4 }}>
+                      הודעה מלווה להצעה
+                    </div>
+                  )}
                   <div style={{ maxWidth:'80%', padding:'8px 12px', fontFamily:th.body, fontSize:13.5, lineHeight:1.45,
                     borderRadius: mine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                     background: mine ? th.primary : alpha(th.ink,0.08),
