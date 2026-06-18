@@ -1135,6 +1135,7 @@ function useFirebaseData(uid) {
   const [lists,         setLists]         = useState({});
   const [notifications, setNotifications] = useState([]);
   const [coRepRequests, setCoRepRequests] = useState([]);
+  const [engagements,   setEngagements]   = useState([]);
   const [loading,       setLoading]       = useState(true);
 
   useEffect(() => {
@@ -1195,6 +1196,15 @@ function useFirebaseData(uid) {
         s => setCoRepRequests(s.docs.map(d => ({ id: d.id, ...d.data() }))),
         err => console.warn('coRepRequests listener error:', err.message)
       ));
+
+    unsubs.push(db.collection('engagements').onSnapshot(
+      s => {
+        const arr = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        arr.sort((a, b) => (b.at?.seconds || 0) - (a.at?.seconds || 0));
+        setEngagements(arr);
+      },
+      err => console.warn('engagements listener error:', err.message)
+    ));
 
     return () => unsubs.forEach(u => u());
   }, [uid]);
@@ -1261,6 +1271,12 @@ function useFirebaseData(uid) {
   const deleteNotification = useCallback((id) =>
     db.collection('notifications').doc(id).delete(), []);
 
+  const reportEngagement = useCallback((data) =>
+    db.collection('engagements').add({ ...data, at: firebase.firestore.FieldValue.serverTimestamp() }), []);
+
+  const reportDeletion = useCallback((data) =>
+    db.collection('deletions').add({ ...data, at: firebase.firestore.FieldValue.serverTimestamp() }), []);
+
   const approveCandidate = useCallback((candidateId) =>
     db.collection('candidates').doc(candidateId).update({ pendingApproval: false }), []);
 
@@ -1270,10 +1286,11 @@ function useFirebaseData(uid) {
     [uid]);
 
   return {
-    candidates, offers, matchmakers, texts, lists, notifications, coRepRequests, loading,
+    candidates, offers, matchmakers, texts, lists, notifications, coRepRequests, engagements, loading,
     addCandidate, updateCandidate, deleteCandidate,
     uploadPhoto, uploadVoice, addOffer, updateOffer, updateText, setUserAdmin, updateList,
     markNotificationRead, deleteNotification, approveCandidate, claimCandidate,
+    reportEngagement, reportDeletion,
   };
 }
 
@@ -2237,7 +2254,7 @@ function ListsEditor({ th, listDefs, onSave }) {
 
 // ── AdminStats ────────────────────────────────────────────────
 function AdminStats({ th, hideSeed, isSeed }) {
-  const { candidates: allCands, offers: allOffers, matchmakers: allMms } = useContext(DataCtx);
+  const { candidates: allCands, offers: allOffers, matchmakers: allMms, engagements: allEngagements } = useContext(DataCtx);
   const [invitations, setInvitations] = useState([]);
 
   const candidates = hideSeed ? allCands.filter(c => !isSeed(c.id))   : allCands;
@@ -2438,8 +2455,43 @@ function AdminStats({ th, hideSeed, isSeed }) {
 
   const PALETTE = [th.primary, th.gold, th.success, '#a78bfa', '#fb923c', '#34d399'];
 
+  const engViaApp  = allEngagements.filter(e => !e.notViaApp);
+  const engOther   = allEngagements.filter(e => !!e.notViaApp);
+
   return (
     <div style={{ direction: 'rtl' }}>
+
+      {/* ── ENGAGEMENTS (top of page) ── */}
+      {allEngagements.length > 0 && (
+        <>
+          <SectionTitle icon="💍">נישואין</SectionTitle>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
+            <StatCard label="💍 בזכות האפליקציה" value={engViaApp.length}  color={th.gold}    icon="🎊" />
+            <StatCard label="🤝 בדרך אחרת"        value={engOther.length}   color={alpha(th.ink,0.5)} />
+          </div>
+          {engViaApp.length > 0 && (
+            <div style={{ background:th.card, borderRadius:th.r, padding:'14px 16px', boxShadow:`0 4px 18px ${alpha(th.gold,0.18)}`, border:`1.5px solid ${alpha(th.gold,0.3)}`, marginBottom:20 }}>
+              {engViaApp.map((e, i) => (
+                <div key={e.id} style={{ display:'flex', alignItems:'center', gap:10, paddingBlock: i > 0 ? 10 : 0, borderTop: i > 0 ? `1px solid ${alpha(th.ink,0.07)}` : 'none' }}>
+                  <span style={{ fontSize:22 }}>💍</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>
+                      {e.candName}{e.partnerName ? ` + ${e.partnerName}` : ''}
+                    </div>
+                    {e.at?.seconds && (
+                      <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.45) }}>
+                        {new Date(e.at.seconds*1000).toLocaleDateString('he-IL')}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.gold, background:alpha(th.gold,0.12), borderRadius:999, padding:'3px 9px' }}>מהאפליקציה</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
       {/* ── CANDIDATES overview ── */}
       <SectionTitle icon="👥">מועמדים</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
@@ -2536,6 +2588,19 @@ function AdminPanel({ th, go }) {
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
   const [confirmWipe, setConfirmWipe] = useState(null); // null | 'offers' | 'candidates' | 'matchmakers'
   const [wiping, setWiping] = useState(false);
+  const [deletionLog, setDeletionLog] = useState([]);
+  const [notifEmail, setNotifEmail] = useState('');
+  const [notifEmailInput, setNotifEmailInput] = useState('');
+  const [savingEmail, setSavingEmail] = useState(false);
+
+  useEffect(() => {
+    db.collection('deletions').orderBy('at', 'desc').limit(50).get()
+      .then(s => setDeletionLog(s.docs.map(d => ({ id: d.id, ...d.data() }))))
+      .catch(() => {});
+    db.collection('config').doc('settings').get()
+      .then(d => { if (d.exists && d.data().notifEmail) { setNotifEmail(d.data().notifEmail); setNotifEmailInput(d.data().notifEmail); } })
+      .catch(() => {});
+  }, []);
   const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
   const [waitingPanelLight, setWaitingPanelLight] = useState(() => localStorage.getItem('waitingPanelLight') !== 'false');
   const [cardStyle, setCardStyle] = useState(() => localStorage.getItem('candCardStyle') || 'square');
@@ -2779,12 +2844,15 @@ function AdminPanel({ th, go }) {
           const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
           const liveInterests     = (lists.interests      && lists.interests.length)     ? lists.interests     : INTERESTS;
           const livePartnerTraits = (lists.partnerTraits  && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
+          const DEFAULT_DEL_REASONS = ['מצאתי בן/בת זוג בדרך אחרת', 'אין לי זמן כרגע', 'לא מרוצה מהשירות', 'לוקח/ת הפסקה', 'אחר'];
+          const liveDeleteReasons = (lists.deleteReasons  && lists.deleteReasons.length) ? lists.deleteReasons : DEFAULT_DEL_REASONS;
 
           const listDefs = [
             { key: 'interests',     label: 'תחומי עניין',       live: liveInterests },
             { key: 'partnerTraits', label: 'חשוב בפרטנר',       live: livePartnerTraits },
             { key: 'religiosity',   label: 'קרבה לדת',          live: liveReligiosity },
             { key: 'regions',       label: 'אזורים',             live: liveRegions },
+            { key: 'deleteReasons', label: 'סיבות מחיקה',       live: liveDeleteReasons },
           ];
 
           return (
@@ -2843,6 +2911,46 @@ function AdminPanel({ th, go }) {
           };
           return (
             <div>
+
+              {/* ── EMAIL FOR NOTIFICATIONS ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>📧 מייל לקבלת התראות</div>
+                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
+                  לאן ישלחו עדכונים על מחיקות מועמדים ופניות מהמערכת (בעתיד)
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <input value={notifEmailInput} onChange={e => setNotifEmailInput(e.target.value)} placeholder="example@email.com" dir="ltr"
+                    style={{ flex:1, border:`1.5px solid ${alpha(th.ink,0.15)}`, borderRadius:th.rSm, padding:'9px 12px', fontFamily:th.body, fontSize:13.5, outline:'none', background:th.cream }} />
+                  <button disabled={savingEmail || notifEmailInput === notifEmail}
+                    onClick={async () => { setSavingEmail(true); await db.collection('config').doc('settings').set({ notifEmail: notifEmailInput }, { merge: true }); setNotifEmail(notifEmailInput); setSavingEmail(false); }}
+                    style={{ padding:'9px 16px', borderRadius:th.rSm, border:'none', background: notifEmailInput !== notifEmail ? th.primary : alpha(th.ink,0.1), color: notifEmailInput !== notifEmail ? '#fff' : alpha(th.ink,0.4), fontFamily:th.display, fontWeight:800, fontSize:13, cursor:'pointer', whiteSpace:'nowrap' }}>
+                    {savingEmail ? 'שומר…' : 'שמור'}
+                  </button>
+                </div>
+                {notifEmail && <div style={{ fontFamily:th.body, fontSize:11.5, color:th.success, marginTop:6 }}>✓ שמור: {notifEmail}</div>}
+              </div>
+
+              {/* ── DELETION LOG ── */}
+              {deletionLog.length > 0 && (
+                <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 20, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 12 }}>🗑️ יומן מחיקות ({deletionLog.length})</div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {deletionLog.map(d => (
+                      <div key={d.id} style={{ borderBottom:`1px solid ${alpha(th.ink,0.07)}`, paddingBottom:8, marginBottom:0 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
+                          <span style={{ fontFamily:th.display, fontWeight:700, fontSize:13, color:th.ink }}>{d.candName || '(ללא שם)'}</span>
+                          <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>
+                            {d.at?.seconds ? new Date(d.at.seconds*1000).toLocaleDateString('he-IL') : ''}
+                          </span>
+                        </div>
+                        <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6) }}>{d.reason || '—'}</div>
+                        {d.note && <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), fontStyle:'italic', marginTop:2 }}>"{d.note}"</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div style={{ background: alpha(th.error, 0.07), border: `1.5px solid ${alpha(th.error, 0.28)}`, borderRadius: th.r, padding: '14px 16px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: 24, lineHeight: 1 }}>☠️</span>
                 <div>
@@ -6199,13 +6307,18 @@ function Offers({ th, go, params }) {
           const finalFail = o.status === 'נדחתה';
           const needsResp = (!myApp && !finalFail) || !!chatUnread[o.id];
 
+          const isEngaged = !!o.isEngaged;
           return (
             <button key={o.id}
               onClick={() => { markChatRead(o.id); go('offerDetail', { id: o.id }); }}
               style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box',
-                background: bothApp ? `linear-gradient(150deg,${alpha(th.success,0.09)},${alpha(th.success,0.03)})` : th.card,
+                background: isEngaged
+                  ? `linear-gradient(150deg,${alpha(th.gold,0.13)},${alpha(th.gold,0.04)})`
+                  : bothApp ? `linear-gradient(150deg,${alpha(th.success,0.09)},${alpha(th.success,0.03)})` : th.card,
                 borderRadius: th.r, padding: '12px 14px', marginBottom: 14, display:'block',
-                boxShadow: bothApp
+                boxShadow: isEngaged
+                  ? `0 6px 24px ${alpha(th.gold,0.28)}, 0 0 0 2px ${th.gold}`
+                  : bothApp
                   ? `0 4px 18px ${alpha(th.success,0.18)}, 0 0 0 1.5px ${alpha(th.success,0.32)}`
                   : needsResp
                   ? `0 4px 18px ${alpha(th.primary,0.18)}, 0 0 0 2px ${th.primary}`
@@ -6213,12 +6326,14 @@ function Offers({ th, go, params }) {
 
               {/* Row 1: names + badges */}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink, display:'flex', alignItems:'center', gap:6 }}>
+                  {isEngaged && <span style={{ fontSize:18 }}>💍</span>}
                   {myCand.name} · {theirC.name}
                 </div>
                 <div style={{ display:'flex', gap:5, flexShrink:0, marginInlineStart:6 }}>
-                  {needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>ממתין לתגובתי</span>}
-                  {bothApp   && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.success, background:alpha(th.success,0.1), borderRadius:99, padding:'3px 8px' }}>🎉 אושרה</span>}
+                  {isEngaged && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.gold, background:alpha(th.gold,0.15), borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>💍 התחתנו!</span>}
+                  {!isEngaged && needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>ממתין לתגובתי</span>}
+                  {!isEngaged && bothApp   && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.success, background:alpha(th.success,0.1), borderRadius:99, padding:'3px 8px' }}>🎉 אושרה</span>}
                   {finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.error,   background:alpha(th.error,0.1),   borderRadius:99, padding:'3px 8px' }}>נדחתה</span>}
                 </div>
               </div>
@@ -6949,7 +7064,7 @@ function CandViewCand({ th, go, params }) {
 // ════════════════════════════════════════════════════════════
 function CandidateMode({ th, go }) {
   const { user, isImpersonating } = useContext(AuthCtx);
-  const { candidates, offers, matchmakers, coRepRequests, updateCandidate, updateOffer } = useContext(DataCtx);
+  const { candidates, offers, matchmakers, coRepRequests, lists, updateCandidate, updateOffer, deleteCandidate, reportEngagement, reportDeletion } = useContext(DataCtx);
 
   // Find this user's own candidate profile (also match by doc ID when admin impersonates a candidate without account)
   const me = candidates.find(c => c.candidateUid === user?.uid)
@@ -6989,6 +7104,21 @@ function CandidateMode({ th, go }) {
 
   const [offerIdx, setOfferIdx] = useSe(0);
   const [candTab, setCandTab] = useSb('home');
+
+  // Delete flow
+  const [deleteModal, setDeleteModal] = useState(false); // false | 'reason' | 'confirm'
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteNote, setDeleteNote] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  // Engagement flow
+  const [engageModal, setEngageModal] = useState(false); // false | 'source' | 'pick' | 'confirm' | 'done'
+  const [engageSource, setEngageSource] = useState(null); // 'app' | 'other'
+  const [engageOfferId, setEngageOfferId] = useState(null);
+  const [engaging, setEngaging] = useState(false);
+
+  const DEFAULT_DELETE_REASONS = ['מצאתי בן/בת זוג בדרך אחרת', 'אין לי זמן כרגע', 'לא מרוצה מהשירות', 'לוקח/ת הפסקה', 'אחר'];
+  const deleteReasons = (lists?.deleteReasons?.length) ? lists.deleteReasons : DEFAULT_DELETE_REASONS;
 
   // Clamp index when offers list changes
   const safeIdx = Math.min(offerIdx, Math.max(0, myOffers.length - 1));
@@ -7077,13 +7207,238 @@ function CandidateMode({ th, go }) {
 
   // ── Settings tab ──────────────────────────────────────────────
   if (candTab === 'settings') {
+    const engagedOffer = engageOfferId ? myOffers.find(o => o.id === engageOfferId) : null;
+    const engagedPartner = engagedOffer ? candidates.find(c => c.id === (engagedOffer.aId === me.id ? engagedOffer.bId : engagedOffer.aId)) : null;
+
+    const doDelete = async () => {
+      setDeleting(true);
+      try {
+        await reportDeletion({ candidateId: me.id, candName: me.name, reason: deleteReason, note: deleteNote });
+        await deleteCandidate(me.id);
+        go('onboarding');
+      } catch(e) { alert('שגיאה: ' + e.message); }
+      setDeleting(false);
+    };
+
+    const doEngage = async () => {
+      setEngaging(true);
+      try {
+        const notViaApp = engageSource === 'other';
+        const engData = {
+          candId: me.id, candName: me.name,
+          offerId: engagedOffer?.id || null,
+          partnerId: engagedPartner?.id || null,
+          partnerName: engagedPartner?.name || null,
+          notViaApp,
+        };
+        await reportEngagement(engData);
+        await updateCandidate(me.id, { isEngaged: true, isHidden: true, engagedToId: engagedPartner?.id || null, engagedNotViaApp: notViaApp });
+        if (engagedOffer) await db.collection('offers').doc(engagedOffer.id).update({ isEngaged: true });
+        setEngageModal('done');
+      } catch(e) { alert('שגיאה: ' + e.message); }
+      setEngaging(false);
+    };
+
     return (
       <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream }}>
+
+        {/* ── DELETE MODAL ── */}
+        {deleteModal && (
+          <div style={{ position:'fixed', inset:0, zIndex:1000, background:alpha('#000',0.5), display:'flex', alignItems:'flex-end' }}
+            onClick={() => { if (!deleting) setDeleteModal(false); }}>
+            <div style={{ width:'100%', background:th.card, borderRadius:`24px 24px 0 0`, padding:'24px 20px 40px', direction:'rtl' }}
+              onClick={e => e.stopPropagation()}>
+              {deleteModal === 'reason' && (<>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.ink, marginBottom:6 }}>מחיקת פרופיל</div>
+                <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), marginBottom:18, lineHeight:1.5 }}>
+                  מצטערים לשמוע 😔 נשמח לדעת מה הסיבה — זה עוזר לנו להשתפר.
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+                  {deleteReasons.map(r => (
+                    <button key={r} onClick={() => setDeleteReason(r)}
+                      style={{ all:'unset', cursor:'pointer', padding:'11px 14px', borderRadius:th.r, border:`1.5px solid ${deleteReason === r ? th.error : alpha(th.ink,0.12)}`,
+                        background: deleteReason === r ? alpha(th.error,0.06) : th.cream,
+                        fontFamily:th.body, fontSize:14, color: deleteReason === r ? th.error : th.ink, display:'flex', alignItems:'center', gap:8 }}>
+                      <div style={{ width:18, height:18, borderRadius:'50%', border:`2px solid ${deleteReason === r ? th.error : alpha(th.ink,0.25)}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        {deleteReason === r && <div style={{ width:8, height:8, borderRadius:'50%', background:th.error }} />}
+                      </div>
+                      {r}
+                    </button>
+                  ))}
+                </div>
+                <textarea value={deleteNote} onChange={e => setDeleteNote(e.target.value)} placeholder="הערה נוספת (לא חובה)..." rows={2}
+                  style={{ width:'100%', boxSizing:'border-box', borderRadius:th.r, border:`1.5px solid ${alpha(th.ink,0.12)}`, padding:'10px 12px', fontFamily:th.body, fontSize:13.5, resize:'none', outline:'none', marginBottom:16 }} />
+                <div style={{ display:'flex', gap:10 }}>
+                  <button onClick={() => setDeleteModal(false)}
+                    style={{ flex:1, padding:'13px 0', borderRadius:th.r, border:`1.5px solid ${alpha(th.ink,0.15)}`, background:'transparent', fontFamily:th.display, fontWeight:800, fontSize:14, color:alpha(th.ink,0.6), cursor:'pointer' }}>
+                    ביטול
+                  </button>
+                  <button onClick={() => deleteReason && setDeleteModal('confirm')} disabled={!deleteReason}
+                    style={{ flex:2, padding:'13px 0', borderRadius:th.r, border:'none', background: deleteReason ? th.error : alpha(th.ink,0.12), color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, cursor: deleteReason ? 'pointer' : 'not-allowed' }}>
+                    המשך
+                  </button>
+                </div>
+              </>)}
+
+              {deleteModal === 'confirm' && (<>
+                <div style={{ textAlign:'center', marginBottom:16 }}>
+                  <div style={{ fontSize:48 }}>🗑️</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.error, marginTop:8 }}>מחיקה סופית</div>
+                </div>
+                <div style={{ background:alpha(th.error,0.07), borderRadius:th.r, padding:'12px 14px', marginBottom:20, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.7), lineHeight:1.55 }}>
+                  הפרופיל שלך, התמונות, וכל הנתונים שלך יימחקו לצמיתות.<br/>
+                  <strong>אין דרך לשחזר את הנתונים.</strong>
+                </div>
+                <div style={{ display:'flex', gap:10 }}>
+                  <button onClick={() => setDeleteModal('reason')} disabled={deleting}
+                    style={{ flex:1, padding:'13px 0', borderRadius:th.r, border:`1.5px solid ${alpha(th.ink,0.15)}`, background:'transparent', fontFamily:th.display, fontWeight:800, fontSize:14, color:alpha(th.ink,0.6), cursor:'pointer' }}>
+                    חזרה
+                  </button>
+                  <button onClick={doDelete} disabled={deleting}
+                    style={{ flex:2, padding:'13px 0', borderRadius:th.r, border:'none', background:th.error, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer' }}>
+                    {deleting ? 'מוחק...' : 'כן, מחק את הפרופיל שלי'}
+                  </button>
+                </div>
+              </>)}
+            </div>
+          </div>
+        )}
+
+        {/* ── ENGAGEMENT MODAL ── */}
+        {engageModal && (
+          <div style={{ position:'fixed', inset:0, zIndex:1000, background:alpha('#000',0.5), display:'flex', alignItems:'flex-end' }}
+            onClick={() => { if (!engaging && engageModal !== 'done') { setEngageModal(false); setEngageSource(null); setEngageOfferId(null); } }}>
+            <div style={{ width:'100%', background:th.card, borderRadius:`24px 24px 0 0`, padding:'24px 20px 40px', direction:'rtl', maxHeight:'80vh', overflowY:'auto' }}
+              onClick={e => e.stopPropagation()}>
+
+              {engageModal === 'source' && (<>
+                <div style={{ textAlign:'center', marginBottom:20 }}>
+                  <div style={{ fontSize:52 }}>💍</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginTop:10 }}>מזל טוב! 🎉</div>
+                  <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), marginTop:6 }}>איך הגעתם לאחד/ת לשנייה?</div>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:16 }}>
+                  <button onClick={() => { setEngageSource('app'); setEngageModal('pick'); }}
+                    style={{ all:'unset', cursor:'pointer', padding:'16px 18px', borderRadius:th.r, background:alpha(th.primary,0.06), border:`1.5px solid ${alpha(th.primary,0.25)}`, display:'flex', alignItems:'center', gap:14 }}>
+                    <div style={{ fontSize:32 }}>📱</div>
+                    <div>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink }}>בזכות האפליקציה!</div>
+                      <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55), marginTop:3 }}>ההכרות הייתה דרך ההצעות שקיבלתי כאן</div>
+                    </div>
+                  </button>
+                  <button onClick={() => { setEngageSource('other'); setEngageModal('confirm'); }}
+                    style={{ all:'unset', cursor:'pointer', padding:'16px 18px', borderRadius:th.r, background:alpha(th.ink,0.03), border:`1.5px solid ${alpha(th.ink,0.12)}`, display:'flex', alignItems:'center', gap:14 }}>
+                    <div style={{ fontSize:32 }}>🤝</div>
+                    <div>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink }}>לא מתוך האפליקציה</div>
+                      <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.55), marginTop:3 }}>הכרנו בדרך אחרת</div>
+                    </div>
+                  </button>
+                </div>
+                <button onClick={() => { setEngageModal(false); setEngageSource(null); }}
+                  style={{ all:'unset', cursor:'pointer', width:'100%', textAlign:'center', padding:'10px 0', fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.45) }}>
+                  ביטול
+                </button>
+              </>)}
+
+              {engageModal === 'pick' && (<>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.ink, marginBottom:6 }}>עם מי התחתנת/ת? 💍</div>
+                <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginBottom:18 }}>בחר/י מבין ההצעות שאושרו עבורך</div>
+                {myOffers.length === 0 ? (
+                  <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.5), textAlign:'center', padding:'20px 0' }}>אין הצעות מאושרות</div>
+                ) : (
+                  <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:16 }}>
+                    {myOffers.map(o => {
+                      const partnerId = o.aId === me.id ? o.bId : o.aId;
+                      const partner = candidates.find(c => c.id === partnerId);
+                      if (!partner) return null;
+                      const sel = engageOfferId === o.id;
+                      return (
+                        <button key={o.id} onClick={() => setEngageOfferId(sel ? null : o.id)}
+                          style={{ all:'unset', cursor:'pointer', padding:'12px 14px', borderRadius:th.r, border:`1.5px solid ${sel ? th.primary : alpha(th.ink,0.12)}`,
+                            background: sel ? alpha(th.primary,0.06) : th.cream, display:'flex', alignItems:'center', gap:12 }}>
+                          <Avatar grad={partner.grad} name={partner.name} size={40} photo={partner.photos?.[0]} />
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink }}>{partner.name}</div>
+                            <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>{partner.age}{partner.region ? ` · ${partner.region}` : ''}</div>
+                          </div>
+                          {sel && <div style={{ width:22, height:22, borderRadius:'50%', background:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                            <Icon name="check" size={12} style={{ color:'#fff' }} />
+                          </div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <div style={{ display:'flex', gap:10 }}>
+                  <button onClick={() => { setEngageModal('source'); setEngageOfferId(null); }}
+                    style={{ flex:1, padding:'13px 0', borderRadius:th.r, border:`1.5px solid ${alpha(th.ink,0.15)}`, background:'transparent', fontFamily:th.display, fontWeight:800, fontSize:14, color:alpha(th.ink,0.6), cursor:'pointer' }}>
+                    חזרה
+                  </button>
+                  <button onClick={() => engageOfferId && setEngageModal('confirm')} disabled={!engageOfferId}
+                    style={{ flex:2, padding:'13px 0', borderRadius:th.r, border:'none', background: engageOfferId ? th.primary : alpha(th.ink,0.12), color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, cursor: engageOfferId ? 'pointer' : 'not-allowed' }}>
+                    המשך
+                  </button>
+                </div>
+              </>)}
+
+              {engageModal === 'confirm' && (<>
+                <div style={{ textAlign:'center', marginBottom:20 }}>
+                  <div style={{ fontSize:52 }}>💍</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginTop:10 }}>
+                    {engagedPartner ? `${me.name} + ${engagedPartner.name}` : 'מזל טוב!'}
+                  </div>
+                  {engageSource === 'app' && engagedPartner && (
+                    <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), marginTop:6, lineHeight:1.5 }}>
+                      ישמח לנו להכריז על ה-Match המיוחד הזה!
+                    </div>
+                  )}
+                  {engageSource === 'other' && (
+                    <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), marginTop:6 }}>
+                      כמה שמחים בשבילך! 🎊
+                    </div>
+                  )}
+                </div>
+                <div style={{ background:alpha(th.primary,0.06), borderRadius:th.r, padding:'12px 14px', marginBottom:20, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.7), lineHeight:1.55 }}>
+                  לאחר האישור הפרופיל שלך יוסתר אוטומטית מהמערכת.
+                </div>
+                <div style={{ display:'flex', gap:10 }}>
+                  <button onClick={() => setEngageModal(engageSource === 'app' ? 'pick' : 'source')} disabled={engaging}
+                    style={{ flex:1, padding:'13px 0', borderRadius:th.r, border:`1.5px solid ${alpha(th.ink,0.15)}`, background:'transparent', fontFamily:th.display, fontWeight:800, fontSize:14, color:alpha(th.ink,0.6), cursor:'pointer' }}>
+                    חזרה
+                  </button>
+                  <button onClick={doEngage} disabled={engaging}
+                    style={{ flex:2, padding:'13px 0', borderRadius:th.r, border:'none', background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer' }}>
+                    {engaging ? 'שומר...' : '💍 אשר נישואין'}
+                  </button>
+                </div>
+              </>)}
+
+              {engageModal === 'done' && (<>
+                <div style={{ textAlign:'center', padding:'20px 0' }}>
+                  <div style={{ fontSize:64 }}>🥂</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:22, color:th.primary, marginTop:12 }}>מזל טוב וברכות!</div>
+                  <div style={{ fontFamily:th.body, fontSize:14.5, color:alpha(th.ink,0.65), marginTop:8, lineHeight:1.6 }}>
+                    שיהיה בנין עדי עד 💐<br/>הפרופיל שלך הוסתר מהמערכת.
+                  </div>
+                  <button onClick={() => go('onboarding')}
+                    style={{ marginTop:24, padding:'14px 36px', borderRadius:th.r, border:'none', background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:15, cursor:'pointer' }}>
+                    סיום
+                  </button>
+                </div>
+              </>)}
+
+            </div>
+          </div>
+        )}
+
         <div style={{ paddingTop:54, paddingInline:18, paddingBottom:14, background:`linear-gradient(160deg,${tint(th.primary,0.8)},${th.cream})`, flexShrink:0 }}>
           <div style={{ fontFamily:th.display, fontWeight:800, fontSize:22, color:th.ink }}>הגדרות</div>
         </div>
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
-          <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:20 }}>
+
+          {/* Switch to matchmaker mode */}
+          <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:14 }}>
             <button onClick={() => go('home')}
               style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
               <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.primary,0.1), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -7096,6 +7451,45 @@ function CandidateMode({ th, go }) {
               <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
             </button>
           </div>
+
+          {/* Getting married! */}
+          {!me.isEngaged && (
+            <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:14 }}>
+              <button onClick={() => { setEngageModal('source'); setEngageSource(null); setEngageOfferId(null); }}
+                style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
+                <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.gold,0.15), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:20 }}>
+                  💍
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>מתחתן/ת!</div>
+                  <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>הכרזה על נישואין — מזל טוב לנו!</div>
+                </div>
+                <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
+              </button>
+            </div>
+          )}
+          {me.isEngaged && (
+            <div style={{ background:alpha(th.gold,0.08), borderRadius:th.r, padding:'14px 16px', marginBottom:14, border:`1.5px solid ${alpha(th.gold,0.3)}`, display:'flex', alignItems:'center', gap:12 }}>
+              <span style={{ fontSize:24 }}>💍</span>
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75) }}>כרטיסייתך מסומנת כ"נישא/אה" — מזל טוב!</div>
+            </div>
+          )}
+
+          {/* Delete profile */}
+          <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:20 }}>
+            <button onClick={() => { setDeleteReason(''); setDeleteNote(''); setDeleteModal('reason'); }}
+              style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
+              <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.error,0.1), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon name="trash" size={18} style={{ color:th.error }} />
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.error }}>מחיקת פרופיל</div>
+                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>הסרת הכרטיסייה שלך מהמערכת</div>
+              </div>
+              <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
+            </button>
+          </div>
+
           <div style={{ background:alpha(th.ink,0.04), borderRadius:th.r, padding:'11px 14px' }}>
             <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), lineHeight:1.5 }}>
               גרסה 1.0 · סבבה, והכל אבל…
