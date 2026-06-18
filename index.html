@@ -7399,7 +7399,7 @@ function AppSettings({ th, go, profile }) {
     <button onClick={onClick} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, padding:'13px 14px', borderBottom: last ? 'none' : `1px solid ${alpha(th.ink,0.07)}` }}>
       <div style={{ width:34, height:34, borderRadius:10, background:alpha(danger ? th.error : (tone||th.ink), 0.1), color:danger ? th.error : (tone||th.ink), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><Icon name={icon} size={19} /></div>
       <span style={{ flex:1, fontFamily:th.body, fontWeight:600, fontSize:15, color:danger ? th.error : th.ink }}>{label}</span>
-      <span style={{ color:alpha(th.ink,0.3), transform:'scaleX(-1)' }}><Icon name="chevL" size={18} /></span>
+      <span style={{ color:alpha(th.ink,0.3) }}><Icon name="chevL" size={18} /></span>
     </button>
   );
   const Group = ({ children }) => <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', marginBottom:16, boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}` }}>{children}</div>;
