@@ -2534,6 +2534,8 @@ function AdminPanel({ th, go }) {
   const [editVal,  setEditVal]  = useState('');
   const [seeding,  setSeeding]  = useState(false);
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
+  const [confirmWipe, setConfirmWipe] = useState(null); // null | 'offers' | 'candidates' | 'matchmakers'
+  const [wiping, setWiping] = useState(false);
   const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
   const [waitingPanelLight, setWaitingPanelLight] = useState(() => localStorage.getItem('waitingPanelLight') !== 'false');
   const [cardStyle, setCardStyle] = useState(() => localStorage.getItem('candCardStyle') || 'square');
@@ -2609,7 +2611,7 @@ function AdminPanel({ th, go }) {
     </div>
   );
 
-  const tabs = [['candidates', 'מועמדים'], ['stats', 'סטטיסטיקות'], ['lists', 'רשימות'], ['texts', 'טקסטים'], ['users', 'שדכנים']];
+  const tabs = [['candidates', 'מועמדים'], ['stats', 'סטטיסטיקות'], ['lists', 'רשימות'], ['texts', 'טקסטים'], ['users', 'שדכנים'], ['danger', '⚠️']];
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
@@ -2817,6 +2819,70 @@ function AdminPanel({ th, go }) {
 
         {/* ── STATS ── */}
         {tab === 'stats' && <AdminStats th={th} hideSeed={hideSeed} isSeed={isSeed} />}
+
+        {/* ── DANGER ZONE ── */}
+        {tab === 'danger' && (() => {
+          const WIPE_ACTIONS = [
+            { id: 'offers',       label: 'מחק את כל ההצעות',   desc: 'מוחק את כל ההצעות במערכת ללא יוצא מן הכלל.',          col: 'offers',      skipAdmin: false },
+            { id: 'candidates',   label: 'מחק את כל המועמדים', desc: 'מוחק את כל המועמדים ותמונותיהם מהמערכת.',              col: 'candidates',  skipAdmin: false },
+            { id: 'matchmakers',  label: 'מחק את כל השדכנים',  desc: 'מוחק את כל השדכנים — למעט חשבון האדמין שלך.',         col: 'matchmakers', skipAdmin: true  },
+          ];
+          const doWipe = async (action) => {
+            setWiping(true);
+            try {
+              const snap = await db.collection(action.col).get();
+              const toDelete = action.skipAdmin ? snap.docs.filter(d => d.id !== profile?.uid) : snap.docs;
+              for (let i = 0; i < toDelete.length; i += 500) {
+                const batch = db.batch();
+                toDelete.slice(i, i + 500).forEach(d => batch.delete(d.ref));
+                await batch.commit();
+              }
+            } catch(e) { alert('שגיאה: ' + e.message); }
+            setWiping(false);
+            setConfirmWipe(null);
+          };
+          return (
+            <div>
+              <div style={{ background: alpha(th.error, 0.07), border: `1.5px solid ${alpha(th.error, 0.28)}`, borderRadius: th.r, padding: '14px 16px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>☠️</span>
+                <div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.error, marginBottom: 4 }}>אזור מסוכן</div>
+                  <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.65), lineHeight: 1.55 }}>
+                    הפעולות כאן הן <strong>בלתי הפיכות לחלוטין</strong>. אין undo, אין שחזור. יש לפעול בזהירות קיצונית.
+                  </div>
+                </div>
+              </div>
+              {WIPE_ACTIONS.map(action => (
+                <div key={action.id} style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 10, border: `1.5px solid ${confirmWipe === action.id ? th.error : alpha(th.ink, 0.08)}`, transition: 'border-color .15s' }}>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 3 }}>{action.label}</div>
+                  <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: 12 }}>{action.desc}</div>
+                  {confirmWipe !== action.id ? (
+                    <button onClick={() => setConfirmWipe(action.id)}
+                      style={{ border: `1.5px solid ${th.error}`, borderRadius: th.rSm, padding: '7px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.error }}>
+                      מחק הכל
+                    </button>
+                  ) : (
+                    <div style={{ background: alpha(th.error, 0.07), borderRadius: th.rSm, padding: '12px 14px' }}>
+                      <div style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: th.error, marginBottom: 10 }}>
+                        ⚠️ האם אתה בטוח לחלוטין? פעולה זו בלתי הפיכה לחלוטין.
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button disabled={wiping} onClick={() => doWipe(action)}
+                          style={{ flex: 1, border: 'none', borderRadius: th.rSm, padding: '9px 0', background: th.error, cursor: wiping ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, color: '#fff', opacity: wiping ? 0.6 : 1 }}>
+                          {wiping ? 'מוחק…' : 'כן, מחק הכל'}
+                        </button>
+                        <button disabled={wiping} onClick={() => setConfirmWipe(null)}
+                          style={{ border: `1.5px solid ${alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '9px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, color: alpha(th.ink, 0.5) }}>
+                          ביטול
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* ── USERS (matchmakers) ── */}
         {tab === 'users' && (() => {
