@@ -6154,16 +6154,21 @@ function Offers({ th, go, params }) {
         ))}
       </div>
       {/* Sort picker */}
-      <div style={{ display: 'flex', gap: 6, padding: '0 18px 8px', flexShrink: 0 }}>
-        {[{ id: 'newest', lbl: 'חדש קודם' }, { id: 'oldest', lbl: 'ישן קודם' }, { id: 'myAction', lbl: 'ממתין לתגובתי' }].map(({ id, lbl }) => (
-          <button key={id} onClick={() => setSortBy(id)}
-            style={{ flex: 1, padding: '5px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: 12,
-              background: sortBy === id ? alpha(th.primary, 0.12) : 'transparent',
-              color: sortBy === id ? th.primary : alpha(th.ink, 0.45),
-              boxShadow: sortBy === id ? `inset 0 0 0 1.5px ${alpha(th.primary, 0.35)}` : `inset 0 0 0 1.5px ${alpha(th.ink, 0.1)}` }}>
-            {lbl}
-          </button>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 18px 10px', flexShrink: 0 }}>
+        <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>↕ מיון:</span>
+        <div style={{ display: 'flex', background: alpha(th.ink, 0.06), borderRadius: 999, padding: 3, gap: 2 }}>
+          {[{ id: 'newest', lbl: 'חדש' }, { id: 'oldest', lbl: 'ישן' }, { id: 'myAction', lbl: 'ממתין לי' }].map(({ id, lbl }) => (
+            <button key={id} onClick={() => setSortBy(id)}
+              style={{ border: 'none', cursor: 'pointer', borderRadius: 999, padding: '4px 11px',
+                fontFamily: th.body, fontWeight: 700, fontSize: 12,
+                background: sortBy === id ? th.cream : 'transparent',
+                color: sortBy === id ? th.primary : alpha(th.ink, 0.45),
+                boxShadow: sortBy === id ? `0 1px 4px ${alpha(th.ink, 0.12)}` : 'none',
+                transition: 'all .15s' }}>
+              {lbl}
+            </button>
+          ))}
+        </div>
       </div>
       {/* Active filter chip */}
       {subFilter && (
