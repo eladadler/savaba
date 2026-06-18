@@ -6010,6 +6010,7 @@ function Offers({ th, go, params }) {
   const [tab, setTab] = useSd(params?.tab || 'pending');
   const [subFilter, setSubFilter] = useSd(params?.filter || null);
   const [chatUnread, setChatUnread] = useSd({});
+  const [sortBy, setSortBy] = useSd('newest');
 
   // Subscribe to mm_chats to detect unread messages from the other matchmaker
   useEd(() => {
@@ -6054,6 +6055,18 @@ function Offers({ th, go, params }) {
     list = listMap[tab] || [];
   }
 
+  const needsMyAction = o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה';
+  const sortedList = (() => {
+    const arr = [...list];
+    if (sortBy === 'oldest') {
+      arr.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+    } else if (sortBy === 'myAction') {
+      arr.sort((a, b) => (needsMyAction(b) ? 1 : 0) - (needsMyAction(a) ? 1 : 0) || (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    }
+    // 'newest' already sorted from context
+    return arr;
+  })();
+
   const subFilterLabels = { needsMyApproval: 'ממתינות לאישורי', awaitingCand: 'ממתינות לתשובת מועמד' };
   const emptyMsg = { pending:'אין הצעות הממתינות לאישור', approved:'אין הצעות שאושרו', done:'אין הצעות שהסתיימו' };
 
@@ -6074,6 +6087,18 @@ function Offers({ th, go, params }) {
           </button>
         ))}
       </div>
+      {/* Sort picker */}
+      <div style={{ display: 'flex', gap: 6, padding: '0 18px 8px', flexShrink: 0 }}>
+        {[{ id: 'newest', lbl: 'חדש קודם' }, { id: 'oldest', lbl: 'ישן קודם' }, { id: 'myAction', lbl: 'ממתין לתגובתי' }].map(({ id, lbl }) => (
+          <button key={id} onClick={() => setSortBy(id)}
+            style={{ flex: 1, padding: '5px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: 12,
+              background: sortBy === id ? alpha(th.primary, 0.12) : 'transparent',
+              color: sortBy === id ? th.primary : alpha(th.ink, 0.45),
+              boxShadow: sortBy === id ? `inset 0 0 0 1.5px ${alpha(th.primary, 0.35)}` : `inset 0 0 0 1.5px ${alpha(th.ink, 0.1)}` }}>
+            {lbl}
+          </button>
+        ))}
+      </div>
       {/* Active filter chip */}
       {subFilter && (
         <div style={{ padding: '0 18px 8px', flexShrink: 0 }}>
@@ -6090,7 +6115,7 @@ function Offers({ th, go, params }) {
             {subFilter ? 'אין הצעות מסוג זה כרגע' : emptyMsg[tab]}
           </div>
         )}
-        {list.map(o => {
+        {sortedList.map(o => {
           // Determine which side is "mine" based on logged-in user's UID
           const iAmA   = o.aMm === user?.uid;
           const myCand = findC(iAmA ? o.aId : o.bId);
