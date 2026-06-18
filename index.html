@@ -7104,6 +7104,8 @@ function CandidateMode({ th, go }) {
 
   const [offerIdx, setOfferIdx] = useSe(0);
   const [candTab, setCandTab] = useSb('home');
+  const [browseSeen, setBrowseSeen] = useState(() => localStorage.getItem('candBrowseSeen') === '1');
+  const markBrowseSeen = () => { localStorage.setItem('candBrowseSeen', '1'); setBrowseSeen(true); };
 
   // Delete flow
   const [deleteModal, setDeleteModal] = useState(false); // false | 'reason' | 'confirm'
@@ -7185,10 +7187,13 @@ function CandidateMode({ th, go }) {
         {id:'browse',   label: browseMale ? 'מועמדות' : 'מועמדים', icon:'users'},
         {id:'settings', label:'הגדרות', icon:'gear'},
       ].map(tab => (
-        <button key={tab.id} onClick={() => setCandTab(tab.id)}
-          style={{ flex:1, border:'none', background:'transparent', display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'10px 0 8px', cursor:'pointer', color: candTab === tab.id ? th.primary : alpha(th.ink,0.45) }}>
+        <button key={tab.id} onClick={() => { if (tab.id === 'browse') markBrowseSeen(); setCandTab(tab.id); }}
+          style={{ flex:1, border:'none', background:'transparent', display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'10px 0 8px', cursor:'pointer', color: candTab === tab.id ? th.primary : alpha(th.ink,0.45), position:'relative' }}>
           <Icon name={tab.icon} size={22} />
           <span style={{ fontFamily:th.display, fontWeight:800, fontSize:10 }}>{tab.label}</span>
+          {tab.id === 'browse' && !browseSeen && (
+            <span style={{ position:'absolute', top:8, right:'calc(50% - 14px)', width:8, height:8, borderRadius:'50%', background:th.primary, boxShadow:`0 0 0 2px ${th.card}` }} />
+          )}
         </button>
       ))}
     </div>
@@ -7592,25 +7597,33 @@ function CandidateMode({ th, go }) {
         )}
 
         {/* BROWSE HINT */}
-        <button onClick={() => setCandTab('browse')}
-          style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%',
-            display:'flex', alignItems:'center', gap:12, marginBottom:20,
-            background:`linear-gradient(135deg, ${alpha(th.primary,0.06)}, transparent)`,
-            borderRadius:th.r, padding:'11px 14px',
-            border:`1.5px dashed ${alpha(th.primary,0.22)}` }}>
-          <div style={{ width:34, height:34, borderRadius:'50%', background:alpha(th.primary,0.11), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-            <Icon name="users" size={19} style={{ color:th.primary }} />
-          </div>
-          <div style={{ flex:1 }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.primary }}>
-              גלה/י {browseMale ? 'מועמדות' : 'מועמדים'} בעצמך
+        {!browseSeen && (
+          <button onClick={() => { markBrowseSeen(); setCandTab('browse'); }}
+            style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', marginBottom:22, display:'block',
+              background:`linear-gradient(135deg, ${th.primary}, ${alpha(th.primary,0.78)})`,
+              borderRadius:th.rLg, overflow:'hidden', position:'relative',
+              boxShadow:`0 8px 28px ${alpha(th.primary,0.38)}` }}>
+            <div style={{ padding:'20px 18px 18px', display:'flex', alignItems:'center', gap:16 }}>
+              <div style={{ fontSize:44, lineHeight:1, flexShrink:0 }}>
+                {browseMale ? '👩' : '👨'}
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:'#fff', lineHeight:1.25, marginBottom:5 }}>
+                  {browseMale ? 'גלה מועמדות שמחכות לך' : 'גלי מועמדים שמחכים לך'}
+                </div>
+                <div style={{ fontFamily:th.body, fontSize:13, color:alpha('#fff',0.8), lineHeight:1.4 }}>
+                  לחץ/י כאן או על הטאב בתפריט למטה ↓
+                </div>
+              </div>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:alpha('#fff',0.2), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon name="chevL" size={20} style={{ color:'#fff' }} />
+              </div>
             </div>
-            <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.45), marginTop:1 }}>
-              לחץ/י על הטאב {browseMale ? '"מועמדות"' : '"מועמדים"'} בתפריט למטה ↓
+            <div style={{ height:4, background:alpha('#fff',0.15) }}>
+              <div style={{ height:'100%', width:'100%', background:alpha('#fff',0.3), animation:'shimmer 2s infinite' }} />
             </div>
-          </div>
-          <Icon name="chevL" size={15} style={{ color:alpha(th.primary,0.4), flexShrink:0 }} />
-        </button>
+          </button>
+        )}
 
         {/* CO-REP REQUESTS */}
         {coRepReqs.length > 0 && (
