@@ -7902,8 +7902,8 @@ function OfferDetail({ th, go, params }) {
   const theirCand = iAmA ? candB : candA;
   const theirMm   = iAmA ? mmB : mmA;
 
-  const aCandApp   = !!(o.aCandApproved || o.candAApprovedByMm);
-  const bCandApp   = !!o.bCandApproved;
+  const aCandApp   = !!(o.aCandApproved || o.candAApprovedByMm || o.candAStatus === 'אישר');
+  const bCandApp   = !!(o.bCandApproved || o.candBStatus === 'אישר');
   const bothApp    = aCandApp && bCandApp;
   const finalFail  = o.status === 'נדחתה';
   const iAmBothMm  = o.aMm === myUid && o.bMm === myUid;
@@ -7921,20 +7921,30 @@ function OfferDetail({ th, go, params }) {
 
   const markApproved = async (field, newOtherApp) => {
     setApproving(true);
-    await updateOffer(o.id, { [field]: true, ...(newOtherApp ? { status: 'אושרה' } : {}) });
+    const statusField = field === 'aCandApproved' ? 'candAStatus' : 'candBStatus';
+    await updateOffer(o.id, {
+      [field]: true, [statusField]: 'אישר',
+      ...(newOtherApp ? { status: 'אושרה' } : {}),
+    });
     setApproving(false);
   };
 
-  // WhatsApp — to MY candidate with the OTHER candidate's card link
-  const myCandPhone = myCand.phone ? String(myCand.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
-  const waToCand    = myCandPhone
-    ? `https://wa.me/${myCandPhone}?text=${encodeURIComponent(`שלום ${myCand.name}! שלחתי לך הצעה לשידוך עם ${theirCand.name} 😊 הכרטיסיה: https://eladadler.github.io/savaba/#cand/${theirCand.id}`)}`
-    : null;
-  // WhatsApp — to THEIR matchmaker
-  const theirMmPhone = theirMm.phone ? String(theirMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
-  const waToMm       = theirMmPhone
-    ? `https://wa.me/${theirMmPhone}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה: ${myCand.name} ו${theirCand.name}`)}`
-    : null;
+  // WhatsApp helpers
+  const waPhone = c => c?.phone ? String(c.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
+  const waCandLink = (from, to) => {
+    const ph = waPhone(from);
+    return ph ? `https://wa.me/${ph}?text=${encodeURIComponent(`שלום ${from.name}! שלחתי לך הצעה לשידוך עם ${to.name} 😊 הכרטיסיה: https://eladadler.github.io/savaba/#cand/${to.id}`)}` : null;
+  };
+  // Self-match: two cand→cand links. Regular: one cand link + one mm link.
+  const waLinks = iAmBothMm
+    ? [
+        { href: waCandLink(candA, candB), avatar: candA, label: `שלח/י כרטיסיה של ${candB.name} ל:`, name: candA.name },
+        { href: waCandLink(candB, candA), avatar: candB, label: `שלח/י כרטיסיה של ${candA.name} ל:`, name: candB.name },
+      ].filter(x => x.href)
+    : [
+        waCandLink(myCand, theirCand) && { href: waCandLink(myCand, theirCand), avatar: myCand, label: `שלח/י כרטיסיה של ${theirCand.name} ל:`, name: myCand.name },
+        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה: ${myCand.name} ו${theirCand.name}`)}`, avatar: theirMm, label: 'שדכן/ית הצד השני', name: theirMm.name, isMm: true } : null; })(),
+      ].filter(Boolean);
 
   const sendMsg = async () => {
     const t = text.trim();
@@ -8027,37 +8037,26 @@ function OfferDetail({ th, go, params }) {
         </div>
 
         {/* ── WhatsApp ── */}
-        <div style={{ background:th.card, borderRadius:th.r, padding:12, marginBottom:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
-          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:8, letterSpacing:'.04em', textTransform:'uppercase' }}>וואטסאפ</div>
-          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {waToCand ? (
-              <a href={waToCand} target="_blank" rel="noreferrer"
-                style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:'#25D36610', border:'1px solid #25D36628', textDecoration:'none' }}>
-                <Avatar grad={myCand.grad} name={myCand.name} size={30} photo={myCand.photos?.[0]} />
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>שלח/י כרטיסיה של {theirCand.name} ל:</div>
-                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{myCand.name}</div>
-                </div>
-                <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
-              </a>
-            ) : (
-              <div style={{ padding:'9px 12px', borderRadius:th.rSm, background:alpha(th.ink,0.04), fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.4) }}>
-                אין מספר טלפון עבור {myCand.name}
-              </div>
-            )}
-            {waToMm && (
-              <a href={waToMm} target="_blank" rel="noreferrer"
-                style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.ink,0.03), border:`1px solid ${alpha(th.ink,0.1)}`, textDecoration:'none' }}>
-                <Avatar grad={theirMm.grad} name={theirMm.name} size={30} photo={theirMm.photoURL} />
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>שדכן/ית הצד השני</div>
-                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{theirMm.name}</div>
-                </div>
-                <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
-              </a>
-            )}
+        {waLinks.length > 0 && (
+          <div style={{ background:th.card, borderRadius:th.r, padding:12, marginBottom:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:8, letterSpacing:'.04em', textTransform:'uppercase' }}>וואטסאפ</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {waLinks.map((w, i) => (
+                <a key={i} href={w.href} target="_blank" rel="noreferrer"
+                  style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, textDecoration:'none',
+                    background: w.isMm ? alpha(th.ink,0.03) : '#25D36610',
+                    border: `1px solid ${w.isMm ? alpha(th.ink,0.1) : '#25D36628'}` }}>
+                  <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{w.name}</div>
+                  </div>
+                  <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Reject ── */}
         {!finalFail && !bothApp && (
@@ -8067,8 +8066,8 @@ function OfferDetail({ th, go, params }) {
           </button>
         )}
 
-        {/* ── Chat ── */}
-        <div style={{ background:th.card, borderRadius:th.r, padding:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
+        {/* ── Chat (hidden for self-match) ── */}
+        {!iAmBothMm && <div style={{ background:th.card, borderRadius:th.r, padding:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
             <Avatar grad={theirMm.grad} name={theirMm.name} size={24} photo={theirMm.photoURL} />
             <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם {theirMm.name}</span>
@@ -8109,7 +8108,7 @@ function OfferDetail({ th, go, params }) {
               <Icon name="send" size={18} />
             </button>
           </div>
-        </div>
+        </div>}
 
       </div>
 
