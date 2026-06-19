@@ -8127,6 +8127,170 @@ function OfferDetail({ th, go, params }) {
   );
 }
 
+// ════════════════════════════════════════════════════════════
+// TEXTS ADMIN — comprehensive inline text editor for all screens
+// ════════════════════════════════════════════════════════════
+function TextsAdmin({ th, go }) {
+  const data = useContext(DataCtx);
+  const [mode, setMode] = useSc('wizard'); // 'wizard' | 'browse'
+  const [wizardIdx, setWizardIdx] = useSc(0);
+  const [expandedId, setExpandedId] = useSc(null);
+  const [drafts, setDrafts] = useSc({});
+  const [saving, setSaving] = useSc(false);
+
+  const GROUPS = [
+    { id:'onboarding',    label:'אונבורדינג',         icon:'spark', desc:'3 שקפי הפתיחה' },
+    { id:'register',      label:'הרשמה',               icon:'users', desc:'מסך רישום שדכן/ית' },
+    { id:'home',          label:'בית — שדכן',          icon:'home',  desc:'ברכה, סטטיסטיקות, כרטיסיות' },
+    { id:'cands',         label:'מועמדים',              icon:'grid',  desc:'כותרות ולחצנים ברשימה' },
+    { id:'addSheet',      label:'הוספת מועמד',         icon:'plus',  desc:'גיליון הוספת מועמד/ת' },
+    { id:'editCand',      label:'אישור מועמד',          icon:'check', desc:'באנר וכפתור אישור' },
+    { id:'inviteLanding', label:'דף הזמנה',             icon:'mail',  desc:'קבלת ומילוי הזמנה' },
+    { id:'ai',            label:'המלצות AI',            icon:'spark', desc:'הסבר מנוע AI' },
+    { id:'candidateMode', label:'אפליקציית מועמד',     icon:'phone', desc:'כל מסכי המועמד/ת' },
+  ];
+
+  const val = k => drafts[k] !== undefined ? drafts[k] : (data.texts[k] || DEFAULT_TEXTS[k] || '');
+  const setDraft = (k, v) => setDrafts(d => ({ ...d, [k]: v }));
+  const draftCount = Object.keys(drafts).length;
+  const groupDraftCount = id => [...new Set(SCREEN_TEXTS[id]||[])].filter(k => drafts[k]!==undefined).length;
+
+  const save = async () => {
+    if (!draftCount) return;
+    setSaving(true);
+    try {
+      for (const [k, v] of Object.entries(drafts)) await data.updateText(k, v);
+      setDrafts({});
+    } catch(e) { alert('שגיאה: ' + e.message); }
+    setSaving(false);
+  };
+
+  const renderField = k => {
+    const isLong = ['body','sub','desc','text','next','hint','footer'].some(s => k.includes(s));
+    const isDraft = drafts[k] !== undefined;
+    return (
+      <div key={k} style={{ marginBottom:16 }}>
+        <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, marginBottom:5, display:'flex', alignItems:'center', gap:6,
+          color: isDraft ? th.primary : alpha(th.ink,0.45) }}>
+          {TEXT_KEYS[k]}
+          {isDraft && <span style={{ fontFamily:th.body, fontSize:10, background:alpha(th.primary,0.12), borderRadius:99, padding:'1px 7px' }}>✎ שונה</span>}
+        </div>
+        <textarea value={val(k)} onChange={e => setDraft(k, e.target.value)} rows={isLong ? 3 : 1}
+          style={{ width:'100%', boxSizing:'border-box', borderRadius:8,
+            border:`1.5px solid ${isDraft ? th.primary : alpha(th.ink,0.15)}`,
+            padding:'8px 10px', fontFamily:th.body, fontSize:14, resize:'vertical',
+            outline:'none', direction:'rtl', lineHeight:1.45,
+            background: isDraft ? alpha(th.primary,0.03) : th.card }} />
+      </div>
+    );
+  };
+
+  const renderGroupFields = id => {
+    const keys = [...new Set(SCREEN_TEXTS[id]||[])];
+    if (!keys.length) return <div style={{ color:alpha(th.ink,0.4), fontFamily:th.body, padding:12 }}>אין שדות</div>;
+    return keys.map(renderField);
+  };
+
+  const wizGroup = GROUPS[wizardIdx];
+
+  return (
+    <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream }}>
+      <AppHeader th={th} title="ניהול טקסטים" onBack={() => go('back')} />
+
+      {/* Mode toggle */}
+      <div style={{ padding:'10px 18px 0', flexShrink:0 }}>
+        <div style={{ display:'flex', background:alpha(th.ink,0.07), borderRadius:99, padding:3, gap:2 }}>
+          {[['wizard','ויזארד — לפי מסכים'],['browse','רשימה — כל המסכים']].map(([m,lbl]) => (
+            <button key={m} onClick={() => setMode(m)} style={{ all:'unset', flex:1, textAlign:'center', padding:'7px 8px', borderRadius:96, fontFamily:th.display, fontWeight:700, fontSize:12.5, cursor:'pointer', transition:'all .18s',
+              background: mode===m ? th.card : 'transparent',
+              color: mode===m ? th.ink : alpha(th.ink,0.5),
+              boxShadow: mode===m ? `0 1px 6px ${alpha(th.ink,0.1)}` : 'none' }}>
+              {lbl}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Save bar */}
+      {draftCount > 0 && (
+        <div style={{ margin:'10px 18px 0', background:alpha(th.primary,0.09), border:`1.5px solid ${alpha(th.primary,0.2)}`, borderRadius:th.r, padding:'9px 14px', display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          <span style={{ flex:1, fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.7) }}>{draftCount} שינויים לא נשמרו</span>
+          <Btn th={th} size="m" onClick={save} disabled={saving}>{saving ? 'שומר…' : 'שמור הכל'}</Btn>
+        </div>
+      )}
+
+      <div style={{ flex:1, overflowY:'auto', padding:'14px 18px 32px' }}>
+        {mode === 'wizard' ? (
+          <>
+            {/* Progress bar */}
+            <div style={{ display:'flex', gap:3, marginBottom:18, alignItems:'center' }}>
+              {GROUPS.map((g,i) => (
+                <button key={g.id} onClick={() => setWizardIdx(i)} style={{ all:'unset', cursor:'pointer', flex:1, height:5, borderRadius:99, transition:'background .2s',
+                  background: i===wizardIdx ? th.primary : i<wizardIdx ? alpha(th.primary,0.45) : alpha(th.ink,0.12) }} />
+              ))}
+              <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4), marginInlineStart:8, flexShrink:0 }}>{wizardIdx+1}/{GROUPS.length}</span>
+            </div>
+
+            {/* Group header card */}
+            <div style={{ background:th.card, borderRadius:th.rLg, padding:'14px 16px', marginBottom:20, display:'flex', alignItems:'center', gap:12, boxShadow:`0 4px 14px ${alpha(th.ink,0.07)}` }}>
+              <div style={{ width:44, height:44, borderRadius:12, background:alpha(th.primary,0.12), color:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon name={wizGroup.icon} size={22} />
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink }}>{wizGroup.label}</div>
+                <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5) }}>{wizGroup.desc}</div>
+              </div>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.primary }}>{[...new Set(SCREEN_TEXTS[wizGroup.id]||[])].length}</div>
+                <div style={{ fontFamily:th.body, fontSize:10.5, color:alpha(th.ink,0.35) }}>שדות</div>
+              </div>
+            </div>
+
+            {/* Fields */}
+            {renderGroupFields(wizGroup.id)}
+
+            {/* Nav */}
+            <div style={{ display:'flex', gap:10, marginTop:8 }}>
+              <Btn th={th} full variant="soft" disabled={wizardIdx===0}
+                onClick={() => setWizardIdx(i => i-1)}>← הקודם</Btn>
+              <Btn th={th} full disabled={wizardIdx===GROUPS.length-1}
+                onClick={() => setWizardIdx(i => i+1)}>הבא →</Btn>
+            </div>
+          </>
+        ) : (
+          /* Browse mode */
+          GROUPS.map(g => {
+            const keys = [...new Set(SCREEN_TEXTS[g.id]||[])];
+            const dc = groupDraftCount(g.id);
+            const isOpen = expandedId === g.id;
+            return (
+              <div key={g.id} style={{ background:th.card, borderRadius:th.r, marginBottom:10, overflow:'hidden', boxShadow:`0 2px 10px ${alpha(th.ink,0.05)}` }}>
+                <button onClick={() => setExpandedId(isOpen ? null : g.id)}
+                  style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:12, padding:'12px 14px' }}>
+                  <div style={{ width:36, height:36, borderRadius:10, background:alpha(th.primary,0.1), color:th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <Icon name={g.icon} size={18} />
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>{g.label}</div>
+                    <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.4) }}>{g.desc} · {keys.length} שדות</div>
+                  </div>
+                  {dc>0 && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'2px 8px' }}>{dc} שונו</span>}
+                  <Icon name="chevL" size={16} style={{ color:alpha(th.ink,0.3), transform:isOpen?'rotate(-90deg)':'none', transition:'transform .2s' }} />
+                </button>
+                {isOpen && (
+                  <div style={{ padding:'4px 14px 14px', borderTop:`1px solid ${alpha(th.ink,0.07)}` }}>
+                    {renderGroupFields(g.id)}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 function renderScreen(cur, th, go, profile) {
   const p = cur.params;
   switch (cur.name) {
@@ -8143,6 +8307,7 @@ function renderScreen(cur, th, go, profile) {
     case 'candidateMode': return <CandidateMode th={th} go={go} />;
     case 'candViewCand':  return <CandViewCand th={th} go={go} params={p} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
+    case 'textsAdmin':  return <TextsAdmin th={th} go={go} />;
     case 'admin':         return <AdminPanel th={th} go={go} />;
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
     case 'candSelfFill':  return <CandidateSelfFill th={th} go={go} params={p} />;
@@ -8194,7 +8359,8 @@ function AppSettings({ th, go, profile }) {
 
         {profile?.isAdmin && (
           <Group>
-            <Row icon="gear" label="פאנל ניהול" tone={th.primary} onClick={() => go('admin')} last />
+            <Row icon="gear"   label="פאנל ניהול"      tone={th.primary} onClick={() => go('admin')} />
+            <Row icon="pencil" label="עריכת טקסטים"    tone={th.gold}    onClick={() => go('textsAdmin')} last />
           </Group>
         )}
 
