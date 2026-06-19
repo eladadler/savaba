@@ -5759,7 +5759,9 @@ function MatchFlow({ th, go, params }) {
     o.status !== 'נדחתה' &&
     ((o.aId === idA && o.bId === idB) || (o.aId === idB && o.bId === idA))
   );
-  const isSelfMatch = !!(second && first?.mmId === myUid && second?.mmId === myUid);
+  // "mine" = primary matchmaker OR co-rep
+  const isCandMine = c => c?.mmId === myUid || (c?.coMms || []).includes(myUid);
+  const isSelfMatch = !!(second && isCandMine(first) && isCandMine(second));
   // effective "first notified" candidate in self-match
   const notifyFirst  = isSelfMatch ? (firstCandId || first?.id) : null;
   const notifySecond = isSelfMatch ? (notifyFirst === first?.id ? second : first) : null;
@@ -5790,15 +5792,15 @@ function MatchFlow({ th, go, params }) {
   const isFemale2 = g => g === 'f' || g === 'אשה' || g === 'אישה';
   const isMale2   = g => g === 'm' || g === 'גבר';
   const firstIsFemale = isFemale2(first?.gender);
-  const firstIsMine = first?.mmId === myUid;
+  const firstIsMine = isCandMine(first);
   // No useMemo — always recompute so filter is never stale
   const candidates2 = candidates.filter(c => {
     if (firstIsFemale ? !isMale2(c.gender) : !isFemale2(c.gender)) return false;
     if (c.id === first?.id) return false;
     if (c.available === false) return false;
     if (c.status === 'pending_mm') return false;
-    // If first candidate is someone else's, second must be mine
-    if (!firstIsMine && c.mmId !== myUid) return false;
+    // If first candidate is someone else's, second must be mine (primary or co-rep)
+    if (!firstIsMine && !isCandMine(c)) return false;
     if (q2 && !c.name.includes(q2) && !(c.oneLine || '').includes(q2)) return false;
     if (matchFilters.region && c.region !== matchFilters.region) return false;
     if (matchFilters.rel.length && !matchFilters.rel.includes(c.religiosity)) return false;
