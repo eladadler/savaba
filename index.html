@@ -2648,10 +2648,11 @@ function AdminPanel({ th, go }) {
     const cand = candidates.find(c => c.id === id);
     return cand ? !cand.candidateUid : false;
   };
-  const visibleCands = hideSeed ? candidates.filter(c => !!c.candidateUid) : candidates;
-  const visibleMms   = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeedMm(id))) : matchmakers;
-  const myCands      = visibleCands.filter(c => c.mmId === profile?.uid);
-  const otherCands   = visibleCands.filter(c => c.mmId !== profile?.uid);
+  const visibleCands   = hideSeed ? candidates.filter(c => !!c.candidateUid) : candidates;
+  const visibleMms     = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeedMm(id))) : matchmakers;
+  const pendingMyCands = visibleCands.filter(c => c.mmId === profile?.uid && !!c.pendingApproval);
+  const myCands        = visibleCands.filter(c => c.mmId === profile?.uid && !c.pendingApproval);
+  const otherCands     = visibleCands.filter(c => c.mmId !== profile?.uid && !c.pendingApproval);
 
   const db_avatar = (seed, gender) =>
     `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -2799,6 +2800,27 @@ function AdminPanel({ th, go }) {
 
               return (
                 <>
+                  {pendingMyCands.length > 0 && (
+                    <>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+                        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.gold }}>ממתינים לאישורך</div>
+                        <div style={{ background:alpha(th.gold,0.15), borderRadius:999, padding:'2px 10px', fontFamily:th.body, fontSize:12, fontWeight:700, color:th.gold }}>{pendingMyCands.length}</div>
+                      </div>
+                      {pendingMyCands.map(c => (
+                        <div key={c.id} onClick={() => go('editCandidate', { id: c.id })}
+                          style={{ display:'flex', alignItems:'center', gap:12, background:alpha(th.gold,0.07), border:`1.5px solid ${alpha(th.gold,0.25)}`, borderRadius:th.r, padding:'11px 13px', marginBottom:8, cursor:'pointer' }}>
+                          <Avatar grad={c.grad} name={c.name||'?'} size={38} photo={c.photos?.[0]} />
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{c.name || 'ללא שם'}</div>
+                            <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5) }}>ממתין/ה לאישורך לפרסום</div>
+                          </div>
+                          <div style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color:th.gold }}>לאישור ←</div>
+                        </div>
+                      ))}
+                      <div style={{ height:1, background:alpha(th.ink,0.1), margin:'10px 0 14px' }} />
+                    </>
+                  )}
+
                   <SectionHeader label="המועמדים שלי" count={myCands.length} />
                   {myCands.length === 0 && <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.4), textAlign:'center', padding:'12px 0 18px' }}>אין מועמדים</div>}
                   {myCands.map(c => <CandRow key={c.id} c={c} />)}
@@ -3802,8 +3824,9 @@ function Home({ th, go }) {
   const t = (key) => tx[key] || dx[key] || '';
   const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
   const myUid = profile?.uid;
-  const mine = candidates.filter(c => c.mmId === myUid);
-  const others = candidates.filter(c => c.mmId !== myUid);
+  const pendingApprovalCands = candidates.filter(c => c.mmId === myUid && !!c.pendingApproval);
+  const mine = candidates.filter(c => c.mmId === myUid && !c.pendingApproval);
+  const others = candidates.filter(c => c.mmId !== myUid && !c.pendingApproval);
   const [candTab, setCandTab] = useS('others');
 
   // light panel is the default; admin can revert to dark by setting waitingPanelLight='false'
@@ -3860,6 +3883,13 @@ function Home({ th, go }) {
 
   // Build waiting list — only items with count > 0
   const waiting = [
+    pendingApprovalCands.length > 0 && {
+      icon: 'person', tone: th.gold, big: String(pendingApprovalCands.length),
+      text: pendingApprovalCands.length === 1
+        ? `${pendingApprovalCands[0].name || 'מועמד/ת'} ממתין/ה לאישורך לפרסום`
+        : `${pendingApprovalCands.length} מועמדים ממתינים לאישורך`,
+      to: () => go('cands'),
+    },
     offersNeedingMe.length > 0 && {
       icon: 'heart', tone: th.primary, big: String(offersNeedingMe.length),
       text: offersNeedingMe.length === 1 ? 'הצעת שידוך מחכה לתגובתך' : 'הצעות מחכות לתגובה שלך',
