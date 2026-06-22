@@ -8605,6 +8605,17 @@ function App() {
     );
   }
 
+  // user is authenticated but profile hasn't loaded from Firestore yet — show spinner
+  if (!profile) {
+    return (
+      <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
+        <div style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
+          <Logo size={60} color={th.primary} flaw={th.cream} />
+        </div>
+      </div>
+    );
+  }
+
   // impersonate = { uid, profile, type: 'matchmaker'|'candidate' }
   const effectiveUser    = impersonate ? { ...user, uid: impersonate.uid } : user;
   const effectiveProfile = impersonate ? impersonate.profile : profile;
