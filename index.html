@@ -5147,7 +5147,7 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
 }
 
 function AddSheet({ open, onClose, th, go }) {
-  const { profile } = useContext(AuthCtx);
+  const { profile, user } = useContext(AuthCtx);
   const { texts: tx, defaults: dx } = useContext(TextsCtx);
   const t = (key) => tx[key] || dx[key] || '';
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -5229,7 +5229,7 @@ function AddSheet({ open, onClose, th, go }) {
         </div>
       </Sheet>
       <InviteFlow open={inviteOpen} onClose={() => setInviteOpen(false)} th={th}
-        mmId={profile?.uid} mmName={profile?.displayName || 'השדכן/ית'} />
+        mmId={profile?.uid} mmName={profile?.displayName || user?.displayName || profile?.email?.split('@')[0] || 'השדכן/ית'} />
     </>
   );
 }
