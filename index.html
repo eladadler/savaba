@@ -3449,6 +3449,9 @@ const TEXT_KEYS = {
   cand_settings_delete:     'מועמד/ת — הגדרות: מחיקת פרופיל',
   cand_settings_delete_sub: 'מועמד/ת — הגדרות: מחיקת פרופיל (תיאור)',
   cand_footer:              'מועמד/ת — כיתוב גרסה',
+  wa_invite:      'ווצאפ — הזמנת מועמד/ת',
+  wa_cand_offer:  'ווצאפ — שליחת הצעה למועמד/ת',
+  wa_mm_contact:  'ווצאפ — פנייה לשדכן/ית השני',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -3516,6 +3519,9 @@ const DEFAULT_TEXTS = {
   cand_settings_delete:     'מחיקת פרופיל',
   cand_settings_delete_sub: 'הסרת הכרטיסייה שלך מהמערכת',
   cand_footer:              'גרסה 1.0 · סבבה, והכל אבל…',
+  wa_invite:     'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
+  wa_cand_offer: 'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
+  wa_mm_contact: 'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}',
 };
 
 const SCREEN_TEXTS = {
@@ -3538,6 +3544,13 @@ const SCREEN_TEXTS = {
     'cand_settings_engage','cand_settings_engage_sub',
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
   ],
+  waTemplates: ['wa_invite','wa_cand_offer','wa_mm_contact'],
+};
+
+// Fills a WA template: replaces {key} placeholders with actual values
+const fillWa = (texts, key, vars) => {
+  const tpl = texts[key] || DEFAULT_TEXTS[key] || '';
+  return Object.entries(vars).reduce((t, [k, v]) => t.replaceAll(`{${k}}`, v ?? ''), tpl);
 };
 
 // ════════════════════════════════════════════════════════════
@@ -4498,6 +4511,7 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
 // INVITE FLOW — matchmaker creates invitation link
 // ════════════════════════════════════════════════════════════
 function InviteFlow({ open, onClose, th, mmId, mmName }) {
+  const { texts: txCtx } = useContext(TextsCtx);
   const [step, setStep]         = useState(1); // 1=name, 2=link
   const [recipFirst, setFirst]  = useState('');
   const [recipLast,  setLast]   = useState('');
@@ -4524,10 +4538,7 @@ function InviteFlow({ open, onClose, th, mmId, mmName }) {
   };
 
   const waText = encodeURIComponent(
-    `היי ${recipFirst.trim()} 👋\n\n` +
-    `${mmName} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\n` +
-    `תוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n` +
-    `👇 לחץ/י כאן להרשמה:\n${inviteURL(token)}`
+    fillWa(txCtx, 'wa_invite', { שם: recipFirst.trim(), שם_שדכן: mmName, קישור: inviteURL(token) })
   );
 
   return (
@@ -6485,6 +6496,7 @@ function Offers({ th, go, params }) {
 function Chat({ th, go, params }) {
   // All hooks MUST come before any early returns (Rules of Hooks)
   const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
+  const { texts: txCtx } = useContext(TextsCtx);
   const { user } = useContext(AuthCtx);
   const [msgs,     setMsgs]     = useSd([]);
   const [text,     setText]     = useSd('');
@@ -6555,7 +6567,7 @@ function Chat({ th, go, params }) {
   // WhatsApp link
   const waPhone = theirMm.phone ? String(theirMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
   const waUrl = waPhone
-    ? `https://wa.me/${waPhone}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה: ${myCand.name} ו${theirCand.name}`)}`
+    ? `https://wa.me/${waPhone}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name }))}`
     : `https://wa.me/`;
 
   return (
@@ -7872,6 +7884,7 @@ const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', candInquir
 // ════════════════════════════════════════════════════════════
 function OfferDetail({ th, go, params }) {
   const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
+  const { texts: txCtx } = useContext(TextsCtx);
   const { user } = useContext(AuthCtx);
   const myUid = user?.uid;
   const oid   = params?.id;
@@ -7946,7 +7959,9 @@ function OfferDetail({ th, go, params }) {
   const waPhone = c => c?.phone ? String(c.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
   const waCandLink = (from, to) => {
     const ph = waPhone(from);
-    return ph ? `https://wa.me/${ph}?text=${encodeURIComponent(`שלום ${from.name}! שלחתי לך הצעה לשידוך עם ${to.name} 😊 הכרטיסיה: https://eladadler.github.io/savaba/#cand/${to.id}`)}` : null;
+    if (!ph) return null;
+    const msg = fillWa(txCtx, 'wa_cand_offer', { שם: from.name, שם_שני: to.name, קישור: `https://eladadler.github.io/savaba/#cand/${to.id}` });
+    return `https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
   };
   // Self-match: two cand→cand links. Regular: one cand link + one mm link.
   const waLinks = iAmBothMm
@@ -8172,6 +8187,7 @@ function TextsAdmin({ th, go }) {
     { id:'inviteLanding', label:'דף הזמנה',             icon:'mail',  desc:'קבלת ומילוי הזמנה' },
     { id:'ai',            label:'המלצות AI',            icon:'spark', desc:'הסבר מנוע AI' },
     { id:'candidateMode', label:'אפליקציית מועמד',     icon:'phone', desc:'כל מסכי המועמד/ת' },
+    { id:'waTemplates',   label:'הודעות ווצאפ',         icon:'send',  desc:'תבניות הודעות ווצאפ — {שם}, {קישור} וכו\'' },
   ];
 
   const val = k => drafts[k] !== undefined ? drafts[k] : (data.texts[k] || DEFAULT_TEXTS[k] || '');
@@ -8189,9 +8205,16 @@ function TextsAdmin({ th, go }) {
     setSaving(false);
   };
 
+  const WA_PLACEHOLDERS = {
+    wa_invite:     '{שם} · {שם_שדכן} · {קישור}',
+    wa_cand_offer: '{שם} · {שם_שני} · {קישור}',
+    wa_mm_contact: '{שם} · {שם_א} · {שם_ב}',
+  };
+
   const renderField = k => {
-    const isLong = ['body','sub','desc','text','next','hint','footer'].some(s => k.includes(s));
+    const isLong = ['body','sub','desc','text','next','hint','footer','wa_'].some(s => k.includes(s));
     const isDraft = drafts[k] !== undefined;
+    const waHint  = WA_PLACEHOLDERS[k];
     return (
       <div key={k} style={{ marginBottom:16 }}>
         <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, marginBottom:5, display:'flex', alignItems:'center', gap:6,
@@ -8199,7 +8222,12 @@ function TextsAdmin({ th, go }) {
           {TEXT_KEYS[k]}
           {isDraft && <span style={{ fontFamily:th.body, fontSize:10, background:alpha(th.primary,0.12), borderRadius:99, padding:'1px 7px' }}>✎ שונה</span>}
         </div>
-        <textarea value={val(k)} onChange={e => setDraft(k, e.target.value)} rows={isLong ? 3 : 1}
+        {waHint && (
+          <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45), marginBottom:5, direction:'rtl' }}>
+            משתנים: <span style={{ fontFamily:'monospace', color:th.gold }}>{waHint}</span>
+          </div>
+        )}
+        <textarea value={val(k)} onChange={e => setDraft(k, e.target.value)} rows={isLong ? 4 : 1}
           style={{ width:'100%', boxSizing:'border-box', borderRadius:8,
             border:`1.5px solid ${isDraft ? th.primary : alpha(th.ink,0.15)}`,
             padding:'8px 10px', fontFamily:th.body, fontSize:14, resize:'vertical',
