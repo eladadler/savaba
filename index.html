@@ -1925,12 +1925,23 @@ function LoginScreen({ th, inviteToken }) {
   const [err,   setErr]   = useState('');
   const [busy,  setBusy]  = useState(false);
 
+  const authErrMsg = code => ({
+    'auth/email-already-in-use':   'האימייל כבר קיים במערכת — נסו להתחבר!',
+    'auth/user-not-found':         'לא נמצא משתמש עם האימייל הזה',
+    'auth/wrong-password':         'סיסמה שגויה — נסו שוב',
+    'auth/invalid-email':          'כתובת האימייל אינה תקינה',
+    'auth/weak-password':          'הסיסמה קצרה מדי — לפחות 6 תווים',
+    'auth/too-many-requests':      'יותר מדי ניסיונות — נסו שוב מאוחר יותר',
+    'auth/network-request-failed': 'אין חיבור לרשת — בדקו את החיבור',
+    'auth/popup-closed-by-user':   'החלון נסגר לפני השלמת הכניסה',
+  })[code] || 'שגיאה — נסו שוב';
+
   const googleLogin = async () => {
     setBusy(true); setErr('');
     try {
       const provider = new firebase.auth.GoogleAuthProvider();
       await auth.signInWithPopup(provider);
-    } catch (e) { setErr(e.message); setBusy(false); }
+    } catch (e) { setErr(authErrMsg(e.code)); setBusy(false); }
   };
 
   const emailLogin = async () => {
@@ -1938,7 +1949,7 @@ function LoginScreen({ th, inviteToken }) {
     try {
       if (isNew) await auth.createUserWithEmailAndPassword(email, pass);
       else       await auth.signInWithEmailAndPassword(email, pass);
-    } catch (e) { setErr(e.message); setBusy(false); }
+    } catch (e) { setErr(authErrMsg(e.code)); setBusy(false); }
   };
 
   return (
