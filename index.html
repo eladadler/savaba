@@ -3703,15 +3703,15 @@ function Register({ th, go }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
         <StepDots active={1} />
         <Field th={th} label="שם פרטי" required>
-          <TextInput th={th} value={firstName} onChange={setFirstName} placeholder="נועה" />
+          <TextInput th={th} value={firstName} onChange={setFirstName} placeholder="" />
         </Field>
         <Field th={th} label="שם משפחה" required>
-          <TextInput th={th} value={lastName} onChange={setLastName} placeholder="לוי" />
+          <TextInput th={th} value={lastName} onChange={setLastName} placeholder="" />
         </Field>
         <Field th={th} label="טלפון (ווצאפ)" required hint="לא יוצג למועמדים — משמש לתיאומים">
           <TextInput th={th} type="tel" value={phone}
             onChange={v => { setPhone(v); if (phoneError) setPhoneError(''); }}
-            onBlur={handlePhoneBlur} placeholder="050-0000000" />
+            onBlur={handlePhoneBlur} placeholder="" />
           {phoneError && <div style={{ fontFamily: th.body, fontSize: 12, color: '#d93025', marginTop: 5 }}>{phoneError}</div>}
         </Field>
         <div style={{ marginTop: 8 }}>
