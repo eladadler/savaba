@@ -1926,7 +1926,7 @@ function LoginScreen({ th, inviteToken }) {
   const [busy,  setBusy]  = useState(false);
 
   const authErrMsg = code => ({
-    'auth/email-already-in-use':   'האימייל כבר קיים במערכת — נסו להתחבר!',
+    'auth/email-already-in-use':   'האימייל והסיסמה כבר רשומים, נסו לבצע כניסה!',
     'auth/user-not-found':         'לא נמצא משתמש עם האימייל הזה',
     'auth/wrong-password':         'סיסמה שגויה — נסו שוב',
     'auth/invalid-email':          'כתובת האימייל אינה תקינה',
