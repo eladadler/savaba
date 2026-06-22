@@ -1143,7 +1143,7 @@ function useFirebaseData(uid) {
     const unsubs = [];
 
     unsubs.push(db.collection('candidates').onSnapshot(s => {
-      setCandidates(s.docs.map(d => {
+      const all = s.docs.map(d => {
         const data = d.data();
         return {
           id: d.id,
@@ -1153,7 +1153,11 @@ function useFirebaseData(uid) {
           interests: data.interests || [],
           partner: data.partner || [],
         };
-      }));
+      });
+      // Hide candidates pending approval from everyone except their owning matchmaker / co-reps
+      setCandidates(all.filter(c =>
+        !c.pendingApproval || c.mmId === uid || (c.coMms || []).includes(uid)
+      ));
       setLoading(false);
     }));
 
