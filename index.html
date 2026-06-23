@@ -4132,6 +4132,17 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
   const [invites, setInvites] = useState([]);
   const [loading, setLoading] = useState(false);
   const [coRepReqs, setCoRepReqs] = useState([]);
+  const [activeFilter, setActiveFilter] = useState(null); // null | 'review' | 'fill' | 'active'
+
+  const getCategory = inv => {
+    const cand     = inv.candidateId ? candidates.find(c => c.id === inv.candidateId) : null;
+    const approved = cand && !cand.pendingApproval && inv.status === 'filled';
+    const review   = inv.status === 'filled' && !approved && inv.candidateId && go;
+    if (approved) return 'active';
+    if (review)   return 'review';
+    if (inv.status === 'pending' || inv.status === 'accepted') return 'fill';
+    return 'other';
+  };
 
   useEffect(() => {
     if (!open || !mmUid) return;
@@ -4171,8 +4182,18 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
       .update({ status: 'declined', resolvedAt: firebase.firestore.FieldValue.serverTimestamp() });
   };
 
-  const pending   = invites.filter(i => i.status === 'pending').length;
-  const accepted  = invites.filter(i => i.status === 'accepted' || i.status === 'filled').length;
+  const cats = { review: 0, fill: 0, active: 0 };
+  invites.forEach(inv => { const c = getCategory(inv); if (cats[c] !== undefined) cats[c]++; });
+
+  const filterChips = [
+    { key: 'review', label: 'לבדיקה ואישור', color: th.primary },
+    { key: 'fill',   label: 'עליו/ה למלא פרטים', color: th.gold },
+    { key: 'active', label: 'פעיל/ה',           color: th.success },
+  ];
+
+  const displayedInvites = activeFilter
+    ? invites.filter(inv => getCategory(inv) === activeFilter)
+    : invites;
 
   return (
     <Sheet open={open} onClose={onClose} th={th} title="מעקב הזמנות">
@@ -4198,19 +4219,30 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
           ))}
         </div>
       )}
-      {/* summary row */}
+      {/* filter chips */}
       {invites.length > 0 && (
-        <div style={{ display:'flex', gap:8, marginBottom:14 }}>
-          {[
-            { label:'נשלחו', n:invites.length, color:alpha(th.ink,0.6) },
-            { label:'ממתינות', n:pending, color:th.gold },
-            { label:'הצטרפו', n:accepted, color:th.success },
-          ].map(s => (
-            <div key={s.label} style={{ flex:1, background:alpha(s.color,0.1), borderRadius:th.rSm, padding:'10px 0', textAlign:'center' }}>
-              <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:s.color }}>{s.n}</div>
-              <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.55), marginTop:2 }}>{s.label}</div>
-            </div>
-          ))}
+        <div style={{ marginBottom:14 }}>
+          <div style={{ display:'flex', gap:8, marginBottom: activeFilter ? 8 : 0 }}>
+            {filterChips.map(chip => {
+              const isActive = activeFilter === chip.key;
+              return (
+                <button key={chip.key} onClick={() => setActiveFilter(isActive ? null : chip.key)}
+                  style={{ all:'unset', cursor:'pointer', flex:1, borderRadius:th.rSm, padding:'10px 0', textAlign:'center',
+                    background: isActive ? alpha(chip.color,0.18) : alpha(chip.color,0.08),
+                    border: `1.5px solid ${isActive ? chip.color : 'transparent'}`,
+                    transition:'all .15s' }}>
+                  <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:chip.color }}>{cats[chip.key]}</div>
+                  <div style={{ fontFamily:th.body, fontSize:10.5, color: isActive ? chip.color : alpha(th.ink,0.55), fontWeight: isActive ? 700 : 400, marginTop:2, lineHeight:1.3 }}>{chip.label}</div>
+                </button>
+              );
+            })}
+          </div>
+          {activeFilter && (
+            <button onClick={() => setActiveFilter(null)}
+              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5, fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), padding:'4px 2px' }}>
+              <span style={{ fontSize:14 }}>×</span> נקה סינון — הצג הכל
+            </button>
+          )}
         </div>
       )}
 
@@ -4222,7 +4254,7 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
           <div>עדיין לא נשלחו הזמנות</div>
           <div style={{ fontSize:12, marginTop:6, color:alpha(th.ink,0.35) }}>הזמנות שתשלח יופיעו כאן</div>
         </div>
-      ) : invites.map(inv => {
+      ) : displayedInvites.map(inv => {
         const cand        = inv.candidateId ? candidates.find(c => c.id === inv.candidateId) : null;
         const isApproved  = cand && !cand.pendingApproval && inv.status === 'filled';
         const isPending   = inv.status === 'pending';
