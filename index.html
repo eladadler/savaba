@@ -8186,70 +8186,54 @@ function OfferDetail({ th, go, params }) {
               <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:8, letterSpacing:'.04em', textTransform:'uppercase' }}>מה עכשיו?</div>
               <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.55, marginBottom:14 }}>
                 {iAmBothMm
-                  ? `שני המועמדים שלך יכולים עכשיו לראות אחד את השני באפליקציה — שלח/י להם את הקישורים!`
-                  : `המועמדים יכולים עכשיו לראות אחד את השני באפליקציה של המועמדים. שתפ/י את הקישורים!`}
+                  ? `שלח/י לכל אחד מהמועמדים שלך קישור לאפליקציה — שם יוכלו להכיר אחד את השני ולצור קשר!`
+                  : `שלח/י ל${myCand.name.split(' ')[0]} קישור לאפליקציית המועמדים — שם ${myCand.gender === 'f' ? 'תוכלי' : 'תוכל'} להכיר את ${theirCand.name.split(' ')[0]}!`}
               </div>
 
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {/* כרטיסיה + WA — per candidate */}
-                {iAmBothMm ? (
-                  [{from:candA,to:candB},{from:candB,to:candA}].map(({from,to}) => {
-                    const profileUrl = `https://eladadler.github.io/savaba/#cand/${to.id}`;
-                    const waHref = waCandLink(from,to);
-                    return (
-                      <div key={from.id} style={{ borderRadius:th.rSm, border:`1px solid ${alpha(th.ink,0.08)}`, padding:'10px 12px' }}>
-                        <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:alpha(th.ink,0.5), marginBottom:8 }}>
-                          שלח/י ל{from.name} כרטיסיה של {to.name}:
-                        </div>
-                        <div style={{ display:'flex', gap:8 }}>
-                          <a href={profileUrl} target="_blank" rel="noreferrer" style={{ ...appLinkRowStyle, flex:1 }}>
-                            <span style={{ fontSize:16 }}>🔗</span>
-                            <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:th.ink }}>פתח קישור</span>
-                          </a>
-                          {waHref && (
-                            <a href={waHref} target="_blank" rel="noreferrer" style={{ ...waRowStyle, flex:1 }}>
-                              <Icon name="whatsapp" size={20} style={{ color:'#25D366' }} />
-                              <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:'#128C7E' }}>וואטסאפ</span>
-                            </a>
-                          )}
-                        </div>
+                {(iAmBothMm ? [candA, candB] : [myCand]).map(cand => {
+                  const ph = waPhone(cand);
+                  const isFem = cand.gender === 'f';
+                  const appMsg = [
+                    `היי ${cand.name.split(' ')[0]}! 🎉`,
+                    `יש לנו בשבילך הצעת שידוך מעניינת.`,
+                    isFem
+                      ? `כדאי שתיכני לאפליקציית המועמדים ותכירי אותה — ומשם תוכלי ליצור קשר עם המועמד שנמצא מתאים לך 😊`
+                      : `כדאי שתיכנס לאפליקציית המועמדים ותכיר אותה — ומשם תוכל ליצור קשר עם המועמדת שנמצאה מתאימה לך 😊`,
+                    INVITE_BASE_URL
+                  ].join('\n');
+                  return ph ? (
+                    <a key={cand.id} href={`https://wa.me/${ph}?text=${encodeURIComponent(appMsg)}`} target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
+                      <Avatar grad={cand.grad} name={cand.name} size={30} photo={cand.photos?.[0]} />
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>שלח/י קישור לאפליקציה</div>
+                        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{cand.name}</div>
                       </div>
-                    );
-                  })
-                ) : (
-                  <>
-                    {/* כרטיסיה של הצד השני למועמד שלי */}
-                    <div style={{ borderRadius:th.rSm, border:`1px solid ${alpha(th.ink,0.08)}`, padding:'10px 12px' }}>
-                      <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:alpha(th.ink,0.5), marginBottom:8 }}>
-                        שלח/י ל{myCand.name} כרטיסיה של {theirCand.name}:
+                      <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
+                    </a>
+                  ) : (
+                    <div key={cand.id} style={{ ...waRowStyle, opacity:0.45, cursor:'default' }}>
+                      <Avatar grad={cand.grad} name={cand.name} size={30} photo={cand.photos?.[0]} />
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>אין מספר טלפון</div>
+                        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{cand.name}</div>
                       </div>
-                      <div style={{ display:'flex', gap:8 }}>
-                        <a href={`https://eladadler.github.io/savaba/#cand/${theirCand.id}`} target="_blank" rel="noreferrer" style={{ ...appLinkRowStyle, flex:1 }}>
-                          <span style={{ fontSize:16 }}>🔗</span>
-                          <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:th.ink }}>פתח קישור</span>
-                        </a>
-                        {waCandLink(myCand,theirCand) && (
-                          <a href={waCandLink(myCand,theirCand)} target="_blank" rel="noreferrer" style={{ ...waRowStyle, flex:1 }}>
-                            <Icon name="whatsapp" size={20} style={{ color:'#25D366' }} />
-                            <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:'#128C7E' }}>ל{myCand.name}</span>
-                          </a>
-                        )}
-                      </div>
+                      <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
                     </div>
+                  );
+                })}
 
-                    {/* התכתבות עם שדכן הצד השני */}
-                    {waPhone(theirMm) && (
-                      <a href={`https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה של ${myCand.name} ו${theirCand.name} 🎉`)}`}
-                        target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
-                        <Avatar grad={theirMm.grad} name={theirMm.name} size={30} photo={theirMm.photoURL} />
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>התכתב/י עם השדכן/ית</div>
-                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{theirMm.name}</div>
-                        </div>
-                        <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
-                      </a>
-                    )}
-                  </>
+                {/* התכתבות עם שדכן הצד השני */}
+                {!iAmBothMm && waPhone(theirMm) && (
+                  <a href={`https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה של ${myCand.name} ו${theirCand.name} 🎉`)}`}
+                    target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
+                    <Avatar grad={theirMm.grad} name={theirMm.name} size={30} photo={theirMm.photoURL} />
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>התכתב/י עם השדכן/ית</div>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{theirMm.name}</div>
+                    </div>
+                    <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
+                  </a>
                 )}
               </div>
             </div>
