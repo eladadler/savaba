@@ -4144,10 +4144,11 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
   const getCategory = inv => {
     const cand     = inv.candidateId ? candidates.find(c => c.id === inv.candidateId) : null;
     const approved = cand && !cand.pendingApproval && inv.status === 'filled';
-    const review   = inv.status === 'filled' && !approved && inv.candidateId && go;
+    const review   = (inv.status === 'filled' && !approved && inv.candidateId && go) ||
+                     inv.status === 'accepted';
     if (approved) return 'active';
     if (review)   return 'review';
-    if (inv.status === 'pending' || inv.status === 'accepted') return 'fill';
+    if (inv.status === 'pending') return 'fill';
     return 'other';
   };
 
