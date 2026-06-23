@@ -1232,11 +1232,28 @@ function useFirebaseData(uid) {
   const deleteCandidate = useCallback((id) =>
     db.collection('candidates').doc(id).delete(), []);
 
+  const compressPhoto = (file, maxPx = 1200, quality = 0.82) => new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width  * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(resolve, 'image/jpeg', quality);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+
   const uploadPhoto = useCallback(async (candidateId, file) => {
-    const ext  = file.name.split('.').pop();
-    const path = `candidates/${candidateId}/${Date.now()}.${ext}`;
+    const blob = await compressPhoto(file);
+    const path = `candidates/${candidateId}/${Date.now()}.jpg`;
     const ref  = storage.ref(path);
-    await ref.put(file);
+    await ref.put(blob, { contentType: 'image/jpeg' });
     const url = await ref.getDownloadURL();
     await db.collection('candidates').doc(candidateId).update({
       photos: firebase.firestore.FieldValue.arrayUnion(url),
@@ -2640,15 +2657,10 @@ function AdminPanel({ th, go }) {
 
   // Matchmaker is fictional if it has a seed_ prefix
   const isSeedMm  = (id) => typeof id === 'string' && id.startsWith('seed_');
-  // Candidate is fictional if it was never registered via email/password (no candidateUid)
-  // isSeed works for both: seed_ prefix → fictional; candidate lookup → fictional if no candidateUid
-  const isSeed    = (id) => {
-    if (typeof id !== 'string') return false;
-    if (id.startsWith('seed_')) return true;
-    const cand = candidates.find(c => c.id === id);
-    return cand ? !cand.candidateUid : false;
-  };
-  const visibleCands   = hideSeed ? candidates.filter(c => !!c.candidateUid) : candidates;
+  // Fictional candidates are identified solely by seed_ prefix — not by absence of candidateUid
+  // (manually-added real candidates also lack candidateUid until they register)
+  const isSeed    = (id) => typeof id === 'string' && id.startsWith('seed_');
+  const visibleCands   = hideSeed ? candidates.filter(c => !isSeed(c.id)) : candidates;
   const visibleMms     = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeedMm(id))) : matchmakers;
   const pendingMyCands = visibleCands.filter(c => c.mmId === profile?.uid && !!c.pendingApproval);
   const myCands        = visibleCands.filter(c => c.mmId === profile?.uid && !c.pendingApproval);
