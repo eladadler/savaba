@@ -4253,7 +4253,7 @@ function Candidates({ th, go, params }) {
   const [invOpen, setInvOpen]   = useSb(false);
   const [pendingCount, setPendingCount] = useSb(0);
   const [coRepPending, setCoRepPending] = useSb(0);
-  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 18, ageMax: 80, maritalStatus: [], hasChildren: '', childrenMin: 1 });
+  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 });
   const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
   const [sentRequests, setSentRequests] = useSb(new Set());
   const [cardStyle, setCardStyle] = useSb(() => localStorage.getItem('candCardStyle') || 'square');
