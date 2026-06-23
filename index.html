@@ -3825,10 +3825,16 @@ function Home({ th, go }) {
   }, []);
 
   // ── Real action counts ──────────────────────────────────────────
+  // helper: have both candidates approved?
+  const isBothCandApp = o => !!(o.aCandApproved || o.candAApprovedByMm || o.candAStatus === 'אישר') &&
+                             !!(o.bCandApproved || o.candBStatus === 'אישר');
+
   // 1. Offers where I'm the receiver and haven't responded yet
   const offersNeedingMe = React.useMemo(() =>
     offers.filter(o => {
-      if (o.status === 'נדחתה') return false;
+      if (o.status === 'נדחתה' || o.status === 'אושרה') return false;
+      if (o.isEngaged) return false;
+      if (isBothCandApp(o)) return false; // both candidates already approved — nothing left to decide
       if (o.aMm === myUid && o.bMm === myUid) return false; // self-match
       // Standard: I'm explicitly the B-side matchmaker
       if (o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus)) return true;
@@ -6382,8 +6388,15 @@ function Offers({ th, go, params }) {
 
   // Apply sub-filter from home banner — when active, search across ALL offers (not tab-limited)
   let list;
+  const isBothCandApp = o => !!(o.aCandApproved || o.candAApprovedByMm || o.candAStatus === 'אישר') &&
+                             !!(o.bCandApproved || o.candBStatus === 'אישר');
   if (subFilter === 'needsMyApproval') {
-    list = offers.filter(o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה');
+    list = offers.filter(o =>
+      o.bMm === myUid && o.aMm !== myUid &&
+      !['אישר','דחה'].includes(o.bStatus) &&
+      o.status !== 'נדחתה' && o.status !== 'אושרה' &&
+      !o.isEngaged && !isBothCandApp(o)
+    );
   } else if (subFilter === 'awaitingCand') {
     list = offers.filter(o =>
       (o.aMm === myUid || o.bMm === myUid) && o.bStatus === 'אישר' && (!o.aCandStatus || !o.bCandStatus) && o.status !== 'נדחתה' && o.status !== 'אושרה');
