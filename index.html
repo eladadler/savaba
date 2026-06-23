@@ -7900,10 +7900,11 @@ function OfferDetail({ th, go, params }) {
   const myUid = user?.uid;
   const oid   = params?.id;
 
-  const [msgs,          setMsgs]          = useState([]);
-  const [text,          setText]          = useState('');
-  const [approving,     setApproving]     = useState(false);
-  const [confirmReject, setConfirmReject] = useState(false);
+  const [msgs,           setMsgs]          = useState([]);
+  const [text,           setText]          = useState('');
+  const [approving,      setApproving]     = useState(false);
+  const [markingEngaged, setMarkingEngaged]= useState(false);
+  const [confirmReject,  setConfirmReject] = useState(false);
   const endRef = React.useRef(null);
 
   // Mark chat read when screen opens
@@ -7966,6 +7967,12 @@ function OfferDetail({ th, go, params }) {
     setApproving(false);
   };
 
+  const markEngaged = async () => {
+    setMarkingEngaged(true);
+    await updateOffer(o.id, { isEngaged: true });
+    setMarkingEngaged(false);
+  };
+
   // WhatsApp helpers
   const waPhone = c => c?.phone ? String(c.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
   const waCandLink = (from, to) => {
@@ -8006,158 +8013,278 @@ function OfferDetail({ th, go, params }) {
     ? `0 6px 26px ${alpha(th.success,0.2)}, 0 0 0 1.5px ${alpha(th.success,0.32)}`
     : `0 4px 14px ${alpha(th.ink,0.06)}`;
 
+  // shared chat block
+  const ChatBlock = () => !iAmBothMm ? (
+    <div style={{ background:th.card, borderRadius:th.r, padding:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
+        <Avatar grad={theirMm.grad} name={theirMm.name} size={24} photo={theirMm.photoURL} />
+        <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם {theirMm.name}</span>
+      </div>
+      <div style={{ maxHeight:260, overflowY:'auto', display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
+        {allMsgs.length === 0 && (
+          <div style={{ textAlign:'center', padding:'22px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.35) }}>
+            אין הודעות עדיין — שלח/י הודעה ראשונה
+          </div>
+        )}
+        {allMsgs.map((m, i) => {
+          const isMine = m.from === myUid;
+          return (
+            <div key={i} style={{ display:'flex', justifyContent:isMine?'flex-end':'flex-start', flexDirection:'column', alignItems:isMine?'flex-end':'flex-start' }}>
+              {m._isNote && (
+                <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.35), marginBottom:3, paddingInline:4 }}>
+                  הודעה מלווה להצעה
+                </div>
+              )}
+              <div style={{ maxWidth:'80%', padding:'8px 12px', fontFamily:th.body, fontSize:13.5, lineHeight:1.45,
+                borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                background: isMine ? th.primary : alpha(th.ink,0.08),
+                color: isMine ? '#fff' : th.ink }}>
+                {m.text}
+              </div>
+            </div>
+          );
+        })}
+        <div ref={endRef} />
+      </div>
+      <div style={{ display:'flex', gap:8 }}>
+        <input value={text} onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
+          placeholder={`הודעה ל${theirMm.name.split(' ')[0]}…`}
+          style={{ flex:1, fontFamily:th.body, fontSize:14, padding:'9px 12px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, background:th.cream, color:th.ink, outline:'none', direction:'rtl' }} />
+        <button onClick={sendMsg} disabled={!text.trim()}
+          style={{ border:'none', borderRadius:th.rSm, padding:'0 14px', cursor:text.trim()?'pointer':'default', background:text.trim()?th.primary:alpha(th.ink,0.1), color:text.trim()?'#fff':alpha(th.ink,0.3), display:'flex', alignItems:'center', transition:'all .15s' }}>
+          <Icon name="send" size={18} />
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  // shared approvals card
+  const approvalsCard = (
+    <div style={{ background:th.card, borderRadius:th.r, padding:14, marginBottom:14, boxShadow:cardShadow }}>
+      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:10, letterSpacing:'.04em', textTransform:'uppercase' }}>אישורים</div>
+      <div style={{ display:'flex', gap:8 }}>
+        {approvalCols.map(({ cand, approved, mine, field, newOtherApp }) => (
+          <div key={cand.id} style={{ flex:1, borderRadius:th.rSm, padding:10,
+            background: approved ? alpha(th.success,0.08) : mine ? alpha(th.primary,0.07) : alpha(th.ink,0.04),
+            border:`1.5px solid ${approved ? alpha(th.success,0.3) : mine ? alpha(th.primary,0.2) : alpha(th.ink,0.08)}` }}>
+            <div style={{ fontFamily:th.body, fontSize:10, fontWeight:800,
+              color: mine ? th.primary : alpha(th.ink,0.38), marginBottom:7,
+              display:'flex', alignItems:'center', gap:4 }}>
+              {mine && <span style={{ fontSize:8 }}>◆</span>}
+              {mine ? 'המועמד/ת שלי' : 'הצד השני'}
+            </div>
+            <button onClick={() => go('candidate', { id:cand.id })}
+              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:7, marginBottom:10, width:'100%' }}>
+              <Avatar grad={cand.grad} name={cand.name} size={32} photo={cand.photos?.[0]} />
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{cand.name}</span>
+              <Icon name="chevL" size={12} style={{ color:alpha(th.ink,0.25), flexShrink:0 }} />
+            </button>
+            {approved ? (
+              <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 9px', borderRadius:th.rSm, background:alpha(th.success,0.12) }}>
+                <Icon name="check" size={13} style={{ color:th.success }} />
+                <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:th.success }}>
+                  {cand.name.split(' ')[0]} {cand.gender === 'f' ? 'אישרה' : 'אישר'}
+                </span>
+              </div>
+            ) : mine && !finalFail ? (
+              <>
+                <button disabled={approving} onClick={() => markApproved(field, newOtherApp)}
+                  style={{ all:'unset', cursor:approving?'default':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 0', borderRadius:th.rSm, background:th.primary, width:'100%', boxSizing:'border-box', opacity:approving?0.6:1, animation:approving?'none':'sabaChatBeat 2s ease-in-out infinite' }}>
+                  <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12.5, color:'#fff' }}>
+                    {approving ? 'שומר…' : `${cand.name.split(' ')[0]} ${cand.gender === 'f' ? 'מאשרת' : 'מאשר'}`}
+                  </span>
+                </button>
+                <div style={{ marginTop:7, fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45), textAlign:'center', lineHeight:1.4 }}>
+                  {cand.gender === 'f' ? 'המועמדת' : 'המועמד'} {cand.gender === 'f' ? 'מאשרת' : 'מאשר'} את השידוך? לחץ על הכפתור הוורוד לאישור
+                </div>
+              </>
+            ) : (
+              <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 9px', borderRadius:th.rSm, background:alpha(th.ink,0.06) }}>
+                <Icon name="bell" size={12} style={{ color:th.gold }} />
+                <span style={{ fontFamily:th.body, fontWeight:600, fontSize:12, color:alpha(th.ink,0.5) }}>ממתין לאישור</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {finalFail && (
+        <div style={{ marginTop:10, background:alpha(th.error,0.08), borderRadius:th.rSm, padding:'8px 12px', display:'flex', alignItems:'center', gap:6 }}>
+          <Icon name="x" size={14} style={{ color:th.error }} />
+          <span style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.7) }}>ההצעה נדחתה</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const waRowStyle = { display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, textDecoration:'none', background:'#25D36610', border:'1px solid #25D36628' };
+  const appLinkRowStyle = { display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, textDecoration:'none', background:alpha(th.ink,0.03), border:`1px solid ${alpha(th.ink,0.1)}` };
+
   return (
     <>
       <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
       <div style={{ flex:1, overflowY:'auto', padding:'14px 18px 28px' }}>
 
-        {/* ── Celebration ── */}
-        {bothApp && (
-          <div style={{ textAlign:'center', padding:'10px 0 14px', animation:'sabaFade .4s ease' }}>
-            <div style={{ fontSize:40, lineHeight:1 }}>🎉</div>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.success, marginTop:8 }}>כולם אישרו — יאללה בעזרת ה׳ תהיה טבעת! 💍</div>
-          </div>
-        )}
+        {bothApp ? (
+          <>
+            {/* ── Celebration ── */}
+            <div style={{ textAlign:'center', padding:'16px 0 8px', animation:'sabaPop .5s ease' }}>
+              <div style={{ fontSize:52, lineHeight:1 }}>🎉</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.success, marginTop:10 }}>
+                כולם אישרו — יאללה בעזרת ה׳ תהיה טבעת! 💍
+              </div>
+            </div>
 
-        {/* ── Approvals ── */}
-        <div style={{ background:th.card, borderRadius:th.r, padding:14, marginBottom:14, boxShadow:cardShadow }}>
-          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:10, letterSpacing:'.04em', textTransform:'uppercase' }}>אישורים</div>
-          <div style={{ display:'flex', gap:8 }}>
-            {approvalCols.map(({ cand, approved, mine, field, newOtherApp }) => (
-              <div key={cand.id} style={{ flex:1, borderRadius:th.rSm, padding:10,
-                background: approved ? alpha(th.success,0.08) : mine ? alpha(th.primary,0.07) : alpha(th.ink,0.04),
-                border:`1.5px solid ${approved ? alpha(th.success,0.3) : mine ? alpha(th.primary,0.2) : alpha(th.ink,0.08)}` }}>
+            {/* ── Approvals (both approved) ── */}
+            {approvalsCard}
 
-                {/* Label */}
-                <div style={{ fontFamily:th.body, fontSize:10, fontWeight:800,
-                  color: mine ? th.primary : alpha(th.ink,0.38), marginBottom:7,
-                  display:'flex', alignItems:'center', gap:4 }}>
-                  {mine && <span style={{ fontSize:8 }}>◆</span>}
-                  {mine ? 'המועמד/ת שלי' : 'הצד השני'}
-                </div>
+            {/* ── מה עכשיו ── */}
+            <div style={{ background:th.card, borderRadius:th.r, padding:14, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:8, letterSpacing:'.04em', textTransform:'uppercase' }}>מה עכשיו?</div>
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.55, marginBottom:14 }}>
+                {iAmBothMm
+                  ? `שני המועמדים שלך יכולים עכשיו לראות אחד את השני באפליקציה — שלח/י להם את הקישורים!`
+                  : `המועמדים יכולים עכשיו לראות אחד את השני באפליקציה של המועמדים. שתפ/י את הקישורים!`}
+              </div>
 
-                {/* Candidate name — clickable → card */}
-                <button onClick={() => go('candidate', { id:cand.id })}
-                  style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:7, marginBottom:10, width:'100%' }}>
-                  <Avatar grad={cand.grad} name={cand.name} size={32} photo={cand.photos?.[0]} />
-                  <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{cand.name}</span>
-                  <Icon name="chevL" size={12} style={{ color:alpha(th.ink,0.25), flexShrink:0 }} />
-                </button>
-
-                {/* Status */}
-                {approved ? (
-                  <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 9px', borderRadius:th.rSm, background:alpha(th.success,0.12) }}>
-                    <Icon name="check" size={13} style={{ color:th.success }} />
-                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:th.success }}>{cand.name.split(' ')[0]} אישר/ה</span>
-                  </div>
-                ) : mine && !finalFail ? (
-                  <button disabled={approving} onClick={() => markApproved(field, newOtherApp)}
-                    style={{ all:'unset', cursor:approving?'default':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 0', borderRadius:th.rSm, background:th.primary, width:'100%', boxSizing:'border-box', opacity:approving?0.6:1 }}>
-                    <Icon name="check" size={13} style={{ color:'#fff' }} />
-                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12.5, color:'#fff' }}>
-                      {approving ? 'שומר…' : `${cand.name.split(' ')[0]} מאשר/ת`}
-                    </span>
-                  </button>
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                {/* כרטיסיה + WA — per candidate */}
+                {iAmBothMm ? (
+                  [{from:candA,to:candB},{from:candB,to:candA}].map(({from,to}) => {
+                    const profileUrl = `https://eladadler.github.io/savaba/#cand/${to.id}`;
+                    const waHref = waCandLink(from,to);
+                    return (
+                      <div key={from.id} style={{ borderRadius:th.rSm, border:`1px solid ${alpha(th.ink,0.08)}`, padding:'10px 12px' }}>
+                        <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:alpha(th.ink,0.5), marginBottom:8 }}>
+                          שלח/י ל{from.name} כרטיסיה של {to.name}:
+                        </div>
+                        <div style={{ display:'flex', gap:8 }}>
+                          <a href={profileUrl} target="_blank" rel="noreferrer" style={{ ...appLinkRowStyle, flex:1 }}>
+                            <span style={{ fontSize:16 }}>🔗</span>
+                            <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:th.ink }}>פתח קישור</span>
+                          </a>
+                          {waHref && (
+                            <a href={waHref} target="_blank" rel="noreferrer" style={{ ...waRowStyle, flex:1 }}>
+                              <Icon name="whatsapp" size={20} style={{ color:'#25D366' }} />
+                              <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:'#128C7E' }}>וואטסאפ</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
                 ) : (
-                  <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 9px', borderRadius:th.rSm, background:alpha(th.ink,0.06) }}>
-                    <Icon name="bell" size={12} style={{ color:th.gold }} />
-                    <span style={{ fontFamily:th.body, fontWeight:600, fontSize:12, color:alpha(th.ink,0.5) }}>ממתין לאישור</span>
-                  </div>
+                  <>
+                    {/* כרטיסיה של הצד השני למועמד שלי */}
+                    <div style={{ borderRadius:th.rSm, border:`1px solid ${alpha(th.ink,0.08)}`, padding:'10px 12px' }}>
+                      <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:alpha(th.ink,0.5), marginBottom:8 }}>
+                        שלח/י ל{myCand.name} כרטיסיה של {theirCand.name}:
+                      </div>
+                      <div style={{ display:'flex', gap:8 }}>
+                        <a href={`https://eladadler.github.io/savaba/#cand/${theirCand.id}`} target="_blank" rel="noreferrer" style={{ ...appLinkRowStyle, flex:1 }}>
+                          <span style={{ fontSize:16 }}>🔗</span>
+                          <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:th.ink }}>פתח קישור</span>
+                        </a>
+                        {waCandLink(myCand,theirCand) && (
+                          <a href={waCandLink(myCand,theirCand)} target="_blank" rel="noreferrer" style={{ ...waRowStyle, flex:1 }}>
+                            <Icon name="whatsapp" size={20} style={{ color:'#25D366' }} />
+                            <span style={{ fontFamily:th.body, fontWeight:700, fontSize:13, color:'#128C7E' }}>ל{myCand.name}</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* התכתבות עם שדכן הצד השני */}
+                    {waPhone(theirMm) && (
+                      <a href={`https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה של ${myCand.name} ו${theirCand.name} 🎉`)}`}
+                        target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
+                        <Avatar grad={theirMm.grad} name={theirMm.name} size={30} photo={theirMm.photoURL} />
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>התכתב/י עם השדכן/ית</div>
+                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{theirMm.name}</div>
+                        </div>
+                        <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
+                      </a>
+                    )}
+                  </>
                 )}
               </div>
-            ))}
-          </div>
-          {finalFail && (
-            <div style={{ marginTop:10, background:alpha(th.error,0.08), borderRadius:th.rSm, padding:'8px 12px', display:'flex', alignItems:'center', gap:6 }}>
-              <Icon name="x" size={14} style={{ color:th.error }} />
-              <span style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.7) }}>ההצעה נדחתה</span>
             </div>
-          )}
-        </div>
 
-        {/* ── WhatsApp ── */}
-        {waLinks.length > 0 && (
-          <div style={{ background:th.card, borderRadius:th.r, padding:12, marginBottom:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:8, letterSpacing:'.04em', textTransform:'uppercase' }}>וואטסאפ</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {waLinks.map((w, i) => w.noPhone ? (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm,
-                  background:alpha(th.ink,0.03), border:`1px solid ${alpha(th.ink,0.08)}`, opacity:0.55 }}>
-                  <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
-                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{w.name}</div>
+            {/* ── חתונה ── */}
+            <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
+              {isEngaged ? (
+                <div style={{ textAlign:'center', padding:'8px 0' }}>
+                  <div style={{ fontSize:44, lineHeight:1 }}>💍</div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.gold, marginTop:10 }}>
+                    הזוג הזה התחתן! מזל טוב לחתן ולכלה!
                   </div>
-                  <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4), flexShrink:0 }}>אין טלפון</span>
                 </div>
               ) : (
-                <a key={i} href={w.href} target="_blank" rel="noreferrer"
-                  style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, textDecoration:'none',
-                    background: w.isMm ? alpha(th.ink,0.03) : '#25D36610',
-                    border: `1px solid ${w.isMm ? alpha(th.ink,0.1) : '#25D36628'}` }}>
-                  <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
-                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{w.name}</div>
+                <>
+                  <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), textAlign:'center', marginBottom:14, lineHeight:1.5 }}>
+                    האם {candA.name} ו{candB.name} התחתנו? דווח/י ותחגגו יחד!
                   </div>
-                  <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
-                </a>
-              ))}
+                  <button disabled={markingEngaged} onClick={markEngaged}
+                    style={{ all:'unset', cursor:markingEngaged?'default':'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
+                    <span style={{ fontSize:22 }}>💍</span>
+                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>
+                      {markingEngaged ? 'שומר...' : 'הזוג התחתן! דווח/י'}
+                    </span>
+                  </button>
+                </>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* ── Reject ── */}
-        {!finalFail && !bothApp && (
-          <button onClick={() => setConfirmReject(true)}
-            style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', textAlign:'center', padding:'9px 0', borderRadius:th.rSm, border:`1px solid ${alpha(th.error,0.25)}`, color:alpha(th.error,0.8), fontFamily:th.body, fontWeight:700, fontSize:13, marginBottom:14 }}>
-            ✕ דחיית הצעה
-          </button>
-        )}
+            {/* ── Chat ── */}
+            <ChatBlock />
+          </>
+        ) : (
+          <>
+            {/* ── Approvals (pending flow) ── */}
+            {approvalsCard}
 
-        {/* ── Chat (hidden for self-match) ── */}
-        {!iAmBothMm && <div style={{ background:th.card, borderRadius:th.r, padding:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-            <Avatar grad={theirMm.grad} name={theirMm.name} size={24} photo={theirMm.photoURL} />
-            <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם {theirMm.name}</span>
-          </div>
-          <div style={{ maxHeight:260, overflowY:'auto', display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
-            {allMsgs.length === 0 && (
-              <div style={{ textAlign:'center', padding:'22px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.35) }}>
-                אין הודעות עדיין — שלח/י הודעה ראשונה
+            {/* ── WhatsApp ── */}
+            {waLinks.length > 0 && (
+              <div style={{ background:th.card, borderRadius:th.r, padding:12, marginBottom:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:8, letterSpacing:'.04em', textTransform:'uppercase' }}>וואטסאפ</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {waLinks.map((w, i) => w.noPhone ? (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.ink,0.03), border:`1px solid ${alpha(th.ink,0.08)}`, opacity:0.55 }}>
+                      <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
+                        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{w.name}</div>
+                      </div>
+                      <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4), flexShrink:0 }}>אין טלפון</span>
+                    </div>
+                  ) : (
+                    <a key={i} href={w.href} target="_blank" rel="noreferrer"
+                      style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, textDecoration:'none', background: w.isMm ? alpha(th.ink,0.03) : '#25D36610', border: `1px solid ${w.isMm ? alpha(th.ink,0.1) : '#25D36628'}` }}>
+                      <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
+                        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{w.name}</div>
+                      </div>
+                      <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
-            {allMsgs.map((m, i) => {
-              const mine = m.from === myUid;
-              return (
-                <div key={i} style={{ display:'flex', justifyContent:mine?'flex-end':'flex-start', flexDirection:'column', alignItems:mine?'flex-end':'flex-start' }}>
-                  {m._isNote && (
-                    <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.35), marginBottom:3, paddingInline:4 }}>
-                      הודעה מלווה להצעה
-                    </div>
-                  )}
-                  <div style={{ maxWidth:'80%', padding:'8px 12px', fontFamily:th.body, fontSize:13.5, lineHeight:1.45,
-                    borderRadius: mine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                    background: mine ? th.primary : alpha(th.ink,0.08),
-                    color: mine ? '#fff' : th.ink }}>
-                    {m.text}
-                  </div>
-                </div>
-              );
-            })}
-            <div ref={endRef} />
-          </div>
-          <div style={{ display:'flex', gap:8 }}>
-            <input value={text} onChange={e => setText(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }}
-              placeholder={`הודעה ל${theirMm.name.split(' ')[0]}…`}
-              style={{ flex:1, fontFamily:th.body, fontSize:14, padding:'9px 12px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, background:th.cream, color:th.ink, outline:'none', direction:'rtl' }} />
-            <button onClick={sendMsg} disabled={!text.trim()}
-              style={{ border:'none', borderRadius:th.rSm, padding:'0 14px', cursor:text.trim()?'pointer':'default', background:text.trim()?th.primary:alpha(th.ink,0.1), color:text.trim()?'#fff':alpha(th.ink,0.3), display:'flex', alignItems:'center', transition:'all .15s' }}>
-              <Icon name="send" size={18} />
-            </button>
-          </div>
-        </div>}
+
+            {/* ── Reject ── */}
+            {!finalFail && (
+              <button onClick={() => setConfirmReject(true)}
+                style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', textAlign:'center', padding:'9px 0', borderRadius:th.rSm, border:`1px solid ${alpha(th.error,0.25)}`, color:alpha(th.error,0.8), fontFamily:th.body, fontWeight:700, fontSize:13, marginBottom:14 }}>
+                ✕ דחיית הצעה
+              </button>
+            )}
+
+            {/* ── Chat ── */}
+            <ChatBlock />
+          </>
+        )}
 
       </div>
 
