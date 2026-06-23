@@ -4316,25 +4316,30 @@ function Candidates({ th, go, params }) {
       .onSnapshot(s => setCoRepPending(s.size));
   }, [myUid]);
 
-  const list = useMb(() => candidates.filter(c => {
-    // Neglected filter overrides everything
-    if (neglectedIds !== null) return neglectedIds.has(c.id);
-    if (scope === 'mine' && c.status === 'pending_mm') return false; // hidden until mm fills details
-    if (scope === 'mine' && c.mmId !== myUid && !c.coMms?.includes(myUid)) return false;
-    if (scope === 'all'  && (c.mmId === myUid || c.coMms?.includes(myUid))) return false;
-    if (scope === 'all'  && c.hidden) return false;
-    if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
-    if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
-    if (filters.region && c.region !== filters.region) return false;
-    if (filters.status === 'פנוי' && !c.available) return false;
-    if (filters.status === 'תפוס' && c.available) return false;
-    if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
-    if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax)) return false;
-    if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
-    if (filters.hasChildren === 'no' && (c.kids || 0) > 0) return false;
-    if (filters.hasChildren === 'yes' && (c.kids || 0) < filters.childrenMin) return false;
-    return true;
-  }), [candidates, scope, q, filters, myUid, neglectedIds]);
+  const list = useMb(() => {
+    const result = [];
+    for (const c of candidates) {
+      let reason = null;
+      if (neglectedIds !== null && !neglectedIds.has(c.id))                                            reason = 'neglectedIds';
+      else if (scope === 'mine' && c.status === 'pending_mm')                                          reason = 'pending_mm';
+      else if (scope === 'mine' && c.mmId !== myUid && !c.coMms?.includes(myUid))                     reason = 'not_mine';
+      else if (scope === 'all'  && (c.mmId === myUid || c.coMms?.includes(myUid)))                    reason = 'is_mine';
+      else if (scope === 'all'  && c.hidden)                                                           reason = 'hidden';
+      else if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q))                            reason = 'search';
+      else if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) reason = 'gender';
+      else if (filters.region && c.region !== filters.region)                                          reason = 'region';
+      else if (filters.status === 'פנוי' && !c.available)                                             reason = 'status_available';
+      else if (filters.status === 'תפוס' && c.available)                                              reason = 'status_taken';
+      else if (filters.rel.length && !filters.rel.includes(c.religiosity))                            reason = 'rel';
+      else if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax))                           reason = 'age';
+      else if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family))             reason = 'maritalStatus';
+      else if (filters.hasChildren === 'no' && (c.kids || 0) > 0)                                     reason = 'hasChildren_no';
+      else if (filters.hasChildren === 'yes' && (c.kids || 0) < filters.childrenMin)                  reason = 'hasChildren_yes';
+      if (reason) console.log(`[cands] filtered out ${c.name} (${c.id}): ${reason}`, { mmId: c.mmId, myUid, status: c.status, pendingApproval: c.pendingApproval, age: c.age, scope });
+      else result.push(c);
+    }
+    return result;
+  }, [candidates, scope, q, filters, myUid, neglectedIds]);
 
   const activeFilters = (filters.gender ? 1 : 0) + (filters.region ? 1 : 0) + (filters.status ? 1 : 0) + filters.rel.length + filters.maritalStatus.length + (filters.hasChildren ? 1 : 0);
 
