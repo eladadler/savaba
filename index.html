@@ -3396,11 +3396,8 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
             ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
             : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
           }
-          {!isLast && onSaveStep && (
-            <Btn th={th} variant="soft" onClick={() => onSaveStep({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>שמור וצא</Btn>
-          )}
           {isLast
-            ? <Btn th={th} full variant={onApprove ? 'ghost' : 'primary'} onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>{onApprove ? 'שמור בלבד' : 'שמור'}</Btn>
+            ? !onApprove && <Btn th={th} full variant="primary" onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>שמור</Btn>
             : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
           }
         </div>
