@@ -8071,7 +8071,7 @@ function OfferDetail({ th, go, params }) {
     : `0 4px 14px ${alpha(th.ink,0.06)}`;
 
   // shared chat block
-  const ChatBlock = () => !iAmBothMm ? (
+  const chatBlock = !iAmBothMm ? (
     <div style={{ background:th.card, borderRadius:th.r, padding:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
         <Avatar grad={theirMm.grad} name={theirMm.name} size={24} photo={theirMm.photoURL} />
@@ -8212,7 +8212,7 @@ function OfferDetail({ th, go, params }) {
             </div>
 
             {/* ── Chat ── */}
-            <ChatBlock />
+            {chatBlock}
           </>
         ) : bothApp ? (
           <>
@@ -8294,7 +8294,7 @@ function OfferDetail({ th, go, params }) {
             </div>
 
             {/* ── Chat ── */}
-            <ChatBlock />
+            {chatBlock}
           </>
         ) : (
           <>
@@ -8339,7 +8339,7 @@ function OfferDetail({ th, go, params }) {
             )}
 
             {/* ── Chat ── */}
-            <ChatBlock />
+            {chatBlock}
           </>
         )}
 
