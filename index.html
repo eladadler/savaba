@@ -5366,10 +5366,12 @@ function CandidateDetail({ th, go, params }) {
     </div>
   );
 
+  const canSeeDiscrete = isPrimary; // discrete details: primary matchmaker only
+
   const body =
-    variant === 'מגזין' ? <MagBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} />
-    : variant === 'מינימלי' ? <MinBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} />
-    : <ClassicBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} />;
+    variant === 'מגזין' ? <MagBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} />
+    : variant === 'מינימלי' ? <MinBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} />
+    : <ClassicBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} />;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, position: 'relative' }}>
@@ -5638,7 +5640,7 @@ function MmNoteCard({ c, mm, th }) {
   );
 }
 
-function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
+function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   const Section = ({ label, children, icon }) => (
     <div style={{ background: th.card, borderRadius: th.r, padding: 16, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
@@ -5683,14 +5685,14 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
         </Section>
         <Section label="תחומי עניין" icon="spark"><InterestChips items={c.interests} th={th} /></Section>
         <Section label="מה חשוב אצל הפרטנר" icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} /></Section>
-        <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>
+        {canSeeDiscrete && <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>}
       </div>
     </div>
   );
 }
 
 // ── VARIANT 2 — מגזין (editorial) ──────────────────────────────
-function MagBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
+function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   const Rule = () => <div style={{ height: 1.5, background: alpha(th.gold, 0.4), margin: '22px 0' }} />;
   const Label = ({ children }) => <div style={{ fontFamily: th.display, fontSize: 12, color: th.gold, letterSpacing: 2, marginBottom: 10 }}>{children}</div>;
   return (
@@ -5739,14 +5741,14 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
           ))}
         </div>
         <Rule />
-        <DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} mag />
+        {canSeeDiscrete && <DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} mag />}
       </div>
     </div>
   );
 }
 
 // ── VARIANT 3 — מינימלי (clean, airy) ──────────────────────────
-function MinBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
+function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   const Hr = () => <div style={{ height: 1, background: alpha(th.ink, 0.09), margin: '0 0' }} />;
   const Block = ({ label, children }) => (
     <div style={{ padding: '20px 0' }}>
@@ -5797,7 +5799,7 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm }) {
         </div>
       </Block>
       <Hr />
-      <div style={{ padding: '20px 0 24px' }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>
+      {canSeeDiscrete && <div style={{ padding: '20px 0 24px' }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>}
     </div>
   );
 }
