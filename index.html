@@ -5868,9 +5868,12 @@ function MatchFlow({ th, go, params }) {
           note: note.trim(), unread: 0,
         });
       } else {
+        // Creator (myUid) is always aMm — regardless of which candidate was selected first
+        const myFirst  = isCandMine(first) ? first  : second;
+        const mySecond = isCandMine(first) ? second : first;
         await addOffer({
-          aId: first.id,  aMm: first.mmId || myUid,
-          bId: second.id, bMm: second.mmId,
+          aId: myFirst.id,  aMm: myUid,
+          bId: mySecond.id, bMm: mySecond.mmId,
           status: 'נשלחה',
           aStatus: 'ממתין', bStatus: 'ממתין',
           note: note.trim(), unread: 0,
@@ -6145,9 +6148,11 @@ function MatchFlow({ th, go, params }) {
                         if (offerExists(first.id, second.id)) { setConfirmModal(false); alert('כבר קיימת הצעה בין מועמדים אלה'); return; }
                         setConfirmModal(false); setSending(true);
                         try {
+                          const _myF  = isCandMine(first) ? first  : second;
+                          const _myS  = isCandMine(first) ? second : first;
                           await addOffer({
-                            aId: first.id, aMm: first.mmId || myUid,
-                            bId: second.id, bMm: second.mmId,
+                            aId: _myF.id, aMm: myUid,
+                            bId: _myS.id, bMm: _myS.mmId,
                             status: 'נשלחה',
                             aStatus: 'אישר', bStatus: 'ממתין',
                             ...(candApproved ? { candAApprovedByMm: true } : {}),
