@@ -8182,7 +8182,39 @@ function OfferDetail({ th, go, params }) {
       <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
       <div style={{ flex:1, overflowY:'auto', padding:'14px 18px 28px' }}>
 
-        {bothApp ? (
+        {isEngaged ? (
+          <>
+            {/* ── תמונות גדולות ── */}
+            <div style={{ display:'flex', gap:8, marginBottom:16, marginTop:4 }}>
+              {[candA, candB].map(c => (
+                <div key={c.id} style={{ flex:1, borderRadius:th.r, overflow:'hidden', aspectRatio:'3/4', position:'relative', background:alpha(th.ink,0.06) }}>
+                  {c.photos?.[0]
+                    ? <img src={c.photos[0]} style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+                    : <div style={{ width:'100%', height:'100%', background:`linear-gradient(135deg,${th.primary},${th.gold})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        <span style={{ fontFamily:th.display, fontWeight:800, fontSize:36, color:'#fff' }}>{(c.name||'?')[0]}</span>
+                      </div>}
+                  <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'24px 10px 10px', background:'linear-gradient(transparent,rgba(0,0,0,0.6))' }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:'#fff', textShadow:'0 1px 4px rgba(0,0,0,0.4)' }}>{c.name}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ── באנר חתונה ── */}
+            <div style={{ textAlign:'center', padding:'10px 0 20px', animation:'sabaPop .5s ease' }}>
+              <div style={{ fontSize:52, lineHeight:1, marginBottom:10 }}>💍</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:22, color:th.gold }}>
+                הזוג הזה התחתן!
+              </div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:alpha(th.gold,0.8), marginTop:6 }}>
+                מזל טוב לחתן ולכלה! 🥂
+              </div>
+            </div>
+
+            {/* ── Chat ── */}
+            <ChatBlock />
+          </>
+        ) : bothApp ? (
           <>
             {/* ── Celebration ── */}
             <div style={{ textAlign:'center', padding:'16px 0 8px', animation:'sabaPop .5s ease' }}>
@@ -8203,7 +8235,6 @@ function OfferDetail({ th, go, params }) {
                   ? `שלח/י לכל אחד מהמועמדים שלך קישור לאפליקציה — שם יוכלו להכיר אחד את השני ולצור קשר!`
                   : `שלח/י ל${myCand.name.split(' ')[0]} קישור לאפליקציית המועמדים — שם ${myCand.gender === 'f' ? 'תוכלי' : 'תוכל'} להכיר את ${theirCand.name.split(' ')[0]}!`}
               </div>
-
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {(iAmBothMm ? [candA, candB] : [myCand]).map(cand => {
                   const ph = waPhone(cand);
@@ -8236,8 +8267,6 @@ function OfferDetail({ th, go, params }) {
                     </div>
                   );
                 })}
-
-                {/* התכתבות עם שדכן הצד השני */}
                 {!iAmBothMm && waPhone(theirMm) && (
                   <a href={`https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה של ${myCand.name} ו${theirCand.name} 🎉`)}`}
                     target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
@@ -8252,27 +8281,16 @@ function OfferDetail({ th, go, params }) {
               </div>
             </div>
 
-            {/* ── חתונה ── */}
+            {/* ── כפתור דיווח חתונה ── */}
             <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
-              {isEngaged ? (
-                <div style={{ textAlign:'center', padding:'8px 0' }}>
-                  <div style={{ fontSize:44, lineHeight:1 }}>💍</div>
-                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.gold, marginTop:10 }}>
-                    הזוג הזה התחתן! מזל טוב לחתן ולכלה!
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), textAlign:'center', marginBottom:14, lineHeight:1.5 }}>
-                    האם {candA.name} ו{candB.name} התחתנו? דווח/י ותחגגו יחד!
-                  </div>
-                  <button onClick={() => setConfirmEngaged(true)}
-                    style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
-                    <span style={{ fontSize:22 }}>💍</span>
-                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>הזוג התחתן! דווח/י</span>
-                  </button>
-                </>
-              )}
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), textAlign:'center', marginBottom:14, lineHeight:1.5 }}>
+                האם {candA.name} ו{candB.name} התחתנו? דווח/י ותחגגו יחד!
+              </div>
+              <button onClick={() => setConfirmEngaged(true)}
+                style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
+                <span style={{ fontSize:22 }}>💍</span>
+                <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>הזוג התחתן! דווח/י</span>
+              </button>
             </div>
 
             {/* ── Chat ── */}
