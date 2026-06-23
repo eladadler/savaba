@@ -4236,11 +4236,10 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
           : isAccepted ? th.primary
           : alpha(th.ink,0.4);
         const statusLabel = isApproved ? '✓ פעיל/ה'
-          : inv.status === 'pending' ? 'ממתין/ה'
+          : inv.status === 'pending' ? 'עליו/ה למלא פרטים'
           : inv.status === 'accepted' ? 'נענה/תה'
           : inv.status === 'filled' ? 'מילא/ה פרטים'
           : inv.status;
-        const flowLabel   = inv.flow === 'mm_fills' ? 'אמלא אני' : 'ממלא/ת בעצמו/ה';
         const dateStr     = inv.createdAt?.seconds
           ? new Date(inv.createdAt.seconds * 1000).toLocaleDateString('he-IL', { day:'numeric', month:'short' })
           : '—';
@@ -4254,7 +4253,7 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>
                   {inv.recipientName || <span style={{ color:alpha(th.ink,0.35) }}>ללא שם</span>}
                 </div>
-                <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>{flowLabel} · {dateStr}</div>
+                <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>נשלחה הזמנה ב-{dateStr}</div>
               </div>
               <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
                 <div style={{ background:alpha(statusColor,0.12), color:statusColor, borderRadius:999, padding:'4px 11px', fontFamily:th.display, fontWeight:700, fontSize:12 }}>
@@ -4265,11 +4264,6 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
                 {isApproved && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.success }}>צפה/י בכרטיסייה ←</div>}
               </div>
             </div>
-            {isAccepted && inv.candidateName && (
-              <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5), marginTop:6, paddingRight:50 }}>
-                נרשם/ה כ: <b>{inv.candidateName}</b>
-              </div>
-            )}
           </div>
         );
       })}
