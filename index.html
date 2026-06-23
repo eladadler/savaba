@@ -4283,7 +4283,7 @@ function Candidates({ th, go, params }) {
   const [invOpen, setInvOpen]   = useSb(false);
   const [pendingCount, setPendingCount] = useSb(0);
   const [coRepPending, setCoRepPending] = useSb(0);
-  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45, maritalStatus: [], hasChildren: '', childrenMin: 1 });
+  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 18, ageMax: 80, maritalStatus: [], hasChildren: '', childrenMin: 1 });
   const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
   const [sentRequests, setSentRequests] = useSb(new Set());
   const [cardStyle, setCardStyle] = useSb(() => localStorage.getItem('candCardStyle') || 'square');
@@ -4329,7 +4329,7 @@ function Candidates({ th, go, params }) {
     if (filters.status === 'פנוי' && !c.available) return false;
     if (filters.status === 'תפוס' && c.available) return false;
     if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
-    if (c.age < filters.ageMin || c.age > filters.ageMax) return false;
+    if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax)) return false;
     if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
     if (filters.hasChildren === 'no' && (c.kids || 0) > 0) return false;
     if (filters.hasChildren === 'yes' && (c.kids || 0) < filters.childrenMin) return false;
@@ -7061,7 +7061,7 @@ function CandBrowse({ th, go, me }) {
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
     if (filters.region && c.region !== filters.region) return false;
     if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
-    if (c.age < filters.ageMin || c.age > filters.ageMax) return false;
+    if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax)) return false;
     if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
     return true;
   }), [candidates, q, filters, meIsMale]);
