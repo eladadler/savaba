@@ -4491,8 +4491,8 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
       <Field th={th} label="סטטוס"><Segmented th={th} value={filters.status} onChange={v => set('status', filters.status === v ? '' : v)} options={['פנוי', 'תפוס']} /></Field>
       <Field th={th} label={`טווח גיל: ${filters.ageMin}–${filters.ageMax}`}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <input type="range" min={20} max={60} value={filters.ageMin} onChange={e => set('ageMin', Math.min(+e.target.value, filters.ageMax))} style={{ flex: 1, accentColor: th.primary }} />
-          <input type="range" min={20} max={60} value={filters.ageMax} onChange={e => set('ageMax', Math.max(+e.target.value, filters.ageMin))} style={{ flex: 1, accentColor: th.primary }} />
+          <input type="range" min={18} max={120} value={filters.ageMin} onChange={e => set('ageMin', Math.min(+e.target.value, filters.ageMax))} style={{ flex: 1, accentColor: th.primary }} />
+          <input type="range" min={18} max={120} value={filters.ageMax} onChange={e => set('ageMax', Math.max(+e.target.value, filters.ageMin))} style={{ flex: 1, accentColor: th.primary }} />
         </div>
       </Field>
       <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={liveRegions} /></Field>
@@ -4513,7 +4513,7 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
         </div>
       </Field>
       <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-        <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: '', status: '', ageMin: 22, ageMax: 45, maritalStatus: [], hasChildren: '', childrenMin: 1 })}>נקה</Btn>
+        <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: '', status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 })}>נקה</Btn>
         <Btn th={th} full onClick={onClose}>הצג תוצאות</Btn>
       </div>
     </Sheet>
