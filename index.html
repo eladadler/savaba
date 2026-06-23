@@ -6112,12 +6112,15 @@ function MatchFlow({ th, go, params }) {
               </>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                <div style={{ background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '11px 14px', fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.65), lineHeight: 1.55 }}>
+                  לפני שבודקים עם השדכן השני — מה שנוח לכם! אפשר לשלוח ל<b>{first.name}</b> את הכרטיסיה של <b>{second.name}</b> בוואטסאפ:
+                </div>
                 {first.phone ? (
                   <a href={`https://wa.me/${String(first.phone).replace(/[^0-9]/g,'').replace(/^0/,'972')}?text=${encodeURIComponent(`שלום ${first.name}! יש לי הצעה שיכולה להתאים לך 😊 בא/י לראות את הכרטיסייה: https://eladadler.github.io/savaba/#cand/${second.id}`)}`}
                     target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <Btn th={th} full size="l" style={{ background: '#25D366', color: '#fff' }}
                       icon={<Icon name="whatsapp" size={19} style={{ color: '#fff' }} />}>
-                      שלח/י ל{first.name} בוואטסאפ
+                      שלח/י ל{first.name} את הכרטיסיה של {second.name}
                     </Btn>
                   </a>
                 ) : (
