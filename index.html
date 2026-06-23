@@ -7946,6 +7946,7 @@ function OfferDetail({ th, go, params }) {
   const [text,           setText]          = useState('');
   const [approving,      setApproving]     = useState(false);
   const [markingEngaged, setMarkingEngaged]= useState(false);
+  const [confirmEngaged, setConfirmEngaged]= useState(false);
   const [confirmReject,  setConfirmReject] = useState(false);
   const endRef = React.useRef(null);
 
@@ -8252,12 +8253,10 @@ function OfferDetail({ th, go, params }) {
                   <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), textAlign:'center', marginBottom:14, lineHeight:1.5 }}>
                     האם {candA.name} ו{candB.name} התחתנו? דווח/י ותחגגו יחד!
                   </div>
-                  <button disabled={markingEngaged} onClick={markEngaged}
-                    style={{ all:'unset', cursor:markingEngaged?'default':'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
+                  <button onClick={() => setConfirmEngaged(true)}
+                    style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
                     <span style={{ fontSize:22 }}>💍</span>
-                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>
-                      {markingEngaged ? 'שומר...' : 'הזוג התחתן! דווח/י'}
-                    </span>
+                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>הזוג התחתן! דווח/י</span>
                   </button>
                 </>
               )}
@@ -8314,6 +8313,26 @@ function OfferDetail({ th, go, params }) {
         )}
 
       </div>
+
+      <Sheet open={confirmEngaged} onClose={() => setConfirmEngaged(false)} th={th} title="🎊 רגע לפני...">
+        <div style={{ textAlign:'center', marginBottom:18 }}>
+          <div style={{ fontSize:48, lineHeight:1, marginBottom:12 }}>💍</div>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:8 }}>
+            אנחנו מתרגשים מאוד —
+          </div>
+          <div style={{ fontFamily:th.body, fontSize:14.5, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
+            רוצים לוודא — כבר הייתה חתונה?! 🥹<br/>
+            <b>{candA.name}</b> ו<b>{candB.name}</b> התחתנו?
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:10 }}>
+          <Btn th={th} full variant="ghost" onClick={() => setConfirmEngaged(false)}>עוד לא...</Btn>
+          <Btn th={th} full style={{ background:th.gold, color:'#fff' }}
+            onClick={async () => { setConfirmEngaged(false); await markEngaged(); }}>
+            כן! מזל טוב! 🎉
+          </Btn>
+        </div>
+      </Sheet>
 
       <Sheet open={confirmReject} onClose={() => setConfirmReject(false)} th={th} title="דחיית הצעת שידוך">
         <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), marginBottom:18, lineHeight:1.5 }}>
