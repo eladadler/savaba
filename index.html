@@ -2680,7 +2680,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
   );
 }
 
-function AdminPanel({ th, go }) {
+function AdminPanel({ th, go, aiMode, setAiMode }) {
   const { profile, startImpersonate }  = useContext(AuthCtx);
   const { candidates, matchmakers, texts, lists, addCandidate, updateCandidate,
           deleteCandidate, uploadPhoto, uploadVoice, updateText, setUserAdmin, updateList } = useContext(DataCtx);
@@ -3037,6 +3037,34 @@ function AdminPanel({ th, go }) {
                   </button>
                 </div>
                 {notifEmail && <div style={{ fontFamily:th.body, fontSize:11.5, color:th.success, marginTop:6 }}>✓ שמור: {notifEmail}</div>}
+              </div>
+
+              {/* ── AI MODE ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>✦ מסלול בינה מלאכותית</div>
+                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
+                  קובע איך ה-AI מנתח התאמות במסך AI
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {[
+                    { value: 'off',      label: 'כבוי',              note: 'אלגוריתם בלבד — חינם' },
+                    { value: 'top5',     label: 'TOP-5',             note: '~$0.0015 לכל פתיחת מסך' },
+                    { value: 'learning', label: 'TOP-5 + למידה',     note: '~$0.002 לכל פתיחת מסך, משתפר עם הזמן' },
+                  ].map(opt => (
+                    <div key={opt.value} onClick={() => setAiMode && setAiMode(opt.value)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: th.rSm,
+                        border: `2px solid ${aiMode === opt.value ? th.primary : alpha(th.ink, 0.12)}`,
+                        background: aiMode === opt.value ? alpha(th.primary, 0.06) : th.cream,
+                        cursor: 'pointer' }}>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2.5px solid ${aiMode === opt.value ? th.primary : alpha(th.ink, 0.3)}`,
+                        background: aiMode === opt.value ? th.primary : 'transparent', flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: 13.5, color: th.ink }}>{opt.label}</div>
+                        <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.5) }}>{opt.note}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* ── ANTHROPIC API KEY ── */}
@@ -9077,7 +9105,7 @@ function renderScreen(cur, th, go, profile) {
     case 'candViewCand':  return <CandViewCand th={th} go={go} params={p} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
     case 'textsAdmin':  return <TextsAdmin th={th} go={go} />;
-    case 'admin':         return <AdminPanel th={th} go={go} />;
+    case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} />;
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
     case 'candSelfFill':  return <CandidateSelfFill th={th} go={go} params={p} />;
     case 'editCand':      return <EditCandidateScreen th={th} go={go} params={p} />;
@@ -9171,7 +9199,17 @@ function ImpersonateBanner({ th }) {
 
 function AppInner({ inviteToken }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
-  const th             = makeTheme(t);
+  const [aiMode, setAiModeState] = React.useState('top5');
+  React.useEffect(() => {
+    db.collection('config').doc('settings').get()
+      .then(d => { if (d.exists && d.data().aiMode) setAiModeState(d.data().aiMode); })
+      .catch(() => {});
+  }, []);
+  const setAiMode = async (val) => {
+    setAiModeState(val);
+    await db.collection('config').doc('settings').set({ aiMode: val }, { merge: true });
+  };
+  const th = makeTheme({ ...t, aiMode });
   const { user, profile } = useContext(AuthCtx);
   const data           = useContext(DataCtx);
   const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
@@ -9298,8 +9336,6 @@ function AppInner({ inviteToken }) {
         </div>
       </div>
       <TweaksPanel title="Tweaks">
-        <TweakSection label="בינה מלאכותית" />
-        <TweakRadio label="מסלול AI" value={t.aiMode} options={[{value:'off',label:'כבוי — חינם'},{value:'top5',label:'TOP-5 — ~$0.0015/מסך'},{value:'learning',label:'TOP-5 + למידה — ~$0.002/מסך'}]} onChange={v => setTweak('aiMode',v)} />
         <TweakSection label="כרטיסיית מועמד" />
         <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
         <TweakSection label="תוכן הכרטיסייה" />
