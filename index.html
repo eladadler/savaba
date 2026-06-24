@@ -6027,19 +6027,21 @@ function parseAiAnalysis(raw) {
 function parseBatchResponse(raw, pairKeys) {
   if (!raw) return {};
   const result = {};
+  const clean = s => s.replace(/\*\*/g, '').trim();
   (raw.split('\n') || []).forEach(line => {
-    const mIdx = line.match(/^\[?(\d+)\]?[:\.]?\s*/);
+    // Match: [1]: / 1: / 1. / **1:** / **1.** etc.
+    const mIdx = line.match(/^(?:\*\*)?(\d+)(?:\*\*)?[:\.]?\s*/);
     if (!mIdx) return;
     const idx = parseInt(mIdx[1]) - 1;
     const key = pairKeys[idx];
     if (!key) return;
     const rest = line.slice(mIdx[0].length);
-    const get = (k) => { const m = rest.match(new RegExp(k + ':\\s*([^|]+)')); return m ? m[1].trim() : ''; };
+    const get = (k) => { const m = rest.match(new RegExp(k + ':\\s*([^|\\n]+')); return m ? clean(m[1]) : ''; };
     const score   = parseInt(get('ציון')) || null;
-    const bullets = get('סיבות').split(/[·\|]/).map(s => s.trim()).filter(Boolean);
+    const bullets = get('סיבות').split(/[·]/).map(s => clean(s)).filter(Boolean);
     const caution = get('לשים לב') || '';
     const label   = get('המלצה') || '';
-    result[key] = { score, bullets, caution, label };
+    if (score || bullets.length) result[key] = { score, bullets, caution, label };
   });
   return result;
 }
@@ -7312,7 +7314,7 @@ function AIRecs({ th, go }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
           body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001', max_tokens: 400,
+            model: 'claude-haiku-4-5-20251001', max_tokens: 600,
             system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
             messages: [{ role: 'user', content: prompt }]
           })
