@@ -6036,7 +6036,7 @@ function parseBatchResponse(raw, pairKeys) {
     const key = pairKeys[idx];
     if (!key) return;
     const rest = line.slice(mIdx[0].length);
-    const get = (k) => { const m = rest.match(new RegExp(k + ':\\s*([^|\\n]+')); return m ? clean(m[1]) : ''; };
+    const get = (k) => { const m = rest.match(new RegExp(k + ':\\s*([^|\\n]+'  + ')')); return m ? clean(m[1]) : ''; };
     const score   = parseInt(get('ציון')) || null;
     const bullets = get('סיבות').split(/[·]/).map(s => clean(s)).filter(Boolean);
     const caution = get('לשים לב') || '';
@@ -7166,7 +7166,6 @@ function AIRecs({ th, go }) {
 
   const [aiAnalyses, setAiAnalyses] = React.useState({});
   const [aiLoading,  setAiLoading]  = React.useState(false);
-  const [aiDebug,    setAiDebug]    = React.useState('');
 
   // ── Scoring engine ────────────────────────────────────────────
   const pairs = React.useMemo(() => {
@@ -7321,9 +7320,8 @@ function AIRecs({ th, go }) {
         });
         const d = await res.json();
         const rawText = d.content?.[0]?.text?.trim() || '';
-        setAiDebug(rawText || JSON.stringify(d).slice(0,200));
         setAiAnalyses(parseBatchResponse(rawText, pairKeys));
-      } catch(e) { console.warn('AIRecs batch analysis:', e); setAiDebug('שגיאה: ' + e.message); }
+      } catch(e) { console.warn('AIRecs batch analysis:', e); }
       finally { setAiLoading(false); }
     })();
   }, [pairs.map(p=>`${p.aId}__${p.bId}`).join(','), th.aiMode]);
@@ -7339,13 +7337,6 @@ function AIRecs({ th, go }) {
             <span dangerouslySetInnerHTML={{ __html: t('ai_info_text') }} />
           </span>
         </div>
-
-        {aiDebug ? (
-          <div style={{ background:'#1a1a2e', color:'#00ff88', borderRadius:8, padding:'10px 12px', marginBottom:14, fontFamily:'monospace', fontSize:11, whiteSpace:'pre-wrap', wordBreak:'break-all', direction:'ltr' }}>
-            <div style={{ color:'#888', marginBottom:4 }}>AI raw response:</div>
-            {aiDebug}
-          </div>
-        ) : null}
 
         {pairs.length === 0 && (
           <div style={{ textAlign:'center', padding:'48px 24px', color:alpha(th.ink,0.4) }}>
