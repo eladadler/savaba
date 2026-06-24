@@ -3567,6 +3567,9 @@ const SCREEN_TEXTS = {
   matchFlow:   ['match_hint','match_wa_btn','match_mm_btn'],
 };
 
+// Gender helper — handles both 'f' (mock data) and 'אשה' (CandidateForm)
+const isFemGender = g => g === 'f' || g === 'אשה';
+
 // Fills a WA template: replaces {key} placeholders with actual values
 const fillWa = (texts, key, vars) => {
   const tpl = texts[key] || DEFAULT_TEXTS[key] || '';
@@ -8193,7 +8196,7 @@ function OfferDetail({ th, go, params }) {
               <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 9px', borderRadius:th.rSm, background:alpha(th.success,0.12) }}>
                 <Icon name="check" size={13} style={{ color:th.success }} />
                 <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:th.success }}>
-                  {cand.name.split(' ')[0]} {cand.gender === 'f' ? 'אישרה' : 'אישר'}
+                  {cand.name.split(' ')[0]} {isFemGender(cand.gender) ? 'אישרה' : 'אישר'}
                 </span>
               </div>
             ) : mine && !finalFail ? (
@@ -8201,11 +8204,11 @@ function OfferDetail({ th, go, params }) {
                 <button disabled={approving} onClick={() => markApproved(field, newOtherApp)}
                   style={{ all:'unset', cursor:approving?'default':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, padding:'9px 0', borderRadius:th.rSm, background:th.primary, width:'100%', boxSizing:'border-box', opacity:approving?0.6:1, animation:approving?'none':'sabaChatBeat 2s ease-in-out infinite' }}>
                   <span style={{ fontFamily:th.display, fontWeight:800, fontSize:12.5, color:'#fff' }}>
-                    {approving ? 'שומר…' : `${cand.name.split(' ')[0]} ${cand.gender === 'f' ? 'מאשרת' : 'מאשר'}`}
+                    {approving ? 'שומר…' : `${cand.name.split(' ')[0]} ${isFemGender(cand.gender) ? 'מאשרת' : 'מאשר'}`}
                   </span>
                 </button>
                 <div style={{ marginTop:7, fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45), textAlign:'center', lineHeight:1.4 }}>
-                  {cand.gender === 'f' ? 'המועמדת' : 'המועמד'} {cand.gender === 'f' ? 'מאשרת' : 'מאשר'} את השידוך? לחץ על הכפתור הוורוד לאישור
+                  {isFemGender(cand.gender) ? 'המועמדת' : 'המועמד'} {isFemGender(cand.gender) ? 'מאשרת' : 'מאשר'} את השידוך? לחץ על הכפתור הוורוד לאישור
                 </div>
               </>
             ) : (
@@ -8285,12 +8288,12 @@ function OfferDetail({ th, go, params }) {
               <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.55, marginBottom:14 }}>
                 {iAmBothMm
                   ? `שלח/י לכל אחד מהמועמדים שלך קישור לאפליקציה — שם יוכלו להכיר אחד את השני ולצור קשר!`
-                  : `שלח/י ל${myCand.name.split(' ')[0]} קישור לאפליקציית המועמדים — שם ${myCand.gender === 'f' ? 'תוכלי' : 'תוכל'} להכיר את ${theirCand.name.split(' ')[0]}!`}
+                  : `שלח/י ל${myCand.name.split(' ')[0]} קישור לאפליקציית המועמדים — שם ${isFemGender(myCand.gender) ? 'תוכלי' : 'תוכל'} להכיר את ${theirCand.name.split(' ')[0]}!`}
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {(iAmBothMm ? [candA, candB] : [myCand]).map(cand => {
                   const ph = waPhone(cand);
-                  const isFem = cand.gender === 'f';
+                  const isFem = isFemGender(cand.gender);
                   const appMsg = [
                     `היי ${cand.name.split(' ')[0]}! 🎉`,
                     `יש לנו בשבילך הצעת שידוך מעניינת.`,
