@@ -6544,10 +6544,11 @@ function Offers({ th, go, params }) {
       <AppHeader th={th} title="הצעות" sub={`${pending.length + approved.length} פעילות`} onBack={() => go('tab', { tab: 'home' })}
         action={
           <button onClick={() => go('matchFlow', { fromOffers: true })}
-            style={{ all:'unset', cursor:'pointer', width:38, height:38, borderRadius:'50%', background:th.primary,
-              display:'flex', alignItems:'center', justifyContent:'center',
-              boxShadow:`0 3px 12px ${alpha(th.primary,0.35)}` }}>
-            <Icon name="plus" size={22} style={{ color:'#fff' }} />
+            style={{ border:'none', background:th.primary, height:38, borderRadius:999, paddingInline:14,
+              display:'flex', alignItems:'center', gap:5, color:'#fff', cursor:'pointer',
+              fontFamily:th.display, fontWeight:800, fontSize:13,
+              boxShadow:`0 6px 18px ${alpha(th.primary,0.35)}`, whiteSpace:'nowrap' }}>
+            <Icon name="plus" size={15} style={{ color:'#fff' }} /> צרו הצעה חדשה
           </button>
         }
       />
