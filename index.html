@@ -6029,8 +6029,8 @@ function parseBatchResponse(raw, pairKeys) {
   const result = {};
   const clean = s => s.replace(/\*\*/g, '').trim();
   (raw.split('\n') || []).forEach(line => {
-    // Match: [1]: / 1: / 1. / **1:** / **1.** etc.
-    const mIdx = line.match(/^(?:\*\*)?(\d+)(?:\*\*)?[:\.]?\s*/);
+    // Match: [1]: / **[1]:** / 1: / **1:** / 1. etc.
+    const mIdx = line.match(/^(?:\*\*)?(?:\[)?(\d+)(?:\])?(?:\*\*)?[:\.]?\s*/);
     if (!mIdx) return;
     const idx = parseInt(mIdx[1]) - 1;
     const key = pairKeys[idx];
