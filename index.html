@@ -2699,13 +2699,20 @@ function AdminPanel({ th, go }) {
   const [notifEmail, setNotifEmail] = useState('');
   const [notifEmailInput, setNotifEmailInput] = useState('');
   const [savingEmail, setSavingEmail] = useState(false);
+  const [anthropicKey, setAnthropicKey] = useState('');
+  const [anthropicKeyInput, setAnthropicKeyInput] = useState('');
+  const [savingApiKey, setSavingApiKey] = useState(false);
 
   useEffect(() => {
     db.collection('deletions').orderBy('at', 'desc').limit(50).get()
       .then(s => setDeletionLog(s.docs.map(d => ({ id: d.id, ...d.data() }))))
       .catch(() => {});
     db.collection('config').doc('settings').get()
-      .then(d => { if (d.exists && d.data().notifEmail) { setNotifEmail(d.data().notifEmail); setNotifEmailInput(d.data().notifEmail); } })
+      .then(d => {
+        if (!d.exists) return;
+        if (d.data().notifEmail) { setNotifEmail(d.data().notifEmail); setNotifEmailInput(d.data().notifEmail); }
+        if (d.data().anthropicKey) { setAnthropicKey(d.data().anthropicKey); setAnthropicKeyInput(d.data().anthropicKey); }
+      })
       .catch(() => {});
   }, []);
   const [hideSeed, setHideSeed] = useState(() => localStorage.getItem('hideSeed') === 'true');
@@ -3030,6 +3037,35 @@ function AdminPanel({ th, go }) {
                   </button>
                 </div>
                 {notifEmail && <div style={{ fontFamily:th.body, fontSize:11.5, color:th.success, marginTop:6 }}>✓ שמור: {notifEmail}</div>}
+              </div>
+
+              {/* ── ANTHROPIC API KEY ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>✦ מפתח Anthropic API</div>
+                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
+                  נדרש למסלולי AI (TOP-5 ולמידה). נשמר מוצפן ב-Firestore, לא גלוי בקוד.
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <input
+                    value={anthropicKeyInput}
+                    onChange={e => setAnthropicKeyInput(e.target.value)}
+                    placeholder="sk-ant-api03-..."
+                    dir="ltr" type="password"
+                    style={{ flex:1, border:`1.5px solid ${alpha(th.ink,0.15)}`, borderRadius:th.rSm, padding:'9px 12px', fontFamily:th.body, fontSize:13.5, outline:'none', background:th.cream }}
+                  />
+                  <button
+                    disabled={savingApiKey || anthropicKeyInput === anthropicKey}
+                    onClick={async () => {
+                      setSavingApiKey(true);
+                      await db.collection('config').doc('settings').set({ anthropicKey: anthropicKeyInput }, { merge: true });
+                      setAnthropicKey(anthropicKeyInput);
+                      setSavingApiKey(false);
+                    }}
+                    style={{ padding:'9px 16px', borderRadius:th.rSm, border:'none', background: anthropicKeyInput !== anthropicKey ? th.primary : alpha(th.ink,0.1), color: anthropicKeyInput !== anthropicKey ? '#fff' : alpha(th.ink,0.4), fontFamily:th.display, fontWeight:800, fontSize:13, cursor:'pointer', whiteSpace:'nowrap' }}>
+                    {savingApiKey ? 'שומר…' : 'שמור'}
+                  </button>
+                </div>
+                {anthropicKey && <div style={{ fontFamily:th.body, fontSize:11.5, color:th.success, marginTop:6 }}>✓ מפתח שמור ({anthropicKey.slice(0,12)}…)</div>}
               </div>
 
               {/* ── DELETION LOG ── */}
