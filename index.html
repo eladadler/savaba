@@ -3942,6 +3942,32 @@ function Home({ th, go }) {
     }, {})
   ), [newMsgNotifs]);
 
+  // 3c. Unread MM→MM offer chat messages (mm_chats collection)
+  const [offerChatUnread, setOfferChatUnread] = React.useState({});
+  React.useEffect(() => {
+    if (!myUid) return;
+    const unsub = db.collection('mm_chats')
+      .where('participants', 'array-contains', myUid)
+      .onSnapshot(snap => {
+        const unread = {};
+        snap.forEach(doc => {
+          const data = doc.data();
+          const oid = data.offerId || doc.id;
+          const msgs = data.messages || [];
+          const last = msgs[msgs.length - 1];
+          if (!last || last.from === myUid) return;
+          const lastAt = last.at || 0;
+          const lastRead = parseInt(localStorage.getItem('chatRead_' + oid) || '0');
+          if (lastAt > lastRead) unread[oid] = true;
+        });
+        setOfferChatUnread(unread);
+      });
+    return unsub;
+  }, [myUid]);
+  const unreadOfferChats = React.useMemo(() =>
+    Object.keys(offerChatUnread).map(oid => offers.find(o => o.id === oid)).filter(Boolean),
+    [offerChatUnread, offers]);
+
   // 3. My offers where both MMs approved but a candidate hasn't responded yet
   const offersAwaitingCand = React.useMemo(() =>
     offers.filter(o =>
@@ -3984,6 +4010,20 @@ function Home({ th, go }) {
         const first = newMsgChats[0];
         go('candInquiry', { candId: first.candId, toMm: first.fromMmId });
       },
+    },
+    unreadOfferChats.length > 0 && {
+      icon: 'send', tone: th.primary, big: String(unreadOfferChats.length),
+      text: unreadOfferChats.length === 1
+        ? (() => {
+            const o = unreadOfferChats[0];
+            const cA = candidates.find(c => c.id === o.aId);
+            const cB = candidates.find(c => c.id === o.bId);
+            return `הודעה חדשה בהצעה: ${cA?.name || '?'} · ${cB?.name || '?'}`;
+          })()
+        : `${unreadOfferChats.length} הצעות עם הודעות חדשות`,
+      to: () => unreadOfferChats.length === 1
+        ? go('offerDetail', { id: unreadOfferChats[0].id })
+        : go('offers'),
     },
   ].filter(Boolean);
 
