@@ -2489,42 +2489,93 @@ function AdminStats({ th, hideSeed, isSeed }) {
 
   const PALETTE = [th.primary, th.gold, th.success, '#a78bfa', '#fb923c', '#34d399'];
 
-  const engViaApp  = allEngagements.filter(e => !e.notViaApp);
-  const engOther   = allEngagements.filter(e => !!e.notViaApp);
+  const engagedOffers = offers.filter(o => o.isEngaged);
+  const [engListOpen, setEngListOpen] = React.useState(false);
+
+  // Build couple list from engaged offers + any standalone engagements
+  const offerCouples = engagedOffers.map(o => {
+    const candA = candidates.find(c => c.id === o.aId);
+    const candB = candidates.find(c => c.id === o.bId);
+    const dateTs = o.engagedAt?.seconds || o.updatedAt?.seconds || null;
+    return { key: o.id, nameA: candA?.name || o.aName || '?', nameB: candB?.name || o.bName || '?',
+             phoneA: candA?.phone ? String(candA.phone).replace(/\D/,'').replace(/^0/,'972') : null,
+             phoneB: candB?.phone ? String(candB.phone).replace(/\D/,'').replace(/^0/,'972') : null,
+             date: dateTs ? new Date(dateTs * 1000).toLocaleDateString('he-IL') : null };
+  });
+  const totalMarriages = engagedOffers.length;
 
   return (
     <div style={{ direction: 'rtl' }}>
 
-      {/* ── ENGAGEMENTS (top of page) ── */}
-      {allEngagements.length > 0 && (
-        <>
-          <SectionTitle icon="💍">נישואין</SectionTitle>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:12 }}>
-            <StatCard label="💍 בזכות האפליקציה" value={engViaApp.length}  color={th.gold}    icon="🎊" />
-            <StatCard label="🤝 בדרך אחרת"        value={engOther.length}   color={alpha(th.ink,0.5)} />
+      {/* ══ MARRIAGES — celebratory hero ══ */}
+      <div style={{ background:`linear-gradient(135deg, ${alpha(th.gold,0.18)} 0%, ${alpha(th.primary,0.12)} 100%)`,
+        border:`2px solid ${alpha(th.gold,0.45)}`, borderRadius:th.rLg,
+        padding:'22px 20px 20px', marginBottom:20, position:'relative', overflow:'hidden' }}>
+        {/* confetti dots */}
+        {['20%','50%','80%'].map((l,i) => (
+          <div key={i} style={{ position:'absolute', top:8, left:l, fontSize:14, animation:`sabaPop ${0.6+i*0.2}s ease both`, animationDelay:`${i*0.15}s` }}>
+            {['🎊','✨','🎉'][i]}
           </div>
-          {engViaApp.length > 0 && (
-            <div style={{ background:th.card, borderRadius:th.r, padding:'14px 16px', boxShadow:`0 4px 18px ${alpha(th.gold,0.18)}`, border:`1.5px solid ${alpha(th.gold,0.3)}`, marginBottom:20 }}>
-              {engViaApp.map((e, i) => (
-                <div key={e.id} style={{ display:'flex', alignItems:'center', gap:10, paddingBlock: i > 0 ? 10 : 0, borderTop: i > 0 ? `1px solid ${alpha(th.ink,0.07)}` : 'none' }}>
-                  <span style={{ fontSize:22 }}>💍</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>
-                      {e.candName}{e.partnerName ? ` + ${e.partnerName}` : ''}
-                    </div>
-                    {e.at?.seconds && (
-                      <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.45) }}>
-                        {new Date(e.at.seconds*1000).toLocaleDateString('he-IL')}
+        ))}
+        <div style={{ textAlign:'center' }}>
+          <div style={{ fontSize:52, lineHeight:1, marginBottom:6, animation:'sabaPop .5s ease' }}>💍</div>
+          <div style={{ fontFamily:th.display, fontWeight:900, fontSize:52, color:th.gold, lineHeight:1, animation:'sabaPop .4s ease' }}>
+            {totalMarriages}
+          </div>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:alpha(th.gold,0.85), marginTop:2 }}>
+            {totalMarriages === 1 ? 'זוג התחתן' : 'זוגות התחתנו'} 💒
+          </div>
+          <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.55), marginTop:5 }}>
+            מזל טוב לכל הזוגות! 🥂
+          </div>
+        </div>
+
+        {totalMarriages > 0 && (
+          <>
+            <button onClick={() => setEngListOpen(v => !v)}
+              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                width:'100%', boxSizing:'border-box', marginTop:16, padding:'9px 0', borderRadius:th.rSm,
+                background:alpha(th.gold,0.15), fontFamily:th.display, fontWeight:800, fontSize:13, color:th.gold }}>
+              {engListOpen ? '▲ הסתר רשימה' : `▼ הצג את ${totalMarriages === 1 ? 'הזוג' : `כל ${totalMarriages} הזוגות`}`}
+            </button>
+
+            {engListOpen && (
+              <div style={{ marginTop:10, display:'flex', flexDirection:'column', gap:8 }}>
+                {offerCouples.map((cp, i) => (
+                  <div key={cp.key} style={{ background:alpha(th.cream,0.9), borderRadius:th.rSm, padding:'12px 14px',
+                    display:'flex', alignItems:'center', gap:10, animation:'sabaUp .2s ease' }}>
+                    <span style={{ fontSize:22, flexShrink:0 }}>💍</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, lineHeight:1.3 }}>
+                        {cp.nameA} &amp; {cp.nameB}
                       </div>
-                    )}
+                      {cp.date && <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45), marginTop:2 }}>{cp.date}</div>}
+                    </div>
+                    <div style={{ display:'flex', gap:6, flexShrink:0 }}>
+                      {cp.phoneA && (
+                        <a href={`https://wa.me/${cp.phoneA}`} target="_blank" rel="noreferrer"
+                          title={`ווצאפ ל${cp.nameA.split(' ')[0]}`}
+                          style={{ display:'flex', alignItems:'center', justifyContent:'center', width:34, height:34,
+                            borderRadius:'50%', background:'#25D366', textDecoration:'none' }}>
+                          <Icon name="whatsapp" size={18} style={{ color:'#fff' }} />
+                        </a>
+                      )}
+                      {cp.phoneB && (
+                        <a href={`https://wa.me/${cp.phoneB}`} target="_blank" rel="noreferrer"
+                          title={`ווצאפ ל${cp.nameB.split(' ')[0]}`}
+                          style={{ display:'flex', alignItems:'center', justifyContent:'center', width:34, height:34,
+                            borderRadius:'50%', background:'#25D366', textDecoration:'none' }}>
+                          <Icon name="whatsapp" size={18} style={{ color:'#fff' }} />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.gold, background:alpha(th.gold,0.12), borderRadius:999, padding:'3px 9px' }}>מהאפליקציה</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* ── CANDIDATES overview ── */}
       <SectionTitle icon="👥">מועמדים</SectionTitle>
