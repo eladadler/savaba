@@ -8046,6 +8046,9 @@ function OfferDetail({ th, go, params }) {
   const [markingEngaged, setMarkingEngaged]= useState(false);
   const [confirmEngaged, setConfirmEngaged]= useState(false);
   const [confirmReject,  setConfirmReject] = useState(false);
+  const [noteText,       setNoteText]      = useState('');
+  const [noteSaving,     setNoteSaving]    = useState(false);
+  useEd(() => { setNoteText(o?.mmPrivateNote || ''); }, [o?.mmPrivateNote]);
   const endRef = React.useRef(null);
 
   // Mark chat read when screen opens
@@ -8412,6 +8415,39 @@ function OfferDetail({ th, go, params }) {
                     </a>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* ── Private note (iAmBothMm only) ── */}
+            {iAmBothMm && (
+              <div style={{ background:alpha(th.ink,0.04), borderRadius:th.rSm, padding:'12px 14px', marginBottom:12, border:`1px solid ${alpha(th.ink,0.09)}` }}>
+                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
+                  <Icon name="lock" size={14} style={{ color:alpha(th.ink,0.4) }} />
+                  <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:alpha(th.ink,0.55) }}>הערה פרטית שלך</span>
+                </div>
+                <textarea
+                  value={noteText}
+                  onChange={e => setNoteText(e.target.value)}
+                  placeholder="הערות, תזכורות… רק אתה רואה את זה"
+                  rows={3}
+                  style={{ width:'100%', boxSizing:'border-box', resize:'none', border:'none', background:'transparent',
+                    fontFamily:th.body, fontSize:13.5, color:th.ink, lineHeight:1.55, outline:'none',
+                    caretColor:th.primary }}
+                />
+                {noteText !== (o?.mmPrivateNote || '') && (
+                  <div style={{ display:'flex', justifyContent:'flex-end', gap:8, marginTop:6 }}>
+                    <button onClick={() => setNoteText(o?.mmPrivateNote || '')}
+                      style={{ all:'unset', cursor:'pointer', fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.4) }}>ביטול</button>
+                    <button disabled={noteSaving} onClick={async () => {
+                      setNoteSaving(true);
+                      await updateOffer(o.id, { mmPrivateNote: noteText });
+                      setNoteSaving(false);
+                    }} style={{ all:'unset', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:12,
+                      color:'#fff', background:th.primary, borderRadius:99, padding:'4px 14px' }}>
+                      {noteSaving ? 'שומר…' : 'שמור'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
