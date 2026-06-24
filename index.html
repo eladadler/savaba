@@ -5915,6 +5915,7 @@ function MatchFlow({ th, go, params }) {
   const [filterOpen, setFilterOpen] = useSc(false);
   const [q2, setQ2] = useSc('');
   const [sending, setSending] = useSc(false);
+  const [newOfferId, setNewOfferId] = useSc(null);
   const [firstCandId, setFirstCandId] = useSc(null); // kept for legacy; no longer used in UI
   const [selfCandAApproved, setSelfCandAApproved] = useSc(false);
   const [selfCandBApproved, setSelfCandBApproved] = useSc(false);
@@ -5989,23 +5990,22 @@ function MatchFlow({ th, go, params }) {
     if (offerExists(first.id, second.id)) { alert('כבר קיימת הצעה בין מועמדים אלה'); return; }
     setSending(true);
     try {
+      let docRef;
       if (isSelfMatch) {
-        const bothApproved = selfCandAApproved && selfCandBApproved;
-        await addOffer({
+        docRef = await addOffer({
           aId: first.id, aMm: myUid,
           bId: second.id, bMm: myUid,
-          status: bothApproved ? 'אושרה' : 'ממתין למועמד',
+          status: 'ממתין למועמד',
           aStatus: 'אישר', bStatus: 'אישר',
           selfMatch: true,
-          candAStatus: selfCandAApproved ? 'אישר' : 'ממתין',
-          candBStatus: selfCandBApproved ? 'אישר' : 'ממתין',
+          candAStatus: 'ממתין', candBStatus: 'ממתין',
           note: note.trim(), unread: 0,
         });
       } else {
         // Creator (myUid) is always aMm — regardless of which candidate was selected first
         const myFirst  = isCandMine(first) ? first  : second;
         const mySecond = isCandMine(first) ? second : first;
-        await addOffer({
+        docRef = await addOffer({
           aId: myFirst.id,  aMm: myUid,
           bId: mySecond.id, bMm: mySecond.mmId,
           status: 'נשלחה',
@@ -6013,6 +6013,7 @@ function MatchFlow({ th, go, params }) {
           note: note.trim(), unread: 0,
         });
       }
+      setNewOfferId(docRef.id);
       setStep(4);
     } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
     setSending(false);
@@ -6049,7 +6050,7 @@ function MatchFlow({ th, go, params }) {
           }
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
-          <Btn th={th} full size="l" onClick={() => go('offers')}>למעקב הצעות</Btn>
+          <Btn th={th} full size="l" onClick={() => newOfferId ? go('offerDetail', { id: newOfferId }) : go('offers')}>למעקב הצעות</Btn>
           <Btn th={th} full size="l" variant="ghost" onClick={() => go('tab', { tab: 'home' })}>חזרה לבית</Btn>
         </div>
       </div>
@@ -6172,40 +6173,18 @@ function MatchFlow({ th, go, params }) {
 
             {isSelfMatch ? (
               <>
-                <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:14 }}>
-                  {[{ cand: first, approved: selfCandAApproved, setApproved: setSelfCandAApproved },
-                    { cand: second, approved: selfCandBApproved, setApproved: setSelfCandBApproved }].map(({ cand, approved, setApproved }) => (
-                    <div key={cand.id} style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                      {cand.phone ? (
-                        <a href={`https://wa.me/${String(cand.phone).replace(/[^0-9]/g,'').replace(/^0/,'972')}?text=${encodeURIComponent(`שלום ${cand.name}! יש לי הצעה שיכולה להתאים לך 😊 בא/י לראות את הכרטיסייה: https://eladadler.github.io/savaba/#cand/${cand.id === first.id ? second.id : first.id}`)}`}
-                          target="_blank" rel="noreferrer" style={{ textDecoration:'none' }}>
-                          <Btn th={th} full size="m" style={{ background:'#25D366', color:'#fff' }}
-                            icon={<Icon name="whatsapp" size={17} style={{ color:'#fff' }} />}>
-                            שלח/י ל{cand.name} בוואטסאפ
-                          </Btn>
-                        </a>
-                      ) : (
-                        <Btn th={th} full size="m" variant="soft" disabled icon={<Icon name="whatsapp" size={17} />}>
-                          אין מספר טלפון ל{cand.name}
-                        </Btn>
-                      )}
-                      <button onClick={() => setApproved(!approved)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background: approved ? alpha(th.success,0.1) : alpha(th.ink,0.04), border:`1.5px solid ${approved ? th.success : alpha(th.ink,0.1)}`, transition:'all .15s' }}>
-                        <Avatar grad={cand.grad} name={cand.name} size={34} photo={cand.photos?.[0]} />
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{cand.name}</div>
-                          <div style={{ fontFamily:th.body, fontSize:11.5, color: approved ? th.success : alpha(th.ink,0.45) }}>{approved ? 'אישר/ה את ההצעה ✓' : 'טרם אישר/ה — לחץ/י לסימון'}</div>
-                        </div>
-                        <div style={{ width:22, height:22, borderRadius:'50%', border:`2px solid ${approved ? th.success : alpha(th.ink,0.2)}`, background: approved ? th.success : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .2s', flexShrink:0 }}>
-                          {approved && <Icon name="check" size={14} style={{ color:'#fff' }} />}
-                        </div>
-                      </button>
+                <div style={{ background:alpha(th.primary,0.06), border:`1.5px solid ${alpha(th.primary,0.14)}`, borderRadius:th.rSm, padding:'14px 16px', marginBottom:14, display:'flex', gap:12, alignItems:'flex-start' }}>
+                  <span style={{ fontSize:26, flexShrink:0, lineHeight:1.2 }}>🎯</span>
+                  <div>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink, marginBottom:5 }}>
+                      שני המועמדים הם שלך
                     </div>
-                  ))}
+                    <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.62), lineHeight:1.55 }}>
+                      ההצעה תיווצר ותנוהל ממסך ההצעות — שם תוכל/י לעקוב אחרי אישורי המועמדים, לשלוח הודעות ועוד.
+                    </div>
+                  </div>
                 </div>
-                <Field th={th} label="הערה אישית (לרשומות שלך)" hint="לא חובה">
-                  <TextArea th={th} value={note} onChange={setNote} placeholder="למה חשבתי על השידוך הזה…" rows={2} />
-                </Field>
-                <Btn th={th} full size="l" style={{ marginTop: 4 }} disabled={sending} onClick={sendOffer} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>{sending ? 'שולח…' : 'צור הצעה'}</Btn>
+                <Btn th={th} full size="l" disabled={sending} onClick={sendOffer} icon={<Icon name="send" size={19} fill="#fff" stroke={0} />}>{sending ? 'יוצר…' : 'צור הצעה'}</Btn>
               </>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
