@@ -9206,7 +9206,11 @@ function AppInner({ inviteToken }) {
   const activeTab = ROUTE_TO_TAB[cur.name] || 'home';
   const myUid = user?.uid;
   const matchBadge = React.useMemo(() =>
-    (data.offers||[]).filter(o => o.bMm === myUid && o.aMm !== myUid && !['אישר','דחה'].includes(o.bStatus) && o.status !== 'נדחתה').length,
+    (data.offers||[]).filter(o =>
+      o.bMm === myUid && o.aMm !== myUid &&
+      !['אישר','דחה'].includes(o.bStatus) &&
+      (o.status === 'נשלחה' || o.status === 'נצפתה')
+    ).length,
     [data.offers, myUid]);
   const candsBadge = React.useMemo(() =>
     (data.candidates||[]).filter(c => c.mmId === myUid && (c.status === 'pending_mm' || c.pendingApproval)).length,
