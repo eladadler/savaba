@@ -7307,7 +7307,7 @@ function AIRecs({ th, go }) {
           if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
         }
 
-        const prompt = `${examplesBlock}ניתח ${top5.length} זוגות. עבור כל זוג ענה בשורה אחת:\n[מספר]: ציון:[0-100] | סיבות:[נ1]·[נ2] | לשים לב:[אזהרה/אין] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
+        const prompt = `${examplesBlock}ניתח ${top5.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[0-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
 
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -7393,10 +7393,10 @@ function AIRecs({ th, go }) {
                         </li>
                       ))}
                     </ul>
-                    {ai.caution && ai.caution !== 'אין' && (
+                    {ai.caution && !['אין','אזהרה','אזהרה חמורה','warning'].includes(ai.caution.replace(/⚠️/g,'').trim()) && (
                       <div style={{ display:'flex', alignItems:'flex-start', gap:5, padding:'5px 8px', background:alpha(th.gold,0.2), borderRadius:th.rSm, marginTop:4 }}>
                         <span style={{ flexShrink:0, fontSize:12 }}>⚠️</span>
-                        <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.72) }}>{ai.caution}</span>
+                        <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.72) }}>{ai.caution.replace(/⚠️/g,'').trim()}</span>
                       </div>
                     )}
                   </>
