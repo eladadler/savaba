@@ -2512,12 +2512,6 @@ function AdminStats({ th, hideSeed, isSeed }) {
       <div style={{ background:`linear-gradient(135deg, ${alpha(th.gold,0.18)} 0%, ${alpha(th.primary,0.12)} 100%)`,
         border:`2px solid ${alpha(th.gold,0.45)}`, borderRadius:th.rLg,
         padding:'22px 20px 20px', marginBottom:20, position:'relative', overflow:'hidden' }}>
-        {/* confetti dots */}
-        {['20%','50%','80%'].map((l,i) => (
-          <div key={i} style={{ position:'absolute', top:8, left:l, fontSize:14, animation:`sabaPop ${0.6+i*0.2}s ease both`, animationDelay:`${i*0.15}s` }}>
-            {['🎊','✨','🎉'][i]}
-          </div>
-        ))}
         <div style={{ textAlign:'center' }}>
           <div style={{ fontSize:52, lineHeight:1, marginBottom:6, animation:'sabaPop .5s ease' }}>💍</div>
           <div style={{ fontFamily:th.display, fontWeight:900, fontSize:52, color:th.gold, lineHeight:1, animation:'sabaPop .4s ease' }}>
