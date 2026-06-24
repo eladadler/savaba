@@ -2702,6 +2702,7 @@ function AdminPanel({ th, go, aiMode, setAiMode }) {
   const [anthropicKey, setAnthropicKey] = useState('');
   const [anthropicKeyInput, setAnthropicKeyInput] = useState('');
   const [savingApiKey, setSavingApiKey] = useState(false);
+  const [apiTestStatus, setApiTestStatus] = useState(null); // null | 'testing' | 'ok' | 'fail'
 
   useEffect(() => {
     db.collection('deletions').orderBy('at', 'desc').limit(50).get()
@@ -3094,6 +3095,28 @@ function AdminPanel({ th, go, aiMode, setAiMode }) {
                   </button>
                 </div>
                 {anthropicKey && <div style={{ fontFamily:th.body, fontSize:11.5, color:th.success, marginTop:6 }}>✓ מפתח שמור ({anthropicKey.slice(0,12)}…)</div>}
+                {anthropicKey && (
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      disabled={apiTestStatus === 'testing'}
+                      onClick={async () => {
+                        setApiTestStatus('testing');
+                        try {
+                          const res = await fetch('https://api.anthropic.com/v1/messages', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+                            body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] })
+                          });
+                          setApiTestStatus(res.ok ? 'ok' : 'fail');
+                        } catch(e) { setApiTestStatus('fail'); }
+                      }}
+                      style={{ padding:'7px 16px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, background:th.cream, fontFamily:th.display, fontWeight:700, fontSize:12.5, cursor:'pointer', color:th.ink }}>
+                      {apiTestStatus === 'testing' ? 'בודק…' : 'בדוק חיבור'}
+                    </button>
+                    {apiTestStatus === 'ok'   && <span style={{ marginRight:10, fontFamily:th.body, fontSize:12.5, color:th.success }}>✓ המפתח תקין, ה-API עובד</span>}
+                    {apiTestStatus === 'fail' && <span style={{ marginRight:10, fontFamily:th.body, fontSize:12.5, color:'#e53e3e' }}>✗ שגיאה — בדוק שהמפתח נכון</span>}
+                  </div>
+                )}
               </div>
 
               {/* ── DELETION LOG ── */}
