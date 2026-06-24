@@ -5930,6 +5930,8 @@ function MatchFlow({ th, go, params }) {
   const [aiLoading, setAiLoading] = useSc(false);
   const [confirmModal, setConfirmModal] = useSc(false); // false | 'step1' | 'step2'
   const [candApproved, setCandApproved] = useSc(null);
+  const _spotlightRef     = useRef(null);
+  const _spotlightDoneRef = useRef(false);
 
   const myUid = profile?.uid;
   const offerExists = (idA, idB) => (offers || []).some(o =>
@@ -5939,6 +5941,19 @@ function MatchFlow({ th, go, params }) {
   // "mine" = primary matchmaker OR co-rep
   const isCandMine = c => c?.mmId === myUid || (c?.coMms || []).includes(myUid);
   const isSelfMatch = !!(second && isCandMine(first) && isCandMine(second));
+
+  // myCands1: candidates available for step-1 picker (fromOffers mode)
+  const myCands1 = fromOffers ? candidates.filter(c => isCandMine(c) && !c.pendingApproval) : [];
+  // Pick one neglected candidate once (random from top-3 least-recently-offered)
+  if (fromOffers && !_spotlightDoneRef.current && myCands1.length > 0) {
+    _spotlightDoneRef.current = true;
+    const lastTs = {};
+    (offers || []).forEach(o => { [o.aId, o.bId].forEach(id => { const ts = o.createdAt?.seconds || 0; if (!lastTs[id] || ts > lastTs[id]) lastTs[id] = ts; }); });
+    const sorted = [...myCands1].sort((a, b) => (lastTs[a.id] || 0) - (lastTs[b.id] || 0));
+    const topN = sorted.slice(0, Math.min(3, sorted.length));
+    _spotlightRef.current = topN[Math.floor(Math.random() * topN.length)]?.id || null;
+  }
+  const spotlight = fromOffers ? (myCands1.find(c => c.id === _spotlightRef.current) || null) : null;
   // effective "first notified" candidate in self-match
   const notifyFirst  = isSelfMatch ? (firstCandId || first?.id) : null;
   const notifySecond = isSelfMatch ? (notifyFirst === first?.id ? second : first) : null;
@@ -6078,25 +6093,69 @@ function MatchFlow({ th, go, params }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 24px' }}>
         {step === 1 && (
           fromOffers ? (() => {
-            const myCands1 = candidates.filter(c => isCandMine(c) && !c.pendingApproval);
-            const filtered1 = q1 ? myCands1.filter(c => c.name?.includes(q1)) : myCands1;
+            const onlyOne   = myCands1.length === 1;
+            const pickCand  = c => { setSelectedFirstId(c.id); setQ1(''); setStep(2); };
+            const filtered1 = q1
+              ? myCands1.filter(c => c.name?.includes(q1))
+              : myCands1.filter(c => c.id !== spotlight?.id);
             return (
               <>
-                <div style={{ fontFamily:th.display, fontSize:19, fontWeight:800, color:th.ink, marginBottom:4 }}>עם מי מתחילים?</div>
-                <p style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.55), marginTop:0, marginBottom:12, lineHeight:1.4 }}>בחר/י מועמד/ת מהרשימה שלך</p>
-                <div style={{ position:'relative', marginBottom:12 }}>
-                  <span style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', color:alpha(th.ink,0.4) }}><Icon name="search" size={18} /></span>
-                  <input value={q1} onChange={e => setQ1(e.target.value)} placeholder="חיפוש שם..."
-                    style={{ width:'100%', boxSizing:'border-box', padding:'10px 38px 10px 14px', borderRadius:999,
-                      border:`1.5px solid ${alpha(th.ink,0.12)}`, fontFamily:th.body, fontSize:14,
-                      background:th.card, outline:'none', color:th.ink }} />
-                </div>
-                {filtered1.map(c => (
-                  <CandRow key={c.id} c={c} th={th} onClick={() => { setSelectedFirstId(c.id); setQ1(''); setStep(2); }} />
-                ))}
-                {filtered1.length === 0 && (
-                  <div style={{ textAlign:'center', color:alpha(th.ink,0.4), padding:30, fontFamily:th.body }}>אין מועמדים</div>
+                {/* Spotlight */}
+                {spotlight && (
+                  <div style={{ marginBottom:20 }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary, marginBottom:8 }}>
+                      ❤️ בואו ניתן קצת תשומת לב ל-{spotlight.name}
+                    </div>
+                    <button onClick={() => pickCand(spotlight)}
+                      style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'block',
+                        borderRadius:th.r, overflow:'hidden', position:'relative',
+                        boxShadow:`0 8px 28px ${alpha(th.primary, 0.22)}` }}>
+                      {spotlight.photos?.[0]
+                        ? <img src={spotlight.photos[0]} alt={spotlight.name}
+                            style={{ width:'100%', height:200, objectFit:'cover', display:'block' }} />
+                        : <div style={{ width:'100%', height:200, display:'flex', alignItems:'center', justifyContent:'center',
+                            background:`linear-gradient(135deg, ${th.primary}, ${alpha(th.primary,0.55)})` }}>
+                            <Avatar grad={spotlight.grad} name={spotlight.name} size={80} />
+                          </div>
+                      }
+                      <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'40px 16px 14px',
+                        background:'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)',
+                        textAlign:'right', pointerEvents:'none' }}>
+                        <div style={{ fontFamily:th.display, fontWeight:900, fontSize:19, color:'#fff' }}>{spotlight.name}, {spotlight.age}</div>
+                        <div style={{ fontFamily:th.body, fontSize:13, color:'rgba(255,255,255,0.82)' }}>{spotlight.region} · {spotlight.religiosity}</div>
+                      </div>
+                    </button>
+                  </div>
                 )}
+
+                {/* List section */}
+                {onlyOne
+                  ? <div style={{ textAlign:'center', padding:'14px 0 8px', fontFamily:th.body, fontSize:13.5,
+                      color:alpha(th.ink,0.5), lineHeight:1.55 }}>
+                      הוסיפו מועמדים נוספים דרך מסך מועמדים
+                    </div>
+                  : <>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13,
+                        color:alpha(th.ink,0.55), marginBottom:10 }}>
+                        {spotlight ? 'או בחרו מתוך רשימת המועמדים שלכם:' : 'בחרו מתוך רשימת המועמדים שלכם:'}
+                      </div>
+                      <div style={{ position:'relative', marginBottom:12 }}>
+                        <span style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', color:alpha(th.ink,0.4) }}>
+                          <Icon name="search" size={18} />
+                        </span>
+                        <input value={q1} onChange={e => setQ1(e.target.value)} placeholder="חיפוש שם..."
+                          style={{ width:'100%', boxSizing:'border-box', padding:'10px 38px 10px 14px', borderRadius:999,
+                            border:`1.5px solid ${alpha(th.ink,0.12)}`, fontFamily:th.body, fontSize:14,
+                            background:th.card, outline:'none', color:th.ink }} />
+                      </div>
+                      {filtered1.map(c => (
+                        <CandRow key={c.id} c={c} th={th} onClick={() => pickCand(c)} />
+                      ))}
+                      {filtered1.length === 0 && (
+                        <div style={{ textAlign:'center', color:alpha(th.ink,0.4), padding:24, fontFamily:th.body }}>אין מועמדים</div>
+                      )}
+                    </>
+                }
               </>
             );
           })() : (
