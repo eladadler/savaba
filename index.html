@@ -8176,7 +8176,6 @@ function OfferDetail({ th, go, params }) {
   const iAmA      = o.aMm === myUid;
   const candA     = findC(o.aId);
   const candB     = findC(o.bId);
-  const matchScore = (candA?.age && candB?.age) ? calcScore(candA, candB) : null;
   const mmA       = findM(o.aMm);
   const mmB       = findM(o.bMm);
   const myCand    = iAmA ? candA : candB;
@@ -8307,19 +8306,6 @@ function OfferDetail({ th, go, params }) {
   const approvalsCard = (
     <div style={{ background:th.card, borderRadius:th.r, padding:14, marginBottom:14, boxShadow:cardShadow }}>
       <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:10, letterSpacing:'.04em', textTransform:'uppercase' }}>אישורים</div>
-      {matchScore !== null && (() => {
-        const col = matchScore >= 75 ? th.success : matchScore >= 50 ? th.gold : th.primary;
-        return (
-          <div style={{ display:'flex', justifyContent:'center', marginBottom:10 }}>
-            <div style={{ width:48, height:48, borderRadius:'50%', background:col,
-              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-              boxShadow:`0 4px 16px ${alpha(col, 0.38)}` }}>
-              <span style={{ fontFamily:th.display, fontWeight:900, fontSize:14, color:'#fff', lineHeight:1 }}>{matchScore}</span>
-              <span style={{ fontFamily:th.body, fontSize:9, color:'rgba(255,255,255,0.78)', lineHeight:1.5 }}>%</span>
-            </div>
-          </div>
-        );
-      })()}
       <div style={{ display:'flex', gap:8 }}>
         {approvalCols.map(({ cand, approved, mine, field, newOtherApp }) => (
           <div key={cand.id} style={{ flex:1, borderRadius:th.rSm, padding:10,
