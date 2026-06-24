@@ -6135,7 +6135,7 @@ function MatchFlow({ th, go, params }) {
         const prompt = `א (${first.name}): ${fmtPerson(first)}\nב (${second.name}): ${fmtPerson(second)}\n\nענה בפורמט הבא (עברית בלבד):\nציון: [1-100]\nסיבות: [נקודה1] | [נקודה2] | [נקודה3]\nלשים לב: [אזהרה אחת, או 'אין']\nהמלצה: [מומלץ מאוד / מומלץ / דורש בירור / לא מומלץ]`;
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
           body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 300,
             system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
             messages: [{ role: 'user', content: prompt }] })
@@ -7286,7 +7286,7 @@ function AIRecs({ th, go }) {
 
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
           body: JSON.stringify({
             model: 'claude-haiku-4-5-20251001', max_tokens: 400,
             system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
