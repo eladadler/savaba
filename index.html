@@ -5971,9 +5971,9 @@ function MatchFlow({ th, go, params }) {
   const firstIsFemale = isFemale2(first?.gender);
   const firstIsMine = isCandMine(first);
   // No useMemo — always recompute so filter is never stale
-  const candidates2 = candidates.filter(c => {
+  const candidates2 = !first ? [] : candidates.filter(c => {
     if (firstIsFemale ? !isMale2(c.gender) : !isFemale2(c.gender)) return false;
-    if (c.id === first?.id) return false;
+    if (c.id === first.id) return false;
     if (c.available === false) return false;
     if (c.status === 'pending_mm') return false;
     // If first candidate is someone else's, second must be mine (primary or co-rep)
@@ -5985,7 +5985,7 @@ function MatchFlow({ th, go, params }) {
     if (matchFilters.maritalStatus.length && !matchFilters.maritalStatus.includes(c.family)) return false;
     return true;
   }).sort((a, b) => {
-    const aEx = offerExists(first?.id, a.id), bEx = offerExists(first?.id, b.id);
+    const aEx = offerExists(first.id, a.id), bEx = offerExists(first.id, b.id);
     if (aEx !== bEx) return aEx ? 1 : -1;
     return calcScore(first, b) - calcScore(first, a);
   });
