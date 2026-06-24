@@ -991,6 +991,7 @@ function makeTheme(t) {
     d, sp: (n) => Math.round(n * d),
     cardVariant: t.cardVariant || 'קלאסי',
     showMmNote: t.showMmNote !== false,
+    aiMode: t.aiMode || 'top5',
   };
 }
 
@@ -1313,6 +1314,25 @@ function useFirebaseData(uid) {
     markNotificationRead, deleteNotification, approveCandidate, claimCandidate,
     reportEngagement, reportDeletion,
   };
+}
+
+// Persist an offer outcome for AI few-shot learning (aiMode==='learning' only)
+async function saveOutcomeLearning(offer, outcome, candidates) {
+  if (!offer?.id) return;
+  const pick = id => {
+    const c = candidates.find(x => x.id === id) || {};
+    return { age: c.age, region: c.region, religiosity: c.religiosity,
+             interests: c.interests || [], partner: c.partner || [],
+             oneLine: c.oneLine || '', seesWith: c.seesWith || '',
+             sabaBut: c.sabaBut || '', mmNote: c.mmNote || '' };
+  };
+  try {
+    await db.collection('ai_learnings').doc(`${offer.id}_${outcome}`).set({
+      outcome, offerNote: offer.note || '',
+      savedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      personA: pick(offer.aId), personB: pick(offer.bId),
+    });
+  } catch(e) { console.warn('saveOutcomeLearning:', e); }
 }
 
 // ── INVITATION SYSTEM ──────────────────────────────────────────
@@ -5904,6 +5924,39 @@ Object.assign(window, { ClassicBody, MagBody, MinBody });
 // screens-c.jsx — Match flow (wizard)
 const { useState: useSc, useMemo: useMc, useEffect: useEc } = React;
 
+// Parse a single AI analysis response (MatchFlow step 3)
+function parseAiAnalysis(raw) {
+  if (!raw) return null;
+  const get = (key) => { const m = raw.match(new RegExp(key + ':\\s*(.+)')); return m ? m[1].trim() : ''; };
+  const score = parseInt(get('ציון')) || null;
+  const bullets = (get('סיבות') || '').split('|').map(s => s.trim()).filter(Boolean);
+  const caution = get('לשים לב') || '';
+  const label   = get('המלצה') || '';
+  return { score, bullets, caution, label };
+}
+
+// Parse batch AI response for AIRecs (5 pairs in one call)
+// Each line: "[N]: ציון:X | סיבות:A·B | לשים לב:Y | המלצה:Z"
+function parseBatchResponse(raw, pairKeys) {
+  if (!raw) return {};
+  const result = {};
+  (raw.split('\n') || []).forEach(line => {
+    const mIdx = line.match(/^\[?(\d+)\]?[:\.]?\s*/);
+    if (!mIdx) return;
+    const idx = parseInt(mIdx[1]) - 1;
+    const key = pairKeys[idx];
+    if (!key) return;
+    const rest = line.slice(mIdx[0].length);
+    const get = (k) => { const m = rest.match(new RegExp(k + ':\\s*([^|]+)')); return m ? m[1].trim() : ''; };
+    const score   = parseInt(get('ציון')) || null;
+    const bullets = get('סיבות').split(/[·\|]/).map(s => s.trim()).filter(Boolean);
+    const caution = get('לשים לב') || '';
+    const label   = get('המלצה') || '';
+    result[key] = { score, bullets, caution, label };
+  });
+  return result;
+}
+
 function calcScore(a, b) {
   let score = 0, total = 0;
   if (a.age && b.age) {
@@ -5966,7 +6019,7 @@ function MatchFlow({ th, go, params }) {
   const [selfCandBApproved, setSelfCandBApproved] = useSc(false);
   const [previewCand, setPreviewCand] = useSc(null); // candidate being previewed in step 2
   const [aiScore, setAiScore] = useSc(null);
-  const [aiText, setAiText] = useSc(null);
+  const [aiAnalysis, setAiAnalysis] = useSc(null);
   const [aiLoading, setAiLoading] = useSc(false);
   const [confirmModal, setConfirmModal] = useSc(false); // false | 'step1' | 'step2'
   const [candApproved, setCandApproved] = useSc(null);
@@ -6001,21 +6054,30 @@ function MatchFlow({ th, go, params }) {
   useEc(() => {
     if (step !== 3 || !first || !second || isSelfMatch) return;
     setAiScore(calcScore(first, second));
-    setAiLoading(true); setAiText(null);
+    setAiLoading(true); setAiAnalysis(null);
     (async () => {
       try {
         const cfg = await db.collection('config').doc('settings').get();
         const apiKey = cfg.data()?.anthropicKey;
         if (!apiKey) return;
-        const prof = c => [c.name, c.age ? `גיל ${c.age}` : '', c.region, c.religiosity, (c.interests||[]).slice(0,3).join('/')].filter(Boolean).join(', ');
+        const fmtPerson = c => [
+          c.age && `גיל ${c.age}`, c.region, c.religiosity,
+          (c.interests||[]).slice(0,3).join('/'),
+          c.oneLine   && `"${c.oneLine}"`,
+          c.seesWith  && `מחפש/ת: "${c.seesWith}"`,
+          c.sabaBut   && `מיוחד: "${c.sabaBut}"`,
+          c.mmNote    && `השדכן: "${c.mmNote}"`
+        ].filter(Boolean).join(' · ');
+        const prompt = `א (${first.name}): ${fmtPerson(first)}\nב (${second.name}): ${fmtPerson(second)}\n\nענה בפורמט הבא (עברית בלבד):\nציון: [1-100]\nסיבות: [נקודה1] | [נקודה2] | [נקודה3]\nלשים לב: [אזהרה אחת, או 'אין']\nהמלצה: [מומלץ מאוד / מומלץ / דורש בירור / לא מומלץ]`;
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 100,
-            messages: [{ role: 'user', content: `אתה שדכן. כתוב משפט אחד בעברית (עד 20 מילה) מדוע ${first.name} ו${second.name} עשויים להתאים.\nא: ${prof(first)}\nב: ${prof(second)}` }] })
+          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 300,
+            system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
+            messages: [{ role: 'user', content: prompt }] })
         });
         const d = await res.json();
-        setAiText(d.content?.[0]?.text?.trim() || null);
+        setAiAnalysis(parseAiAnalysis(d.content?.[0]?.text?.trim() || null));
       } catch(e) { console.warn('AI analysis:', e); }
       finally { setAiLoading(false); }
     })();
@@ -6283,19 +6345,47 @@ function MatchFlow({ th, go, params }) {
                     <Icon name="spark" size={16} style={{ color: th.gold }} fill={th.gold} />
                     <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink }}>ניתוח התאמה</span>
                   </div>
-                  {aiScore !== null && (
-                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 24, color: aiScore >= 70 ? th.success : aiScore >= 50 ? th.gold : alpha(th.ink, 0.45), lineHeight: 1 }}>
-                      {aiScore}%
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {!isSelfMatch && aiAnalysis?.label && (() => {
+                      const lc = aiAnalysis.label.includes('מאוד') ? th.success
+                        : aiAnalysis.label.includes('מומלץ') ? th.primary
+                        : aiAnalysis.label.includes('בירור') ? th.gold : alpha(th.ink, 0.4);
+                      return <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 11, color: lc, background: alpha(lc, 0.12), borderRadius: 99, padding: '3px 8px', whiteSpace: 'nowrap' }}>{aiAnalysis.label}</span>;
+                    })()}
+                    {(aiAnalysis?.score ?? aiScore) !== null && (
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 24, color: (aiAnalysis?.score ?? aiScore) >= 70 ? th.success : (aiAnalysis?.score ?? aiScore) >= 50 ? th.gold : alpha(th.ink, 0.45), lineHeight: 1 }}>
+                        {aiAnalysis?.score ?? aiScore}%
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5, fontStyle: aiLoading ? 'italic' : 'normal' }}>
-                  {isSelfMatch
-                    ? `שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים אבל קרובים בנפש'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`
-                    : aiLoading ? <span style={{ color: alpha(th.ink, 0.4) }}>AI מנתח את ההתאמה…</span>
-                      : aiText || `שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`
-                  }
-                </p>
+                {isSelfMatch ? (
+                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
+                    {`שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים אבל קרובים בנפש'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`}
+                  </p>
+                ) : aiLoading ? (
+                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.4), fontStyle: 'italic' }}>AI מנתח את ההתאמה…</p>
+                ) : aiAnalysis?.bullets?.length > 0 ? (
+                  <>
+                    <ul style={{ margin: '0 0 6px', padding: '0 16px', listStyle: 'none' }}>
+                      {aiAnalysis.bullets.map((b, i) => (
+                        <li key={i} style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.78), lineHeight: 1.55, display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 3 }}>
+                          <span style={{ color: th.success, flexShrink: 0 }}>✓</span>{b}
+                        </li>
+                      ))}
+                    </ul>
+                    {aiAnalysis.caution && aiAnalysis.caution !== 'אין' && (
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '7px 10px', background: alpha(th.gold, 0.18), borderRadius: th.rSm, marginTop: 4 }}>
+                        <span style={{ flexShrink: 0 }}>⚠️</span>
+                        <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72) }}>{aiAnalysis.caution}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
+                    {`שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -6911,8 +7001,10 @@ function Chat({ th, go, params }) {
               </button>
               <button
                 onClick={async () => {
-                  if (window.confirm('לדחות את הצעת השידוך?'))
+                  if (window.confirm('לדחות את הצעת השידוך?')) {
                     await updateOffer(o.id, { bStatus: 'דחה', status: 'נדחתה' });
+                    if (th.aiMode === 'learning') saveOutcomeLearning(o, 'failure', candidates);
+                  }
                 }}
                 style={{ flex:1, padding:'9px 0', borderRadius:th.rSm,
                   border:`1.5px solid ${alpha(th.error,0.3)}`, cursor:'pointer',
@@ -6982,6 +7074,9 @@ function AIRecs({ th, go }) {
   const { texts: tx, defaults: dx } = React.useContext(TextsCtx);
   const t = (key) => tx[key] || dx[key] || '';
   const myUid = user?.uid;
+
+  const [aiAnalyses, setAiAnalyses] = React.useState({});
+  const [aiLoading,  setAiLoading]  = React.useState(false);
 
   // ── Scoring engine ────────────────────────────────────────────
   const pairs = React.useMemo(() => {
@@ -7072,6 +7167,75 @@ function AIRecs({ th, go }) {
     return out.slice(0, 10);
   }, [candidates, offers, myUid]);
 
+  // ── Batch AI analysis (top-5) ─────────────────────────────────
+  React.useEffect(() => {
+    if (th.aiMode === 'off' || pairs.length === 0) return;
+    const top5 = pairs.slice(0, 5);
+    const pairKeys = top5.map(p => `${p.aId}__${p.bId}`);
+    setAiLoading(true);
+    setAiAnalyses({});
+    (async () => {
+      try {
+        const cfg = await db.collection('config').doc('settings').get();
+        const apiKey = cfg.data()?.anthropicKey;
+        if (!apiKey) return;
+
+        const fmtP = id => {
+          const c = candidates.find(x => x.id === id) || {};
+          return [
+            c.age && `גיל ${c.age}`, c.region, c.religiosity,
+            (c.interests||[]).slice(0,3).join('/'),
+            c.oneLine   && `"${c.oneLine}"`,
+            c.seesWith  && `מחפש/ת: "${c.seesWith}"`,
+            c.sabaBut   && `מיוחד: "${c.sabaBut}"`,
+            c.mmNote    && `השדכן: "${c.mmNote}"`
+          ].filter(Boolean).join(' · ');
+        };
+
+        const pairsBlock = top5.map((p, i) => {
+          const a = candidates.find(x => x.id === p.aId) || {};
+          const b = candidates.find(x => x.id === p.bId) || {};
+          return `זוג ${i+1} — א (${a.name||'?'}): ${fmtP(p.aId)}  |  ב (${b.name||'?'}): ${fmtP(p.bId)}`;
+        }).join('\n');
+
+        // Fetch learning examples if in learning mode
+        let examplesBlock = '';
+        if (th.aiMode === 'learning') {
+          const [succSnap, failSnap] = await Promise.all([
+            db.collection('ai_learnings').where('outcome','in',['success','engagement']).orderBy('savedAt','desc').limit(5).get().catch(()=>({docs:[]})),
+            db.collection('ai_learnings').where('outcome','==','failure').orderBy('savedAt','desc').limit(3).get().catch(()=>({docs:[]}))
+          ]);
+          const fmtEx = (doc, isSuccess) => {
+            const d = doc.data();
+            const pa = [d.personA?.age && `גיל ${d.personA.age}`, d.personA?.region, d.personA?.religiosity, (d.personA?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
+            const pb = [d.personB?.age && `גיל ${d.personB.age}`, d.personB?.region, d.personB?.religiosity, (d.personB?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
+            return `${isSuccess ? '✓' : '✗'} א: ${pa} | ב: ${pb}${d.offerNote ? ` | הערה: "${d.offerNote}"` : ''}`;
+          };
+          const exLines = [
+            ...succSnap.docs.map(d => fmtEx(d, true)),
+            ...failSnap.docs.map(d => fmtEx(d, false))
+          ];
+          if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
+        }
+
+        const prompt = `${examplesBlock}ניתח ${top5.length} זוגות. עבור כל זוג ענה בשורה אחת:\n[מספר]: ציון:[0-100] | סיבות:[נ1]·[נ2] | לשים לב:[אזהרה/אין] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001', max_tokens: 400,
+            system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        const d = await res.json();
+        setAiAnalyses(parseBatchResponse(d.content?.[0]?.text?.trim() || '', pairKeys));
+      } catch(e) { console.warn('AIRecs batch analysis:', e); }
+      finally { setAiLoading(false); }
+    })();
+  }, [pairs.map(p=>`${p.aId}__${p.bId}`).join(','), th.aiMode]);
+
   // ── Render ────────────────────────────────────────────────────
   return (
     <>
@@ -7097,8 +7261,11 @@ function AIRecs({ th, go }) {
         {pairs.map((p, i) => {
           const a = findCand(p.aId), b = findCand(p.bId);
           if (!a || !b) return null;
-          const myCand   = a.mmId === myUid ? a : b;
+          const myCand    = a.mmId === myUid ? a : b;
           const theirCand = a.mmId === myUid ? b : a;
+          const pairKey   = `${p.aId}__${p.bId}`;
+          const ai        = aiAnalyses[pairKey] || null;
+          const dispScore = ai?.score ?? p.score;
           return (
             <div key={i} style={{ background:th.card, borderRadius:th.rLg, padding:16, marginBottom:14, boxShadow:`0 6px 20px ${alpha(th.ink,0.07)}` }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
@@ -7110,14 +7277,42 @@ function AIRecs({ th, go }) {
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>{a.name} · {b.name}</div>
                   <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5) }}>{a.age} · {b.age} | {a.region} · {b.region}</div>
                 </div>
-                <ScoreRing score={p.score} th={th} />
+                <ScoreRing score={dispScore} th={th} />
               </div>
               <div style={{ background:alpha(th.gold,0.1), borderRadius:th.r, padding:12, marginBottom:12 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:5 }}>
-                  <Icon name="spark" size={15} style={{ color:th.gold }} fill={th.gold} />
-                  <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>למה הם מתאימים</span>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:5 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <Icon name="spark" size={15} style={{ color:th.gold }} fill={th.gold} />
+                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>
+                      {(th.aiMode !== 'off' && (ai || aiLoading)) ? 'ניתוח AI' : 'למה הם מתאימים'}
+                    </span>
+                  </div>
+                  {ai?.label && (() => {
+                    const lc = ai.label.includes('מאוד') ? th.success : ai.label.includes('מומלץ') ? th.primary : ai.label.includes('בירור') ? th.gold : alpha(th.ink,0.4);
+                    return <span style={{ fontFamily:th.display, fontWeight:800, fontSize:11, color:lc, background:alpha(lc,0.12), borderRadius:99, padding:'2px 7px' }}>{ai.label}</span>;
+                  })()}
                 </div>
-                <p style={{ margin:0, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.5 }}>{p.why}</p>
+                {th.aiMode !== 'off' && aiLoading && !ai ? (
+                  <p style={{ margin:0, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.4), fontStyle:'italic' }}>AI מנתח…</p>
+                ) : ai?.bullets?.length > 0 ? (
+                  <>
+                    <ul style={{ margin:'0 0 4px', padding:'0 14px', listStyle:'none' }}>
+                      {ai.bullets.map((b2, j) => (
+                        <li key={j} style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.78), lineHeight:1.5, display:'flex', alignItems:'flex-start', gap:5, marginBottom:2 }}>
+                          <span style={{ color:th.success, flexShrink:0 }}>✓</span>{b2}
+                        </li>
+                      ))}
+                    </ul>
+                    {ai.caution && ai.caution !== 'אין' && (
+                      <div style={{ display:'flex', alignItems:'flex-start', gap:5, padding:'5px 8px', background:alpha(th.gold,0.2), borderRadius:th.rSm, marginTop:4 }}>
+                        <span style={{ flexShrink:0, fontSize:12 }}>⚠️</span>
+                        <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.72) }}>{ai.caution}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p style={{ margin:0, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.5 }}>{p.why}</p>
+                )}
               </div>
               <div style={{ display:'flex', gap:8 }}>
                 <Btn th={th} variant="ghost" onClick={() => go('candidate', { id: theirCand.id })}>הצג כרטיסייה</Btn>
@@ -7548,6 +7743,7 @@ function CandidateMode({ th, go }) {
     if (!currentOffer) return;
     if (iAmA) await updateOffer(currentOffer.id, { candAStatus: 'דחה', status: 'נדחתה' });
     else       await updateOffer(currentOffer.id, { candBStatus: 'דחה', status: 'נדחתה' });
+    if (th.aiMode === 'learning') saveOutcomeLearning(currentOffer, 'failure', candidates);
   };
 
   const approveCoRep = async (req) => {
@@ -8162,7 +8358,7 @@ Object.assign(window, { Toggle, CandidateMode, Settings });
 // ════════════════════════════════════════════════════════════
 const TWEAK_DEFAULTS = {
   "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
-  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true
+  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5"
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
 const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
@@ -8247,12 +8443,14 @@ function OfferDetail({ th, go, params }) {
       [field]: true, [statusField]: 'אישר',
       ...(newOtherApp ? { status: 'אושרה' } : {}),
     });
+    if (newOtherApp && th.aiMode === 'learning') saveOutcomeLearning(o, 'success', candidates);
     setApproving(false);
   };
 
   const markEngaged = async () => {
     setMarkingEngaged(true);
     await updateOffer(o.id, { isEngaged: true });
+    if (th.aiMode === 'learning') saveOutcomeLearning(o, 'engagement', candidates);
     setMarkingEngaged(false);
   };
 
@@ -8636,7 +8834,7 @@ function OfferDetail({ th, go, params }) {
         <div style={{ display:'flex', gap:10 }}>
           <Btn th={th} full variant="ghost" onClick={() => setConfirmReject(false)}>ביטול</Btn>
           <Btn th={th} full style={{ background:th.error, color:'#fff' }}
-            onClick={async () => { await updateOffer(o.id, { status:'נדחתה' }); setConfirmReject(false); go('back'); }}>
+            onClick={async () => { await updateOffer(o.id, { status:'נדחתה' }); if (th.aiMode === 'learning') saveOutcomeLearning(o, 'failure', candidates); setConfirmReject(false); go('back'); }}>
             דחה לצמיתות
           </Btn>
         </div>
@@ -9060,6 +9258,8 @@ function AppInner({ inviteToken }) {
         </div>
       </div>
       <TweaksPanel title="Tweaks">
+        <TweakSection label="בינה מלאכותית" />
+        <TweakRadio label="מסלול AI" value={t.aiMode} options={[{value:'off',label:'כבוי — חינם'},{value:'top5',label:'TOP-5 — ~$0.0015/מסך'},{value:'learning',label:'TOP-5 + למידה — ~$0.002/מסך'}]} onChange={v => setTweak('aiMode',v)} />
         <TweakSection label="כרטיסיית מועמד" />
         <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
         <TweakSection label="תוכן הכרטיסייה" />
