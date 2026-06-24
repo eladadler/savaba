@@ -8566,16 +8566,21 @@ function OfferDetail({ th, go, params }) {
               </div>
             )}
 
+            {/* ── Chat ── */}
+            {chatBlock}
+
             {/* ── Reject ── */}
             {!finalFail && (
               <button onClick={() => setConfirmReject(true)}
-                style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', textAlign:'center', padding:'9px 0', borderRadius:th.rSm, border:`1px solid ${alpha(th.error,0.25)}`, color:alpha(th.error,0.8), fontFamily:th.body, fontWeight:700, fontSize:13, marginBottom:14 }}>
-                ✕ דחיית הצעה
+                style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', textAlign:'center',
+                  padding:'13px 0', borderRadius:th.r, marginTop:10, marginBottom:14,
+                  background:alpha(th.error,0.09), border:`1.5px solid ${alpha(th.error,0.28)}`,
+                  color:th.error, fontFamily:th.display, fontWeight:800, fontSize:14,
+                  display:'flex', alignItems:'center', justifyContent:'center', gap:7 }}>
+                <Icon name="x" size={16} style={{ color:th.error }} />
+                דחיית הצעה
               </button>
             )}
-
-            {/* ── Chat ── */}
-            {chatBlock}
           </>
         )}
 
