@@ -8307,24 +8307,21 @@ function OfferDetail({ th, go, params }) {
   const approvalsCard = (
     <div style={{ background:th.card, borderRadius:th.r, padding:14, marginBottom:14, boxShadow:cardShadow }}>
       <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:10, letterSpacing:'.04em', textTransform:'uppercase' }}>אישורים</div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', gap:8, alignItems:'start' }}>
-        {approvalCols.flatMap(({ cand, approved, mine, field, newOtherApp }, idx) => [
-          idx === 1 ? (
-            <div key="score-badge" style={{ display:'flex', alignItems:'center', justifyContent:'center', paddingTop:26 }}>
-              {matchScore !== null && (() => {
-                const col = matchScore >= 75 ? th.success : matchScore >= 50 ? th.gold : th.primary;
-                return (
-                  <div style={{ width:46, height:46, borderRadius:'50%', background:col,
-                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-                    boxShadow:`0 4px 16px ${alpha(col, 0.4)}` }}>
-                    <span style={{ fontFamily:th.display, fontWeight:900, fontSize:13, color:'#fff', lineHeight:1 }}>{matchScore}</span>
-                    <span style={{ fontFamily:th.body, fontSize:8, color:'rgba(255,255,255,0.78)', lineHeight:1.5 }}>%</span>
-                  </div>
-                );
-              })()}
+      {matchScore !== null && (() => {
+        const col = matchScore >= 75 ? th.success : matchScore >= 50 ? th.gold : th.primary;
+        return (
+          <div style={{ display:'flex', justifyContent:'center', marginBottom:10 }}>
+            <div style={{ width:48, height:48, borderRadius:'50%', background:col,
+              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+              boxShadow:`0 4px 16px ${alpha(col, 0.38)}` }}>
+              <span style={{ fontFamily:th.display, fontWeight:900, fontSize:14, color:'#fff', lineHeight:1 }}>{matchScore}</span>
+              <span style={{ fontFamily:th.body, fontSize:9, color:'rgba(255,255,255,0.78)', lineHeight:1.5 }}>%</span>
             </div>
-          ) : null,
-          (
+          </div>
+        );
+      })()}
+      <div style={{ display:'flex', gap:8 }}>
+        {approvalCols.map(({ cand, approved, mine, field, newOtherApp }) => (
           <div key={cand.id} style={{ flex:1, borderRadius:th.rSm, padding:10,
             background: approved ? alpha(th.success,0.08) : mine ? alpha(th.primary,0.07) : alpha(th.ink,0.04),
             border:`1.5px solid ${approved ? alpha(th.success,0.3) : mine ? alpha(th.primary,0.2) : alpha(th.ink,0.08)}` }}>
@@ -8366,7 +8363,7 @@ function OfferDetail({ th, go, params }) {
               </div>
             )}
           </div>
-        ]).filter(Boolean)}
+        ))}
       </div>
       {finalFail && (
         <div style={{ marginTop:10, background:alpha(th.error,0.08), borderRadius:th.rSm, padding:'8px 12px', display:'flex', alignItems:'center', gap:6 }}>
