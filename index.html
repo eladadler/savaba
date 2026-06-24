@@ -9088,7 +9088,7 @@ function TextsAdmin({ th, go }) {
   );
 }
 
-function renderScreen(cur, th, go, profile) {
+function renderScreen(cur, th, go, profile, aiMode, setAiMode) {
   const p = cur.params;
   switch (cur.name) {
     case 'onboarding':  return <Onboarding th={th} go={go} />;
@@ -9298,7 +9298,7 @@ function AppInner({ inviteToken }) {
           <ImpersonateBanner th={th} />
           {data.loading
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
-            : renderScreen(cur, th, go, profile)}
+            : renderScreen(cur, th, go, profile, aiMode, setAiMode)}
           {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
