@@ -1103,6 +1103,8 @@ function useTexts() {
         contentEditable: true,
         suppressContentEditableWarning: true,
         'data-tk': key,
+        onClick: e => { e.stopPropagation(); e.preventDefault(); },
+        onMouseDown: e => e.stopPropagation(),
         onBlur: e => ctx.setInlineDraft(key, e.currentTarget.innerText.trim()),
         style: {
           outline: 'none', borderBottom: '2px dashed #E8547A',
@@ -3618,6 +3620,15 @@ const TEXT_KEYS = {
   home_cta_btn:        'בית — CTA כניסה ראשונה: כפתור',
   home_ai_title:       'בית — כרטיסיית AI: כותרת',
   home_ai_sub:         'בית — כרטיסיית AI: תיאור',
+  home_alert_offers_1:    'בית — פאנל: הצעה ממתינה (יחיד)',
+  home_alert_offers:      'בית — פאנל: הצעות ממתינות (רבים)',
+  home_alert_neglected_1: 'בית — פאנל: מועמד מוזנח (יחיד)',
+  home_alert_neglected:   'בית — פאנל: מועמדים מוזנחים (רבים)',
+  home_alert_await_1:     'בית — פאנל: שידוך ממתין למועמד (יחיד)',
+  home_alert_await:       'בית — פאנל: שידוכים ממתינים למועמד (רבים)',
+  home_waiting_empty:     'בית — פאנל: ריק (הכל מסודר)',
+  home_empty_mine:        'בית — קרוסלה שלי: ריק',
+  home_empty_others:      'בית — קרוסלה אחרים: ריק',
   cands_title:         'מועמדים — כותרת מסך',
   cands_count_suffix:  'מועמדים — סיומת ספירה',
   cands_tab_mine:      'מועמדים — טאב: שלי',
@@ -3714,6 +3725,15 @@ const DEFAULT_TEXTS = {
   home_cta_btn:       'הוסף עכשיו',
   home_ai_title:      'גלה/י התאמות AI חדשות',
   home_ai_sub:        'בדוק/י מי מתאים למי — הרובוט עבד בשבילך',
+  home_alert_offers_1:    'הצעת שידוך מחכה לתגובתך',
+  home_alert_offers:      'הצעות מחכות לתגובה שלך',
+  home_alert_neglected_1: 'מועמד שלא קיבל יחס מעל 7 ימים',
+  home_alert_neglected:   'מועמדים שלא קיבלו יחס מעל 7 ימים',
+  home_alert_await_1:     'שידוך מחכה לתשובת המועמד',
+  home_alert_await:       'שידוכים מחכים לתשובת המועמד',
+  home_waiting_empty:     '✅ הכל מסודר — אין פעולות ממתינות',
+  home_empty_mine:        'עדיין לא הוספת מועמדים',
+  home_empty_others:      'אין מועמדים של שדכנים אחרים עדיין',
   cands_title:        'מועמדים',
   cands_count_suffix: 'ברשימה',
   cands_tab_mine:     'שלי',
@@ -3795,7 +3815,7 @@ const DEFAULT_TEXTS = {
 const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
   register:      ['register_title','register_sub'],
-  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub'],
+  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_waiting_empty','home_empty_mine','home_empty_others'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
   ai:            ['ai_info_text'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
@@ -4175,17 +4195,17 @@ function Home({ th, go }) {
   const waiting = [
     offersNeedingMe.length > 0 && {
       icon: 'heart', tone: th.primary, big: String(offersNeedingMe.length),
-      text: offersNeedingMe.length === 1 ? 'הצעת שידוך מחכה לתגובתך' : 'הצעות מחכות לתגובה שלך',
+      text: offersNeedingMe.length === 1 ? t('home_alert_offers_1') : t('home_alert_offers'),
       to: () => go('offers', { filter: 'needsMyApproval' }),
     },
     neglectedCands.length > 0 && {
       icon: 'bell', tone: th.gold, big: String(neglectedCands.length),
-      text: neglectedCands.length === 1 ? 'מועמד שלא קיבל יחס מעל 7 ימים' : 'מועמדים שלא קיבלו יחס מעל 7 ימים',
+      text: neglectedCands.length === 1 ? t('home_alert_neglected_1') : t('home_alert_neglected'),
       to: () => go('cands', { filter: 'neglected', neglectedIds: neglectedCands.map(c => c.id) }),
     },
     offersAwaitingCand.length > 0 && {
       icon: 'chat', tone: '#a78bfa', big: String(offersAwaitingCand.length),
-      text: offersAwaitingCand.length === 1 ? 'שידוך מחכה לתשובת המועמד' : 'שידוכים מחכים לתשובת המועמד',
+      text: offersAwaitingCand.length === 1 ? t('home_alert_await_1') : t('home_alert_await'),
       to: () => go('offers', { filter: 'awaitingCand' }),
     },
     coRepApprovedNotifs.length > 0 && {
@@ -4313,7 +4333,7 @@ function Home({ th, go }) {
             </div>
             <div style={{ height: 1, background: alpha(th.ink, 0.07), marginBottom: 4 }} />
             {waiting.length === 0 ? (
-              <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4) }}>✅ הכל מסודר — אין פעולות ממתינות</div>
+              <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4) }}>{t('home_waiting_empty')}</div>
             ) : waiting.map((w, k) => (
               <React.Fragment key={k}>
                 <button onClick={w.to} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap: 10, width:'100%', boxSizing:'border-box', padding:'11px 0' }}>
@@ -4381,7 +4401,7 @@ function Home({ th, go }) {
           const list = candTab === 'mine' ? mine : others;
           if (list.length === 0) return (
             <div style={{ textAlign:'center', padding:'24px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.4) }}>
-              {candTab === 'mine' ? 'עדיין לא הוספת מועמדים' : 'אין מועמדים של שדכנים אחרים עדיין'}
+              {candTab === 'mine' ? t('home_empty_mine') : t('home_empty_others')}
             </div>
           );
           return (
