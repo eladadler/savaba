@@ -3628,6 +3628,29 @@ const TEXT_KEYS = {
   match_hint:    'שידוך חדש — הסבר לפני ווצאפ',
   match_wa_btn:  'שידוך חדש — כפתור ווצאפ למועמד',
   match_mm_btn:  'שידוך חדש — כפתור פנייה לשדכן',
+  offers_title:          'הצעות — כותרת המסך',
+  offers_active_suffix:  'הצעות — סיומת מונה פעיל',
+  offers_new_btn:        'הצעות — כפתור הצעה חדשה',
+  offers_tab_pending:    'הצעות — טאב: ממתינות',
+  offers_tab_approved:   'הצעות — טאב: אושרו',
+  offers_tab_done:       'הצעות — טאב: נדחו',
+  offers_sort_label:     'הצעות — תווית מיון',
+  offers_sort_newest:    'הצעות — מיון: חדש',
+  offers_sort_oldest:    'הצעות — מיון: ישן',
+  offers_sort_mine:      'הצעות — מיון: ממתין לי',
+  offers_empty_pending:  'הצעות — ריק: ממתינות',
+  offers_empty_approved: 'הצעות — ריק: אושרו',
+  offers_empty_done:     'הצעות — ריק: נדחו',
+  offers_empty_filter:   'הצעות — ריק: עם פילטר',
+  offers_filter_approve: 'הצעות — פילטר: ממתינות לאישורי',
+  offers_filter_cand:    'הצעות — פילטר: ממתינות לתשובת מועמד',
+  offers_badge_engaged:  'הצעות — תג: אירוסין/נישואין',
+  offers_badge_waiting:  'הצעות — תג: ממתין לתגובתי',
+  offers_badge_approved: 'הצעות — תג: אושרה',
+  offers_badge_declined: 'הצעות — תג: נדחתה',
+  offers_chip_mine:      'הצעות — שבב: שלי',
+  offers_chip_theirs:    'הצעות — שבב: הצד השני',
+  offers_chat_badge:     'הצעות — תג: הודעה חדשה',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -3701,6 +3724,29 @@ const DEFAULT_TEXTS = {
   match_hint:    'לפני שבודקים עם השדכן השני — מה שנוח לכם! אפשר לשלוח ל{שם_א} את הכרטיסיה של {שם_ב} בוואטסאפ:',
   match_wa_btn:  'שלח/י ל{שם_א} את הכרטיסיה של {שם_ב}',
   match_mm_btn:  'פנה/י לשדכן/ית של {שם_ב}',
+  offers_title:          'הצעות',
+  offers_active_suffix:  'פעילות',
+  offers_new_btn:        'צרו הצעה חדשה',
+  offers_tab_pending:    'ממתינות',
+  offers_tab_approved:   'אושרו',
+  offers_tab_done:       'נדחו',
+  offers_sort_label:     'מיון:',
+  offers_sort_newest:    'חדש',
+  offers_sort_oldest:    'ישן',
+  offers_sort_mine:      'ממתין לי',
+  offers_empty_pending:  'אין הצעות הממתינות לאישור',
+  offers_empty_approved: 'אין הצעות שאושרו',
+  offers_empty_done:     'אין הצעות שהסתיימו',
+  offers_empty_filter:   'אין הצעות מסוג זה כרגע',
+  offers_filter_approve: 'ממתינות לאישורי',
+  offers_filter_cand:    'ממתינות לתשובת מועמד',
+  offers_badge_engaged:  '💍 התחתנו!',
+  offers_badge_waiting:  'ממתין לתגובתי',
+  offers_badge_approved: '🎉 אושרה',
+  offers_badge_declined: 'נדחתה',
+  offers_chip_mine:      '◆ שלי',
+  offers_chip_theirs:    'הצד השני',
+  offers_chat_badge:     'הודעה חדשה',
 };
 
 const SCREEN_TEXTS = {
@@ -3725,6 +3771,7 @@ const SCREEN_TEXTS = {
   ],
   waTemplates: ['wa_invite','wa_cand_offer','wa_mm_contact'],
   matchFlow:   ['match_hint','match_wa_btn','match_mm_btn'],
+  offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
 };
 
 // Gender helper — handles both 'f' (mock data) and 'אשה' (CandidateForm)
@@ -5563,9 +5610,13 @@ function CandidateDetail({ th, go, params }) {
   const cView = { ...c, hidden: localHidden, available: localAvailable };
   const mm = matchmakers?.[c?.mmId] || null;
 
-  const footer = (
+  const footer = isMine ? (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
       <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>שדך/י את {c.name}</Btn>
+    </div>
+  ) : (
+    <div style={{ flexShrink: 0, padding: '14px 24px 28px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, textAlign: 'center' }}>
+      <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: alpha(th.ink, 0.45) }}>כדי להתאים בין מועמדים, יש לבחור תחילה מועמד שלכם</span>
     </div>
   );
 
@@ -6014,9 +6065,10 @@ const { useState: useSc, useMemo: useMc, useEffect: useEc } = React;
 // Parse a single AI analysis response (MatchFlow step 3)
 function parseAiAnalysis(raw) {
   if (!raw) return null;
-  const get = (key) => { const m = raw.match(new RegExp(key + ':\\s*(.+)')); return m ? m[1].trim() : ''; };
+  const clean = s => s.replace(/\*\*/g, '').trim();
+  const get = (key) => { const m = raw.match(new RegExp(key + ':\\s*(.+)')); return m ? clean(m[1]) : ''; };
   const score = parseInt(get('ציון')) || null;
-  const bullets = (get('סיבות') || '').split('|').map(s => s.trim()).filter(Boolean);
+  const bullets = (get('סיבות') || '').split('|').map(s => clean(s)).filter(Boolean);
   const caution = get('לשים לב') || '';
   const label   = get('המלצה') || '';
   return { score, bullets, caution, label };
@@ -6108,7 +6160,7 @@ function MatchFlow({ th, go, params }) {
   const [selfCandBApproved, setSelfCandBApproved] = useSc(false);
   const [previewCand, setPreviewCand] = useSc(null); // candidate being previewed in step 2
   const [aiScore, setAiScore] = useSc(null);
-  const [aiAnalysis, setAiAnalysis] = useSc(null);
+  const [aiAnalysis, setAiAnalysis] = useSc(params?.aiAnalysis || null);
   const [aiLoading, setAiLoading] = useSc(false);
   const [confirmModal, setConfirmModal] = useSc(false); // false | 'step1' | 'step2'
   const [candApproved, setCandApproved] = useSc(null);
@@ -6143,6 +6195,7 @@ function MatchFlow({ th, go, params }) {
   useEc(() => {
     if (step !== 3 || !first || !second || isSelfMatch) return;
     setAiScore(calcScore(first, second));
+    if (params?.aiAnalysis) return;
     setAiLoading(true); setAiAnalysis(null);
     (async () => {
       try {
@@ -6419,12 +6472,12 @@ function MatchFlow({ th, go, params }) {
             <div style={{ background: th.card, borderRadius: th.rLg, padding: 18, boxShadow: `0 8px 22px ${alpha(th.ink, 0.08)}`, marginBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 14 }}>
                 <div style={{ textAlign: 'center' }}>
-                  <Avatar grad={first.grad} name={first.name} size={72} photo={first.photos && first.photos[0]} style={{ marginInline: 'auto' }} />
+                  <Avatar grad={first.grad} name={first.name} size={72} photo={first.photos && first.photos[0]} style={{ marginInline: 'auto', cursor: 'pointer' }} onClick={() => go('candidate', { id: first.id, viewOnly: true })} />
                   <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 6 }}>{first.name}</div>
                 </div>
                 <div style={{ color: th.primary, padding: '0 4px' }}><Icon name="heart" size={30} fill={th.primary} stroke={0} /></div>
                 <div style={{ textAlign: 'center' }}>
-                  <Avatar grad={second.grad} name={second.name} size={72} photo={second.photos && second.photos[0]} style={{ marginInline: 'auto' }} />
+                  <Avatar grad={second.grad} name={second.name} size={72} photo={second.photos && second.photos[0]} style={{ marginInline: 'auto', cursor: 'pointer' }} onClick={() => go('candidate', { id: second.id, viewOnly: true })} />
                   <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 6 }}>{second.name}</div>
                 </div>
               </div>
@@ -6738,6 +6791,8 @@ function statusTone(s, th) {
 function Offers({ th, go, params }) {
   const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
   const { user } = useContext(AuthCtx);
+  const { texts: tx, defaults: dx } = useContext(TextsCtx);
+  const t = k => tx[k] || dx[k] || '';
   const myUid = user?.uid;
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || gradForId(id) }; };
@@ -6808,25 +6863,25 @@ function Offers({ th, go, params }) {
     return arr;
   })();
 
-  const subFilterLabels = { needsMyApproval: 'ממתינות לאישורי', awaitingCand: 'ממתינות לתשובת מועמד' };
-  const emptyMsg = { pending:'אין הצעות הממתינות לאישור', approved:'אין הצעות שאושרו', done:'אין הצעות שהסתיימו' };
+  const subFilterLabels = { needsMyApproval: t('offers_filter_approve'), awaitingCand: t('offers_filter_cand') };
+  const emptyMsg = { pending: t('offers_empty_pending'), approved: t('offers_empty_approved'), done: t('offers_empty_done') };
 
   const tabs = [
-    { id:'pending',  lbl:'ממתינות', count: pending.length,  dot: th.gold },
-    { id:'approved', lbl:'אושרו',   count: approved.length, dot: th.success },
-    { id:'done',     lbl:'נדחו',    count: done.length,     dot: null },
+    { id:'pending',  lbl: t('offers_tab_pending'),  count: pending.length,  dot: th.gold },
+    { id:'approved', lbl: t('offers_tab_approved'), count: approved.length, dot: th.success },
+    { id:'done',     lbl: t('offers_tab_done'),     count: done.length,     dot: null },
   ];
 
   return (
     <>
-      <AppHeader th={th} title="הצעות" sub={`${pending.length + approved.length} פעילות`} onBack={() => go('tab', { tab: 'home' })}
+      <AppHeader th={th} title={t('offers_title')} sub={`${pending.length + approved.length} ${t('offers_active_suffix')}`} onBack={() => go('tab', { tab: 'home' })}
         action={
           <button onClick={() => go('matchFlow', { fromOffers: true })}
             style={{ border:'none', background:th.primary, height:38, borderRadius:999, paddingInline:14,
               display:'flex', alignItems:'center', gap:5, color:'#fff', cursor:'pointer',
               fontFamily:th.display, fontWeight:800, fontSize:13,
               boxShadow:`0 6px 18px ${alpha(th.primary,0.35)}`, whiteSpace:'nowrap' }}>
-            <Icon name="plus" size={15} style={{ color:'#fff' }} /> צרו הצעה חדשה
+            <Icon name="plus" size={15} style={{ color:'#fff' }} /> {t('offers_new_btn')}
           </button>
         }
       />
@@ -6840,9 +6895,9 @@ function Offers({ th, go, params }) {
       </div>
       {/* Sort picker */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 18px 10px', flexShrink: 0 }}>
-        <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>↕ מיון:</span>
+        <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>↕ {t('offers_sort_label')}</span>
         <div style={{ display: 'flex', background: alpha(th.ink, 0.06), borderRadius: 999, padding: 3, gap: 2 }}>
-          {[{ id: 'newest', lbl: 'חדש' }, { id: 'oldest', lbl: 'ישן' }, { id: 'myAction', lbl: 'ממתין לי' }].map(({ id, lbl }) => (
+          {[{ id: 'newest', lbl: t('offers_sort_newest') }, { id: 'oldest', lbl: t('offers_sort_oldest') }, { id: 'myAction', lbl: t('offers_sort_mine') }].map(({ id, lbl }) => (
             <button key={id} onClick={() => setSortBy(id)}
               style={{ border: 'none', cursor: 'pointer', borderRadius: 999, padding: '4px 11px',
                 fontFamily: th.body, fontWeight: 700, fontSize: 12,
@@ -6868,7 +6923,7 @@ function Offers({ th, go, params }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 24px' }}>
         {list.length === 0 && (
           <div style={{ textAlign:'center', padding:'40px 20px', fontFamily:th.body, color:alpha(th.ink,0.4) }}>
-            {subFilter ? 'אין הצעות מסוג זה כרגע' : emptyMsg[tab]}
+            {subFilter ? t('offers_empty_filter') : emptyMsg[tab]}
           </div>
         )}
         {sortedList.map(o => {
@@ -6907,10 +6962,10 @@ function Offers({ th, go, params }) {
                   {myCand.name} · {theirC.name}
                 </div>
                 <div style={{ display:'flex', gap:5, flexShrink:0, marginInlineStart:6 }}>
-                  {isEngaged && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.gold, background:alpha(th.gold,0.15), borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>💍 התחתנו!</span>}
-                  {!isEngaged && needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>ממתין לתגובתי</span>}
-                  {!isEngaged && bothApp   && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.success, background:alpha(th.success,0.12), borderRadius:99, padding:'3px 9px' }}>🎉 אושרה</span>}
-                  {finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.error,   background:alpha(th.error,0.1),   borderRadius:99, padding:'3px 8px' }}>נדחתה</span>}
+                  {isEngaged && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.gold, background:alpha(th.gold,0.15), borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>{t('offers_badge_engaged')}</span>}
+                  {!isEngaged && needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 8px', whiteSpace:'nowrap' }}>{t('offers_badge_waiting')}</span>}
+                  {!isEngaged && bothApp   && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.success, background:alpha(th.success,0.12), borderRadius:99, padding:'3px 9px' }}>{t('offers_badge_approved')}</span>}
+                  {finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.error,   background:alpha(th.error,0.1),   borderRadius:99, padding:'3px 8px' }}>{t('offers_badge_declined')}</span>}
                 </div>
               </div>
 
@@ -6924,7 +6979,7 @@ function Offers({ th, go, params }) {
                     background: th.cream,
                     border:`1.5px solid ${alpha(th.ink,0.08)}` }}>
                     <div style={{ fontFamily:th.body, fontSize:9.5, fontWeight:700, color: mine ? th.primary : alpha(th.ink,0.4), marginBottom:7 }}>
-                      {mine ? '◆ שלי' : 'הצד השני'}
+                      {mine ? t('offers_chip_mine') : t('offers_chip_theirs')}
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                       <div style={{ width:24, height:24, borderRadius:'50%', flexShrink:0,
@@ -6942,7 +6997,7 @@ function Offers({ th, go, params }) {
               {/* Row 3: their mm + unread badge */}
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:9, paddingTop:9, borderTop:`1px solid ${alpha(th.ink,0.06)}` }}>
                 <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-                  {chatUnread[o.id] && <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11, color:th.primary, background:alpha(th.primary,0.1), borderRadius:999, padding:'2px 8px' }}>הודעה חדשה</span>}
+                  {chatUnread[o.id] && <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11, color:th.primary, background:alpha(th.primary,0.1), borderRadius:999, padding:'2px 8px' }}>{t('offers_chat_badge')}</span>}
                   <Icon name="chevL" size={14} style={{ color:alpha(th.ink,0.3) }} />
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:6 }}>
@@ -7048,10 +7103,10 @@ function Chat({ th, go, params }) {
           <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{theirMm.name}</div>
           {/* Tappable candidate names → profile */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 1 }}>
-            <button onClick={() => go('candidate', { id: o.aId })}
+            <button onClick={() => go('candidate', { id: o.aId, viewOnly: true })}
               style={{ all:'unset', cursor:'pointer', fontFamily:th.body, fontSize:12, color:th.primary, fontWeight:700 }}>{a.name}</button>
             <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.3) }}>·</span>
-            <button onClick={() => go('candidate', { id: o.bId })}
+            <button onClick={() => go('candidate', { id: o.bId, viewOnly: true })}
               style={{ all:'unset', cursor:'pointer', fontFamily:th.body, fontSize:12, color:th.primary, fontWeight:700 }}>{b.name}</button>
           </div>
         </div>
@@ -7259,11 +7314,13 @@ function AIRecs({ th, go }) {
     return out;
   }, [candidates, offers, myUid]);
 
+  // ── Candidate hash for cache invalidation ────────────────────
+  const hashCand = c => [c.age, c.region, c.religiosity, c.oneLine, c.seesWith, c.sabaBut, c.mmNote, (c.interests||[]).join(',')].join('|');
+
   // ── Run AI on demand ─────────────────────────────────────────
   const runAI = async (off) => {
     const batch10 = pairs.slice(off, off + 10);
     if (!batch10.length) return;
-    const pairKeys = batch10.map(p => `${p.aId}__${p.bId}`);
     setAiLoading(true);
     setHasRun(true);
     setShownPairs(batch10);
@@ -7272,54 +7329,99 @@ function AIRecs({ th, go }) {
       const apiKey = cfg.data()?.anthropicKey;
       if (!apiKey) { setAiLoading(false); return; }
 
-      const fmtP = id => {
-        const c = candidates.find(x => x.id === id) || {};
-        return [
-          c.age && `גיל ${c.age}`, c.region, c.religiosity,
-          (c.interests||[]).slice(0,3).join('/'),
-          c.oneLine  && `"${c.oneLine}"`,
-          c.seesWith && `מחפש/ת: "${c.seesWith}"`,
-          c.sabaBut  && `מיוחד: "${c.sabaBut}"`,
-          c.mmNote   && `השדכן: "${c.mmNote}"`
-        ].filter(Boolean).join(' · ');
-      };
-
-      const pairsBlock = batch10.map((p, i) => {
+      // ── Check cache for each pair ──────────────────────────────
+      const cacheDocs = await Promise.all(
+        batch10.map(p => db.collection('ai_pair_cache').doc(`${p.aId}__${p.bId}`).get().catch(() => null))
+      );
+      const fromCache = {};
+      const toAnalyze = [];
+      batch10.forEach((p, i) => {
         const a = candidates.find(x => x.id === p.aId) || {};
         const b = candidates.find(x => x.id === p.bId) || {};
-        return `זוג ${i+1} — א (${a.name||'?'}): ${fmtP(p.aId)}  |  ב (${b.name||'?'}): ${fmtP(p.bId)}`;
-      }).join('\n');
-
-      let examplesBlock = '';
-      if (th.aiMode === 'learning') {
-        const [succSnap, failSnap] = await Promise.all([
-          db.collection('ai_learnings').where('outcome','in',['success','engagement']).orderBy('savedAt','desc').limit(5).get().catch(()=>({docs:[]})),
-          db.collection('ai_learnings').where('outcome','==','failure').orderBy('savedAt','desc').limit(3).get().catch(()=>({docs:[]}))
-        ]);
-        const fmtEx = (doc, isSuccess) => {
+        const doc = cacheDocs[i];
+        if (doc?.exists) {
           const d = doc.data();
-          const pa = [d.personA?.age && `גיל ${d.personA.age}`, d.personA?.region, d.personA?.religiosity, (d.personA?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
-          const pb = [d.personB?.age && `גיל ${d.personB.age}`, d.personB?.region, d.personB?.religiosity, (d.personB?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
-          return `${isSuccess ? '✓' : '✗'} א: ${pa} | ב: ${pb}${d.offerNote ? ` | הערה: "${d.offerNote}"` : ''}`;
-        };
-        const exLines = [...succSnap.docs.map(d=>fmtEx(d,true)), ...failSnap.docs.map(d=>fmtEx(d,false))];
-        if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
-      }
-
-      const prompt = `${examplesBlock}ניתח ${batch10.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[0-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
-
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001', max_tokens: 1200,
-          system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
-          messages: [{ role: 'user', content: prompt }]
-        })
+          if (d.hashA === hashCand(a) && d.hashB === hashCand(b)) {
+            fromCache[`${p.aId}__${p.bId}`] = { score: d.score, bullets: d.bullets, caution: d.caution, label: d.label };
+            return;
+          }
+        }
+        toAnalyze.push(p);
       });
-      const d = await res.json();
-      const rawText = d.content?.[0]?.text?.trim() || '';
-      setAiAnalyses(prev => ({ ...prev, ...parseBatchResponse(rawText, pairKeys) }));
+
+      // Apply cached results immediately
+      if (Object.keys(fromCache).length) setAiAnalyses(prev => ({ ...prev, ...fromCache }));
+
+      // ── Call AI only for uncached pairs ───────────────────────
+      if (toAnalyze.length > 0) {
+        const pairKeys = toAnalyze.map(p => `${p.aId}__${p.bId}`);
+
+        const fmtP = id => {
+          const c = candidates.find(x => x.id === id) || {};
+          return [
+            c.age && `גיל ${c.age}`, c.region, c.religiosity,
+            (c.interests||[]).slice(0,3).join('/'),
+            c.oneLine  && `"${c.oneLine}"`,
+            c.seesWith && `מחפש/ת: "${c.seesWith}"`,
+            c.sabaBut  && `מיוחד: "${c.sabaBut}"`,
+            c.mmNote   && `השדכן: "${c.mmNote}"`
+          ].filter(Boolean).join(' · ');
+        };
+
+        const pairsBlock = toAnalyze.map((p, i) => {
+          const a = candidates.find(x => x.id === p.aId) || {};
+          const b = candidates.find(x => x.id === p.bId) || {};
+          return `זוג ${i+1} — א (${a.name||'?'}): ${fmtP(p.aId)}  |  ב (${b.name||'?'}): ${fmtP(p.bId)}`;
+        }).join('\n');
+
+        let examplesBlock = '';
+        if (th.aiMode === 'learning') {
+          const [succSnap, failSnap] = await Promise.all([
+            db.collection('ai_learnings').where('outcome','in',['success','engagement']).orderBy('savedAt','desc').limit(5).get().catch(()=>({docs:[]})),
+            db.collection('ai_learnings').where('outcome','==','failure').orderBy('savedAt','desc').limit(3).get().catch(()=>({docs:[]}))
+          ]);
+          const fmtEx = (doc, isSuccess) => {
+            const d = doc.data();
+            const pa = [d.personA?.age && `גיל ${d.personA.age}`, d.personA?.region, d.personA?.religiosity, (d.personA?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
+            const pb = [d.personB?.age && `גיל ${d.personB.age}`, d.personB?.region, d.personB?.religiosity, (d.personB?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
+            return `${isSuccess ? '✓' : '✗'} א: ${pa} | ב: ${pb}${d.offerNote ? ` | הערה: "${d.offerNote}"` : ''}`;
+          };
+          const exLines = [...succSnap.docs.map(d=>fmtEx(d,true)), ...failSnap.docs.map(d=>fmtEx(d,false))];
+          if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
+        }
+
+        const prompt = `${examplesBlock}ניתח ${toAnalyze.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[0-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001', max_tokens: 1200,
+            system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        const d = await res.json();
+        const rawText = d.content?.[0]?.text?.trim() || '';
+        const freshResults = parseBatchResponse(rawText, pairKeys);
+        setAiAnalyses(prev => ({ ...prev, ...freshResults }));
+
+        // ── Save fresh results to cache ────────────────────────
+        const batch = db.batch();
+        toAnalyze.forEach(p => {
+          const key = `${p.aId}__${p.bId}`;
+          const result = freshResults[key];
+          if (!result) return;
+          const a = candidates.find(x => x.id === p.aId) || {};
+          const b = candidates.find(x => x.id === p.bId) || {};
+          batch.set(db.collection('ai_pair_cache').doc(key), {
+            ...result,
+            hashA: hashCand(a), hashB: hashCand(b),
+            savedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+        batch.commit().catch(e => console.warn('cache save:', e));
+      }
     } catch(e) { console.warn('AIRecs batch analysis:', e); }
     finally { setAiLoading(false); }
   };
@@ -7420,7 +7522,7 @@ function AIRecs({ th, go }) {
                 </div>
               )}
               <div style={{ display:'flex', justifyContent:'center' }}>
-                <button onClick={() => go('matchFlow', { id: myCand.id, withId: theirCand.id })} style={{
+                <button onClick={() => go('matchFlow', { id: myCand.id, withId: theirCand.id, aiAnalysis: ai })} style={{
                   padding:'10px 28px', borderRadius:th.r, border:'none', cursor:'pointer',
                   background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14,
                   display:'flex', alignItems:'center', gap:7
@@ -8988,6 +9090,7 @@ function TextsAdmin({ th, go }) {
     { id:'ai',            label:'המלצות AI',            icon:'spark', desc:'הסבר מנוע AI' },
     { id:'candidateMode', label:'אפליקציית מועמד',     icon:'phone', desc:'כל מסכי המועמד/ת' },
     { id:'matchFlow',     label:'שידוך חדש',            icon:'heart', desc:'צעד ההצעה — טקסטים ולחצנים' },
+    { id:'offers',        label:'מסך הצעות',            icon:'heart', desc:'טאבים, תגים, כפתורים — כל הניסוחים' },
     { id:'waTemplates',   label:'הודעות ווצאפ',         icon:'send',  desc:'תבניות הודעות ווצאפ — {שם}, {קישור} וכו\'' },
   ];
 
