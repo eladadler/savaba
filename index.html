@@ -9335,6 +9335,28 @@ function Stage({ children }) {
 
 // Settings screen (replaces screens-e Settings, adds admin link + signout)
 function AppSettings({ th, go, profile }) {
+  const { user } = useContext(AuthCtx);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const openEdit = () => {
+    setEditName(profile?.displayName || '');
+    setEditPhone(profile?.phone || '');
+    setEditOpen(true);
+  };
+  const saveEdit = async () => {
+    if (!editName.trim()) return alert('נא להזין שם');
+    setSaving(true);
+    try {
+      await db.collection('users').doc(user.uid).update({ displayName: editName.trim(), phone: editPhone.trim() });
+      if (user.displayName !== editName.trim()) await user.updateProfile({ displayName: editName.trim() });
+      setEditOpen(false);
+    } catch(e) { alert('שגיאה: ' + e.message); }
+    setSaving(false);
+  };
+
   const Row = ({ icon, label, danger, last, onClick, tone }) => (
     <button onClick={onClick} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, padding:'13px 14px', borderBottom: last ? 'none' : `1px solid ${alpha(th.ink,0.07)}` }}>
       <div style={{ width:34, height:34, borderRadius:10, background:alpha(danger ? th.error : (tone||th.ink), 0.1), color:danger ? th.error : (tone||th.ink), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><Icon name={icon} size={19} /></div>
@@ -9348,13 +9370,15 @@ function AppSettings({ th, go, profile }) {
     <>
       <AppHeader th={th} title="הגדרות" big />
       <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 24px' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14, background:th.card, borderRadius:th.rLg, padding:16, marginBottom:18, boxShadow:`0 6px 18px ${alpha(th.ink,0.06)}` }}>
+        <button onClick={openEdit} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, background:th.card, borderRadius:th.rLg, padding:16, marginBottom:18, boxShadow:`0 6px 18px ${alpha(th.ink,0.06)}` }}>
           <Avatar grad={gradForId(profile?.uid||'me')} name={profile?.displayName||profile?.email||'?'} size={62} photo={profile?.photoURL} />
           <div style={{ flex:1 }}>
             <div style={{ fontFamily:th.display, fontWeight:800, fontSize:19, color:th.ink }}>{profile?.displayName || profile?.email}</div>
             <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55) }}>שדכן/ית{profile?.isAdmin ? ' · מנהל' : ''}</div>
+            {profile?.phone && <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.4), marginTop:2 }}>{profile.phone}</div>}
           </div>
-        </div>
+          <div style={{ color:alpha(th.ink,0.3), flexShrink:0 }}><Icon name="pencil" size={16} /></div>
+        </button>
 
         {profile?.isAdmin && (
           <Group>
@@ -9378,6 +9402,18 @@ function AppSettings({ th, go, profile }) {
           <div style={{ fontFamily:th.display, fontSize:13, color:alpha(th.ink,0.35), marginTop:4 }}>סבבה והכל · גרסה 1.0</div>
         </div>
       </div>
+
+      <Sheet open={editOpen} onClose={() => setEditOpen(false)} th={th} title="עריכת פרטים אישיים">
+        <Field th={th} label="שם מלא *">
+          <TextInput th={th} value={editName} onChange={setEditName} placeholder="שם מלא" />
+        </Field>
+        <Field th={th} label="טלפון">
+          <TextInput th={th} type="tel" value={editPhone} onChange={setEditPhone} placeholder="050-0000000" />
+        </Field>
+        <Btn th={th} full size="l" onClick={saveEdit} disabled={saving} style={{ marginTop:8 }}>
+          {saving ? 'שומר…' : 'שמור שינויים'}
+        </Btn>
+      </Sheet>
     </>
   );
 }
