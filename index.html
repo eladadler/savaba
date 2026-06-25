@@ -1605,7 +1605,12 @@ function BottomNav({ active, onNav, th, badges = {} }) {
 }
 
 // ── Bottom sheet / modal ───────────────────────────────────────
-function Sheet({ open, onClose, children, th, title, height }) {
+function Sheet({ open, onClose, children, th, title, height, inlineEditKeys }) {
+  const textsCtx = React.useContext(TextsCtx);
+  const { profile } = React.useContext(AuthCtx);
+  const isAdmin = profile?.isAdmin;
+  const hasEdit = isAdmin && inlineEditKeys?.length > 0;
+
   if (!open) return null;
   return (
     <div onClick={onClose} style={{
@@ -1619,8 +1624,20 @@ function Sheet({ open, onClose, children, th, title, height }) {
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         animation: 'sabaUp .28s cubic-bezier(.2,.9,.3,1)', paddingBottom: 28,
       }}>
-        <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ padding: '12px 0 4px', display: 'flex', justifyContent: 'center', alignItems: 'center', flexShrink: 0, position: 'relative' }}>
           <div style={{ width: 40, height: 5, borderRadius: 99, background: alpha(th.ink, 0.18) }} />
+          {hasEdit && !textsCtx.inlineEditMode && (
+            <button onClick={e => { e.stopPropagation(); textsCtx.startInlineEdit?.(); }}
+              style={{ position: 'absolute', left: 14, border: 'none', background: 'rgba(232,84,122,0.1)', borderRadius: 999, padding: '4px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#C0436B', fontSize: 12, fontFamily: th.display, fontWeight: 700 }}>
+              <Icon name="pencil" size={12} />
+              עריכה
+            </button>
+          )}
+          {hasEdit && textsCtx.inlineEditMode && (
+            <div style={{ position: 'absolute', left: 10, fontSize: 11.5, color: '#C0436B', fontFamily: th.display, fontWeight: 700, background: 'rgba(232,84,122,0.1)', borderRadius: 999, padding: '3px 9px' }}>
+              ✏️ מצב עריכה
+            </div>
+          )}
         </div>
         {title && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px 8px', flexShrink: 0 }}>
@@ -5587,7 +5604,7 @@ function AddSheet({ open, onClose, th, go }) {
 
   return (
     <>
-      <Sheet open={open} onClose={onClose} th={th}>
+      <Sheet open={open} onClose={onClose} th={th} inlineEditKeys={['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub']}>
         <div style={{ direction: 'rtl' }}>
           {/* close button — left in RTL (flex-end) */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
@@ -9532,6 +9549,7 @@ function AppInner({ inviteToken }) {
   const [inlineEditMode, setInlineEditMode] = React.useState(false);
   const [inlineDrafts, setInlineDrafts] = React.useState({});
   const setInlineDraft = React.useCallback((key, val) => setInlineDrafts(d => ({ ...d, [key]: val })), []);
+  const startInlineEdit = React.useCallback(() => { setInlineDrafts({}); setInlineEditMode(true); }, []);
   const cancelInlineEdit = () => { setInlineEditMode(false); setInlineDrafts({}); };
   const saveInlineTexts = async () => {
     const entries = Object.entries(inlineDrafts);
@@ -9612,7 +9630,7 @@ function AppInner({ inviteToken }) {
     [data.candidates, myUid]);
 
   return (
-    <TextsCtx.Provider value={{ texts: { ...data.texts, ...drafts, ...inlineDrafts }, defaults: DEFAULT_TEXTS, inlineEditMode, inlineDrafts, setInlineDraft }}>
+    <TextsCtx.Provider value={{ texts: { ...data.texts, ...drafts, ...inlineDrafts }, defaults: DEFAULT_TEXTS, inlineEditMode, inlineDrafts, setInlineDraft, startInlineEdit }}>
       <>
       <div className="app-shell" style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
@@ -9639,7 +9657,7 @@ function AppInner({ inviteToken }) {
 
           {/* Inline edit save/cancel bar */}
           {inlineEditMode && (
-            <div style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 0, right: 0, zIndex: 50, display:'flex', gap:8, padding:'0 14px' }}>
+            <div style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 0, right: 0, zIndex: 150, display:'flex', gap:8, padding:'0 14px' }}>
               <button onClick={saveInlineTexts} disabled={savingTexts}
                 style={{ flex:1, border:'none', background:'#E8547A', color:'#fff', borderRadius:999, padding:'12px 0', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer', boxShadow:'0 4px 16px rgba(232,84,122,0.4)' }}>
                 {savingTexts ? 'שומר…' : `✓ שמור${Object.keys(inlineDrafts).length ? ` (${Object.keys(inlineDrafts).length})` : ''}`}
