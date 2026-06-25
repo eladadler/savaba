@@ -1091,6 +1091,33 @@ const AuthCtx  = createContext(null);
 const DataCtx  = createContext(null);
 const TextsCtx = createContext({});
 
+function useTexts() {
+  const ctx = React.useContext(TextsCtx);
+  const t = React.useCallback((key) => {
+    if (ctx.inlineEditMode && key && ctx.setInlineDraft) {
+      const val = (ctx.inlineDrafts && ctx.inlineDrafts[key] !== undefined)
+        ? ctx.inlineDrafts[key]
+        : (ctx.texts?.[key] || ctx.defaults?.[key] || '');
+      return React.createElement('span', {
+        key,
+        contentEditable: true,
+        suppressContentEditableWarning: true,
+        'data-tk': key,
+        onBlur: e => ctx.setInlineDraft(key, e.currentTarget.innerText.trim()),
+        style: {
+          outline: 'none', borderBottom: '2px dashed #E8547A',
+          background: 'rgba(232,84,122,0.07)', borderRadius: 3,
+          cursor: 'text', display: 'inline', minWidth: 12,
+          padding: '0 2px',
+        },
+        dangerouslySetInnerHTML: { __html: val }
+      });
+    }
+    return ctx.texts?.[key] || ctx.defaults?.[key] || '';
+  }, [ctx.texts, ctx.defaults, ctx.inlineEditMode, ctx.inlineDrafts, ctx.setInlineDraft]);
+  return { t, texts: ctx.texts || {}, defaults: ctx.defaults || {} };
+}
+
 // ── Auth hook ────────────────────────────────────────────────
 function useAuthState() {
   const [user, setUser]       = useState(undefined); // undefined = loading
@@ -2681,7 +2708,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
   );
 }
 
-function AdminPanel({ th, go, aiMode, setAiMode }) {
+function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod }) {
   const { profile, startImpersonate }  = useContext(AuthCtx);
   const { candidates, matchmakers, texts, lists, addCandidate, updateCandidate,
           deleteCandidate, uploadPhoto, uploadVoice, updateText, setUserAdmin, updateList } = useContext(DataCtx);
@@ -2974,6 +3001,22 @@ function AdminPanel({ th, go, aiMode, setAiMode }) {
         {/* ── TEXTS (CMS) ── */}
         {tab === 'texts' && (
           <>
+            <div style={{ background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 14, boxShadow: `0 2px 8px ${alpha(th.ink,0.05)}` }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink, marginBottom: 10 }}>שיטת עריכת טקסטים</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[['modal','מודאל 📋'],['inline','Inline ✏️']].map(([v,lbl]) => (
+                  <button key={v} onClick={() => setEditMethod && setEditMethod(v)}
+                    style={{ flex: 1, padding: '9px 0', border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13,
+                      background: (editMethod||'modal') === v ? th.primary : alpha(th.ink,0.08),
+                      color: (editMethod||'modal') === v ? '#fff' : alpha(th.ink,0.6) }}>
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+              <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink,0.45), marginTop: 8, lineHeight: 1.4 }}>
+                {(editMethod||'modal') === 'inline' ? 'לחץ על כפתור "עריכת טקסטים" בכל מסך — הטקסטים ייפתחו לעריכה ישירה.' : 'לחץ על כפתור "עריכת טקסטים" בכל מסך — נפתח מודאל עם כל שדות הטקסט.'}
+              </div>
+            </div>
             <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginBottom: 14 }}>עריכת טקסטים קבועים באפליקציה. לחץ על טקסט לעריכה.</div>
             {Object.entries(TEXT_KEYS).map(([key, label]) => (
               <div key={key} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 8, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
@@ -3226,8 +3269,7 @@ function AdminPanel({ th, go, aiMode, setAiMode }) {
 
 function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote, onApprove, onSaveStep }) {
   const { lists } = useContext(DataCtx);
-  const { texts: _tx, defaults: _dx } = useContext(TextsCtx);
-  const _t = (key) => _tx[key] || _dx[key] || '';
+  const { t: _t, texts: _tx, defaults: _dx } = useTexts();
   const liveRegions       = (lists.regions      && lists.regions.length)      ? lists.regions      : REGIONS;
   const liveReligiosity   = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
   const liveInterests     = (lists.interests     && lists.interests.length)    ? lists.interests    : INTERESTS;
@@ -3795,8 +3837,7 @@ const { useState: useS, useEffect: useE } = React;
 // ════════════════════════════════════════════════════════════
 function Onboarding({ th, go }) {
   const [i, setI] = useS(0);
-  const { texts: tx, defaults: dx } = useContext(TextsCtx);
-  const t = (key) => tx[key] || dx[key] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const slides = [
     { kind: 'friends', title: t('onb_slide1_title'), body: t('onb_slide1_body') },
     { kind: 'list',    title: t('onb_slide2_title'), body: t('onb_slide2_body') },
@@ -3894,8 +3935,7 @@ function Onboarding({ th, go }) {
 // ════════════════════════════════════════════════════════════
 function Register({ th, go }) {
   const { user } = useContext(AuthCtx);
-  const { texts: tx, defaults: dx } = useContext(TextsCtx);
-  const t = (key) => tx[key] || dx[key] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const [step, setStep] = useS(1);
   const [firstName, setFirstName] = useS('');
   const [lastName, setLastName] = useS('');
@@ -4025,8 +4065,7 @@ function Register({ th, go }) {
 function Home({ th, go }) {
   const { profile } = useContext(AuthCtx);
   const { candidates, offers, notifications, markNotificationRead, deleteNotification } = useContext(DataCtx);
-  const { texts: tx, defaults: dx } = useContext(TextsCtx);
-  const t = (key) => tx[key] || dx[key] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
   const myUid = profile?.uid;
   const mine   = candidates.filter(c => !c.pendingApproval && c.status !== 'pending_mm' && (c.mmId === myUid || c.coMms?.includes(myUid)));
@@ -4572,8 +4611,7 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
 function Candidates({ th, go, params }) {
   const { candidates, claimCandidate, coRepRequests } = useContext(DataCtx);
   const { profile }    = useContext(AuthCtx);
-  const { texts: tx, defaults: dx } = useContext(TextsCtx);
-  const t = (key) => tx[key] || dx[key] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const [scope, setScope]       = useSb(params?.linkMode ? 'all' : 'mine'); // mine | all
   const [q, setQ]               = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
@@ -5303,8 +5341,7 @@ function CandidateSelfFill({ th, go, params }) {
 // ════════════════════════════════════════════════════════════
 function EditCandidateScreen({ th, go, params }) {
   const { candidates, updateCandidate, uploadPhoto, uploadVoice, approveCandidate } = useContext(DataCtx);
-  const { texts: tx, defaults: dx } = useContext(TextsCtx);
-  const t = (key) => tx[key] || dx[key] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const c = candidates.find(x => x.id === params?.id);
   if (!c) return (
     <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
@@ -5525,8 +5562,7 @@ function NotificationDrawer({ th, go, notifications, markNotificationRead, delet
 
 function AddSheet({ open, onClose, th, go }) {
   const { profile, user } = useContext(AuthCtx);
-  const { texts: tx, defaults: dx } = useContext(TextsCtx);
-  const t = (key) => tx[key] || dx[key] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const [inviteOpen, setInviteOpen] = useState(false);
 
   return (
@@ -6843,8 +6879,7 @@ function statusTone(s, th) {
 function Offers({ th, go, params }) {
   const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
   const { user } = useContext(AuthCtx);
-  const { texts: tx, defaults: dx } = useContext(TextsCtx);
-  const t = k => tx[k] || dx[k] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const myUid = user?.uid;
   const findC = id => candidates.find(c => c.id === id) || { name:'?', grad: gradForId(id), photos:[] };
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad: gradForId(id||'x') }; return { ...mm, name: mm.displayName || mm.name || '—', grad: mm.grad || gradForId(id) }; };
@@ -7267,8 +7302,7 @@ function Chat({ th, go, params }) {
 function AIRecs({ th, go }) {
   const { candidates, offers } = React.useContext(DataCtx);
   const { user }               = React.useContext(AuthCtx);
-  const { texts: tx, defaults: dx } = React.useContext(TextsCtx);
-  const t = (key) => tx[key] || dx[key] || '';
+  const { t, texts: tx, defaults: dx } = useTexts();
   const myUid = user?.uid;
 
   const [aiAnalyses, setAiAnalyses] = React.useState({});
@@ -7757,8 +7791,7 @@ function Toggle({ on, onChange, th }) {
 function CandBrowse({ th, go, me }) {
   const { candidates, lists } = useContext(DataCtx);
   const { profile } = useContext(AuthCtx);
-  const { texts: _tx, defaults: _dx } = useContext(TextsCtx);
-  const t = (key) => _tx[key] || _dx[key] || '';
+  const { t } = useTexts();
   const [q, setQ] = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
   const [filters, setFilters] = useSb({ rel: [], region: '', ageMin: 18, ageMax: 55, maritalStatus: [] });
@@ -7945,8 +7978,7 @@ function CandViewCand({ th, go, params }) {
 function CandidateMode({ th, go }) {
   const { user, isImpersonating } = useContext(AuthCtx);
   const { candidates, offers, matchmakers, coRepRequests, lists, updateCandidate, updateOffer, deleteCandidate, reportEngagement, reportDeletion } = useContext(DataCtx);
-  const { texts: _tx, defaults: _dx } = useContext(TextsCtx);
-  const t = (key) => _tx[key] || _dx[key] || '';
+  const { t } = useTexts();
 
   // Find this user's own candidate profile (also match by doc ID when admin impersonates a candidate without account)
   const me = candidates.find(c => c.candidateUid === user?.uid)
@@ -9302,7 +9334,7 @@ function TextsAdmin({ th, go }) {
   );
 }
 
-function renderScreen(cur, th, go, profile, aiMode, setAiMode) {
+function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
   const p = cur.params;
   switch (cur.name) {
     case 'onboarding':  return <Onboarding th={th} go={go} />;
@@ -9319,7 +9351,7 @@ function renderScreen(cur, th, go, profile, aiMode, setAiMode) {
     case 'candViewCand':  return <CandViewCand th={th} go={go} params={p} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
     case 'textsAdmin':  return <TextsAdmin th={th} go={go} />;
-    case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} />;
+    case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} editMethod={opts.editMethod} setEditMethod={opts.setEditMethod} />;
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
     case 'candSelfFill':  return <CandidateSelfFill th={th} go={go} params={p} />;
     case 'editCand':      return <EditCandidateScreen th={th} go={go} params={p} />;
@@ -9473,7 +9505,26 @@ function AppInner({ inviteToken }) {
   const screenKeys   = SCREEN_TEXTS[cur.name] || [];
   const setDraft     = (key, val) => setDrafts(d => ({ ...d, [key]: val }));
   const cancelEdit   = () => { setEditMode(false); setDrafts({}); };
-  React.useEffect(() => { setEditMode(false); setDrafts({}); }, [cur.name]);
+
+  // ── Inline edit mode ──────────────────────────────────────────
+  const [editMethod, setEditMethod] = React.useState(() => localStorage.getItem('textEditMethod') || 'modal');
+  const saveEditMethod = (v) => { setEditMethod(v); localStorage.setItem('textEditMethod', v); };
+  const [inlineEditMode, setInlineEditMode] = React.useState(false);
+  const [inlineDrafts, setInlineDrafts] = React.useState({});
+  const setInlineDraft = React.useCallback((key, val) => setInlineDrafts(d => ({ ...d, [key]: val })), []);
+  const cancelInlineEdit = () => { setInlineEditMode(false); setInlineDrafts({}); };
+  const saveInlineTexts = async () => {
+    const entries = Object.entries(inlineDrafts);
+    if (!entries.length) { setInlineEditMode(false); return; }
+    setSavingTexts(true);
+    try {
+      for (const [key, val] of entries) await data.updateText(key, val);
+      setInlineDrafts({}); setInlineEditMode(false);
+    } catch(e) { alert('שגיאה בשמירה: ' + e.message); }
+    setSavingTexts(false);
+  };
+
+  React.useEffect(() => { setEditMode(false); setDrafts({}); setInlineEditMode(false); setInlineDrafts({}); }, [cur.name]);
   const saveTexts = async () => {
     const entries = Object.entries(drafts);
     if (!entries.length) { setEditMode(false); return; }
@@ -9541,22 +9592,43 @@ function AppInner({ inviteToken }) {
     [data.candidates, myUid]);
 
   return (
-    <TextsCtx.Provider value={{ texts: { ...data.texts, ...drafts }, defaults: DEFAULT_TEXTS }}>
+    <TextsCtx.Provider value={{ texts: { ...data.texts, ...drafts, ...inlineDrafts }, defaults: DEFAULT_TEXTS, inlineEditMode, inlineDrafts, setInlineDraft }}>
       <>
       <div className="app-shell" style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
           <ImpersonateBanner th={th} />
+          {inlineEditMode && (
+            <div style={{ background: alpha('#E8547A', 0.12), borderBottom: '1.5px solid rgba(232,84,122,0.25)', padding: '7px 16px', display:'flex', alignItems:'center', gap:8, flexShrink:0, zIndex:50 }}>
+              <Icon name="pencil" size={13} style={{ color:'#E8547A' }} />
+              <span style={{ fontFamily:'inherit', fontWeight:700, fontSize:12, color:'#C0436B', flex:1 }}>מצב עריכת טקסטים — לחץ/י על כל טקסט ורוד כדי לערוך</span>
+            </div>
+          )}
           {data.loading
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
-            : renderScreen(cur, th, go, profile, aiMode, setAiMode)}
+            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod })}
           {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
-          {isAdmin && !data.loading && screenKeys.length > 0 && !editMode && (
-            <button onClick={() => setEditMode(true)} style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 16, zIndex: 40, border:'none', borderRadius:999, padding:'8px 14px', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:12.5, background:th.card, color:alpha(th.ink,0.6), display:'flex', alignItems:'center', gap:6, boxShadow:`0 2px 14px ${alpha(th.ink,0.13)}` }}>
+          {isAdmin && !data.loading && screenKeys.length > 0 && !editMode && !inlineEditMode && (
+            <button onClick={() => { if (editMethod === 'inline') { setInlineDrafts({}); setInlineEditMode(true); } else setEditMode(true); }}
+              style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 16, zIndex: 40, border:'none', borderRadius:999, padding:'8px 14px', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:12.5, background:th.card, color:alpha(th.ink,0.6), display:'flex', alignItems:'center', gap:6, boxShadow:`0 2px 14px ${alpha(th.ink,0.13)}` }}>
               <Icon name="pencil" size={14} />
               עריכת טקסטים
             </button>
+          )}
+
+          {/* Inline edit save/cancel bar */}
+          {inlineEditMode && (
+            <div style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 0, right: 0, zIndex: 50, display:'flex', gap:8, padding:'0 14px' }}>
+              <button onClick={saveInlineTexts} disabled={savingTexts}
+                style={{ flex:1, border:'none', background:'#E8547A', color:'#fff', borderRadius:999, padding:'12px 0', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer', boxShadow:'0 4px 16px rgba(232,84,122,0.4)' }}>
+                {savingTexts ? 'שומר…' : `✓ שמור${Object.keys(inlineDrafts).length ? ` (${Object.keys(inlineDrafts).length})` : ''}`}
+              </button>
+              <button onClick={cancelInlineEdit}
+                style={{ border:`1.5px solid ${alpha('#000',0.12)}`, background:th.card, color:th.ink, borderRadius:999, padding:'12px 18px', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer' }}>
+                ✕
+              </button>
+            </div>
           )}
 
           {/* Edit mode Sheet */}
