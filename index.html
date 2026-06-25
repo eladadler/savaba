@@ -6456,21 +6456,49 @@ function MatchFlow({ th, go, params }) {
                 <input value={q2} onChange={e => setQ2(e.target.value)} placeholder="חיפוש שם..."
                   style={{ width: '100%', boxSizing: 'border-box', padding: '10px 38px 10px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14, background: th.card, outline: 'none', color: th.ink }} />
               </div>
-              {candidates2.map(c => {
-                const alreadyMatched = offerExists(first?.id, c.id);
-                const score = calcScore(first, c);
-                const scoreColor = score >= 70 ? th.success : score >= 50 ? th.gold : alpha(th.ink, 0.45);
-                return (
-                  <CandRow key={c.id} c={c} th={th}
-                    selected={second?.id === c.id}
-                    disabled={alreadyMatched}
-                    onClick={alreadyMatched ? undefined : () => setPreviewCand(c)}
-                    trailing={second?.id === c.id
-                      ? <div style={{ color: th.primary }}><Icon name="check" size={24} /></div>
-                      : <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: scoreColor, minWidth: 40, textAlign: 'center' }}>{score}%</div>
-                    } />
-                );
-              })}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {candidates2.map(c => {
+                  const alreadyMatched = offerExists(first?.id, c.id);
+                  const score = calcScore(first, c);
+                  const isSelected = second?.id === c.id;
+                  const scoreColor = score >= 70 ? th.success : score >= 50 ? th.gold : alpha(th.ink, 0.45);
+                  return (
+                    <button key={c.id}
+                      onClick={alreadyMatched ? undefined : () => setPreviewCand(c)}
+                      style={{ all: 'unset', cursor: alreadyMatched ? 'default' : 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: isSelected ? `0 0 0 2.5px ${th.primary}, 0 6px 20px ${alpha(th.primary, 0.22)}` : `0 4px 14px ${alpha(th.ink, 0.08)}`, display: 'flex', flexDirection: 'column', opacity: alreadyMatched ? 0.5 : 1, transition: 'box-shadow 0.15s' }}>
+                      <div style={{ position: 'relative', aspectRatio: '1', background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                        {c.photos && c.photos[0]
+                          ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
+                          : <span style={{ fontFamily: th.display, fontSize: 52, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>
+                        }
+                        <div style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)', borderRadius: 99, padding: '4px 9px', fontFamily: th.display, fontWeight: 800, fontSize: 12.5, color: scoreColor }}>
+                          {score}%
+                        </div>
+                        {isSelected && (
+                          <div style={{ position: 'absolute', top: 8, left: 8, background: th.primary, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 8px ${alpha(th.primary,0.4)}` }}>
+                            <Icon name="check" size={15} style={{ color: '#fff' }} />
+                          </div>
+                        )}
+                        {alreadyMatched && (
+                          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.38)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ background: 'rgba(0,0,0,0.6)', borderRadius: 99, padding: '5px 12px', fontFamily: th.display, fontWeight: 800, fontSize: 11.5, color: '#fff' }}>כבר הוצע</div>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ padding: '9px 11px 11px' }}>
+                        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{c.name}, {c.age}</div>
+                        <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.5), marginBottom: c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
+                        {c.sabaBut && (
+                          <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '6px 8px' }}>
+                            <Logo size={13} color={th.primary} flaw={th.cream} />
+                            <span style={{ fontFamily: th.body, fontSize: 11, fontWeight: 600, color: th.ink, lineHeight: 1.25, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.sabaBut}</span>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
               {candidates2.length === 0 && <div style={{ textAlign: 'center', color: alpha(th.ink, 0.4), padding: 30, fontFamily: th.body }}>אין התאמות בפילטר הזה</div>}
               <div style={{ height: second ? 72 : 20 }} />
             </>
