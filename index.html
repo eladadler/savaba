@@ -7166,6 +7166,9 @@ function AIRecs({ th, go }) {
 
   const [aiAnalyses, setAiAnalyses] = React.useState({});
   const [aiLoading,  setAiLoading]  = React.useState(false);
+  const [hasRun,     setHasRun]     = React.useState(false);
+  const [offset,     setOffset]     = React.useState(0);
+  const [shownPairs, setShownPairs] = React.useState([]);
 
   // ── Scoring engine ────────────────────────────────────────────
   const pairs = React.useMemo(() => {
@@ -7253,102 +7256,120 @@ function AIRecs({ th, go }) {
       }
     }
     out.sort((x, y) => y.score - x.score);
-    return out.slice(0, 10);
+    return out;
   }, [candidates, offers, myUid]);
 
-  // ── Batch AI analysis (top-5) ─────────────────────────────────
-  React.useEffect(() => {
-    if (th.aiMode === 'off' || pairs.length === 0) return;
-    const top5 = pairs.slice(0, 5);
-    const pairKeys = top5.map(p => `${p.aId}__${p.bId}`);
+  // ── Run AI on demand ─────────────────────────────────────────
+  const runAI = async (off) => {
+    const batch10 = pairs.slice(off, off + 10);
+    if (!batch10.length) return;
+    const pairKeys = batch10.map(p => `${p.aId}__${p.bId}`);
     setAiLoading(true);
-    setAiAnalyses({});
-    (async () => {
-      try {
-        const cfg = await db.collection('config').doc('settings').get();
-        const apiKey = cfg.data()?.anthropicKey;
-        if (!apiKey) return;
+    setHasRun(true);
+    setShownPairs(batch10);
+    try {
+      const cfg = await db.collection('config').doc('settings').get();
+      const apiKey = cfg.data()?.anthropicKey;
+      if (!apiKey) { setAiLoading(false); return; }
 
-        const fmtP = id => {
-          const c = candidates.find(x => x.id === id) || {};
-          return [
-            c.age && `גיל ${c.age}`, c.region, c.religiosity,
-            (c.interests||[]).slice(0,3).join('/'),
-            c.oneLine   && `"${c.oneLine}"`,
-            c.seesWith  && `מחפש/ת: "${c.seesWith}"`,
-            c.sabaBut   && `מיוחד: "${c.sabaBut}"`,
-            c.mmNote    && `השדכן: "${c.mmNote}"`
-          ].filter(Boolean).join(' · ');
+      const fmtP = id => {
+        const c = candidates.find(x => x.id === id) || {};
+        return [
+          c.age && `גיל ${c.age}`, c.region, c.religiosity,
+          (c.interests||[]).slice(0,3).join('/'),
+          c.oneLine  && `"${c.oneLine}"`,
+          c.seesWith && `מחפש/ת: "${c.seesWith}"`,
+          c.sabaBut  && `מיוחד: "${c.sabaBut}"`,
+          c.mmNote   && `השדכן: "${c.mmNote}"`
+        ].filter(Boolean).join(' · ');
+      };
+
+      const pairsBlock = batch10.map((p, i) => {
+        const a = candidates.find(x => x.id === p.aId) || {};
+        const b = candidates.find(x => x.id === p.bId) || {};
+        return `זוג ${i+1} — א (${a.name||'?'}): ${fmtP(p.aId)}  |  ב (${b.name||'?'}): ${fmtP(p.bId)}`;
+      }).join('\n');
+
+      let examplesBlock = '';
+      if (th.aiMode === 'learning') {
+        const [succSnap, failSnap] = await Promise.all([
+          db.collection('ai_learnings').where('outcome','in',['success','engagement']).orderBy('savedAt','desc').limit(5).get().catch(()=>({docs:[]})),
+          db.collection('ai_learnings').where('outcome','==','failure').orderBy('savedAt','desc').limit(3).get().catch(()=>({docs:[]}))
+        ]);
+        const fmtEx = (doc, isSuccess) => {
+          const d = doc.data();
+          const pa = [d.personA?.age && `גיל ${d.personA.age}`, d.personA?.region, d.personA?.religiosity, (d.personA?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
+          const pb = [d.personB?.age && `גיל ${d.personB.age}`, d.personB?.region, d.personB?.religiosity, (d.personB?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
+          return `${isSuccess ? '✓' : '✗'} א: ${pa} | ב: ${pb}${d.offerNote ? ` | הערה: "${d.offerNote}"` : ''}`;
         };
+        const exLines = [...succSnap.docs.map(d=>fmtEx(d,true)), ...failSnap.docs.map(d=>fmtEx(d,false))];
+        if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
+      }
 
-        const pairsBlock = top5.map((p, i) => {
-          const a = candidates.find(x => x.id === p.aId) || {};
-          const b = candidates.find(x => x.id === p.bId) || {};
-          return `זוג ${i+1} — א (${a.name||'?'}): ${fmtP(p.aId)}  |  ב (${b.name||'?'}): ${fmtP(p.bId)}`;
-        }).join('\n');
+      const prompt = `${examplesBlock}ניתח ${batch10.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[0-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
 
-        // Fetch learning examples if in learning mode
-        let examplesBlock = '';
-        if (th.aiMode === 'learning') {
-          const [succSnap, failSnap] = await Promise.all([
-            db.collection('ai_learnings').where('outcome','in',['success','engagement']).orderBy('savedAt','desc').limit(5).get().catch(()=>({docs:[]})),
-            db.collection('ai_learnings').where('outcome','==','failure').orderBy('savedAt','desc').limit(3).get().catch(()=>({docs:[]}))
-          ]);
-          const fmtEx = (doc, isSuccess) => {
-            const d = doc.data();
-            const pa = [d.personA?.age && `גיל ${d.personA.age}`, d.personA?.region, d.personA?.religiosity, (d.personA?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
-            const pb = [d.personB?.age && `גיל ${d.personB.age}`, d.personB?.region, d.personB?.religiosity, (d.personB?.interests||[]).slice(0,2).join('/')].filter(Boolean).join(' · ');
-            return `${isSuccess ? '✓' : '✗'} א: ${pa} | ב: ${pb}${d.offerNote ? ` | הערה: "${d.offerNote}"` : ''}`;
-          };
-          const exLines = [
-            ...succSnap.docs.map(d => fmtEx(d, true)),
-            ...failSnap.docs.map(d => fmtEx(d, false))
-          ];
-          if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
-        }
-
-        const prompt = `${examplesBlock}ניתח ${top5.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[0-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
-
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-          body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001', max_tokens: 600,
-            system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
-            messages: [{ role: 'user', content: prompt }]
-          })
-        });
-        const d = await res.json();
-        const rawText = d.content?.[0]?.text?.trim() || '';
-        setAiAnalyses(parseBatchResponse(rawText, pairKeys));
-      } catch(e) { console.warn('AIRecs batch analysis:', e); }
-      finally { setAiLoading(false); }
-    })();
-  }, [pairs.map(p=>`${p.aId}__${p.bId}`).join(','), th.aiMode]);
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001', max_tokens: 1200,
+          system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const d = await res.json();
+      const rawText = d.content?.[0]?.text?.trim() || '';
+      setAiAnalyses(prev => ({ ...prev, ...parseBatchResponse(rawText, pairKeys) }));
+    } catch(e) { console.warn('AIRecs batch analysis:', e); }
+    finally { setAiLoading(false); }
+  };
 
   // ── Render ────────────────────────────────────────────────────
   return (
     <>
-      <AppHeader th={th} title="המלצות AI" sub="הזיווגים שהאלגוריתם מצא השבוע" action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
+      <AppHeader th={th} title="המלצות AI" sub="ניתוח חכם של זיווגים פוטנציאליים" action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 24px' }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: alpha(th.gold, 0.1), borderRadius: th.r, padding: 13, marginBottom: 16 }}>
-          <Icon name="info" size={18} style={{ color: th.gold, flexShrink: 0 }} />
-          <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.45 }}>
-            <span dangerouslySetInnerHTML={{ __html: t('ai_info_text') }} />
-          </span>
-        </div>
 
-        {pairs.length === 0 && (
-          <div style={{ textAlign:'center', padding:'48px 24px', color:alpha(th.ink,0.4) }}>
-            <Icon name="spark" size={44} style={{ marginBottom:14, color:alpha(th.ink,0.15) }} />
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, marginBottom:8, color:alpha(th.ink,0.5) }}>אין התאמות כרגע</div>
-            <div style={{ fontFamily:th.body, fontSize:13.5, lineHeight:1.5 }}>
-              הוסף מועמדים ממגדרים שונים כדי שה-AI יוכל להציע זיווגים
+        {/* ── Entry state: big button ── */}
+        {!hasRun && (
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:340, gap:20 }}>
+            <div style={{ width:88, height:88, borderRadius:'50%', background:`linear-gradient(135deg,${th.primary},${th.gold})`, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 8px 32px ${alpha(th.primary,0.35)}` }}>
+              <Icon name="spark" size={44} fill="#fff" style={{ color:'#fff' }} />
             </div>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginBottom:6 }}>ניתוח AI חכם</div>
+              <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.55), lineHeight:1.5, maxWidth:260 }}>
+                {pairs.length === 0 ? 'אין מועמדים מספיק לניתוח — הוסף מועמדים ממגדרים שונים' : `נמצאו ${pairs.length} זיווגים פוטנציאליים. לחץ לניתוח AI של 10 הראשונים`}
+              </div>
+            </div>
+            {pairs.length > 0 && (
+              <button onClick={() => { setOffset(0); runAI(0); }} style={{
+                padding:'16px 40px', borderRadius:th.r, border:'none', cursor:'pointer',
+                background:`linear-gradient(135deg,${th.primary},${alpha(th.primary,0.75)})`,
+                color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:17,
+                boxShadow:`0 6px 24px ${alpha(th.primary,0.4)}`,
+                display:'flex', alignItems:'center', gap:10
+              }}>
+                <Icon name="spark" size={20} fill="#fff" style={{ color:'#fff' }} />
+                הפעל ניתוח AI
+              </button>
+            )}
           </div>
         )}
 
-        {pairs.map((p, i) => {
+        {/* ── Loading skeleton ── */}
+        {hasRun && aiLoading && (
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'48px 24px', gap:16 }}>
+            <div style={{ width:52, height:52, borderRadius:'50%', background:`linear-gradient(135deg,${th.primary},${th.gold})`, display:'flex', alignItems:'center', justifyContent:'center', animation:'pulse 1.5s ease-in-out infinite' }}>
+              <Icon name="spark" size={26} fill="#fff" style={{ color:'#fff' }} />
+            </div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>AI מנתח…</div>
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45) }}>זה לוקח כמה שניות</div>
+          </div>
+        )}
+
+        {/* ── Results ── */}
+        {hasRun && !aiLoading && shownPairs.map((p, i) => {
           const a = findCand(p.aId), b = findCand(p.bId);
           if (!a || !b) return null;
           const myCand    = a.mmId === myUid ? a : b;
@@ -7356,6 +7377,7 @@ function AIRecs({ th, go }) {
           const pairKey   = `${p.aId}__${p.bId}`;
           const ai        = aiAnalyses[pairKey] || null;
           const dispScore = ai?.score ?? p.score;
+          const lc = ai?.label?.includes('מאוד') ? th.success : ai?.label?.includes('מומלץ') ? th.primary : ai?.label?.includes('בירור') ? th.gold : alpha(th.ink,0.35);
           return (
             <div key={i} style={{ background:th.card, borderRadius:th.rLg, padding:16, marginBottom:14, boxShadow:`0 6px 20px ${alpha(th.ink,0.07)}` }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
@@ -7369,41 +7391,30 @@ function AIRecs({ th, go }) {
                 </div>
                 <ScoreRing score={dispScore} th={th} />
               </div>
-              <div style={{ background:alpha(th.gold,0.1), borderRadius:th.r, padding:12, marginBottom:12 }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:5 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                    <Icon name="spark" size={15} style={{ color:th.gold }} fill={th.gold} />
-                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>
-                      {(th.aiMode !== 'off' && (ai || aiLoading)) ? 'ניתוח AI' : 'למה הם מתאימים'}
-                    </span>
+              {ai && (
+                <div style={{ background:alpha(th.gold,0.08), borderRadius:th.r, padding:12, marginBottom:12 }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                      <Icon name="spark" size={15} style={{ color:th.gold }} fill={th.gold} />
+                      <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>ניתוח AI</span>
+                    </div>
+                    {ai.label && <span style={{ fontFamily:th.display, fontWeight:800, fontSize:11, color:lc, background:alpha(lc,0.13), borderRadius:99, padding:'3px 9px' }}>{ai.label}</span>}
                   </div>
-                  {ai?.label && (() => {
-                    const lc = ai.label.includes('מאוד') ? th.success : ai.label.includes('מומלץ') ? th.primary : ai.label.includes('בירור') ? th.gold : alpha(th.ink,0.4);
-                    return <span style={{ fontFamily:th.display, fontWeight:800, fontSize:11, color:lc, background:alpha(lc,0.12), borderRadius:99, padding:'2px 7px' }}>{ai.label}</span>;
-                  })()}
+                  <ul style={{ margin:'0 0 4px', padding:'0 14px', listStyle:'none' }}>
+                    {ai.bullets.map((b2, j) => (
+                      <li key={j} style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.78), lineHeight:1.5, display:'flex', alignItems:'flex-start', gap:5, marginBottom:2 }}>
+                        <span style={{ color:th.success, flexShrink:0 }}>✓</span>{b2}
+                      </li>
+                    ))}
+                  </ul>
+                  {ai.caution && !['אין','אזהרה','אזהרה חמורה','warning'].includes(ai.caution.replace(/⚠️/g,'').trim()) && (
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:5, padding:'5px 8px', background:alpha(th.gold,0.2), borderRadius:th.rSm, marginTop:6 }}>
+                      <span style={{ flexShrink:0 }}>⚠️</span>
+                      <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.72) }}>{ai.caution.replace(/⚠️/g,'').trim()}</span>
+                    </div>
+                  )}
                 </div>
-                {th.aiMode !== 'off' && aiLoading && !ai ? (
-                  <p style={{ margin:0, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.4), fontStyle:'italic' }}>AI מנתח…</p>
-                ) : ai?.bullets?.length > 0 ? (
-                  <>
-                    <ul style={{ margin:'0 0 4px', padding:'0 14px', listStyle:'none' }}>
-                      {ai.bullets.map((b2, j) => (
-                        <li key={j} style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.78), lineHeight:1.5, display:'flex', alignItems:'flex-start', gap:5, marginBottom:2 }}>
-                          <span style={{ color:th.success, flexShrink:0 }}>✓</span>{b2}
-                        </li>
-                      ))}
-                    </ul>
-                    {ai.caution && !['אין','אזהרה','אזהרה חמורה','warning'].includes(ai.caution.replace(/⚠️/g,'').trim()) && (
-                      <div style={{ display:'flex', alignItems:'flex-start', gap:5, padding:'5px 8px', background:alpha(th.gold,0.2), borderRadius:th.rSm, marginTop:4 }}>
-                        <span style={{ flexShrink:0, fontSize:12 }}>⚠️</span>
-                        <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.72) }}>{ai.caution.replace(/⚠️/g,'').trim()}</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <p style={{ margin:0, fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.5 }}>{p.why}</p>
-                )}
-              </div>
+              )}
               <div style={{ display:'flex', gap:8 }}>
                 <Btn th={th} variant="ghost" onClick={() => go('candidate', { id: theirCand.id })}>הצג כרטיסייה</Btn>
                 <Btn th={th} full onClick={() => go('matchFlow', { id: myCand.id, withId: theirCand.id })} icon={<Icon name="heart" size={17} fill="#fff" stroke={0} />}>יזום שידוך</Btn>
@@ -7411,6 +7422,18 @@ function AIRecs({ th, go }) {
             </div>
           );
         })}
+
+        {/* ── Load next 10 ── */}
+        {hasRun && !aiLoading && shownPairs.length > 0 && pairs.length > offset + 10 && (
+          <button onClick={() => { const next = offset + 10; setOffset(next); runAI(next); }} style={{
+            width:'100%', padding:'14px', borderRadius:th.r, border:`1.5px solid ${alpha(th.primary,0.3)}`,
+            background:'transparent', color:th.primary, fontFamily:th.display, fontWeight:800, fontSize:15,
+            cursor:'pointer', marginTop:4, display:'flex', alignItems:'center', justifyContent:'center', gap:8
+          }}>
+            <Icon name="spark" size={16} style={{ color:th.primary }} />
+            עוד 10 זיווגים
+          </button>
+        )}
       </div>
     </>
   );
