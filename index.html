@@ -4231,25 +4231,29 @@ function Home({ th, go }) {
       text: (offersAwaitingCand.length !== 1 && offersAwaitingCand.length > 0) ? t('home_alert_await') : t('home_alert_await_1'),
       to: () => go('offers', { filter: 'awaitingCand' }),
     },
-    coRepApprovedNotifs.length > 0 && {
-      icon: 'users', tone: th.success, big: String(coRepApprovedNotifs.length),
+    (coRepApprovedNotifs.length > 0 || adminPreview) && {
+      icon: 'users', tone: th.success, big: String(coRepApprovedNotifs.length || 1),
       text: coRepApprovedNotifs.length === 1
         ? `${coRepApprovedNotifs[0].candName} אישר/ה שתייצג אותו/ה`
-        : `${coRepApprovedNotifs.length} מועמדים אישרו ייצוג שלך`,
+        : coRepApprovedNotifs.length > 1
+          ? `${coRepApprovedNotifs.length} מועמדים אישרו ייצוג שלך`
+          : 'מועמד אישר/ה שתייצג אותו/ה',
       to: () => { coRepApprovedNotifs.forEach(n => markNotificationRead(n.id)); go('cands'); },
     },
-    newMsgChats.length > 0 && {
-      icon: 'chat', tone: th.primary, big: String(newMsgNotifs.length),
+    (newMsgChats.length > 0 || adminPreview) && {
+      icon: 'chat', tone: th.primary, big: String(newMsgNotifs.length || 1),
       text: newMsgChats.length === 1
         ? `הודעה חדשה על ${newMsgChats[0].candName} מ-${newMsgChats[0].fromMmName}`
-        : `${newMsgChats.length} שיחות עם הודעות חדשות`,
+        : newMsgChats.length > 1
+          ? `${newMsgChats.length} שיחות עם הודעות חדשות`
+          : 'הודעה חדשה על [מועמד] מ-[שדכן]',
       to: () => {
         const first = newMsgChats[0];
-        go('candInquiry', { candId: first.candId, toMm: first.fromMmId });
+        if (first) go('candInquiry', { candId: first.candId, toMm: first.fromMmId });
       },
     },
-    unreadOfferChats.length > 0 && {
-      icon: 'send', tone: th.primary, big: String(unreadOfferChats.length),
+    (unreadOfferChats.length > 0 || adminPreview) && {
+      icon: 'send', tone: th.primary, big: String(unreadOfferChats.length || 1),
       text: unreadOfferChats.length === 1
         ? (() => {
             const o = unreadOfferChats[0];
@@ -4257,7 +4261,9 @@ function Home({ th, go }) {
             const cB = candidates.find(c => c.id === o.bId);
             return `הודעה חדשה בהצעה: ${cA?.name || '?'} · ${cB?.name || '?'}`;
           })()
-        : `${unreadOfferChats.length} הצעות עם הודעות חדשות`,
+        : unreadOfferChats.length > 1
+          ? `${unreadOfferChats.length} הצעות עם הודעות חדשות`
+          : 'הודעה חדשה בהצעה: [מועמד א] · [מועמד ב]',
       to: () => unreadOfferChats.length === 1
         ? go('offerDetail', { id: unreadOfferChats[0].id })
         : go('offers'),
