@@ -3696,6 +3696,7 @@ const TEXT_KEYS = {
   wa_invite:      'ווצאפ — הזמנת מועמד/ת',
   wa_cand_offer:  'ווצאפ — שליחת הצעה למועמד/ת',
   wa_mm_contact:  'ווצאפ — פנייה לשדכן/ית השני',
+  wa_cand_done:   'ווצאפ — מועמד/ת שסיים/ה למלא פרטים',
   match_hint:    'שידוך חדש — הסבר לפני ווצאפ',
   match_wa_btn:  'שידוך חדש — כפתור ווצאפ למועמד',
   match_mm_btn:  'שידוך חדש — כפתור פנייה לשדכן',
@@ -3798,6 +3799,7 @@ const DEFAULT_TEXTS = {
   cand_settings_delete:     'מחיקת פרופיל',
   cand_settings_delete_sub: 'הסרת הכרטיסייה שלך מהמערכת',
   cand_footer:              'גרסה 1.0 · סבבה, והכל אבל…',
+  wa_cand_done:  'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
   wa_invite:     'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
   wa_cand_offer: 'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
   wa_mm_contact: 'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}',
@@ -3849,7 +3851,7 @@ const SCREEN_TEXTS = {
     'cand_settings_engage','cand_settings_engage_sub',
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
   ],
-  waTemplates: ['wa_invite','wa_cand_offer','wa_mm_contact'],
+  waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact'],
   matchFlow:   ['match_hint','match_wa_btn','match_mm_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
 };
@@ -5111,6 +5113,7 @@ function InvitationLanding({ th, go, token }) {
 function CandidateSelfFill({ th, go, params }) {
   const { user, profile } = useContext(AuthCtx);
   const { lists } = useContext(DataCtx);
+  const { texts: txCtx } = useContext(TextsCtx);
   const liveRegions       = (lists.regions       && lists.regions.length)       ? lists.regions       : REGIONS;
   const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
   const liveInterests     = (lists.interests      && lists.interests.length)     ? lists.interests     : INTERESTS;
@@ -5182,7 +5185,7 @@ function CandidateSelfFill({ th, go, params }) {
 
   if (done) {
     const mmWaPhone = invite.mmPhone ? String(invite.mmPhone).replace(/\D/g,'').replace(/^0/,'972') : '';
-    const waMsg = encodeURIComponent(`היי ${invite.mmName}! 🎉 ${f.name} ${f.gender === 'גבר' ? 'סיים' : 'סיימה'} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊`);
+    const waMsg = encodeURIComponent(fillWa(txCtx, 'wa_cand_done', { שם: f.name, שם_שדכן: invite.mmName?.split(' ')[0] || invite.mmName || '', פעל: f.gender === 'גבר' ? 'סיים' : 'סיימה' }));
     const mmFirst = invite.mmName ? invite.mmName.split(' ')[0] : invite.mmName;
     return (
       <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:'32px 28px', textAlign:'center', direction:'rtl', gap:0 }}>
@@ -9231,6 +9234,7 @@ function TextsAdmin({ th, go }) {
   };
 
   const WA_PLACEHOLDERS = {
+    wa_cand_done:  '{שם} · {שם_שדכן} · {פעל}',
     wa_invite:     '{שם} · {שם_שדכן} · {קישור}',
     wa_cand_offer: '{שם} · {שם_שני} · {קישור}',
     wa_mm_contact: '{שם} · {שם_א} · {שם_ב}',
