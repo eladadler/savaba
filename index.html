@@ -6492,9 +6492,29 @@ function MatchFlow({ th, go, params }) {
                             border:`1.5px solid ${alpha(th.ink,0.12)}`, fontFamily:th.body, fontSize:14,
                             background:th.card, outline:'none', color:th.ink }} />
                       </div>
-                      {filtered1.map(c => (
-                        <CandRow key={c.id} c={c} th={th} onClick={() => pickCand(c)} />
-                      ))}
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                        {filtered1.map(c => (
+                          <button key={c.id} onClick={() => pickCand(c)}
+                            style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.08)}`, display:'flex', flexDirection:'column' }}>
+                            <div style={{ position:'relative', aspectRatio:'1', background:`linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                              {c.photos?.[0]
+                                ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 20%' }} />
+                                : <span style={{ fontFamily:th.display, fontSize:52, color:'rgba(255,255,255,0.9)', fontWeight:800 }}>{c.name.charAt(0)}</span>
+                              }
+                            </div>
+                            <div style={{ padding:'9px 11px 11px' }}>
+                              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>{c.name}, {c.age}</div>
+                              <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.5), marginBottom:c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
+                              {c.sabaBut && (
+                                <div style={{ display:'flex', gap:5, alignItems:'flex-start', background:alpha(th.ink,0.04), borderRadius:th.rSm, padding:'6px 8px' }}>
+                                  <Logo size={13} color={th.primary} flaw={th.cream} />
+                                  <span style={{ fontFamily:th.body, fontSize:11, fontWeight:600, color:th.ink, lineHeight:1.25, WebkitLineClamp:2, display:'-webkit-box', WebkitBoxOrient:'vertical', overflow:'hidden' }}>{c.sabaBut}</span>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                       {filtered1.length === 0 && (
                         <div style={{ textAlign:'center', color:alpha(th.ink,0.4), padding:24, fontFamily:th.body }}>אין מועמדים</div>
                       )}
