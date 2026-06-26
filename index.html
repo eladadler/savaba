@@ -8059,9 +8059,15 @@ function CandidateMode({ th, go }) {
       if (o.status === 'נדחתה') return false;
       // Show offer to candidate only after both matchmakers approved (status = 'אושרה')
       if (o.status !== 'אושרה') return false;
-      return o.aId === me.id || o.bId === me.id;
+      const isA = o.aId === me.id;
+      const isB = o.bId === me.id;
+      if (!isA && !isB) return false;
+      // Only include offer if the other candidate is accessible in our dataset
+      const otherId = isA ? o.bId : o.aId;
+      if (!otherId) return false;
+      return candidates.some(c => c.id === otherId);
     });
-  }, [me, offers]);
+  }, [me, offers, candidates]);
 
   // Co-rep requests — loaded in DataCtx, deduplicated by requesting matchmaker
   const coRepReqs = useMemo(() => {
