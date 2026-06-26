@@ -33,6 +33,7 @@
   @keyframes sabaUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes sabaPop { 0% { opacity: 0; transform: scale(0.8); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
   @keyframes sabaChatBeat { 0%,100%{box-shadow:0 0 0 0 rgba(232,84,122,0.5),0 2px 8px rgba(232,84,122,0.3)} 55%{box-shadow:0 0 0 7px rgba(232,84,122,0),0 2px 8px rgba(232,84,122,0.3)} }
+  @keyframes sabaHeartBeat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.32)} 28%{transform:scale(1)} 42%{transform:scale(1.16)} 56%{transform:scale(1)} }
   /* img fade-in: starts transparent, animates in once painted */
   img { animation: sabaFade 0.28s ease both; will-change: opacity; }
 </style>
@@ -9042,6 +9043,22 @@ function OfferDetail({ th, go, params }) {
       ? `https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name }))}`
       : null;
 
+    const isMyCandFemale   = isFemGender(myCand.gender);
+    const maleCand         = isMyCandFemale ? theirCand : myCand;
+    const femaleCand       = isMyCandFemale ? myCand : theirCand;
+    const iAmMaleMm        = !isMyCandFemale;
+    const waToMaleCandHref = bothApp ? (() => {
+      const ph = waPhone(maleCand);
+      if (!ph) return null;
+      const femalePh = waPhone(femaleCand);
+      const msg = [
+        `היי ${maleCand.name.split(' ')[0]}! 🎉`,
+        `${femaleCand.name.split(' ')[0]} אישרה את ההצעה ומצפה שתיצור איתה קשר.`,
+        femalePh ? `ווצאפ שלה: https://wa.me/${femalePh}` : '',
+      ].filter(Boolean).join('\n');
+      return `https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
+    })() : null;
+
     const candBadge = (approved, failed) => {
       const bg  = approved ? th.success : (failed && !approved) ? th.error : alpha(th.ink,0.28);
       const ico = approved
@@ -9052,16 +9069,27 @@ function OfferDetail({ th, go, params }) {
       return (
         <div style={{ position:'absolute', bottom:0, right:0, width:22, height:22, borderRadius:'50%',
           background:bg, border:`2.5px solid ${th.cream}`,
-          display:'flex', alignItems:'center', justifyContent:'center', zIndex:1 }}>
+          display:'flex', alignItems:'center', justifyContent:'center', zIndex:2 }}>
           {ico}
         </div>
       );
     };
 
+    const candStatusText = (cand, approved) => (
+      <div style={{ fontFamily:th.body, fontSize:11, color:approved ? th.success : alpha(th.ink,0.38), textAlign:'center', marginTop:1 }}>
+        {cand.name.split(' ')[0]} {isFemGender(cand.gender) ? (approved ? 'אישרה' : 'טרם אישרה') : (approved ? 'אישר' : 'טרם אישר')}
+      </div>
+    );
+
     const photoHeader = (
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', marginBottom:20, paddingTop:4 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', marginBottom:20, paddingTop:4, position:'relative' }}>
+        {/* Full-width dashed line at photo vertical center */}
+        {!isEngaged && (
+          <div style={{ position:'absolute', top:46, left:0, right:0, borderTop:`2px dashed ${alpha(th.primary,0.4)}`, zIndex:0 }} />
+        )}
+
         {/* My candidate */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, flex:1 }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, flex:1, position:'relative', zIndex:1 }}>
           <div style={{ position:'relative', display:'inline-block' }}>
             <button onClick={() => go('candidate', { id:myCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
               <div style={{ width:84, height:84, borderRadius:'50%', overflow:'hidden',
@@ -9076,27 +9104,26 @@ function OfferDetail({ th, go, params }) {
             </button>
             {candBadge(myCandApp, finalFail)}
           </div>
-          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, textAlign:'center' }}>{myCand.name}</div>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, textAlign:'center', marginTop:2 }}>{myCand.name}</div>
           <div style={{ fontFamily:th.body, fontSize:11, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 10px' }}>המועמד/ת שלי</div>
+          {candStatusText(myCand, myCandApp)}
         </div>
 
-        {/* Center connector */}
-        {isEngaged ? (
-          <div style={{ width:48, flexShrink:0, display:'flex', justifyContent:'center', paddingTop:29 }}>
-            <span style={{ fontSize:26 }}>💍</span>
+        {/* Center connector — pulsing heart (bothApp) or ring (isEngaged) */}
+        {(isEngaged || bothApp) && (
+          <div style={{ width:52, flexShrink:0, display:'flex', justifyContent:'center', paddingTop: isEngaged ? 29 : 27, zIndex:1 }}>
+            {isEngaged
+              ? <span style={{ fontSize:26 }}>💍</span>
+              : <div style={{ width:38, height:38, borderRadius:'50%', background:th.cream, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <div style={{ width:28, height:28, borderRadius:'50%', background:alpha(th.primary,0.15), border:`2px solid ${th.primary}`, display:'flex', alignItems:'center', justifyContent:'center', animation:'sabaHeartBeat 1.3s ease-in-out infinite' }}>
+                    <Icon name="heart" size={13} fill={th.primary} style={{ color:th.primary }} />
+                  </div>
+                </div>}
           </div>
-        ) : bothApp ? (
-          <div style={{ width:48, flexShrink:0, display:'flex', justifyContent:'center', paddingTop:27 }}>
-            <div style={{ width:30, height:30, borderRadius:'50%', background:alpha(th.primary,0.14), border:`2px solid ${th.primary}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Icon name="heart" size={13} fill={th.primary} style={{ color:th.primary }} />
-            </div>
-          </div>
-        ) : (
-          <div style={{ width:48, flexShrink:0, marginTop:42, borderTop:`2px dashed ${alpha(th.primary,0.38)}` }} />
         )}
 
         {/* Their candidate */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, flex:1 }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, flex:1, position:'relative', zIndex:1 }}>
           <div style={{ position:'relative', display:'inline-block' }}>
             <button onClick={() => go('candidate', { id:theirCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
               <div style={{ width:84, height:84, borderRadius:'50%', overflow:'hidden',
@@ -9111,8 +9138,9 @@ function OfferDetail({ th, go, params }) {
             </button>
             {candBadge(theirCandApp, finalFail)}
           </div>
-          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, textAlign:'center' }}>{theirCand.name}</div>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, textAlign:'center', marginTop:2 }}>{theirCand.name}</div>
           <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.55), background:alpha(th.ink,0.08), borderRadius:99, padding:'3px 10px' }}>המועמד/ת השני/ה</div>
+          {candStatusText(theirCand, theirCandApp)}
         </div>
       </div>
     );
@@ -9200,54 +9228,70 @@ function OfferDetail({ th, go, params }) {
         <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           {photoHeader}
-          <div style={{ textAlign:'center', padding:'10px 0 8px', animation:'sabaPop .5s ease' }}>
-            <div style={{ fontSize:52, lineHeight:1 }}>🎉</div>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.success, marginTop:10 }}>כולם אישרו — יאללה בעזרת ה׳ תהיה טבעת! 💍</div>
+
+          {/* Celebration header */}
+          <div style={{ textAlign:'center', padding:'4px 0 16px', animation:'sabaPop .5s ease' }}>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.success }}>כולם אישרו! 🎉</div>
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45), marginTop:4 }}>בע״ה תהיה טבעת!</div>
           </div>
-          {approvalsCard}
-          <div style={{ background:th.card, borderRadius:th.r, padding:14, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:12, color:alpha(th.ink,0.45), marginBottom:8, letterSpacing:'.04em', textTransform:'uppercase' }}>מה עכשיו?</div>
-            <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.75), lineHeight:1.55, marginBottom:14 }}>
-              שלח/י ל{myCand.name.split(' ')[0]} קישור לאפליקציית המועמדים!
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              {[myCand].map(cand => {
-                const ph = waPhone(cand);
-                const appMsg = [`היי ${cand.name.split(' ')[0]}! 🎉`, `יש לנו בשבילך הצעת שידוך מעניינת.`,
-                  isFemGender(cand.gender) ? `כדאי שתיכני לאפליקציית המועמדים ותכירי אותה 😊` : `כדאי שתיכנס לאפליקציית המועמדים ותכיר אותה 😊`, INVITE_BASE_URL].join('\n');
-                return ph ? (
-                  <a key={cand.id} href={`https://wa.me/${ph}?text=${encodeURIComponent(appMsg)}`} target="_blank" rel="noreferrer" style={waRowStyle}>
-                    <Avatar grad={cand.grad} name={cand.name} size={30} photo={cand.photos?.[0]} />
-                    <div style={{ flex:1 }}><div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>שלח/י קישור לאפליקציה</div><div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{cand.name}</div></div>
-                    <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
-                  </a>
-                ) : (
-                  <div key={cand.id} style={{ ...waRowStyle, opacity:0.45 }}>
-                    <Avatar grad={cand.grad} name={cand.name} size={30} photo={cand.photos?.[0]} />
-                    <div style={{ flex:1 }}><div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>אין מספר טלפון</div><div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{cand.name}</div></div>
-                    <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
+
+          {/* Gender-split action panel */}
+          {iAmMaleMm ? (
+            /* Male matchmaker: call to action — send male candidate the female's contact */
+            <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:12, boxShadow:`0 4px 14px ${alpha(th.ink,0.07)}` }}>
+              <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 14px', borderRadius:th.rSm, background:alpha(th.primary,0.06), border:`1px solid ${alpha(th.primary,0.18)}`, marginBottom:12 }}>
+                <div style={{ fontSize:24, flexShrink:0 }}>🏹</div>
+                <div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:4 }}>
+                    הגיע הזמן ש{maleCand.name.split(' ')[0]} ייצור קשר!
                   </div>
-                );
-              })}
-              {waTheirMmHref && (
-                <a href={waTheirMmHref} target="_blank" rel="noreferrer" style={waRowStyle}>
-                  <Avatar grad={theirMm.grad} name={theirMm.name} size={30} photo={theirMm.photoURL} />
-                  <div style={{ flex:1 }}><div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>התכתב/י עם השדכן/ית</div><div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{theirMm.name}</div></div>
-                  <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
-                </a>
-              )}
+                  <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6), lineHeight:1.55 }}>
+                    {femaleCand.name.split(' ')[0]} אישרה את ההצעה ומצפה שיפנה אליה.
+                    שלח/י ל{maleCand.name.split(' ')[0]} ווצאפ עם הפרטים שלה.
+                  </div>
+                </div>
+              </div>
+              {waRow(waToMaleCandHref,
+                `שלח ל${maleCand.name.split(' ')[0]} את הפרטים של ${femaleCand.name.split(' ')[0]}`,
+                `${femaleCand.name.split(' ')[0]} מחכה לשמוע ממנו`, false)}
             </div>
+          ) : (
+            /* Female matchmaker: informational — ball is in the male's court */
+            <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:12, boxShadow:`0 4px 14px ${alpha(th.ink,0.07)}` }}>
+              <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 14px', borderRadius:th.rSm, background:alpha(th.primary,0.06), border:`1px solid ${alpha(th.primary,0.18)}` }}>
+                <div style={{ fontSize:24, flexShrink:0 }}>🎯</div>
+                <div>
+                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:6 }}>
+                    הכדור בידיים של {maleCand.name.split(' ')[0]}
+                  </div>
+                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.6 }}>
+                    {femaleCand.name.split(' ')[0]} אישרה את ההצעה בשמחה! 🎊<br/>
+                    שדכן/ית {maleCand.name.split(' ')[0]} עומד/ת להעביר לו את הפרטים שלה — ובע״ה הוא יפנה אליה.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Chat + WA between matchmakers */}
+          <div style={{ marginBottom:12 }}>
+            {chatBlock}
           </div>
-          <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
-            <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), textAlign:'center', marginBottom:14, lineHeight:1.5 }}>
-              האם {candA.name} ו{candB.name} התחתנו? דווח/י ותחגגו יחד!
+          {waRow(waTheirMmHref,
+            `ווצאפ ל${theirMm.name.split(' ')[0]}`,
+            `שלח/י הודעה ישירה לשדכן/ית`, true)}
+
+          {/* Marriage button */}
+          <div style={{ background:th.card, borderRadius:th.r, padding:14, marginTop:14, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), textAlign:'center', marginBottom:12, lineHeight:1.5 }}>
+              האם {candA.name} ו{candB.name} כבר התחתנו? 🥹<br/>דווח/י ונחגוג יחד!
             </div>
-            <button onClick={() => setConfirmEngaged(true)} style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'12px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
+            <button onClick={() => setConfirmEngaged(true)}
+              style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'13px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
               <span style={{ fontSize:22 }}>💍</span>
               <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>הזוג התחתן! דווח/י</span>
             </button>
           </div>
-          {chatBlock}
         </div>
         {engagedSheet}{rejectSheet}
       </>
@@ -9334,12 +9378,9 @@ function OfferDetail({ th, go, params }) {
               )}
             </div>
             {!theirCandApp && <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.38), marginBottom:12, paddingInline:4 }}>טרם קיבלנו עדכון מ{theirCand.name}</div>}
-            {waRow(waTheirMmHref,
-              `שליחת הודעה בווטסאפ לשדכן/ית של ${theirCand.name.split(' ')[0]}`,
-              `שלח/י הודעה לשדכן/ית ${theirMm.name}`, true)}
 
             {/* Chat */}
-            <div style={{ height:1, background:alpha(th.ink,0.07), margin:'14px 0' }} />
+            <div style={{ height:1, background:alpha(th.ink,0.12), margin:'14px 0' }} />
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
               <Icon name="chat" size={14} style={{ color:alpha(th.ink,0.45) }} />
               <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם השדכן/ית של {theirCand.name.split(' ')[0]}</span>
