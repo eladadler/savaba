@@ -6278,14 +6278,16 @@ function MatchFlow({ th, go, params }) {
 
   // myCands1: candidates available for step-1 picker (fromOffers mode)
   const myCands1 = fromOffers ? candidates.filter(c => isCandMine(c) && !c.pendingApproval) : [];
-  // Pick one neglected candidate once (random from top-3 least-recently-offered)
+  // Pick one neglected candidate once (random from top-3 least-recently-offered, prefer those with photos)
   if (fromOffers && !_spotlightDoneRef.current && myCands1.length > 0) {
     _spotlightDoneRef.current = true;
     const lastTs = {};
     (offers || []).forEach(o => { [o.aId, o.bId].forEach(id => { const ts = o.createdAt?.seconds || 0; if (!lastTs[id] || ts > lastTs[id]) lastTs[id] = ts; }); });
     const sorted = [...myCands1].sort((a, b) => (lastTs[a.id] || 0) - (lastTs[b.id] || 0));
     const topN = sorted.slice(0, Math.min(3, sorted.length));
-    _spotlightRef.current = topN[Math.floor(Math.random() * topN.length)]?.id || null;
+    const withPhoto = topN.filter(c => c.photos?.[0]);
+    const pool = withPhoto.length > 0 ? withPhoto : topN;
+    _spotlightRef.current = pool[Math.floor(Math.random() * pool.length)]?.id || null;
   }
   const spotlight = fromOffers ? (myCands1.find(c => c.id === _spotlightRef.current) || null) : null;
   // effective "first notified" candidate in self-match
