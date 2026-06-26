@@ -3641,9 +3641,15 @@ const TEXT_KEYS = {
   home_alert_offers:      'בית — פאנל: הצעות ממתינות (רבים)',
   home_alert_neglected_1: 'בית — פאנל: מועמד מוזנח (יחיד)',
   home_alert_neglected:   'בית — פאנל: מועמדים מוזנחים (רבים)',
-  home_alert_await_1:     'בית — פאנל: שידוך ממתין למועמד (יחיד)',
-  home_alert_await:       'בית — פאנל: שידוכים ממתינים למועמד (רבים)',
-  home_waiting_empty:     'בית — פאנל: ריק (הכל מסודר)',
+  home_alert_await_1:          'בית — פאנל: שידוך ממתין למועמד (יחיד)',
+  home_alert_await:            'בית — פאנל: שידוכים ממתינים למועמד (רבים)',
+  home_alert_corep_1:          'בית — פאנל: ייצוג אושר — מועמד יחיד ({שם})',
+  home_alert_corep:            'בית — פאנל: ייצוג אושר — מועמדים רבים',
+  home_alert_msg_1:            'בית — פאנל: הודעה על מועמד ({שם}, {שדכן})',
+  home_alert_msg:              'בית — פאנל: שיחות עם הודעות — רבים',
+  home_alert_offer_chat_1:     'בית — פאנל: הודעה בצ\'אט הצעה ({שם_א}, {שם_ב})',
+  home_alert_offer_chat:       'בית — פאנל: הצעות עם הודעות — רבים',
+  home_waiting_empty:          'בית — פאנל: ריק (הכל מסודר)',
   home_empty_mine:        'בית — קרוסלה שלי: ריק',
   home_empty_others:      'בית — קרוסלה אחרים: ריק',
   cands_title:         'מועמדים — כותרת מסך',
@@ -3747,9 +3753,15 @@ const DEFAULT_TEXTS = {
   home_alert_offers:      'הצעות מחכות לתגובה שלך',
   home_alert_neglected_1: 'מועמד שלא קיבל יחס מעל 7 ימים',
   home_alert_neglected:   'מועמדים שלא קיבלו יחס מעל 7 ימים',
-  home_alert_await_1:     'שידוך מחכה לתשובת המועמד',
-  home_alert_await:       'שידוכים מחכים לתשובת המועמד',
-  home_waiting_empty:     '✅ הכל מסודר — אין פעולות ממתינות',
+  home_alert_await_1:          'שידוך מחכה לתשובת המועמד',
+  home_alert_await:            'שידוכים מחכים לתשובת המועמד',
+  home_alert_corep_1:          '{שם} אישר/ה שתייצג אותו/ה',
+  home_alert_corep:            'מועמדים אישרו ייצוג שלך',
+  home_alert_msg_1:            'הודעה חדשה על {שם} מ-{שדכן}',
+  home_alert_msg:              'שיחות עם הודעות חדשות',
+  home_alert_offer_chat_1:     'הודעה חדשה בהצעה: {שם_א} · {שם_ב}',
+  home_alert_offer_chat:       'הצעות עם הודעות חדשות',
+  home_waiting_empty:          '✅ הכל מסודר — אין פעולות ממתינות',
   home_empty_mine:        'עדיין לא הוספת מועמדים',
   home_empty_others:      'אין מועמדים של שדכנים אחרים עדיין',
   cands_title:        'מועמדים',
@@ -3834,7 +3846,7 @@ const DEFAULT_TEXTS = {
 const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
   register:      ['register_title','register_sub'],
-  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_waiting_empty','home_empty_mine','home_empty_others'],
+  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
   ai:            ['ai_info_text'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
@@ -4233,20 +4245,20 @@ function Home({ th, go }) {
     },
     (coRepApprovedNotifs.length > 0 || adminPreview) && {
       icon: 'users', tone: th.success, big: String(coRepApprovedNotifs.length || 1),
-      text: coRepApprovedNotifs.length === 1
-        ? `${coRepApprovedNotifs[0].candName} אישר/ה שתייצג אותו/ה`
-        : coRepApprovedNotifs.length > 1
-          ? `${coRepApprovedNotifs.length} מועמדים אישרו ייצוג שלך`
-          : 'מועמד אישר/ה שתייצג אותו/ה',
+      text: (adminPreview && !coRepApprovedNotifs.length)
+        ? t('home_alert_corep_1')
+        : coRepApprovedNotifs.length === 1
+          ? fillWa(tx, 'home_alert_corep_1', { שם: coRepApprovedNotifs[0].candName })
+          : t('home_alert_corep'),
       to: () => { coRepApprovedNotifs.forEach(n => markNotificationRead(n.id)); go('cands'); },
     },
     (newMsgChats.length > 0 || adminPreview) && {
       icon: 'chat', tone: th.primary, big: String(newMsgNotifs.length || 1),
-      text: newMsgChats.length === 1
-        ? `הודעה חדשה על ${newMsgChats[0].candName} מ-${newMsgChats[0].fromMmName}`
-        : newMsgChats.length > 1
-          ? `${newMsgChats.length} שיחות עם הודעות חדשות`
-          : 'הודעה חדשה על [מועמד] מ-[שדכן]',
+      text: (adminPreview && !newMsgChats.length)
+        ? t('home_alert_msg_1')
+        : newMsgChats.length === 1
+          ? fillWa(tx, 'home_alert_msg_1', { שם: newMsgChats[0].candName, שדכן: newMsgChats[0].fromMmName })
+          : t('home_alert_msg'),
       to: () => {
         const first = newMsgChats[0];
         if (first) go('candInquiry', { candId: first.candId, toMm: first.fromMmId });
@@ -4254,16 +4266,16 @@ function Home({ th, go }) {
     },
     (unreadOfferChats.length > 0 || adminPreview) && {
       icon: 'send', tone: th.primary, big: String(unreadOfferChats.length || 1),
-      text: unreadOfferChats.length === 1
-        ? (() => {
-            const o = unreadOfferChats[0];
-            const cA = candidates.find(c => c.id === o.aId);
-            const cB = candidates.find(c => c.id === o.bId);
-            return `הודעה חדשה בהצעה: ${cA?.name || '?'} · ${cB?.name || '?'}`;
-          })()
-        : unreadOfferChats.length > 1
-          ? `${unreadOfferChats.length} הצעות עם הודעות חדשות`
-          : 'הודעה חדשה בהצעה: [מועמד א] · [מועמד ב]',
+      text: (adminPreview && !unreadOfferChats.length)
+        ? t('home_alert_offer_chat_1')
+        : unreadOfferChats.length === 1
+          ? (() => {
+              const o = unreadOfferChats[0];
+              const cA = candidates.find(c => c.id === o.aId);
+              const cB = candidates.find(c => c.id === o.bId);
+              return fillWa(tx, 'home_alert_offer_chat_1', { שם_א: cA?.name || '?', שם_ב: cB?.name || '?' });
+            })()
+          : t('home_alert_offer_chat'),
       to: () => unreadOfferChats.length === 1
         ? go('offerDetail', { id: unreadOfferChats[0].id })
         : go('offers'),
