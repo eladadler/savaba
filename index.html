@@ -4105,6 +4105,7 @@ function Home({ th, go }) {
   const { profile } = useContext(AuthCtx);
   const { candidates, offers, notifications, markNotificationRead, deleteNotification } = useContext(DataCtx);
   const { t, texts: tx, defaults: dx } = useTexts();
+  const textsCtx = React.useContext(TextsCtx);
   const me = profile || { displayName: '', region: '', grad: AV_GRADS[4] };
   const myUid = profile?.uid;
   const mine   = candidates.filter(c => !c.pendingApproval && c.status !== 'pending_mm' && (c.mmId === myUid || c.coMms?.includes(myUid)));
@@ -4210,21 +4211,24 @@ function Home({ th, go }) {
       o.status !== 'נדחתה' && o.status !== 'אושרה'),
     [offers, myUid]);
 
-  // Build waiting list — only items with count > 0
+  // In admin inline-edit mode: force-show all alert types even when count is 0
+  const adminPreview = profile?.isAdmin && textsCtx.inlineEditMode;
+
+  // Build waiting list — only items with count > 0 (or adminPreview forces all visible)
   const waiting = [
-    offersNeedingMe.length > 0 && {
-      icon: 'heart', tone: th.primary, big: String(offersNeedingMe.length),
-      text: offersNeedingMe.length === 1 ? t('home_alert_offers_1') : t('home_alert_offers'),
+    (offersNeedingMe.length > 0 || adminPreview) && {
+      icon: 'heart', tone: th.primary, big: String(offersNeedingMe.length || 1),
+      text: (offersNeedingMe.length !== 1 && offersNeedingMe.length > 0) ? t('home_alert_offers') : t('home_alert_offers_1'),
       to: () => go('offers', { filter: 'needsMyApproval' }),
     },
-    neglectedCands.length > 0 && {
-      icon: 'bell', tone: th.gold, big: String(neglectedCands.length),
-      text: neglectedCands.length === 1 ? t('home_alert_neglected_1') : t('home_alert_neglected'),
+    (neglectedCands.length > 0 || adminPreview) && {
+      icon: 'bell', tone: th.gold, big: String(neglectedCands.length || 1),
+      text: (neglectedCands.length !== 1 && neglectedCands.length > 0) ? t('home_alert_neglected') : t('home_alert_neglected_1'),
       to: () => go('cands', { filter: 'neglected', neglectedIds: neglectedCands.map(c => c.id) }),
     },
-    offersAwaitingCand.length > 0 && {
-      icon: 'chat', tone: '#a78bfa', big: String(offersAwaitingCand.length),
-      text: offersAwaitingCand.length === 1 ? t('home_alert_await_1') : t('home_alert_await'),
+    (offersAwaitingCand.length > 0 || adminPreview) && {
+      icon: 'chat', tone: '#a78bfa', big: String(offersAwaitingCand.length || 1),
+      text: (offersAwaitingCand.length !== 1 && offersAwaitingCand.length > 0) ? t('home_alert_await') : t('home_alert_await_1'),
       to: () => go('offers', { filter: 'awaitingCand' }),
     },
     coRepApprovedNotifs.length > 0 && {
