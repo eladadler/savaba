@@ -6539,6 +6539,7 @@ function MatchFlow({ th, go, params }) {
   const [q2, setQ2] = useSc('');
   const [sending, setSending] = useSc(false);
   const [newOfferId, setNewOfferId] = useSc(null);
+  const newOfferIdRef = useRef(null); // ref guarantees latest value in onClick closure
   const [firstCandId, setFirstCandId] = useSc(null); // kept for legacy; no longer used in UI
   const [selfCandAApproved, setSelfCandAApproved] = useSc(false);
   const [selfCandBApproved, setSelfCandBApproved] = useSc(false);
@@ -6664,6 +6665,7 @@ function MatchFlow({ th, go, params }) {
           note: note.trim(), unread: 0,
         });
       }
+      newOfferIdRef.current = docRef.id;
       setNewOfferId(docRef.id);
       setStep(4);
     } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
@@ -6719,7 +6721,7 @@ function MatchFlow({ th, go, params }) {
           }
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
-          <Btn th={th} full size="l" onClick={() => newOfferId ? go('offerDetail', { id: newOfferId }) : go('offers')}>למסך ההצעה</Btn>
+          <Btn th={th} full size="l" onClick={() => { const oid = newOfferIdRef.current || newOfferId; oid ? go('offerDetail', { id: oid }) : go('offers'); }}>למסך ההצעה</Btn>
         </div>
       </div>
     );
