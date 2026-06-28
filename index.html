@@ -1414,13 +1414,13 @@ Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, AV_GRAD
 const { useState: useStateUI } = React;
 
 // ── Avatar (gradient placeholder, or real photo when provided) ──
-function Avatar({ grad = ['#FFD7B5', '#E8547A'], name = '', size = 56, ring, style, photo }) {
+function Avatar({ grad = ['#FFD7B5', '#E8547A'], name = '', size = 56, ring, style, photo, onClick }) {
   const [imgLoaded, setImgLoaded] = React.useState(false);
   const initial = (name || '').trim().charAt(0) || '♥';
   // reset when photo URL changes
   React.useEffect(() => { setImgLoaded(false); }, [photo]);
   return (
-    <div style={{
+    <div onClick={onClick} style={{
       position: 'relative',
       width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
       background: `linear-gradient(140deg, ${grad[0]}, ${grad[1]})`,
@@ -9100,7 +9100,9 @@ function OfferDetail({ th, go, params }) {
     // Center element — dashed "?" for pending, pulsing heart for bothApp, ring for engaged
     // Photos are 100px, label ~18px, gap 8px → photo center from container top ≈ 4+18+8+50 = 80px
     const centerEl = isEngaged
-      ? <span style={{ fontSize:28, display:'block' }}>💍</span>
+      ? <div style={{ width:52, height:52, borderRadius:'50%', border:`2px dashed ${alpha(th.gold,0.7)}`, background:th.cream, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <span style={{ fontSize:32 }}>💍</span>
+        </div>
       : bothApp
         ? <div style={{ width:52, height:52, borderRadius:'50%', background:th.cream, display:'flex', alignItems:'center', justifyContent:'center' }}>
             <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.primary,0.15), border:`2px solid ${th.primary}`, display:'flex', alignItems:'center', justifyContent:'center', animation:'sabaHeartBeat 1.3s ease-in-out infinite' }}>
@@ -9114,11 +9116,9 @@ function OfferDetail({ th, go, params }) {
     const photoHeader = (
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', marginBottom:24, paddingTop:4, position:'relative' }}>
         {/* Horizontal dashed line at photo center (80px from top) */}
-        {!isEngaged && (
-          <div style={{ position:'absolute', top:80, left:0, right:0, borderTop:`1.5px dashed ${alpha(th.primary,0.38)}`, zIndex:0 }} />
-        )}
+        <div style={{ position:'absolute', top:80, left:0, right:0, borderTop:`1.5px dashed ${alpha(isEngaged ? th.gold : th.primary, 0.38)}`, zIndex:0 }} />
         {/* Center element — absolutely centered */}
-        <div style={{ position:'absolute', top: isEngaged ? 66 : 54, left:'50%', transform:'translateX(-50%)', zIndex:2 }}>
+        <div style={{ position:'absolute', top:54, left:'50%', transform:'translateX(-50%)', zIndex:2 }}>
           {centerEl}
         </div>
 
@@ -9233,7 +9233,6 @@ function OfferDetail({ th, go, params }) {
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           {photoHeader}
           <div style={{ textAlign:'center', padding:'10px 0 20px', animation:'sabaPop .5s ease' }}>
-            <div style={{ fontSize:52, lineHeight:1, marginBottom:10 }}>💍</div>
             <div style={{ fontFamily:th.display, fontWeight:800, fontSize:22, color:th.gold }}>הזוג הזה התחתן!</div>
             <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:alpha(th.gold,0.8), marginTop:6 }}>מזל טוב לחתן ולכלה! 🥂</div>
           </div>
