@@ -3758,7 +3758,17 @@ const TEXT_KEYS = {
   cands_search:        'מועמדים — placeholder חיפוש',
   cands_add_btn:       'מועמדים — כפתור הוספה',
   cand_match_btn:      'כרטיסיית מועמד — כפתור CTA',
-  ai_info_text:     'AI — טקסט הסבר',
+  ai_info_text:        'AI — טקסט הסבר',
+  ai_title:            'AI — כותרת מסך',
+  ai_sub:              'AI — כותרת משנה',
+  ai_entry_title:      'AI — מצב כניסה: כותרת',
+  ai_entry_no_pairs:   'AI — מצב כניסה: אין זוגות',
+  ai_entry_pairs_found:'AI — מצב כניסה: נמצאו זוגות ({count})',
+  ai_entry_run_btn:    'AI — כפתור הפעלה',
+  ai_loading_title:    'AI — טוען: כותרת',
+  ai_loading_sub:      'AI — טוען: תיאור',
+  ai_analysis_label:   'AI — כרטיסייה: כותרת ניתוח',
+  ai_create_btn:       'AI — כפתור יצירת הצעה',
   register_title:   'הרשמה — כותרת',
   register_sub:     'הרשמה — תת-כותרת',
   invite_app_desc:  'הזמנה — תיאור האפליקציה',
@@ -3933,7 +3943,17 @@ const DEFAULT_TEXTS = {
   cands_search:       'חיפוש מועמד…',
   cands_add_btn:      'הוסף',
   cand_match_btn:     'שדך/י את',
-  ai_info_text:     'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
+  ai_info_text:        'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
+  ai_title:            'המלצות AI',
+  ai_sub:              'ניתוח חכם של זיווגים פוטנציאליים',
+  ai_entry_title:      'ניתוח AI חכם',
+  ai_entry_no_pairs:   'אין מועמדים מספיק לניתוח — הוסף מועמדים ממגדרים שונים',
+  ai_entry_pairs_found:'נמצאו {count} זיווגים פוטנציאליים. לחץ לניתוח AI של 10 הראשונים',
+  ai_entry_run_btn:    'הפעל ניתוח AI',
+  ai_loading_title:    'AI מנתח…',
+  ai_loading_sub:      'זה לוקח כמה שניות',
+  ai_analysis_label:   'ניתוח AI',
+  ai_create_btn:       'צרו הצעה',
   register_title:   'נעים להכיר',
   register_sub:     'כמה פרטים ונצא לדרך',
   invite_app_desc:  'פלטפורמת שידוכים חכמה — שדכנים מקצועיים, AI שמוצא התאמות, ופרטיות מלאה.',
@@ -4074,7 +4094,7 @@ const SCREEN_TEXTS = {
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
   candidate:     ['cand_match_btn'],
-  ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn'],
+  ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
@@ -7879,7 +7899,7 @@ function AIRecs({ th, go }) {
   // ── Render ────────────────────────────────────────────────────
   return (
     <>
-      <AppHeader th={th} title="המלצות AI" sub="ניתוח חכם של זיווגים פוטנציאליים" action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
+      <AppHeader th={th} title={t('ai_title')} sub={t('ai_sub')} action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 24px' }}>
 
         {/* ── No published candidates ── */}
@@ -7901,9 +7921,9 @@ function AIRecs({ th, go }) {
               <Icon name="spark" size={44} fill="#fff" style={{ color:'#fff' }} />
             </div>
             <div style={{ textAlign:'center' }}>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginBottom:6 }}>ניתוח AI חכם</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginBottom:6 }}>{t('ai_entry_title')}</div>
               <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.55), lineHeight:1.5, maxWidth:260 }}>
-                {pairs.length === 0 ? 'אין מועמדים מספיק לניתוח — הוסף מועמדים ממגדרים שונים' : `נמצאו ${pairs.length} זיווגים פוטנציאליים. לחץ לניתוח AI של 10 הראשונים`}
+                {pairs.length === 0 ? t('ai_entry_no_pairs') : fillWa(tx, 'ai_entry_pairs_found', { count: pairs.length })}
               </div>
             </div>
             {pairs.length > 0 && (
@@ -7915,7 +7935,7 @@ function AIRecs({ th, go }) {
                 display:'flex', alignItems:'center', gap:10
               }}>
                 <Icon name="spark" size={20} fill="#fff" style={{ color:'#fff' }} />
-                הפעל ניתוח AI
+                {t('ai_entry_run_btn')}
               </button>
             )}
           </div>
@@ -7927,8 +7947,8 @@ function AIRecs({ th, go }) {
             <div style={{ width:52, height:52, borderRadius:'50%', background:`linear-gradient(135deg,${th.primary},${th.gold})`, display:'flex', alignItems:'center', justifyContent:'center', animation:'pulse 1.5s ease-in-out infinite' }}>
               <Icon name="spark" size={26} fill="#fff" style={{ color:'#fff' }} />
             </div>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>AI מנתח…</div>
-            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45) }}>זה לוקח כמה שניות</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>{t('ai_loading_title')}</div>
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45) }}>{t('ai_loading_sub')}</div>
           </div>
         )}
 
@@ -7940,8 +7960,9 @@ function AIRecs({ th, go }) {
         }).map((p, i) => {
           const a = findCand(p.aId), b = findCand(p.bId);
           if (!a || !b) return null;
-          const myCand    = a.mmId === myUid ? a : b;
-          const theirCand = a.mmId === myUid ? b : a;
+          const isMineA   = a.mmId === myUid || (a.coMms||[]).includes(myUid);
+          const myCand    = isMineA ? a : b;
+          const theirCand = isMineA ? b : a;
           const pairKey   = `${p.aId}__${p.bId}`;
           const ai        = aiAnalyses[pairKey] || null;
           const dispScore = ai?.score ?? null;
@@ -7966,7 +7987,7 @@ function AIRecs({ th, go }) {
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                       <Icon name="spark" size={15} style={{ color:th.gold }} fill={th.gold} />
-                      <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>ניתוח AI</span>
+                      <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{t('ai_analysis_label')}</span>
                     </div>
                     {ai.label && <span style={{ fontFamily:th.display, fontWeight:800, fontSize:11, color:lc, background:alpha(lc,0.13), borderRadius:99, padding:'3px 9px' }}>{ai.label}</span>}
                   </div>
@@ -7992,7 +8013,7 @@ function AIRecs({ th, go }) {
                   display:'flex', alignItems:'center', gap:7
                 }}>
                   <Icon name="heart" size={15} fill="#fff" stroke={0} />
-                  צרו הצעה
+                  {t('ai_create_btn')}
                 </button>
               </div>
             </div>
