@@ -4314,6 +4314,21 @@ function Home({ th, go }) {
   const others = candidates.filter(c => !c.pendingApproval && c.status !== 'pending_mm' && c.mmId !== myUid && !c.coMms?.includes(myUid));
   const [candTab, setCandTab] = useS('others');
 
+  // Pending-approval popup
+  const pendingApprovalCands = React.useMemo(() =>
+    candidates.filter(c => c.mmId === myUid && c.pendingApproval === true),
+    [candidates, myUid]);
+  const [dismissedApprovals, setDismissedApprovals] = useS(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('dismissedApprovals') || '[]')); } catch { return new Set(); }
+  });
+  const dismissApproval = id => setDismissedApprovals(prev => {
+    const next = new Set(prev);
+    next.add(id);
+    try { localStorage.setItem('dismissedApprovals', JSON.stringify([...next])); } catch {}
+    return next;
+  });
+  const approvalPopupCand = pendingApprovalCands.find(c => !dismissedApprovals.has(c.id)) || null;
+
   // light panel is the default; admin can revert to dark by setting waitingPanelLight='false'
   const [lightPanel, setLightPanel] = React.useState(() => localStorage.getItem('waitingPanelLight') !== 'false');
   React.useEffect(() => {
@@ -4664,6 +4679,39 @@ function Home({ th, go }) {
           <Icon name="chevron-left" size={20} style={{ color:th.gold, flexShrink:0 }} />
         </button>
       </div>
+
+      {/* ── Pending-approval popup ─────────────────────────────── */}
+      {approvalPopupCand && (
+        <div onClick={e => { if (e.target === e.currentTarget) dismissApproval(approvalPopupCand.id); }}
+          style={{ position:'fixed', inset:0, zIndex:900, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.52)', backdropFilter:'blur(4px)' }}>
+          <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'28px 24px 44px', width:'100%', maxWidth:480, boxShadow:`0 -12px 48px ${alpha(th.ink,0.22)}`, animation:'sabaUp .3s cubic-bezier(.2,.9,.3,1)' }}>
+            {/* Photo */}
+            <div style={{ textAlign:'center', marginBottom:16 }}>
+              {approvalPopupCand.photos?.[0]
+                ? <img src={approvalPopupCand.photos[0]} alt="" style={{ width:100, height:100, borderRadius:'50%', objectFit:'cover', objectPosition:'center 20%', border:`3.5px solid ${th.primary}`, boxShadow:`0 6px 24px ${alpha(th.primary,0.35)}` }} />
+                : <Avatar grad={approvalPopupCand.grad} name={approvalPopupCand.name} size={100} />
+              }
+            </div>
+            {/* Info */}
+            <div style={{ textAlign:'center', marginBottom:22 }}>
+              <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:th.ink, marginBottom:5 }}>
+                {approvalPopupCand.name} {isFemGender(approvalPopupCand.gender) ? 'סיימה' : 'סיים'} להירשם!
+              </div>
+              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.5) }}>
+                {[approvalPopupCand.age && `גיל ${approvalPopupCand.age}`, approvalPopupCand.region].filter(Boolean).join(' · ')}
+              </div>
+              <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.68), marginTop:10, lineHeight:1.5 }}>
+                ממתין/ה לאישורך — בדוק/י את הפרטים ופרסם/י.
+              </div>
+            </div>
+            {/* Buttons */}
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <Btn th={th} full size="l" onClick={() => go('candidate', { id: approvalPopupCand.id })}>לאישור המועמד/ת</Btn>
+              <Btn th={th} full size="l" variant="ghost" onClick={() => dismissApproval(approvalPopupCand.id)}>אל תראה לי יותר</Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
