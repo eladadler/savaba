@@ -6771,39 +6771,11 @@ function MatchFlow({ th, go, params }) {
               </>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-                {(() => {
-                  const vars = { שם_א: first.name, שם_ב: second.name };
-                  const hintTpl = txCtx.match_hint || DEFAULT_TEXTS.match_hint;
-                  const hintParts = hintTpl.split(/(\{[^}]+\})/g).map((p, i) => {
-                    const m = p.match(/^\{(.+)\}$/);
-                    return m ? <b key={i}>{vars[m[1]] ?? p}</b> : p;
-                  });
-                  const waLabel  = fillWa(txCtx, 'match_wa_btn', vars);
-                  const mmLabel  = fillWa(txCtx, 'match_mm_btn', vars);
-                  return <>
-                    <div style={{ background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '11px 14px', fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.65), lineHeight: 1.55 }}>
-                      {hintParts}
-                    </div>
-                    {first.phone ? (
-                      <a href={`https://wa.me/${String(first.phone).replace(/[^0-9]/g,'').replace(/^0/,'972')}?text=${encodeURIComponent(`שלום ${first.name}! יש לי הצעה שיכולה להתאים לך 😊 בא/י לראות את הכרטיסייה: https://eladadler.github.io/savaba/#cand/${second.id}`)}`}
-                        target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                        <Btn th={th} full size="l" style={{ background: '#25D366', color: '#fff' }}
-                          icon={<Icon name="whatsapp" size={19} style={{ color: '#fff' }} />}>
-                          {waLabel}
-                        </Btn>
-                      </a>
-                    ) : (
-                      <Btn th={th} full size="l" variant="soft" disabled icon={<Icon name="whatsapp" size={19} />}>
-                        אין מספר טלפון ל{first.name}
-                      </Btn>
-                    )}
-                    <Btn th={th} full size="l" disabled={sending}
-                      onClick={() => { setConfirmModal('step1'); setMmMsg(''); setCandApproved(null); }}
-                      icon={<Icon name="chat" size={19} fill="#fff" stroke={0} />}>
-                      {mmLabel}
-                    </Btn>
-                  </>;
-                })()}
+                <Btn th={th} full size="l" disabled={sending}
+                  onClick={() => { setConfirmModal('step2'); setMmMsg(''); setCandApproved(null); }}
+                  icon={<Icon name="chat" size={19} fill="#fff" stroke={0} />}>
+                  {fillWa(txCtx, 'match_mm_btn', { שם_א: first.name, שם_ב: second.name })}
+                </Btn>
               </div>
             )}
 
@@ -6813,28 +6785,8 @@ function MatchFlow({ th, go, params }) {
                 onClick={() => { setConfirmModal(false); setMmMsg(''); }}>
                 <div onClick={e => e.stopPropagation()} style={{ background: th.cream, borderTopLeftRadius: th.rLg, borderTopRightRadius: th.rLg, padding: '24px 20px 36px', width: '100%', maxWidth: 480, animation: 'sabaUp .25s cubic-bezier(.2,.9,.3,1)' }}>
 
-                  {confirmModal === 'step1' && (
-                    <>
-                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink, marginBottom: 20 }}>
-                        האם יצא לך לבדוק אם המועמד/ת שלך בעניין?{' '}
-                        <span style={{ fontFamily: th.body, fontWeight: 600, fontSize: 14, color: alpha(th.ink, 0.45) }}>(לא חובה)</span>
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <Btn th={th} full onClick={() => { setCandApproved(true); setConfirmModal('step2'); }}>
-                          {`כן, ${isFemale2(first.gender) ? 'היא' : 'הוא'} בעניין`}
-                        </Btn>
-                        <Btn th={th} full variant="ghost" onClick={() => { setCandApproved(false); setConfirmModal('step2'); }}>
-                          מעדיף/ה לבדוק קודם עם השדכן/ית
-                        </Btn>
-                      </div>
-                    </>
-                  )}
-
                   {confirmModal === 'step2' && (
                     <>
-                      <button onClick={() => setConfirmModal('step1')} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: 16 }}>
-                        <Icon name="chevL" size={16} style={{ color: alpha(th.ink, 0.5) }} /> חזרה
-                      </button>
                       <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink, marginBottom: 6 }}>
                         כתוב/י הודעה לשדכן/ית של {second.name}
                       </div>
