@@ -3769,6 +3769,7 @@ const TEXT_KEYS = {
   ai_loading_sub:      'AI — טוען: תיאור',
   ai_analysis_label:   'AI — כרטיסייה: כותרת ניתוח',
   ai_create_btn:       'AI — כפתור יצירת הצעה',
+  ai_load_more_btn:    'AI — כפתור טעינת עוד זיווגים',
   register_title:   'הרשמה — כותרת',
   register_sub:     'הרשמה — תת-כותרת',
   invite_app_desc:  'הזמנה — תיאור האפליקציה',
@@ -3954,6 +3955,7 @@ const DEFAULT_TEXTS = {
   ai_loading_sub:      'זה לוקח כמה שניות',
   ai_analysis_label:   'ניתוח AI',
   ai_create_btn:       'צרו הצעה',
+  ai_load_more_btn:    'עוד 10 הצעות',
   register_title:   'נעים להכיר',
   register_sub:     'כמה פרטים ונצא לדרך',
   invite_app_desc:  'פלטפורמת שידוכים חכמה — שדכנים מקצועיים, AI שמוצא התאמות, ופרטיות מלאה.',
@@ -4094,7 +4096,7 @@ const SCREEN_TEXTS = {
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
   candidate:     ['cand_match_btn'],
-  ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn'],
+  ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn','ai_load_more_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
@@ -8028,7 +8030,7 @@ function AIRecs({ th, go }) {
             cursor:'pointer', marginTop:4, display:'flex', alignItems:'center', justifyContent:'center', gap:8
           }}>
             <Icon name="spark" size={16} style={{ color:th.primary }} />
-            עוד 10 זיווגים
+            {t('ai_load_more_btn')}
           </button>
         )}
       </div>
