@@ -3777,10 +3777,13 @@ const TEXT_KEYS = {
   cand_settings_delete:     'מועמד/ת — הגדרות: מחיקת פרופיל',
   cand_settings_delete_sub: 'מועמד/ת — הגדרות: מחיקת פרופיל (תיאור)',
   cand_footer:              'מועמד/ת — כיתוב גרסה',
-  wa_invite:      'ווצאפ — הזמנת מועמד/ת',
-  wa_cand_offer:  'ווצאפ — שליחת הצעה למועמד/ת',
-  wa_mm_contact:  'ווצאפ — פנייה לשדכן/ית השני',
-  wa_cand_done:   'ווצאפ — מועמד/ת שסיים/ה למלא פרטים',
+  wa_invite:           'ווצאפ — הזמנת מועמד/ת',
+  wa_cand_offer:       'ווצאפ — שליחת הצעה למועמד/ת',
+  wa_mm_contact:       'ווצאפ — פנייה לשדכן/ית השני',
+  wa_cand_done:        'ווצאפ — מועמד/ת שסיים/ה למלא פרטים',
+  wa_cand_app_link:    'ווצאפ — קישור לאפליקציית מועמדים ({שם}, {קישור})',
+  wa_cand_interested:  'ווצאפ — מועמד/ת מתעניין/ת: הודעה לשדכן/ית ({שם}, {שם_שדכן}, {שם_ב}, {מעוניין_ת}, {תוכל_י}, {שדכן_ית_ב}, {שלו_שלה}, {שם_שדכן_ב}, {קישור})',
+  wa_mm_both_approved: 'ווצאפ — שני הצדדים אישרו: הודעה לשדכן/ית השני/ה ({שם}, {שם_מועמד_א}, {שם_מועמד_ב})',
   match_title:                 'שידוך חדש — כותרת מסך',
   match_preview_one_line:      'שידוך חדש — תצוגה: תווית "במשפט אחד"',
   match_preview_sees_with:     'שידוך חדש — תצוגה: תווית "רואה את עצמו/ה עם"',
@@ -3934,10 +3937,13 @@ const DEFAULT_TEXTS = {
   cand_settings_delete:     'מחיקת פרופיל',
   cand_settings_delete_sub: 'הסרת הכרטיסייה שלך מהמערכת',
   cand_footer:              'גרסה 1.0 · סבבה, והכל אבל…',
-  wa_cand_done:  'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
-  wa_invite:     'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
-  wa_cand_offer: 'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
-  wa_mm_contact: 'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}',
+  wa_cand_done:        'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
+  wa_invite:           'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
+  wa_cand_offer:       'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
+  wa_mm_contact:       'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}',
+  wa_cand_app_link:    'היי {שם}! 🎉\nיש לנו בשבילך הצעת שידוך מעניינת.\nכדאי שתיכנס/י לאפליקציה ותכיר/י את ההצעה — ומשם תוכל/י ליצור קשר עם המועמד/ת המתאים/ה לך 😊\n{קישור}',
+  wa_cand_interested:  'היי {שם_שדכן},\n\nזה אני, {שם}.\nראיתי את הפרופיל של {שם_ב} ואני מאוד {מעוניין_ת} לברר התאמה.\nאשמח אם {תוכל_י} לפנות ל{שדכן_ית_ב} {שלו_שלה} ({שם_שדכן_ב}).\n\nקישור לכרטיסייה:\n{קישור}',
+  wa_mm_both_approved: 'היי {שם}, בנושא ההצעה של {שם_מועמד_א} ו{שם_מועמד_ב} 🎉',
   match_title:                 'שידוך חדש',
   match_preview_one_line:      'במשפט אחד',
   match_preview_sees_with:     'רואה את עצמו/ה עם',
@@ -4031,7 +4037,7 @@ const SCREEN_TEXTS = {
     'cand_settings_engage','cand_settings_engage_sub',
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
   ],
-  waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact'],
+  waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved'],
   matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_sort_chat','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
   offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn','offer_pending_subtitle','offer_my_cand_header','offer_approved_label','offer_mark_approval_hint','offer_their_cand_header','offer_their_approval_q','offer_approved_chip','offer_pending_chip','offer_chat_empty','offer_note_label','offer_decline_btn','offer_decline_sub','offer_declined_banner','offer_engaged_title','offer_engaged_sub','offer_send_card_title','offer_send_card_sub','offer_chat_header','offer_wa_mm_title','offer_wa_mm_sub','offer_bothapp_wa_mm_title','offer_bothapp_wa_mm_sub','offer_their_no_update'],
@@ -8019,7 +8025,7 @@ function Toggle({ on, onChange, th }) {
 function CandBrowse({ th, go, me }) {
   const { candidates, lists } = useContext(DataCtx);
   const { profile } = useContext(AuthCtx);
-  const { t } = useTexts();
+  const { t, texts: txCtx } = useTexts();
   const [q, setQ] = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
   const [filters, setFilters] = useSb({ rel: [], region: '', ageMin: 18, ageMax: 55, maritalStatus: [] });
@@ -8134,7 +8140,7 @@ function CandViewCand({ th, go, params }) {
   const waMmCan      = myMmIsFem === null ? 'תוכל/י' : myMmIsFem ? 'תוכלי' : 'תוכל';
   const waTheirTitle = theirMmIsFem === null ? 'שדכן/ית' : theirMmIsFem ? 'שדכנית' : 'שדכן';
   const waCandPoss   = cIsFem ? 'שלה' : 'שלו';
-  const waMsg = `היי ${myMmFirst},\n\nזה אני, ${myName}.\nראיתי את הפרופיל של ${c.name} ואני מאוד ${waInterested} לברר התאמה.\nאשמח אם ${waMmCan} לפנות ל${waTheirTitle} ${waCandPoss} (${theirMmName}).\n\nקישור לכרטיסייה:\n${candUrl}`;
+  const waMsg = fillWa(txCtx, 'wa_cand_interested', { שם_שדכן: myMmFirst, שם: myName, שם_ב: c.name, מעוניין_ת: waInterested, תוכל_י: waMmCan, שדכן_ית_ב: waTheirTitle, שלו_שלה: waCandPoss, שם_שדכן_ב: theirMmName, קישור: candUrl });
   const waUrl = myMmPhone ? `https://wa.me/${myMmPhone}?text=${encodeURIComponent(waMsg)}` : null;
 
   return (
@@ -9015,7 +9021,7 @@ function OfferDetail({ th, go, params }) {
       ]
     : [
         waCandLink(myCand, theirCand) && { href: waCandLink(myCand, theirCand), avatar: myCand, label: `שלח/י כרטיסיה של ${theirCand.name} ל:`, name: myCand.name },
-        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה: ${myCand.name} ו${theirCand.name}`)}`, avatar: theirMm, label: 'שדכן/ית הצד השני', name: theirMm.name, isMm: true } : null; })(),
+        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name }))}`, avatar: theirMm, label: 'שדכן/ית הצד השני', name: theirMm.name, isMm: true } : null; })(),
       ].filter(Boolean);
 
   const sendMsg = async () => {
@@ -9456,9 +9462,7 @@ function OfferDetail({ th, go, params }) {
                   background:alpha(th.primary,0.06), border:`1.5px dashed ${alpha(th.primary,0.4)}`,
                   width:'100%', boxSizing:'border-box', cursor:approving?'default':'pointer', marginBottom:10,
                   opacity:approving?0.65:1, animation:approving?'none':'sabaChatBeat 2.5s ease-in-out infinite' }}>
-                <div style={{ width:30, height:30, borderRadius:'50%', border:`2px solid ${th.primary}`, background:alpha(th.primary,0.1), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <Icon name="check" size={14} style={{ color:th.primary }} />
-                </div>
+                <div style={{ width:30, height:30, borderRadius:'50%', border:`2px solid ${th.primary}`, background:alpha(th.primary,0.1), flexShrink:0 }} />
                 <div>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary }}>{approving ? 'שומר…' : `${myCand.name.split(' ')[0]} ${isFemGender(myCand.gender) ? 'מעוניינת' : 'מעוניין'} בהצעה`}</div>
                   <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>{t('offer_mark_approval_hint')}</div>
@@ -9615,14 +9619,7 @@ function OfferDetail({ th, go, params }) {
                 {(iAmBothMm ? [candA, candB] : [myCand]).map(cand => {
                   const ph = waPhone(cand);
                   const isFem = isFemGender(cand.gender);
-                  const appMsg = [
-                    `היי ${cand.name.split(' ')[0]}! 🎉`,
-                    `יש לנו בשבילך הצעת שידוך מעניינת.`,
-                    isFem
-                      ? `כדאי שתיכני לאפליקציית המועמדים ותכירי אותה — ומשם תוכלי ליצור קשר עם המועמד שנמצא מתאים לך 😊`
-                      : `כדאי שתיכנס לאפליקציית המועמדים ותכיר אותה — ומשם תוכל ליצור קשר עם המועמדת שנמצאה מתאימה לך 😊`,
-                    INVITE_BASE_URL
-                  ].join('\n');
+                  const appMsg = fillWa(txCtx, 'wa_cand_app_link', { שם: cand.name.split(' ')[0], קישור: INVITE_BASE_URL });
                   return ph ? (
                     <a key={cand.id} href={`https://wa.me/${ph}?text=${encodeURIComponent(appMsg)}`} target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
                       <Avatar grad={cand.grad} name={cand.name} size={30} photo={cand.photos?.[0]} />
@@ -9644,7 +9641,7 @@ function OfferDetail({ th, go, params }) {
                   );
                 })}
                 {!iAmBothMm && waPhone(theirMm) && (
-                  <a href={`https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(`היי ${theirMm.name.split(' ')[0]}, בנושא ההצעה של ${myCand.name} ו${theirCand.name} 🎉`)}`}
+                  <a href={`https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_both_approved', { שם: theirMm.name.split(' ')[0], שם_מועמד_א: myCand.name, שם_מועמד_ב: theirCand.name }))}`}
                     target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
                     <Avatar grad={theirMm.grad} name={theirMm.name} size={30} photo={theirMm.photoURL} />
                     <div style={{ flex:1 }}>
@@ -9847,13 +9844,17 @@ function TextsAdmin({ th, go }) {
   };
 
   const WA_PLACEHOLDERS = {
-    wa_cand_done:  '{שם} · {שם_שדכן} · {פעל}',
-    wa_invite:     '{שם} · {שם_שדכן} · {קישור}',
-    wa_cand_offer: '{שם} · {שם_שני} · {קישור}',
-    wa_mm_contact: '{שם} · {שם_א} · {שם_ב}',
-    match_hint:    '{שם_א} · {שם_ב}',
-    match_wa_btn:  '{שם_א} · {שם_ב}',
-    match_mm_btn:  '{שם_ב}',
+    wa_cand_done:        '{שם} · {שם_שדכן} · {פעל}',
+    wa_invite:           '{שם} · {שם_שדכן} · {קישור}',
+    wa_cand_offer:       '{שם} · {שם_שני} · {קישור}',
+    wa_mm_contact:       '{שם} · {שם_א} · {שם_ב}',
+    offer_bothapp_male_wa: '{שם} · {שם_מועמדת} · {קישור_מועמדת}',
+    wa_cand_app_link:    '{שם} · {קישור}',
+    wa_cand_interested:  '{שם} · {שם_שדכן} · {שם_ב} · {מעוניין_ת} · {תוכל_י} · {שדכן_ית_ב} · {שלו_שלה} · {שם_שדכן_ב} · {קישור}',
+    wa_mm_both_approved: '{שם} · {שם_מועמד_א} · {שם_מועמד_ב}',
+    match_hint:          '{שם_א} · {שם_ב}',
+    match_wa_btn:        '{שם_א} · {שם_ב}',
+    match_mm_btn:        '{שם_ב}',
   };
 
   const renderField = k => {
