@@ -3688,6 +3688,7 @@ const TEXT_KEYS = {
   cands_tab_all:       'מועמדים — טאב: שאר המאגר',
   cands_search:        'מועמדים — placeholder חיפוש',
   cands_add_btn:       'מועמדים — כפתור הוספה',
+  cand_match_btn:      'כרטיסיית מועמד — כפתור CTA',
   ai_info_text:     'AI — טקסט הסבר',
   register_title:   'הרשמה — כותרת',
   register_sub:     'הרשמה — תת-כותרת',
@@ -3733,6 +3734,7 @@ const TEXT_KEYS = {
   wa_cand_offer:  'ווצאפ — שליחת הצעה למועמד/ת',
   wa_mm_contact:  'ווצאפ — פנייה לשדכן/ית השני',
   wa_cand_done:   'ווצאפ — מועמד/ת שסיים/ה למלא פרטים',
+  match_title:                 'שידוך חדש — כותרת מסך',
   match_spotlight_label:       'שידוך חדש — כותרת ספוטלייט ({שם})',
   match_step1_with_spotlight:  'שידוך חדש — כותרת רשימה (עם ספוטלייט)',
   match_step1_no_spotlight:    'שידוך חדש — כותרת רשימה',
@@ -3815,6 +3817,7 @@ const DEFAULT_TEXTS = {
   cands_tab_all:      'שאר המאגר',
   cands_search:       'חיפוש מועמד…',
   cands_add_btn:      'הוסף',
+  cand_match_btn:     'שדך/י את',
   ai_info_text:     'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
   register_title:   'נעים להכיר',
   register_sub:     'כמה פרטים ונצא לדרך',
@@ -3860,6 +3863,7 @@ const DEFAULT_TEXTS = {
   wa_invite:     'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
   wa_cand_offer: 'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
   wa_mm_contact: 'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}',
+  match_title:                 'שידוך חדש',
   match_spotlight_label:       '❤️ בואו ניתן קצת תשומת לב ל-{שם}',
   match_step1_with_spotlight:  'או בחרו מתוך רשימת המועמדים שלכם:',
   match_step1_no_spotlight:    'בחרו מתוך רשימת המועמדים שלכם:',
@@ -3908,6 +3912,7 @@ const SCREEN_TEXTS = {
   register:      ['register_title','register_sub'],
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
+  candidate:     ['cand_match_btn'],
   ai:            ['ai_info_text'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
@@ -3924,7 +3929,7 @@ const SCREEN_TEXTS = {
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
   ],
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact'],
-  matchFlow:   ['match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn'],
+  matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_sort_chat','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
   offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn'],
 };
@@ -5782,6 +5787,7 @@ function CandidateDetail({ th, go, params }) {
   const [localHidden, setLocalHidden] = useSb(c?.hidden ?? false);
   const { user } = React.useContext(AuthCtx);
   const { updateCandidate, deleteCandidate, matchmakers } = React.useContext(DataCtx);
+  const { t } = useTexts();
   useEd(() => { setLocalAvailable(c?.available ?? true); }, [c?.available]);
   useEd(() => { setLocalHidden(c?.hidden ?? false); }, [c?.hidden]);
   const myUid = user?.uid;
@@ -5795,7 +5801,7 @@ function CandidateDetail({ th, go, params }) {
 
   const footer = isMine ? (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
-      <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>שדך/י את {c.name}</Btn>
+      <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>{t('cand_match_btn')} {c.name}</Btn>
     </div>
   ) : (
     <div style={{ flexShrink: 0, padding: '14px 24px 28px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, textAlign: 'center' }}>
@@ -6509,7 +6515,7 @@ function MatchFlow({ th, go, params }) {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream }}>
-      <AppHeader th={th} title="שידוך חדש" onBack={back} />
+      <AppHeader th={th} title={t('match_title')} onBack={back} />
       {/* progress */}
       <div style={{ display: 'flex', gap: 6, padding: '4px 18px 10px', flexShrink: 0 }}>
         {steps.map((s, i) => (
