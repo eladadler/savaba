@@ -5926,8 +5926,8 @@ function CandidateDetail({ th, go, params }) {
       <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>{t('cand_match_btn')} {c.name}</Btn>
     </div>
   ) : (
-    <div style={{ flexShrink: 0, padding: '14px 24px 28px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, textAlign: 'center' }}>
-      <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: alpha(th.ink, 0.45) }}>כדי להתאים בין מועמדים, יש לבחור תחילה מועמד שלכם</span>
+    <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
+      <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>{t('cand_match_btn')} {c.name}</Btn>
     </div>
   );
 
@@ -6628,8 +6628,7 @@ function MatchFlow({ th, go, params }) {
           }
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
-          <Btn th={th} full size="l" onClick={() => newOfferId ? go('offerDetail', { id: newOfferId }) : go('offers')}>למעקב הצעות</Btn>
-          <Btn th={th} full size="l" variant="ghost" onClick={() => go('tab', { tab: 'home' })}>חזרה לבית</Btn>
+          <Btn th={th} full size="l" onClick={() => newOfferId ? go('offerDetail', { id: newOfferId }) : go('offers')}>למסך ההצעה</Btn>
         </div>
       </div>
     );
