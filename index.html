@@ -3769,6 +3769,16 @@ const TEXT_KEYS = {
   review_banner_body:          'אישור מועמד — טקסט ראשי',
   review_banner_empty_suffix:  'אישור מועמד — סיומת שדות ריקים',
   review_approve_btn:          'אישור מועמד — כפתור אישור',
+  cand_approval_popup_title:   'פופ-אפ מועמד חדש — כותרת ({שם}, {סיים_ה})',
+  cand_approval_popup_sub:     'פופ-אפ מועמד חדש — תיאור',
+  cand_approval_popup_btn:     'פופ-אפ מועמד חדש — כפתור אישור',
+  cand_approval_popup_dismiss: 'פופ-אפ מועמד חדש — כפתור דחייה',
+  ai_no_mine_title:            'AI — אין מועמדים: כותרת',
+  ai_no_mine_sub:              'AI — אין מועמדים: תיאור',
+  ai_no_mine_btn:              'AI — אין מועמדים: כפתור',
+  match_no_mine_title:         'שידוך — אין מועמדים: כותרת',
+  match_no_mine_sub:           'שידוך — אין מועמדים: תיאור',
+  match_no_mine_btn:           'שידוך — אין מועמדים: כפתור',
   cand_available:           'מועמד/ת — סטטוס: פנוי/ה',
   cand_available_sub:       'מועמד/ת — סטטוס: פנוי/ה (תיאור)',
   cand_busy:                'מועמד/ת — סטטוס: עסוק/ה',
@@ -3929,6 +3939,16 @@ const DEFAULT_TEXTS = {
   review_banner_body:         'המועמד/ת מילא/ה פרטים.',
   review_banner_empty_suffix: 'כדאי להשלים לפני האישור.',
   review_approve_btn:         '✓ אשר/י — פרסם כרטיסייה',
+  cand_approval_popup_title:   '{שם} {סיים_ה} להירשם!',
+  cand_approval_popup_sub:     'ממתין/ה לאישורך — בדוק/י את הפרטים ופרסם/י.',
+  cand_approval_popup_btn:     'לאישור המועמד/ת',
+  cand_approval_popup_dismiss: 'אל תראה לי יותר',
+  ai_no_mine_title:            'צריכים מועמד/ת אחד/ת כדי להתחיל',
+  ai_no_mine_sub:              'ברגע שתפרסמו מועמד/ת ראשון/ה, יופיעו כאן המלצות AI על הזוגות הטובים ביותר.',
+  ai_no_mine_btn:              'הוסף/י מועמד/ת ←',
+  match_no_mine_title:         'צריכים מועמד/ת אחד/ת כדי להתחיל',
+  match_no_mine_sub:           'כדי לבצע התאמות, פרסמו מועמד/ת אחד/ת לפחות.',
+  match_no_mine_btn:           'הוסף/י מועמד/ת ←',
   cand_available:           'פנוי/ה להצעות',
   cand_available_sub:       'שדכנים יכולים להציע לך',
   cand_busy:                'במנוחה מהצעות',
@@ -4034,10 +4054,10 @@ const DEFAULT_TEXTS = {
 const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
   register:      ['register_title','register_sub'],
-  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others'],
+  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
   candidate:     ['cand_match_btn'],
-  ai:            ['ai_info_text'],
+  ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
@@ -4053,7 +4073,7 @@ const SCREEN_TEXTS = {
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
   ],
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved'],
-  matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn'],
+  matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn','match_no_mine_title','match_no_mine_sub','match_no_mine_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_sort_chat','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
   offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn','offer_pending_subtitle','offer_my_cand_header','offer_approved_label','offer_mark_approval_hint','offer_their_cand_header','offer_their_approval_q','offer_approved_chip','offer_pending_chip','offer_chat_empty','offer_note_label','offer_decline_btn','offer_decline_sub','offer_declined_banner','offer_engaged_title','offer_engaged_sub','offer_send_card_title','offer_send_card_sub','offer_chat_header','offer_wa_mm_title','offer_wa_mm_sub','offer_bothapp_wa_mm_title','offer_bothapp_wa_mm_sub','offer_their_no_update'],
 };
@@ -4695,19 +4715,19 @@ function Home({ th, go }) {
             {/* Info */}
             <div style={{ textAlign:'center', marginBottom:22 }}>
               <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:th.ink, marginBottom:5 }}>
-                {approvalPopupCand.name} {isFemGender(approvalPopupCand.gender) ? 'סיימה' : 'סיים'} להירשם!
+                {fillWa(textsCtx, 'cand_approval_popup_title', { שם: approvalPopupCand.name, סיים_ה: isFemGender(approvalPopupCand.gender) ? 'סיימה' : 'סיים' })}
               </div>
               <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.5) }}>
                 {[approvalPopupCand.age && `גיל ${approvalPopupCand.age}`, approvalPopupCand.region].filter(Boolean).join(' · ')}
               </div>
               <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.68), marginTop:10, lineHeight:1.5 }}>
-                ממתין/ה לאישורך — בדוק/י את הפרטים ופרסם/י.
+                {t('cand_approval_popup_sub')}
               </div>
             </div>
             {/* Buttons */}
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <Btn th={th} full size="l" onClick={() => go('candidate', { id: approvalPopupCand.id })}>לאישור המועמד/ת</Btn>
-              <Btn th={th} full size="l" variant="ghost" onClick={() => dismissApproval(approvalPopupCand.id)}>אל תראה לי יותר</Btn>
+              <Btn th={th} full size="l" onClick={() => go('candidate', { id: approvalPopupCand.id })}>{t('cand_approval_popup_btn')}</Btn>
+              <Btn th={th} full size="l" variant="ghost" onClick={() => dismissApproval(approvalPopupCand.id)}>{t('cand_approval_popup_dismiss')}</Btn>
             </div>
           </div>
         </div>
@@ -5969,7 +5989,11 @@ function CandidateDetail({ th, go, params }) {
   const cView = { ...c, hidden: localHidden, available: localAvailable };
   const mm = matchmakers?.[c?.mmId] || null;
 
-  const footer = isMine ? (
+  const footer = isMine && c.pendingApproval ? (
+    <div style={{ flexShrink: 0, padding: '14px 24px 28px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, textAlign: 'center' }}>
+      <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: alpha(th.ink, 0.45) }}>יש לאשר ולפרסם את המועמד/ת לפני השידוך</span>
+    </div>
+  ) : isMine ? (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
       <Btn th={th} full size="l" onClick={() => go('matchFlow', { id: c.id })} icon={<Icon name="heart" size={20} fill="#fff" stroke={0} />}>{t('cand_match_btn')} {c.name}</Btn>
     </div>
@@ -6597,6 +6621,7 @@ function MatchFlow({ th, go, params }) {
     if (c.id === first.id) return false;
     if (c.available === false) return false;
     if (c.status === 'pending_mm') return false;
+    if (c.pendingApproval) return false;
     // Exactly one of the two candidates must be mine — never match two of my own
     if (firstIsMine === isCandMine(c)) return false;
     if (q2 && !c.name.includes(q2) && !(c.oneLine || '').includes(q2)) return false;
@@ -6652,6 +6677,24 @@ function MatchFlow({ th, go, params }) {
     if (step === 3 && presetSecond) return go('back');
     setStep(step - 1);
   };
+
+  // No published candidates — block the flow
+  const myPublishedCands = candidates.filter(c => isCandMine(c) && !c.pendingApproval);
+  if (myPublishedCands.length === 0) {
+    return (
+      <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream }}>
+        <AppHeader th={th} title={t('match_title')} onBack={() => go('back')} />
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:18, padding:'0 28px', textAlign:'center' }}>
+          <div style={{ width:80, height:80, borderRadius:'50%', background:alpha(th.gold,0.15), display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Icon name="users" size={38} style={{ color:th.gold }} />
+          </div>
+          <div style={{ fontFamily:th.display, fontWeight:900, fontSize:20, color:th.ink }}>{t('match_no_mine_title')}</div>
+          <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.55, maxWidth:280 }}>{t('match_no_mine_sub')}</div>
+          <Btn th={th} size="l" onClick={() => go('cands', { autoAdd: true })}>{t('match_no_mine_btn')}</Btn>
+        </div>
+      </div>
+    );
+  }
 
   // STEP 4 — success
   if (step === 4) {
@@ -7605,12 +7648,16 @@ function AIRecs({ th, go }) {
     return Math.min(99, Math.round(50 + ((t - 25) / 85) ** 0.65 * 49));
   };
 
+  const myPublishedCands = React.useMemo(
+    () => candidates.filter(c => c.mmId === myUid && !c.pendingApproval),
+    [candidates, myUid]);
+
   // ── Scoring engine ────────────────────────────────────────────
   const pairs = React.useMemo(() => {
     if (!myUid || !candidates.length) return [];
 
-    const mine   = candidates.filter(c => c.mmId === myUid);
-    const others = candidates.filter(c => c.mmId && c.mmId !== myUid);
+    const mine   = myPublishedCands;
+    const others = candidates.filter(c => c.mmId && c.mmId !== myUid && !c.pendingApproval);
     if (!mine.length || !others.length) return [];
 
     // Offers already in flight — skip those pairs
@@ -7812,8 +7859,20 @@ function AIRecs({ th, go }) {
       <AppHeader th={th} title="המלצות AI" sub="ניתוח חכם של זיווגים פוטנציאליים" action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 24px' }}>
 
+        {/* ── No published candidates ── */}
+        {myPublishedCands.length === 0 && (
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:400, gap:18, textAlign:'center', padding:'0 24px' }}>
+            <div style={{ width:80, height:80, borderRadius:'50%', background:alpha(th.gold,0.15), display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Icon name="users" size={38} style={{ color:th.gold }} />
+            </div>
+            <div style={{ fontFamily:th.display, fontWeight:900, fontSize:20, color:th.ink }}>{t('ai_no_mine_title')}</div>
+            <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.55, maxWidth:280 }}>{t('ai_no_mine_sub')}</div>
+            <Btn th={th} size="l" onClick={() => go('cands', { autoAdd: true })}>{t('ai_no_mine_btn')}</Btn>
+          </div>
+        )}
+
         {/* ── Entry state: big button ── */}
-        {!hasRun && (
+        {myPublishedCands.length > 0 && !hasRun && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:340, gap:20 }}>
             <div style={{ width:88, height:88, borderRadius:'50%', background:`linear-gradient(135deg,${th.primary},${th.gold})`, display:'flex', alignItems:'center', justifyContent:'center', boxShadow:`0 8px 32px ${alpha(th.primary,0.35)}` }}>
               <Icon name="spark" size={44} fill="#fff" style={{ color:'#fff' }} />
@@ -7840,7 +7899,7 @@ function AIRecs({ th, go }) {
         )}
 
         {/* ── Loading skeleton ── */}
-        {hasRun && aiLoading && (
+        {myPublishedCands.length > 0 && hasRun && aiLoading && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'48px 24px', gap:16 }}>
             <div style={{ width:52, height:52, borderRadius:'50%', background:`linear-gradient(135deg,${th.primary},${th.gold})`, display:'flex', alignItems:'center', justifyContent:'center', animation:'pulse 1.5s ease-in-out infinite' }}>
               <Icon name="spark" size={26} fill="#fff" style={{ color:'#fff' }} />
@@ -7851,7 +7910,7 @@ function AIRecs({ th, go }) {
         )}
 
         {/* ── Results ── */}
-        {hasRun && !aiLoading && [...shownPairs].sort((x,y) => {
+        {myPublishedCands.length > 0 && hasRun && !aiLoading && [...shownPairs].sort((x,y) => {
           const sx = aiAnalyses[`${x.aId}__${x.bId}`]?.score ?? x.score;
           const sy = aiAnalyses[`${y.aId}__${y.bId}`]?.score ?? y.score;
           return sy - sx;
@@ -8100,6 +8159,7 @@ function CandBrowse({ th, go, me }) {
 
   const list = React.useMemo(() => candidates.filter(c => {
     if (c.id === me.id) return false; // don't show myself
+    if (c.pendingApproval) return false;
     const cIsMale   = isMaleG(c.gender);
     const cIsFemale = isFemaleG(c.gender);
     if (meIsMale ? !cIsFemale : !cIsMale) return false;
