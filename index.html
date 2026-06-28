@@ -3759,6 +3759,17 @@ const TEXT_KEYS = {
   offers_chip_mine:      'הצעות — שבב: שלי',
   offers_chip_theirs:    'הצעות — שבב: הצד השני',
   offers_chat_badge:     'הצעות — תג: הודעה חדשה',
+  offer_bothapp_celebrate_title: 'הצעה אושרה — כותרת חגיגה',
+  offer_bothapp_celebrate_sub:   'הצעה אושרה — תת-כותרת חגיגה',
+  offer_bothapp_male_title:      'הצעה אושרה — שדכן גבר: כותרת ({שם})',
+  offer_bothapp_male_body:       'הצעה אושרה — שדכן גבר: טקסט ({שם}, {שם_מועמדת})',
+  offer_bothapp_male_wa_label:   'הצעה אושרה — שדכן גבר: תווית ווצאפ ({שם}, {שם_מועמדת})',
+  offer_bothapp_male_wa_sub:     'הצעה אושרה — שדכן גבר: תיאור ווצאפ ({שם_מועמדת})',
+  offer_bothapp_male_wa:         'ווצאפ — הצעה אושרה: הודעה למועמד הגבר ({שם}, {שם_מועמדת}, {קישור_מועמדת})',
+  offer_bothapp_female_title:    'הצעה אושרה — שדכנית אישה: כותרת ({שם})',
+  offer_bothapp_female_body:     'הצעה אושרה — שדכנית אישה: טקסט ({שם}, {שם_מועמדת})',
+  offer_bothapp_married_prompt:  'הצעה אושרה — שאלת חתונה ({שם_א}, {שם_ב})',
+  offer_bothapp_married_btn:     'הצעה אושרה — כפתור דיווח חתונה',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -3871,6 +3882,17 @@ const DEFAULT_TEXTS = {
   offers_chip_mine:      '◆ שלי',
   offers_chip_theirs:    'הצד השני',
   offers_chat_badge:     'הודעה חדשה',
+  offer_bothapp_celebrate_title: 'כולם אישרו! 🎉',
+  offer_bothapp_celebrate_sub:   'בע״ה תהיה טבעת!',
+  offer_bothapp_male_title:      'הגיע הזמן ש{שם} ייצור קשר!',
+  offer_bothapp_male_body:       '{שם_מועמדת} אישרה את ההצעה ומצפה שיפנה אליה. שלח/י ל{שם} ווצאפ עם הפרטים שלה.',
+  offer_bothapp_male_wa_label:   'שלח ל{שם} את הפרטים של {שם_מועמדת}',
+  offer_bothapp_male_wa_sub:     '{שם_מועמדת} מחכה לשמוע ממנו',
+  offer_bothapp_male_wa:         'היי {שם}! 🎉\n{שם_מועמדת} אישרה את ההצעה ומצפה שתיצור איתה קשר.\nווצאפ שלה: {קישור_מועמדת}',
+  offer_bothapp_female_title:    'הכדור בידיים של {שם}',
+  offer_bothapp_female_body:     'שדכן/ית {שם} מסר/ה לו את הפרטים של {שם_מועמדת} — ובע״ה הוא יפנה אליה בקרוב.',
+  offer_bothapp_married_prompt:  'האם {שם_א} ו{שם_ב} כבר התחתנו? 🥹\nדווח/י ונחגוג יחד!',
+  offer_bothapp_married_btn:     'הזוג התחתן! דווח/י',
 };
 
 const SCREEN_TEXTS = {
@@ -3896,6 +3918,7 @@ const SCREEN_TEXTS = {
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact'],
   matchFlow:   ['match_hint','match_wa_btn','match_mm_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
+  offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn'],
 };
 
 // Gender helper — handles both 'f' (mock data) and 'אשה' (CandidateForm)
@@ -8798,7 +8821,7 @@ const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', candInquir
 // ════════════════════════════════════════════════════════════
 function OfferDetail({ th, go, params }) {
   const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
-  const { texts: txCtx } = useContext(TextsCtx);
+  const { texts: txCtx, t } = useTexts();
   const { user, profile } = useContext(AuthCtx);
   const myUid = user?.uid;
   const oid   = params?.id;
@@ -8920,7 +8943,7 @@ function OfferDetail({ th, go, params }) {
     ...msgs,
   ];
 
-  const useNewLayout = th.offerDetailLayout !== 'old' && !iAmBothMm;
+  const useNewLayout = th.offerDetailLayout !== 'old' && (!iAmBothMm || bothApp);
 
   const cardShadow = bothApp
     ? `0 6px 26px ${alpha(th.success,0.2)}, 0 0 0 1.5px ${alpha(th.success,0.32)}`
@@ -9052,11 +9075,11 @@ function OfferDetail({ th, go, params }) {
       const ph = waPhone(maleCand);
       if (!ph) return null;
       const femalePh = waPhone(femaleCand);
-      const msg = [
-        `היי ${maleCand.name.split(' ')[0]}! 🎉`,
-        `${femaleCand.name.split(' ')[0]} אישרה את ההצעה ומצפה שתיצור איתה קשר.`,
-        femalePh ? `ווצאפ שלה: https://wa.me/${femalePh}` : '',
-      ].filter(Boolean).join('\n');
+      const msg = fillWa(txCtx, 'offer_bothapp_male_wa', {
+        שם: maleCand.name.split(' ')[0],
+        שם_מועמדת: femaleCand.name.split(' ')[0],
+        קישור_מועמדת: femalePh ? `https://wa.me/${femalePh}` : '',
+      });
       return `https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
     })() : null;
 
@@ -9228,65 +9251,62 @@ function OfferDetail({ th, go, params }) {
 
           {/* Celebration header */}
           <div style={{ textAlign:'center', padding:'4px 0 16px', animation:'sabaPop .5s ease' }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.success }}>כולם אישרו! 🎉</div>
-            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45), marginTop:4 }}>בע״ה תהיה טבעת!</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:18, color:th.success }}>{t('offer_bothapp_celebrate_title')}</div>
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45), marginTop:4 }}>{t('offer_bothapp_celebrate_sub')}</div>
           </div>
 
           {/* Gender-split action panel */}
           {iAmMaleMm ? (
-            /* Male matchmaker: call to action — send male candidate the female's contact */
             <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:12, boxShadow:`0 4px 14px ${alpha(th.ink,0.07)}` }}>
               <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 14px', borderRadius:th.rSm, background:alpha(th.primary,0.06), border:`1px solid ${alpha(th.primary,0.18)}`, marginBottom:12 }}>
                 <div style={{ fontSize:24, flexShrink:0 }}>🏹</div>
                 <div>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:4 }}>
-                    הגיע הזמן ש{maleCand.name.split(' ')[0]} ייצור קשר!
+                    {fillWa(txCtx, 'offer_bothapp_male_title', { שם: maleCand.name.split(' ')[0] })}
                   </div>
                   <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6), lineHeight:1.55 }}>
-                    {femaleCand.name.split(' ')[0]} אישרה את ההצעה ומצפה שיפנה אליה.
-                    שלח/י ל{maleCand.name.split(' ')[0]} ווצאפ עם הפרטים שלה.
+                    {fillWa(txCtx, 'offer_bothapp_male_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
                   </div>
                 </div>
               </div>
               {waRow(waToMaleCandHref,
-                `שלח ל${maleCand.name.split(' ')[0]} את הפרטים של ${femaleCand.name.split(' ')[0]}`,
-                `${femaleCand.name.split(' ')[0]} מחכה לשמוע ממנו`, false)}
+                fillWa(txCtx, 'offer_bothapp_male_wa_label', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] }),
+                fillWa(txCtx, 'offer_bothapp_male_wa_sub', { שם_מועמדת: femaleCand.name.split(' ')[0] }),
+                false)}
             </div>
           ) : (
-            /* Female matchmaker: informational — ball is in the male's court */
             <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:12, boxShadow:`0 4px 14px ${alpha(th.ink,0.07)}` }}>
               <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 14px', borderRadius:th.rSm, background:alpha(th.primary,0.06), border:`1px solid ${alpha(th.primary,0.18)}` }}>
                 <div style={{ fontSize:24, flexShrink:0 }}>🎯</div>
                 <div>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:6 }}>
-                    הכדור בידיים של {maleCand.name.split(' ')[0]}
+                    {fillWa(txCtx, 'offer_bothapp_female_title', { שם: maleCand.name.split(' ')[0] })}
                   </div>
                   <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.6 }}>
-                    {femaleCand.name.split(' ')[0]} אישרה את ההצעה בשמחה! 🎊<br/>
-                    שדכן/ית {maleCand.name.split(' ')[0]} עומד/ת להעביר לו את הפרטים שלה — ובע״ה הוא יפנה אליה.
+                    {fillWa(txCtx, 'offer_bothapp_female_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Chat + WA between matchmakers */}
-          <div style={{ marginBottom:12 }}>
-            {chatBlock}
-          </div>
-          {waRow(waTheirMmHref,
-            `ווצאפ ל${theirMm.name.split(' ')[0]}`,
-            `שלח/י הודעה ישירה לשדכן/ית`, true)}
+          {/* Chat + WA between matchmakers — hidden for iAmBothMm */}
+          {!iAmBothMm && (<>
+            <div style={{ marginBottom:12 }}>{chatBlock}</div>
+            {waRow(waTheirMmHref,
+              `ווצאפ ל${theirMm.name.split(' ')[0]}`,
+              `שלח/י הודעה ישירה לשדכן/ית`, true)}
+          </>)}
 
           {/* Marriage button */}
           <div style={{ background:th.card, borderRadius:th.r, padding:14, marginTop:14, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
-            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), textAlign:'center', marginBottom:12, lineHeight:1.5 }}>
-              האם {candA.name} ו{candB.name} כבר התחתנו? 🥹<br/>דווח/י ונחגוג יחד!
+            <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), textAlign:'center', whiteSpace:'pre-line', marginBottom:12, lineHeight:1.5 }}>
+              {fillWa(txCtx, 'offer_bothapp_married_prompt', { שם_א: candA.name, שם_ב: candB.name })}
             </div>
             <button onClick={() => setConfirmEngaged(true)}
               style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:10, padding:'13px 0', borderRadius:th.rSm, background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}` }}>
               <span style={{ fontSize:22 }}>💍</span>
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>הזוג התחתן! דווח/י</span>
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.gold }}>{t('offer_bothapp_married_btn')}</span>
             </button>
           </div>
         </div>
