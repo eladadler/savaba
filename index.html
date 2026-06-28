@@ -7672,7 +7672,7 @@ function AIRecs({ th, go }) {
   };
 
   const myPublishedCands = React.useMemo(
-    () => candidates.filter(c => c.mmId === myUid && !c.pendingApproval),
+    () => candidates.filter(c => (c.mmId === myUid || (c.coMms||[]).includes(myUid)) && !c.pendingApproval && c.status !== 'pending_mm'),
     [candidates, myUid]);
 
   // ── Scoring engine ────────────────────────────────────────────
@@ -7680,7 +7680,7 @@ function AIRecs({ th, go }) {
     if (!myUid || !candidates.length) return [];
 
     const mine   = myPublishedCands;
-    const others = candidates.filter(c => c.mmId && c.mmId !== myUid && !c.pendingApproval);
+    const others = candidates.filter(c => c.mmId && c.mmId !== myUid && !(c.coMms||[]).includes(myUid) && !c.pendingApproval && c.status !== 'pending_mm');
     if (!mine.length || !others.length) return [];
 
     // Offers already in flight — skip those pairs
