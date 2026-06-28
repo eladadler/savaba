@@ -10126,9 +10126,17 @@ function AppInner({ inviteToken }) {
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
           <ImpersonateBanner th={th} />
           {inlineEditMode && (
-            <div style={{ background: alpha('#E8547A', 0.12), borderBottom: '1.5px solid rgba(232,84,122,0.25)', padding: '7px 16px', display:'flex', alignItems:'center', gap:8, flexShrink:0, zIndex:50 }}>
-              <Icon name="pencil" size={13} style={{ color:'#E8547A' }} />
-              <span style={{ fontFamily:'inherit', fontWeight:700, fontSize:12, color:'#C0436B', flex:1 }}>מצב עריכת טקסטים — לחץ/י על כל טקסט ורוד כדי לערוך</span>
+            <div style={{ background: alpha('#E8547A', 0.12), borderBottom: '1.5px solid rgba(232,84,122,0.25)', padding: '7px 12px', display:'flex', alignItems:'center', gap:8, flexShrink:0, zIndex:50 }}>
+              <Icon name="pencil" size={13} style={{ color:'#E8547A', flexShrink:0 }} />
+              <span style={{ fontFamily:'inherit', fontWeight:700, fontSize:12, color:'#C0436B', flex:1 }}>לחץ/י על טקסט ורוד לעריכה</span>
+              <button onClick={cancelInlineEdit}
+                style={{ border:`1.5px solid ${alpha('#000',0.12)}`, background:'rgba(255,255,255,0.7)', color:'#333', borderRadius:999, padding:'4px 11px', fontFamily:'inherit', fontWeight:700, fontSize:12, cursor:'pointer', flexShrink:0 }}>
+                ✕
+              </button>
+              <button onClick={saveInlineTexts} disabled={savingTexts}
+                style={{ border:'none', background:'#E8547A', color:'#fff', borderRadius:999, padding:'5px 13px', fontFamily:'inherit', fontWeight:800, fontSize:12, cursor:'pointer', flexShrink:0, boxShadow:'0 2px 8px rgba(232,84,122,0.35)' }}>
+                {savingTexts ? 'שומר…' : `✓ שמור${Object.keys(inlineDrafts).length ? ` (${Object.keys(inlineDrafts).length})` : ''}`}
+              </button>
             </div>
           )}
           {data.loading
@@ -10145,19 +10153,6 @@ function AppInner({ inviteToken }) {
             </button>
           )}
 
-          {/* Inline edit save/cancel bar */}
-          {inlineEditMode && (
-            <div style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 0, right: 0, zIndex: 150, display:'flex', gap:8, padding:'0 14px' }}>
-              <button onClick={saveInlineTexts} disabled={savingTexts}
-                style={{ flex:1, border:'none', background:'#E8547A', color:'#fff', borderRadius:999, padding:'12px 0', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer', boxShadow:'0 4px 16px rgba(232,84,122,0.4)' }}>
-                {savingTexts ? 'שומר…' : `✓ שמור${Object.keys(inlineDrafts).length ? ` (${Object.keys(inlineDrafts).length})` : ''}`}
-              </button>
-              <button onClick={cancelInlineEdit}
-                style={{ border:`1.5px solid ${alpha('#000',0.12)}`, background:th.card, color:th.ink, borderRadius:999, padding:'12px 18px', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer' }}>
-                ✕
-              </button>
-            </div>
-          )}
 
           {/* Edit mode Sheet */}
           <Sheet open={editMode} onClose={cancelEdit} th={th} title="עריכת טקסטים" height="82%">
