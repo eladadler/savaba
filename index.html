@@ -3782,6 +3782,29 @@ const TEXT_KEYS = {
   offer_bothapp_female_body:     'הצעה אושרה — שדכנית אישה: טקסט ({שם}, {שם_מועמדת})',
   offer_bothapp_married_prompt:  'הצעה אושרה — שאלת חתונה ({שם_א}, {שם_ב})',
   offer_bothapp_married_btn:     'הצעה אושרה — כפתור דיווח חתונה',
+  offer_pending_subtitle:        'הצעה בתהליך — תת-כותרת מסך',
+  offer_my_cand_header:          'הצעה — כרטיס מועמד שלי: כותרת',
+  offer_approved_label:          'הצעה — מועמד אישר: תווית',
+  offer_mark_approval_hint:      'הצעה — כפתור אישור: הסבר',
+  offer_their_cand_header:       'הצעה — כרטיס מועמד השני: כותרת',
+  offer_their_approval_q:        'הצעה — שאלת אישור הצד השני',
+  offer_approved_chip:           'הצעה — תגית: אישר/ה',
+  offer_pending_chip:            'הצעה — תגית: ממתין לאישור',
+  offer_chat_empty:              'הצעה — התכתבות ריקה',
+  offer_note_label:              'הצעה — תווית הודעה מלווה',
+  offer_decline_btn:             'הצעה — כפתור דחייה',
+  offer_decline_sub:             'הצעה — הסבר דחייה',
+  offer_declined_banner:         'הצעה נדחתה — כותרת באנר',
+  offer_engaged_title:           'הצעה — חתונה: כותרת ראשית',
+  offer_engaged_sub:             'הצעה — חתונה: כותרת משנית',
+  offer_send_card_title:         'הצעה — ווצאפ כרטיסיה: כותרת ({שם})',
+  offer_send_card_sub:           'הצעה — ווצאפ כרטיסיה: תיאור ({שם})',
+  offer_chat_header:             'הצעה — כותרת התכתבות עם שדכן ({שם})',
+  offer_wa_mm_title:             'הצעה — ווצאפ לשדכן: כותרת ({שם})',
+  offer_wa_mm_sub:               'הצעה — ווצאפ לשדכן: תיאור ({שם})',
+  offer_bothapp_wa_mm_title:     'הצעה אושרה — ווצאפ לשדכן: כותרת ({שם})',
+  offer_bothapp_wa_mm_sub:       'הצעה אושרה — ווצאפ לשדכן: תיאור',
+  offer_their_no_update:         'הצעה — טרם עדכון מהצד השני ({שם})',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -3916,6 +3939,29 @@ const DEFAULT_TEXTS = {
   offer_bothapp_female_body:     'ה{שדכן_ית} {מסר_ה} ל{שם} את הפרטים של {שם_מועמדת} — ובע״ה הוא יפנה אליה בקרוב.',
   offer_bothapp_married_prompt:  'האם {שם_א} ו{שם_ב} כבר התחתנו? 🥹\nדווח/י ונחגוג יחד!',
   offer_bothapp_married_btn:     'הזוג התחתן! דווח/י',
+  offer_pending_subtitle:        'הצעת שידוך',
+  offer_my_cand_header:          'המועמד/ת שלי',
+  offer_approved_label:          'אישור התקבל',
+  offer_mark_approval_hint:      'לחץ/י לסימון',
+  offer_their_cand_header:       'המועמד/ת השני/ה',
+  offer_their_approval_q:        'האם אישר/ה כבר את ההצעה?',
+  offer_approved_chip:           'אישר/ה',
+  offer_pending_chip:            'ממתין לאישור',
+  offer_chat_empty:              'אין הודעות עדיין',
+  offer_note_label:              'הודעה מלווה להצעה',
+  offer_decline_btn:             'דחיית ההצעה',
+  offer_decline_sub:             'דחייה תסגור את ההצעה עבור שני הצדדים',
+  offer_declined_banner:         'ההצעה נדחתה',
+  offer_engaged_title:           'הזוג הזה התחתן!',
+  offer_engaged_sub:             'מזל טוב לחתן ולכלה! 🥂',
+  offer_send_card_title:         'שליחת הכרטיסיה של {שם} בווטסאפ',
+  offer_send_card_sub:           'שלח/י למועמד/ת שלך את הכרטיסיה של {שם}',
+  offer_chat_header:             'התכתבות עם השדכן/ית של {שם}',
+  offer_wa_mm_title:             'שליחת הודעה בווטסאפ לשדכן/ית של {שם}',
+  offer_wa_mm_sub:               'שלח/י הודעה ישירה לשדכן/ית {שם}',
+  offer_bothapp_wa_mm_title:     'ווצאפ ל{שם}',
+  offer_bothapp_wa_mm_sub:       'שלח/י הודעה ישירה לשדכן/ית',
+  offer_their_no_update:         'טרם קיבלנו עדכון מ{שם}',
 };
 
 const SCREEN_TEXTS = {
@@ -3942,7 +3988,7 @@ const SCREEN_TEXTS = {
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact'],
   matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_sort_chat','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
-  offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn'],
+  offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn','offer_pending_subtitle','offer_my_cand_header','offer_approved_label','offer_mark_approval_hint','offer_their_cand_header','offer_their_approval_q','offer_approved_chip','offer_pending_chip','offer_chat_empty','offer_note_label','offer_decline_btn','offer_decline_sub','offer_declined_banner','offer_engaged_title','offer_engaged_sub','offer_send_card_title','offer_send_card_sub','offer_chat_header','offer_wa_mm_title','offer_wa_mm_sub','offer_bothapp_wa_mm_title','offer_bothapp_wa_mm_sub','offer_their_no_update'],
 };
 
 // Gender helper — handles both 'f' (mock data) and 'אשה' (CandidateForm)
@@ -9119,7 +9165,7 @@ function OfferDetail({ th, go, params }) {
         <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', zIndex:1 }}>
           {/* Mask: hides dashed line on the outer (right) edge beyond the photo */}
           <div style={{ position:'absolute', top:0, bottom:0, right:0, width:'calc((100% - 100px) / 2)', background:th.cream, zIndex:-1 }} />
-          <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary }}>המועמד/ת שלי</span>
+          <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary }}>{t('offer_my_cand_header')}</span>
           <button onClick={() => go('candidate', { id:myCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
             <div style={{ width:100, height:100, borderRadius:'50%', overflow:'hidden', border:`2px solid ${th.primary}`,
               background:`linear-gradient(135deg,${myCand.grad?.[0]||th.primary},${myCand.grad?.[1]||th.gold})` }}>
@@ -9141,7 +9187,7 @@ function OfferDetail({ th, go, params }) {
         <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', zIndex:1 }}>
           {/* Mask: hides dashed line on the outer (left) edge beyond the photo */}
           <div style={{ position:'absolute', top:0, bottom:0, left:0, width:'calc((100% - 100px) / 2)', background:th.cream, zIndex:-1 }} />
-          <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:alpha(th.ink,0.55) }}>המועמד/ת השני/ה</span>
+          <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:alpha(th.ink,0.55) }}>{t('offer_their_cand_header')}</span>
           <button onClick={() => go('candidate', { id:theirCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
             <div style={{ width:100, height:100, borderRadius:'50%', overflow:'hidden', border:`2px solid ${alpha(th.ink,0.2)}`,
               background:`linear-gradient(135deg,${theirCand.grad?.[0]||'#7c5cbf'},${theirCand.grad?.[1]||'#a78bfa'})` }}>
@@ -9226,8 +9272,8 @@ function OfferDetail({ th, go, params }) {
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           {photoHeader}
           <div style={{ textAlign:'center', padding:'10px 0 20px', animation:'sabaPop .5s ease' }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:22, color:th.gold }}>הזוג הזה התחתן!</div>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:alpha(th.gold,0.8), marginTop:6 }}>מזל טוב לחתן ולכלה! 🥂</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:22, color:th.gold }}>{t('offer_engaged_title')}</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:alpha(th.gold,0.8), marginTop:6 }}>{t('offer_engaged_sub')}</div>
           </div>
           {chatBlock}
         </div>
@@ -9285,8 +9331,8 @@ function OfferDetail({ th, go, params }) {
           {/* Chat + WA between matchmakers */}
           {chatBlock && <div style={{ marginBottom:12 }}>{chatBlock}</div>}
           {!iAmBothMm && waRow(waTheirMmHref,
-            `ווצאפ ל${theirMm.name.split(' ')[0]}`,
-            `שלח/י הודעה ישירה לשדכן/ית`, true)}
+            inlineEditMode ? t('offer_bothapp_wa_mm_title') : fillWa(txCtx, 'offer_bothapp_wa_mm_title', { שם: theirMm.name.split(' ')[0] }),
+            t('offer_bothapp_wa_mm_sub'), true)}
 
           {/* Marriage button */}
           <div style={{ background:th.card, borderRadius:th.r, padding:14, marginTop:14, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
@@ -9309,7 +9355,7 @@ function OfferDetail({ th, go, params }) {
       <>
         <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
         <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
-          <div style={{ textAlign:'center', fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.4), marginBottom:16 }}>הצעת שידוך</div>
+          <div style={{ textAlign:'center', fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.4), marginBottom:16 }}>{t('offer_pending_subtitle')}</div>
           {photoHeader}
 
           {/* Declined banner */}
@@ -9317,7 +9363,7 @@ function OfferDetail({ th, go, params }) {
             <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', borderRadius:th.r, background:alpha(th.error,0.08), border:`1px solid ${alpha(th.error,0.2)}`, marginBottom:14 }}>
               <Icon name="x" size={16} style={{ color:th.error }} />
               <div style={{ flex:1 }}>
-                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>ההצעה נדחתה</div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{t('offer_declined_banner')}</div>
                 {profile?.isAdmin && o.declineReason && (
                   <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.5), marginTop:3 }}>סיבה: {o.declineReason}</div>
                 )}
@@ -9331,7 +9377,7 @@ function OfferDetail({ th, go, params }) {
               <div style={{ width:28, height:28, borderRadius:'50%', background:alpha(th.primary,0.12), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <Icon name="users" size={13} style={{ color:th.primary }} />
               </div>
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>המועמד/ת שלי</span>
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{t('offer_my_cand_header')}</span>
             </div>
             {myCandApp ? (
               <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.success,0.08), border:`1.5px solid ${alpha(th.success,0.22)}`, marginBottom:10 }}>
@@ -9340,7 +9386,7 @@ function OfferDetail({ th, go, params }) {
                 </div>
                 <div>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{myCand.name.split(' ')[0]} {isFemGender(myCand.gender) ? 'מעוניינת' : 'מעוניין'} בהצעה</div>
-                  <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>אישור התקבל</div>
+                  <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>{t('offer_approved_label')}</div>
                 </div>
               </div>
             ) : !finalFail ? (
@@ -9354,13 +9400,13 @@ function OfferDetail({ th, go, params }) {
                 </div>
                 <div>
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary }}>{approving ? 'שומר…' : `${myCand.name.split(' ')[0]} ${isFemGender(myCand.gender) ? 'מעוניינת' : 'מעוניין'} בהצעה`}</div>
-                  <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>לחץ/י לסימון</div>
+                  <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4) }}>{t('offer_mark_approval_hint')}</div>
                 </div>
               </button>
             ) : null}
             {waRow(waCandHref,
-              `שליחת הכרטיסיה של ${theirCand.name.split(' ')[0]} בווטסאפ`,
-              `שלח/י למועמד/ת שלך את הכרטיסיה של ${theirCand.name}`)}
+              inlineEditMode ? t('offer_send_card_title') : fillWa(txCtx, 'offer_send_card_title', { שם: theirCand.name.split(' ')[0] }),
+              inlineEditMode ? t('offer_send_card_sub')   : fillWa(txCtx, 'offer_send_card_sub',   { שם: theirCand.name }))}
           </div>
 
           {/* Their candidate card */}
@@ -9369,37 +9415,37 @@ function OfferDetail({ th, go, params }) {
               <div style={{ width:28, height:28, borderRadius:'50%', background:alpha(th.ink,0.07), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <Icon name="users" size={13} style={{ color:alpha(th.ink,0.45) }} />
               </div>
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>המועמד/ת השני/ה</span>
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{t('offer_their_cand_header')}</span>
             </div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.ink,0.03), border:`1px solid ${alpha(th.ink,0.07)}`, marginBottom:6 }}>
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>האם אישר/ה כבר את ההצעה?</span>
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{t('offer_their_approval_q')}</span>
               {theirCandApp ? (
                 <div style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:99, background:alpha(th.success,0.1), border:`1px solid ${alpha(th.success,0.25)}`, flexShrink:0 }}>
                   <Icon name="check" size={12} style={{ color:th.success }} />
-                  <span style={{ fontFamily:th.display, fontWeight:700, fontSize:11.5, color:th.success }}>אישר/ה</span>
+                  <span style={{ fontFamily:th.display, fontWeight:700, fontSize:11.5, color:th.success }}>{t('offer_approved_chip')}</span>
                 </div>
               ) : (
                 <div style={{ padding:'4px 10px', borderRadius:99, background:alpha(th.gold,0.12), border:`1px solid ${alpha(th.gold,0.3)}`, flexShrink:0 }}>
-                  <span style={{ fontFamily:th.display, fontWeight:700, fontSize:11.5, color:th.gold }}>ממתין לאישור</span>
+                  <span style={{ fontFamily:th.display, fontWeight:700, fontSize:11.5, color:th.gold }}>{t('offer_pending_chip')}</span>
                 </div>
               )}
             </div>
-            {!theirCandApp && <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.38), marginBottom:12, paddingInline:4 }}>טרם קיבלנו עדכון מ{theirCand.name}</div>}
+            {!theirCandApp && <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.38), marginBottom:12, paddingInline:4 }}>{inlineEditMode ? t('offer_their_no_update') : fillWa(txCtx, 'offer_their_no_update', { שם: theirCand.name })}</div>}
 
             {/* Chat */}
             <div style={{ height:1, background:alpha(th.ink,0.12), margin:'14px 0' }} />
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
               <Icon name="chat" size={14} style={{ color:alpha(th.ink,0.45) }} />
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם השדכן/ית של {theirCand.name.split(' ')[0]}</span>
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{inlineEditMode ? t('offer_chat_header') : fillWa(txCtx, 'offer_chat_header', { שם: theirCand.name.split(' ')[0] })}</span>
             </div>
             <div style={{ maxHeight:220, overflowY:'auto', display:'flex', flexDirection:'column', gap:6, marginBottom:10 }}>
               {allMsgs.length === 0
-                ? <div style={{ textAlign:'center', padding:'16px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.35) }}>אין הודעות עדיין</div>
+                ? <div style={{ textAlign:'center', padding:'16px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.35) }}>{t('offer_chat_empty')}</div>
                 : allMsgs.map((m, i) => {
                     const isMine = m.from === myUid;
                     return (
                       <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:isMine?'flex-end':'flex-start' }}>
-                        {m._isNote && <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.35), marginBottom:3, paddingInline:4 }}>הודעה מלווה להצעה</div>}
+                        {m._isNote && <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.35), marginBottom:3, paddingInline:4 }}>{t('offer_note_label')}</div>}
                         <div style={{ maxWidth:'82%', padding:'8px 11px', fontFamily:th.body, fontSize:13.5, lineHeight:1.45,
                           borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                           background: isMine ? th.primary : alpha(th.ink,0.08), color: isMine ? '#fff' : th.ink }}>
@@ -9424,8 +9470,8 @@ function OfferDetail({ th, go, params }) {
               </button>
             </div>
             {waRow(waTheirMmHref,
-              `שליחת הודעה בווטסאפ לשדכן/ית של ${theirCand.name.split(' ')[0]}`,
-              `שלח/י הודעה ישירה לשדכן/ית ${theirMm.name}`, true)}
+              inlineEditMode ? t('offer_wa_mm_title') : fillWa(txCtx, 'offer_wa_mm_title', { שם: theirCand.name.split(' ')[0] }),
+              inlineEditMode ? t('offer_wa_mm_sub')   : fillWa(txCtx, 'offer_wa_mm_sub',   { שם: theirMm.name }), true)}
           </div>
 
           {/* Decline button */}
@@ -9435,9 +9481,9 @@ function OfferDetail({ th, go, params }) {
                 style={{ all:'unset', cursor:'pointer', width:'100%', boxSizing:'border-box', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
                   padding:'14px 0', borderRadius:th.r, background:alpha(th.error,0.09), border:`1.5px solid ${alpha(th.error,0.25)}` }}>
                 <Icon name="x" size={16} style={{ color:th.error }} />
-                <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.error }}>דחיית ההצעה</span>
+                <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.error }}>{t('offer_decline_btn')}</span>
               </button>
-              <div style={{ textAlign:'center', fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.35), marginTop:6, marginBottom:14 }}>דחייה תסגור את ההצעה עבור שני הצדדים</div>
+              <div style={{ textAlign:'center', fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.35), marginTop:6, marginBottom:14 }}>{t('offer_decline_sub')}</div>
             </>
           )}
         </div>
