@@ -1130,6 +1130,9 @@ function useAuthState() {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
+    // Handle redirect result from iOS signInWithRedirect fallback
+    auth.getRedirectResult().catch(() => {});
+
     return auth.onAuthStateChanged(async (u) => {
       setUser(u);
       if (!u) { setProfile(null); return; }
@@ -1954,12 +1957,18 @@ function CandidateInviteRegister({ th, inviteToken }) {
     }
   };
 
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const googleAuth = async () => {
     setBusy(true); setErr('');
     try {
       const provider = new firebase.auth.GoogleAuthProvider();
-      const cred = await auth.signInWithPopup(provider);
-      await afterAuth(cred);
+      if (isIOS) {
+        await auth.signInWithRedirect(provider);
+        // result handled by getRedirectResult() in useAuthState
+      } else {
+        const cred = await auth.signInWithPopup(provider);
+        await afterAuth(cred);
+      }
     } catch (e) { setErr(e.message); setBusy(false); }
   };
 
@@ -2073,11 +2082,17 @@ function LoginScreen({ th, inviteToken }) {
     'auth/popup-closed-by-user':   'החלון נסגר לפני השלמת הכניסה',
   })[code] || 'שגיאה — נסו שוב';
 
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const googleLogin = async () => {
     setBusy(true); setErr('');
     try {
       const provider = new firebase.auth.GoogleAuthProvider();
-      await auth.signInWithPopup(provider);
+      if (isIOS) {
+        await auth.signInWithRedirect(provider);
+        // result handled by getRedirectResult() in useAuthState
+      } else {
+        await auth.signInWithPopup(provider);
+      }
     } catch (e) { setErr(authErrMsg(e.code)); setBusy(false); }
   };
 
