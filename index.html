@@ -9290,13 +9290,11 @@ function OfferDetail({ th, go, params }) {
             </div>
           )}
 
-          {/* Chat + WA between matchmakers — hidden for iAmBothMm */}
-          {!iAmBothMm && (<>
-            <div style={{ marginBottom:12 }}>{chatBlock}</div>
-            {waRow(waTheirMmHref,
-              `ווצאפ ל${theirMm.name.split(' ')[0]}`,
-              `שלח/י הודעה ישירה לשדכן/ית`, true)}
-          </>)}
+          {/* Chat + WA between matchmakers */}
+          {chatBlock && <div style={{ marginBottom:12 }}>{chatBlock}</div>}
+          {!iAmBothMm && waRow(waTheirMmHref,
+            `ווצאפ ל${theirMm.name.split(' ')[0]}`,
+            `שלח/י הודעה ישירה לשדכן/ית`, true)}
 
           {/* Marriage button */}
           <div style={{ background:th.card, borderRadius:th.r, padding:14, marginTop:14, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
