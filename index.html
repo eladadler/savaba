@@ -5514,7 +5514,7 @@ function CandidateSelfFill({ th, go, params }) {
             <Field th={th} label="גיל *"><TextInput th={th} type="number" value={f.age} onChange={set('age')} /></Field>
             <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
             <Field th={th} label="אזור מגורים *"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
-            <Field th={th} label="זרם דתי"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
+            <Field th={th} label="קרבה לדת *"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
             <Field th={th} label="סטטוס משפחתי *"><Segmented th={th} value={f.family} onChange={set('family')} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
             <Field th={th} label="ילדים">
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -5648,7 +5648,7 @@ function CandidateSelfFill({ th, go, params }) {
             ? <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.phone || !f.age || !f.region || !f.religiosity || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
             : <Btn th={th} full onClick={() => {
                 if (step === 0) {
-                  if (!f.phone || !f.age || !f.region) { alert('נא למלא את כל שדות החובה (המסומנים ב-*)'); return; }
+                  if (!f.phone || !f.age || !f.region || !f.religiosity) { alert('נא למלא את כל שדות החובה (המסומנים ב-*)'); return; }
                   if (!/^05\d[-]?\d{7}$/.test(f.phone.replace(/\s/g,''))) { alert('נא להזין מספר נייד ישראלי תקין (למשל 050-1234567)'); return; }
                 }
                 if (step === 1 && photos.length === 0) { alert('נא להעלות לפחות תמונה אחת'); return; }
