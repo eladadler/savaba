@@ -6719,9 +6719,9 @@ function MatchFlow({ th, go, params }) {
                         : aiAnalysis.label.includes('בירור') ? th.gold : alpha(th.ink, 0.4);
                       return <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 11, color: lc, background: alpha(lc, 0.12), borderRadius: 99, padding: '3px 8px', whiteSpace: 'nowrap' }}>{aiAnalysis.label}</span>;
                     })()}
-                    {(aiAnalysis?.score ?? aiScore) !== null && (
-                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 24, color: (aiAnalysis?.score ?? aiScore) >= 70 ? th.success : (aiAnalysis?.score ?? aiScore) >= 50 ? th.gold : alpha(th.ink, 0.45), lineHeight: 1 }}>
-                        {aiAnalysis?.score ?? aiScore}%
+                    {aiAnalysis?.score != null && (
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 24, color: aiAnalysis.score >= 70 ? th.success : aiAnalysis.score >= 50 ? th.gold : alpha(th.ink, 0.45), lineHeight: 1 }}>
+                        {aiAnalysis.score}%
                       </div>
                     )}
                   </div>
@@ -6730,8 +6730,6 @@ function MatchFlow({ th, go, params }) {
                   <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
                     {`שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים אבל קרובים בנפש'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`}
                   </p>
-                ) : aiLoading ? (
-                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.4), fontStyle: 'italic' }}>AI מנתח את ההתאמה…</p>
                 ) : aiAnalysis?.bullets?.length > 0 ? (
                   <>
                     <ul style={{ margin: '0 0 6px', padding: '0 16px', listStyle: 'none' }}>
@@ -6749,8 +6747,8 @@ function MatchFlow({ th, go, params }) {
                     )}
                   </>
                 ) : (
-                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
-                    {`שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`}
+                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.45), fontStyle: 'italic', lineHeight: 1.5 }}>
+                    המתן מעט כדי לקבל ניתוח התאמה של AI…
                   </p>
                 )}
               </div>
@@ -7065,7 +7063,7 @@ function Offers({ th, go, params }) {
       />
       <div style={{ display: 'flex', gap: 6, padding: '4px 18px 6px', flexShrink: 0 }}>
         {tabs.map(({ id, lbl, count, dot }) => (
-          <button key={id} onClick={() => { setTab(id); setSubFilter(null); }} style={{ flex: 1, padding: '8px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}`, position:'relative' }}>
+          <button key={id} onClick={() => { setTab(id); setSubFilter(null); if (id !== 'pending' && sortBy === 'myAction') setSortBy('newest'); }} style={{ flex: 1, padding: '8px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}`, position:'relative' }}>
             {lbl}
             {count > 0 && <span style={{ marginInlineStart:4, background: tab===id ? alpha('#fff',0.25) : (dot || alpha(th.ink,0.2)), color:'#fff', borderRadius:99, fontSize:11, fontWeight:800, padding:'1px 6px' }}>{count}</span>}
           </button>
@@ -7075,7 +7073,7 @@ function Offers({ th, go, params }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 18px 10px', flexShrink: 0 }}>
         <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>↕ {t('offers_sort_label')}</span>
         <div style={{ display: 'flex', background: alpha(th.ink, 0.06), borderRadius: 999, padding: 3, gap: 2 }}>
-          {[{ id: 'newest', lbl: t('offers_sort_newest') }, { id: 'oldest', lbl: t('offers_sort_oldest') }, { id: 'myAction', lbl: t('offers_sort_mine') }, { id: 'hasUnread', lbl: t('offers_sort_chat') }].map(({ id, lbl }) => (
+          {[{ id: 'newest', lbl: t('offers_sort_newest') }, { id: 'oldest', lbl: t('offers_sort_oldest') }, ...(tab === 'pending' ? [{ id: 'myAction', lbl: t('offers_sort_mine') }] : []), { id: 'hasUnread', lbl: t('offers_sort_chat') }].map(({ id, lbl }) => (
             <button key={id} onClick={() => setSortBy(id)}
               style={{ border: 'none', cursor: 'pointer', borderRadius: 999, padding: '4px 11px',
                 fontFamily: th.body, fontWeight: 700, fontSize: 12,
@@ -9874,7 +9872,7 @@ function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
     case 'candViewCand':  return <CandViewCand th={th} go={go} params={p} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
     case 'textsAdmin':  return <TextsAdmin th={th} go={go} />;
-    case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} editMethod={opts.editMethod} setEditMethod={opts.setEditMethod} setTweak={setTweak} />;
+    case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} editMethod={opts.editMethod} setEditMethod={opts.setEditMethod} setTweak={opts.setTweak} />;
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
     case 'candSelfFill':  return <CandidateSelfFill th={th} go={go} params={p} />;
     case 'editCand':      return <EditCandidateScreen th={th} go={go} params={p} />;
@@ -10129,7 +10127,7 @@ function AppInner({ inviteToken }) {
           )}
           {data.loading
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
-            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod })}
+            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak })}
           {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
