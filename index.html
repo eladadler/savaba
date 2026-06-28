@@ -1055,6 +1055,7 @@ function Icon({ name, size = 24, stroke = 2, style, fill = 'none' }) {
     play: <path d="M7 4.5l14 7.5-14 7.5V4.5Z" fill={fill}/>,
     stop: <rect x="5" y="5" width="14" height="14" rx="2" fill={fill}/>,
     headphones: <><path d="M3 12a9 9 0 0 1 18 0"/><rect x="2" y="12" width="4" height="7" rx="2"/><rect x="18" y="12" width="4" height="7" rx="2"/></>,
+    clock: <><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 3"/></>,
   };
   return <svg {...p}>{paths[name] || null}</svg>;
 }
@@ -9059,88 +9060,80 @@ function OfferDetail({ th, go, params }) {
       return `https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
     })() : null;
 
-    const candBadge = (approved, failed) => {
-      const bg  = approved ? th.success : (failed && !approved) ? th.error : alpha(th.ink,0.28);
-      const ico = approved
-        ? <Icon name="check" size={10} style={{ color:'#fff' }} />
-        : (failed && !approved)
-          ? <Icon name="x" size={10} style={{ color:'#fff' }} />
-          : <span style={{ fontFamily:th.body, fontWeight:900, fontSize:11.5, color:'#fff', lineHeight:1 }}>?</span>;
-      return (
-        <div style={{ position:'absolute', bottom:0, right:0, width:22, height:22, borderRadius:'50%',
-          background:bg, border:`2.5px solid ${th.cream}`,
-          display:'flex', alignItems:'center', justifyContent:'center', zIndex:2 }}>
-          {ico}
+    const statusChip = (cand, approved) => approved
+      ? <div style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:99, background:alpha(th.success,0.1), border:`1px solid ${alpha(th.success,0.28)}` }}>
+          <Icon name="check" size={12} style={{ color:th.success }} />
+          <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11.5, color:th.success }}>
+            {isFemGender(cand.gender) ? 'אישרה' : 'אישר'} את ההצעה
+          </span>
         </div>
-      );
-    };
+      : <div style={{ display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:99, background:alpha(th.ink,0.05), border:`1px solid ${alpha(th.ink,0.1)}` }}>
+          <Icon name="clock" size={11} style={{ color:alpha(th.ink,0.38) }} />
+          <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11.5, color:alpha(th.ink,0.38) }}>
+            טרם {isFemGender(cand.gender) ? 'אישרה' : 'אישר'}
+          </span>
+        </div>;
 
-    const candStatusText = (cand, approved) => (
-      <div style={{ fontFamily:th.body, fontSize:11, color:approved ? th.success : alpha(th.ink,0.38), textAlign:'center', marginTop:1 }}>
-        {cand.name.split(' ')[0]} {isFemGender(cand.gender) ? (approved ? 'אישרה' : 'טרם אישרה') : (approved ? 'אישר' : 'טרם אישר')}
-      </div>
-    );
+    // Center element — dashed "?" for pending, pulsing heart for bothApp, ring for engaged
+    // Photos are 100px, label ~18px, gap 8px → photo center from container top ≈ 4+18+8+50 = 80px
+    const centerEl = isEngaged
+      ? <span style={{ fontSize:28, display:'block' }}>💍</span>
+      : bothApp
+        ? <div style={{ width:52, height:52, borderRadius:'50%', background:th.cream, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.primary,0.15), border:`2px solid ${th.primary}`, display:'flex', alignItems:'center', justifyContent:'center', animation:'sabaHeartBeat 1.3s ease-in-out infinite' }}>
+              <Icon name="heart" size={16} fill={th.primary} style={{ color:th.primary }} />
+            </div>
+          </div>
+        : <div style={{ width:52, height:52, borderRadius:'50%', border:`2px dashed ${th.primary}`, background:th.cream, display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <span style={{ fontFamily:th.display, fontWeight:900, fontSize:24, color:th.primary }}>?</span>
+          </div>;
 
     const photoHeader = (
-      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', marginBottom:20, paddingTop:4, position:'relative' }}>
-        {/* Full-width dashed line at photo vertical center */}
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', marginBottom:24, paddingTop:4, position:'relative' }}>
+        {/* Horizontal dashed line at photo center (80px from top) */}
         {!isEngaged && (
-          <div style={{ position:'absolute', top:46, left:0, right:0, borderTop:`2px dashed ${alpha(th.primary,0.4)}`, zIndex:0 }} />
+          <div style={{ position:'absolute', top:80, left:0, right:0, borderTop:`1.5px dashed ${alpha(th.primary,0.38)}`, zIndex:0 }} />
         )}
-
-        {/* My candidate */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, flex:1, position:'relative', zIndex:1 }}>
-          <div style={{ position:'relative', display:'inline-block' }}>
-            <button onClick={() => go('candidate', { id:myCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
-              <div style={{ width:84, height:84, borderRadius:'50%', overflow:'hidden',
-                border:`3px solid ${th.primary}`, boxShadow:`0 0 0 4px ${alpha(th.primary,0.12)}`,
-                background:`linear-gradient(135deg,${myCand.grad?.[0]||th.primary},${myCand.grad?.[1]||th.gold})` }}>
-                {myCand.photos?.[0]
-                  ? <img src={myCand.photos[0]} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 10%', display:'block' }} />
-                  : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <span style={{ fontFamily:th.display, fontWeight:800, fontSize:33, color:'#fff' }}>{(myCand.name||'?')[0]}</span>
-                    </div>}
-              </div>
-            </button>
-            {candBadge(myCandApp, finalFail)}
-          </div>
-          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, textAlign:'center', marginTop:2 }}>{myCand.name}</div>
-          <div style={{ fontFamily:th.body, fontSize:11, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 10px' }}>המועמד/ת שלי</div>
-          {candStatusText(myCand, myCandApp)}
+        {/* Center element — absolutely centered */}
+        <div style={{ position:'absolute', top: isEngaged ? 66 : 54, left:'50%', transform:'translateX(-50%)', zIndex:2 }}>
+          {centerEl}
         </div>
 
-        {/* Center connector — pulsing heart (bothApp) or ring (isEngaged) */}
-        {(isEngaged || bothApp) && (
-          <div style={{ width:52, flexShrink:0, display:'flex', justifyContent:'center', paddingTop: isEngaged ? 29 : 27, zIndex:1 }}>
-            {isEngaged
-              ? <span style={{ fontSize:26 }}>💍</span>
-              : <div style={{ width:38, height:38, borderRadius:'50%', background:th.cream, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:alpha(th.primary,0.15), border:`2px solid ${th.primary}`, display:'flex', alignItems:'center', justifyContent:'center', animation:'sabaHeartBeat 1.3s ease-in-out infinite' }}>
-                    <Icon name="heart" size={13} fill={th.primary} style={{ color:th.primary }} />
-                  </div>
-                </div>}
-          </div>
-        )}
+        {/* My candidate */}
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', zIndex:1 }}>
+          <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary }}>המועמד/ת שלי</span>
+          <button onClick={() => go('candidate', { id:myCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
+            <div style={{ width:100, height:100, borderRadius:'50%', overflow:'hidden', border:`2px solid ${th.primary}`,
+              background:`linear-gradient(135deg,${myCand.grad?.[0]||th.primary},${myCand.grad?.[1]||th.gold})` }}>
+              {myCand.photos?.[0]
+                ? <img src={myCand.photos[0]} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 10%', display:'block' }} />
+                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:38, color:'#fff' }}>{(myCand.name||'?')[0]}</span>
+                  </div>}
+            </div>
+          </button>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, textAlign:'center', lineHeight:1.3 }}>{myCand.name}</div>
+          {statusChip(myCand, myCandApp)}
+        </div>
+
+        {/* Spacer reserves center width; element is absolute */}
+        <div style={{ width:64, flexShrink:0 }} />
 
         {/* Their candidate */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, flex:1, position:'relative', zIndex:1 }}>
-          <div style={{ position:'relative', display:'inline-block' }}>
-            <button onClick={() => go('candidate', { id:theirCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
-              <div style={{ width:84, height:84, borderRadius:'50%', overflow:'hidden',
-                border:`3px solid ${alpha(th.ink,0.2)}`, boxShadow:`0 0 0 4px ${alpha(th.ink,0.05)}`,
-                background:`linear-gradient(135deg,${theirCand.grad?.[0]||'#7c5cbf'},${theirCand.grad?.[1]||'#a78bfa'})` }}>
-                {theirCand.photos?.[0]
-                  ? <img src={theirCand.photos[0]} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 10%', display:'block' }} />
-                  : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                      <span style={{ fontFamily:th.display, fontWeight:800, fontSize:33, color:'#fff' }}>{(theirCand.name||'?')[0]}</span>
-                    </div>}
-              </div>
-            </button>
-            {candBadge(theirCandApp, finalFail)}
-          </div>
-          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink, textAlign:'center', marginTop:2 }}>{theirCand.name}</div>
-          <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.55), background:alpha(th.ink,0.08), borderRadius:99, padding:'3px 10px' }}>המועמד/ת השני/ה</div>
-          {candStatusText(theirCand, theirCandApp)}
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:8, position:'relative', zIndex:1 }}>
+          <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:alpha(th.ink,0.55) }}>המועמד/ת השני/ה</span>
+          <button onClick={() => go('candidate', { id:theirCand.id, viewOnly:true })} style={{ all:'unset', cursor:'pointer', display:'block' }}>
+            <div style={{ width:100, height:100, borderRadius:'50%', overflow:'hidden', border:`2px solid ${alpha(th.ink,0.2)}`,
+              background:`linear-gradient(135deg,${theirCand.grad?.[0]||'#7c5cbf'},${theirCand.grad?.[1]||'#a78bfa'})` }}>
+              {theirCand.photos?.[0]
+                ? <img src={theirCand.photos[0]} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 10%', display:'block' }} />
+                : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    <span style={{ fontFamily:th.display, fontWeight:800, fontSize:38, color:'#fff' }}>{(theirCand.name||'?')[0]}</span>
+                  </div>}
+            </div>
+          </button>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, textAlign:'center', lineHeight:1.3 }}>{theirCand.name}</div>
+          {statusChip(theirCand, theirCandApp)}
         </div>
       </div>
     );
