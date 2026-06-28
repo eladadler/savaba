@@ -6459,12 +6459,12 @@ function MatchFlow({ th, go, params }) {
           c.sabaBut   && `מיוחד: "${c.sabaBut}"`,
           c.mmNote    && `השדכן: "${c.mmNote}"`
         ].filter(Boolean).join(' · ');
-        const prompt = `א (${first.name}): ${fmtPerson(first)}\nב (${second.name}): ${fmtPerson(second)}\n\nענה בפורמט הבא (עברית בלבד):\nציון: [1-100]\nסיבות: [נקודה1] | [נקודה2] | [נקודה3]\nלשים לב: [אזהרה אחת, או 'אין']\nהמלצה: [מומלץ מאוד / מומלץ / דורש בירור / לא מומלץ]`;
+        const prompt = `א (${first.name}): ${fmtPerson(first)}\nב (${second.name}): ${fmtPerson(second)}\n\nענה בפורמט הבא (עברית בלבד):\nציון: [50-100]\nסיבות: [נקודה1] | [נקודה2] | [נקודה3]\nלשים לב: [אזהרה אחת, או 'אין']\nהמלצה: [מומלץ מאוד / מומלץ / דורש בירור / לא מומלץ]`;
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
           body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 300,
-            system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
+            system: 'אתה שדכן ישראלי מנוסה. ציון מינימלי 50 — הזוג כבר עבר סינון בסיסי. סולם: 88-100 מצוין, 75-87 טוב, 62-74 סביר, 50-61 חלש. גישה אופטימית.',
             messages: [{ role: 'user', content: prompt }] })
         });
         const d = await res.json();
@@ -7477,6 +7477,28 @@ function AIRecs({ th, go }) {
   const [hasRun,     setHasRun]     = React.useState(false);
   const [offset,     setOffset]     = React.useState(0);
   const [shownPairs, setShownPairs] = React.useState([]);
+  const [dismissed,  setDismissed]  = React.useState(new Set());
+
+  React.useEffect(() => {
+    if (!myUid) return;
+    try { setDismissed(new Set(JSON.parse(localStorage.getItem(`ai_dismissed_${myUid}`) || '[]'))); } catch {}
+  }, [myUid]);
+
+  const dismissPair = pairKey => {
+    setDismissed(prev => {
+      const next = new Set(prev);
+      next.add(pairKey);
+      try { localStorage.setItem(`ai_dismissed_${myUid}`, JSON.stringify([...next])); } catch {}
+      return next;
+    });
+    setShownPairs(prev => prev.filter(p => `${p.aId}__${p.bId}` !== pairKey));
+  };
+
+  // Display score boost — makes algorithmic scores more optimistic (AI scores used as-is)
+  const boostScore = raw => {
+    const t = Math.max(25, Math.min(110, raw));
+    return Math.min(99, Math.round(50 + ((t - 25) / 85) ** 0.65 * 49));
+  };
 
   // ── Scoring engine ────────────────────────────────────────────
   const pairs = React.useMemo(() => {
@@ -7564,8 +7586,8 @@ function AIRecs({ th, go }) {
       }
     }
     out.sort((x, y) => y.score - x.score);
-    return out;
-  }, [candidates, offers, myUid]);
+    return out.filter(p => !dismissed.has(`${p.aId}__${p.bId}`));
+  }, [candidates, offers, myUid, dismissed]);
 
   // ── Candidate hash for cache invalidation ────────────────────
   const hashCand = c => [c.age, c.region, c.religiosity, c.oneLine, c.seesWith, c.sabaBut, c.mmNote, (c.interests||[]).join(',')].join('|');
@@ -7643,14 +7665,14 @@ function AIRecs({ th, go }) {
           if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
         }
 
-        const prompt = `${examplesBlock}ניתח ${toAnalyze.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[0-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
+        const prompt = `${examplesBlock}ניתח ${toAnalyze.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[50-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
 
         const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
           body: JSON.stringify({
             model: 'claude-haiku-4-5-20251001', max_tokens: 1200,
-            system: 'אתה שדכן ישראלי מנוסה. נתח התאמות בצורה כנה ומדויקת.',
+            system: 'אתה שדכן ישראלי מנוסה. כל הזוגות שמוצגים עברו סינון בסיסי של התאמה — ציון מינימלי הוא 50. סולם: 88-100 = זיווג מצוין, 75-87 = טוב מאוד, 62-74 = סביר, 50-61 = חלש אך אפשרי. הנח גישה אופטימית.',
             messages: [{ role: 'user', content: prompt }]
           })
         });
@@ -7735,10 +7757,12 @@ function AIRecs({ th, go }) {
           const theirCand = a.mmId === myUid ? b : a;
           const pairKey   = `${p.aId}__${p.bId}`;
           const ai        = aiAnalyses[pairKey] || null;
-          const dispScore = ai?.score ?? p.score;
+          const dispScore = ai?.score ?? boostScore(p.score);
           const lc = ai?.label?.includes('מאוד') ? th.success : ai?.label?.includes('מומלץ') ? th.primary : ai?.label?.includes('בירור') ? th.gold : alpha(th.ink,0.35);
           return (
-            <div key={i} style={{ background:th.card, borderRadius:th.rLg, padding:16, marginBottom:14, boxShadow:`0 6px 20px ${alpha(th.ink,0.07)}` }}>
+            <div key={i} style={{ background:th.card, borderRadius:th.rLg, padding:16, marginBottom:14, boxShadow:`0 6px 20px ${alpha(th.ink,0.07)}`, position:'relative' }}>
+              <button onClick={() => dismissPair(pairKey)} title="הסר מהרשימה"
+                style={{ position:'absolute', top:10, left:10, all:'unset', cursor:'pointer', width:26, height:26, borderRadius:'50%', background:alpha(th.ink,0.07), display:'flex', alignItems:'center', justifyContent:'center', color:alpha(th.ink,0.4), fontSize:14, lineHeight:1, zIndex:1 }}>✕</button>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
                 <div style={{ display:'flex', alignItems:'center' }}>
                   <Avatar grad={a.grad} name={a.name} size={52} photo={a.photos&&a.photos[0]} style={{ marginInlineEnd:-10, zIndex:2, cursor:'pointer' }} onClick={() => go('candidate', { id: a.id })} />
