@@ -3809,6 +3809,11 @@ const TEXT_KEYS = {
   cand_settings_delete:     'מועמד/ת — הגדרות: מחיקת פרופיל',
   cand_settings_delete_sub: 'מועמד/ת — הגדרות: מחיקת פרופיל (תיאור)',
   cand_footer:              'מועמד/ת — כיתוב גרסה',
+  cand_done_title:          'מועמד/ת — מסך סיום: כותרת',
+  cand_done_body:           'מועמד/ת — מסך סיום: גוף ({שם_שדכן})',
+  cand_done_wa_btn:         'מועמד/ת — מסך סיום: כפתור ווצאפ ({שם_שדכן})',
+  cand_done_nudge_title:    'מועמד/ת — מסך סיום: כרטיס — כותרת',
+  cand_done_nudge_body:     'מועמד/ת — מסך סיום: כרטיס — גוף ({שם_שדכן})',
   wa_invite:           'ווצאפ — הזמנת מועמד/ת',
   wa_cand_offer:       'ווצאפ — שליחת הצעה למועמד/ת',
   wa_mm_contact:       'ווצאפ — פנייה לשדכן/ית השני',
@@ -3979,6 +3984,11 @@ const DEFAULT_TEXTS = {
   cand_settings_delete:     'מחיקת פרופיל',
   cand_settings_delete_sub: 'הסרת הכרטיסייה שלך מהמערכת',
   cand_footer:              'גרסה 1.0 · סבבה, והכל אבל…',
+  cand_done_title:          'הפרטים נשלחו!',
+  cand_done_body:           '{שם_שדכן} יקבל/ת הודעה ויעיין/תעיין בפרטים שלך. לאחר האישור תהיה/י רשמית במערכת.',
+  cand_done_wa_btn:         'שלח/י הודעה ל{שם_שדכן}',
+  cand_done_nudge_title:    'אבל זה לא מספיק!',
+  cand_done_nudge_body:     'נדנד/י ל{שם_שדכן} שיאשר/תאשר אותך באפליקציה כמה שיותר מהר — עוד השנה!!! 💍',
   wa_cand_done:        'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
   wa_invite:           'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
   wa_cand_offer:       'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
@@ -4078,6 +4088,7 @@ const SCREEN_TEXTS = {
     'cand_settings_mm','cand_settings_mm_sub',
     'cand_settings_engage','cand_settings_engage_sub',
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
+    'cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body',
   ],
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved'],
   matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn','match_no_mine_title','match_no_mine_sub','match_no_mine_btn'],
@@ -5399,6 +5410,7 @@ function CandidateSelfFill({ th, go, params }) {
   const { user, profile } = useContext(AuthCtx);
   const { lists } = useContext(DataCtx);
   const { texts: txCtx } = useContext(TextsCtx);
+  const { t } = useTexts();
   const liveRegions       = (lists.regions       && lists.regions.length)       ? lists.regions       : REGIONS;
   const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
   const liveInterests     = (lists.interests      && lists.interests.length)     ? lists.interests     : INTERESTS;
@@ -5475,26 +5487,26 @@ function CandidateSelfFill({ th, go, params }) {
     return (
       <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:'32px 28px', textAlign:'center', direction:'rtl', gap:0 }}>
         <div style={{ fontSize:52, marginBottom:12 }}>🎉</div>
-        <div style={{ fontFamily:th.display, fontSize:22, fontWeight:800, color:th.ink, marginBottom:6 }}>הפרטים נשלחו!</div>
+        <div style={{ fontFamily:th.display, fontSize:22, fontWeight:800, color:th.ink, marginBottom:6 }}>{t('cand_done_title')}</div>
         <div style={{ fontFamily:th.body, fontSize:15, color:alpha(th.ink,0.6), lineHeight:1.6, maxWidth:280, marginBottom:28 }}>
-          {invite.mmName} יקבל/ת הודעה ויעיין/תעיין בפרטים שלך. לאחר האישור תהיה/י רשמית במערכת.
+          {fillWa(txCtx, 'cand_done_body', { שם_שדכן: invite.mmName || '' })}
         </div>
 
         {mmWaPhone && (
           <a href={`https://wa.me/${mmWaPhone}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
             style={{ display:'flex', alignItems:'center', gap:10, background:'#25D366', color:'#fff', borderRadius:14, padding:'13px 22px', fontFamily:th.display, fontWeight:800, fontSize:15, textDecoration:'none', boxShadow:`0 4px 16px rgba(37,211,102,0.35)`, marginBottom:20 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            שלח/י הודעה ל{mmFirst}
+            {fillWa(txCtx, 'cand_done_wa_btn', { שם_שדכן: mmFirst || '' })}
           </a>
         )}
 
         <div style={{ background:`linear-gradient(135deg, ${alpha(th.primary,0.08)}, ${alpha(th.gold,0.1)})`, border:`1.5px solid ${alpha(th.primary,0.15)}`, borderRadius:16, padding:'16px 20px', maxWidth:300, direction:'rtl' }}>
           <div style={{ fontSize:32, marginBottom:8 }}>📣</div>
           <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink, marginBottom:6 }}>
-            אבל זה לא מספיק!
+            {t('cand_done_nudge_title')}
           </div>
           <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
-            נדנד/י ל{mmFirst} שיאשר/תאשר אותך באפליקציה כמה שיותר מהר — <span style={{ fontFamily:th.display, fontWeight:800, color:th.primary }}>עוד השנה!!!</span> 💍
+            {fillWa(txCtx, 'cand_done_nudge_body', { שם_שדכן: mmFirst || '' })}
           </div>
         </div>
       </div>
