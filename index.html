@@ -3046,7 +3046,14 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                   </div>
                   <div style={{ display:'flex', gap:8 }}>
                     <Btn th={th} full variant="ghost" onClick={() => setConfirmDelete(null)}>ביטול</Btn>
-                    <Btn th={th} full onClick={async () => { await deleteCandidate(confirmDelete); setConfirmDelete(null); }}
+                    <Btn th={th} full onClick={async () => {
+                      try {
+                        await deleteCandidate(confirmDelete);
+                        setConfirmDelete(null);
+                      } catch(e) {
+                        alert('שגיאה במחיקה: ' + (e.code === 'permission-denied' ? 'אין הרשאה — בדוק חוקי Firestore' : e.message));
+                      }
+                    }}
                       style={{ background:th.error, boxShadow:`0 6px 18px ${alpha(th.error,0.3)}` }}>
                       <Icon name="trash" size={16} /> מחק לצמיתות
                     </Btn>
