@@ -7179,16 +7179,16 @@ function Offers({ th, go, params }) {
                   ? `0 4px 18px ${alpha(th.primary,0.18)}, 0 0 0 2px ${th.primary}`
                   : `0 3px 16px ${alpha(th.ink,0.08)}` }}>
 
-              {/* Status badge row */}
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                <div style={{ display:'flex', gap:5, alignItems:'center' }}>
-                  {isEngaged && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.gold, background:alpha(th.gold,0.15), borderRadius:99, padding:'3px 9px', whiteSpace:'nowrap' }}>💍 {t('offers_badge_engaged')}</span>}
-                  {!isEngaged && bothApp && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.success, background:alpha(th.success,0.12), borderRadius:99, padding:'3px 9px' }}>{t('offers_badge_approved')}</span>}
-                  {!isEngaged && needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 9px', whiteSpace:'nowrap' }}>{t('offers_badge_waiting')}</span>}
-                  {finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.error, background:alpha(th.error,0.1), borderRadius:99, padding:'3px 9px' }}>{t('offers_badge_declined')}</span>}
+              {/* Status badge row — only for action-required states */}
+              {(needsResp && !bothApp && !finalFail || finalFail || chatUnread[o.id]) && (
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                  <div style={{ display:'flex', gap:5, alignItems:'center' }}>
+                    {needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 9px', whiteSpace:'nowrap' }}>{t('offers_badge_waiting')}</span>}
+                    {finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.error, background:alpha(th.error,0.1), borderRadius:99, padding:'3px 9px' }}>{t('offers_badge_declined')}</span>}
+                  </div>
+                  {chatUnread[o.id] && <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11, color:th.primary, background:alpha(th.primary,0.1), borderRadius:999, padding:'2px 8px' }}>{t('offers_chat_badge')}</span>}
                 </div>
-                {chatUnread[o.id] && <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11, color:th.primary, background:alpha(th.primary,0.1), borderRadius:999, padding:'2px 8px' }}>{t('offers_chat_badge')}</span>}
-              </div>
+              )}
               {/* Photo header */}
               {(() => {
                 const lineColor = isEngaged ? th.gold : finalFail ? alpha(th.ink,0.25) : bothApp ? th.success : th.primary;
@@ -7216,9 +7216,9 @@ function Offers({ th, go, params }) {
                       <Icon name="clock" size={9} style={{ color:alpha(th.ink,0.32) }} />
                       <span style={{ fontFamily:th.body, fontWeight:700, fontSize:10, color:alpha(th.ink,0.32) }}>טרם {isFemGender(cand.gender) ? 'אישרה' : 'אישר'}</span>
                     </div>;
-                const candCol = (cand, approved, isMine) => (
+                const candCol = (cand, approved, isMine, maskSide) => (
                   <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4, position:'relative', zIndex:1 }}>
-                    {!isEngaged && <div style={{ position:'absolute', top:0, bottom:0, [isMine?'right':'left']:0, width:'calc((100% - 72px) / 2)', background:th.card, zIndex:-1 }} />}
+                    {!isEngaged && <div style={{ position:'absolute', top:0, bottom:0, [maskSide]:0, width:'calc((100% - 72px) / 2)', background:th.card, zIndex:-1 }} />}
                     <span style={{ fontFamily:th.body, fontWeight:700, fontSize:10.5, color:isMine ? th.primary : alpha(th.ink,0.45), whiteSpace:'nowrap' }}>
                       {isMine ? (isFemGender(cand.gender) ? 'המועמדת שלי' : 'המועמד שלי') : (isFemGender(cand.gender) ? 'המועמדת השניה' : 'המועמד השני')}
                     </span>
@@ -7233,9 +7233,9 @@ function Offers({ th, go, params }) {
                   <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', position:'relative', marginBottom:8 }}>
                     <div style={{ position:'absolute', top:54, left:0, right:0, borderTop:`1.5px dashed ${alpha(lineColor,0.4)}`, zIndex:0 }} />
                     <div style={{ position:'absolute', top:38, left:'50%', transform:'translateX(-50%)', zIndex:2 }}>{centerEl}</div>
-                    {candCol(myCand, myApp, true)}
+                    {candCol(myCand, myApp, true, 'right')}
                     <div style={{ width:48, flexShrink:0 }} />
-                    {candCol(theirC, theirApp, isSelfMatchOffer)}
+                    {candCol(theirC, theirApp, isSelfMatchOffer, 'left')}
                   </div>
                 );
               })()}
@@ -7243,8 +7243,10 @@ function Offers({ th, go, params }) {
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', paddingTop:8, borderTop:`1px solid ${alpha(th.ink,0.06)}` }}>
                 <Icon name="chevL" size={14} style={{ color:alpha(th.ink,0.3) }} />
                 <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                  <span style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.5) }}>{theirMm.name}</span>
                   <Avatar grad={theirMm.grad} name={theirMm.name} size={22} photo={theirMm.photoURL} />
+                  <span style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.5) }}>
+                    {theirMm.gender ? (isFemGender(theirMm.gender) ? 'השדכנית' : 'השדכן') : 'השדכן/ית'} : {theirMm.name}
+                  </span>
                 </div>
               </div>
             </button>
