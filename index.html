@@ -3735,6 +3735,11 @@ const TEXT_KEYS = {
   wa_mm_contact:  'ווצאפ — פנייה לשדכן/ית השני',
   wa_cand_done:   'ווצאפ — מועמד/ת שסיים/ה למלא פרטים',
   match_title:                 'שידוך חדש — כותרת מסך',
+  match_preview_one_line:      'שידוך חדש — תצוגה: תווית "במשפט אחד"',
+  match_preview_sees_with:     'שידוך חדש — תצוגה: תווית "רואה את עצמו/ה עם"',
+  match_preview_interests:     'שידוך חדש — תצוגה: תווית "תחומי עניין"',
+  match_preview_mm_label:      'שידוך חדש — תצוגה: תווית "השדכן/ית"',
+  match_preview_btn:           'שידוך חדש — כפתור בחירת מועמד',
   match_spotlight_label:       'שידוך חדש — כותרת ספוטלייט ({שם})',
   match_step1_with_spotlight:  'שידוך חדש — כותרת רשימה (עם ספוטלייט)',
   match_step1_no_spotlight:    'שידוך חדש — כותרת רשימה',
@@ -3864,6 +3869,11 @@ const DEFAULT_TEXTS = {
   wa_cand_offer: 'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
   wa_mm_contact: 'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}',
   match_title:                 'שידוך חדש',
+  match_preview_one_line:      'במשפט אחד',
+  match_preview_sees_with:     'רואה את עצמו/ה עם',
+  match_preview_interests:     'תחומי עניין',
+  match_preview_mm_label:      'השדכן/ית',
+  match_preview_btn:           'שדך עם',
   match_spotlight_label:       '❤️ בואו ניתן קצת תשומת לב ל-{שם}',
   match_step1_with_spotlight:  'או בחרו מתוך רשימת המועמדים שלכם:',
   match_step1_no_spotlight:    'בחרו מתוך רשימת המועמדים שלכם:',
@@ -3929,7 +3939,7 @@ const SCREEN_TEXTS = {
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
   ],
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact'],
-  matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn'],
+  matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_sort_chat','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
   offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn'],
 };
@@ -6895,19 +6905,19 @@ function MatchFlow({ th, go, params }) {
                 {previewCand.sabaBut && <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={previewCand.sabaBut} size="l" /></div>}
                 {previewCand.oneLine && (
                   <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>במשפט אחד</div>
+                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{t('match_preview_one_line')}</div>
                     <p style={{ margin: 0, fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.oneLine}</p>
                   </div>
                 )}
                 {previewCand.seesWith && (
                   <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>רואה את עצמו/ה עם</div>
+                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{t('match_preview_sees_with')}</div>
                     <p style={{ margin: 0, fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.seesWith}</p>
                   </div>
                 )}
                 {(previewCand.interests?.length > 0) && (
                   <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>תחומי עניין</div>
+                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_interests')}</div>
                     <InterestChips items={previewCand.interests} th={th} />
                   </div>
                 )}
@@ -6924,7 +6934,7 @@ function MatchFlow({ th, go, params }) {
                   const mm = window.findMm(previewCand.mmId);
                   return (
                     <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginTop: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                      <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>השדכן/ית</div>
+                      <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_mm_label')}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                         <Avatar grad={mm.grad} name={mm.name} size={38} />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -6946,7 +6956,7 @@ function MatchFlow({ th, go, params }) {
               ) : (
                 <Btn th={th} full size="l" icon={<Icon name="heart" size={19} fill="#fff" stroke={0} />}
                   onClick={() => { setSecond(previewCand); setPreviewCand(null); setStep(3); }}>
-                  שדך עם {first.name}
+                  {t('match_preview_btn')} {first.name}
                 </Btn>
               )}
             </div>
@@ -10126,7 +10136,7 @@ function AppInner({ inviteToken }) {
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
           <ImpersonateBanner th={th} />
           {inlineEditMode && (
-            <div style={{ background: alpha('#E8547A', 0.12), borderBottom: '1.5px solid rgba(232,84,122,0.25)', padding: '7px 12px', display:'flex', alignItems:'center', gap:8, flexShrink:0, zIndex:50 }}>
+            <div style={{ background: alpha('#E8547A', 0.12), borderBottom: '1.5px solid rgba(232,84,122,0.25)', padding: '7px 12px', display:'flex', alignItems:'center', gap:8, flexShrink:0, zIndex:200, position:'relative' }}>
               <Icon name="pencil" size={13} style={{ color:'#E8547A', flexShrink:0 }} />
               <span style={{ fontFamily:'inherit', fontWeight:700, fontSize:12, color:'#C0436B', flex:1 }}>לחץ/י על טקסט ורוד לעריכה</span>
               <button onClick={cancelInlineEdit}
