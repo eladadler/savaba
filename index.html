@@ -34,6 +34,7 @@
   @keyframes sabaPop { 0% { opacity: 0; transform: scale(0.8); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
   @keyframes sabaChatBeat { 0%,100%{box-shadow:0 0 0 0 rgba(232,84,122,0.5),0 2px 8px rgba(232,84,122,0.3)} 55%{box-shadow:0 0 0 7px rgba(232,84,122,0),0 2px 8px rgba(232,84,122,0.3)} }
   @keyframes sabaHeartBeat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.32)} 28%{transform:scale(1)} 42%{transform:scale(1.16)} 56%{transform:scale(1)} }
+  @keyframes sabaGoldPulse { 0%,100%{box-shadow:0 4px 14px rgba(212,168,84,0.15)} 50%{box-shadow:0 6px 28px rgba(212,168,84,0.4), 0 0 0 4px rgba(212,168,84,0.12)} }
   /* img fade-in: starts transparent, animates in once painted */
   img { animation: sabaFade 0.28s ease both; will-change: opacity; }
 </style>
@@ -8805,6 +8806,7 @@ const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', candInquir
 function OfferDetail({ th, go, params }) {
   const { offers, candidates, matchmakers, updateOffer } = useContext(DataCtx);
   const { texts: txCtx, t } = useTexts();
+  const { inlineEditMode } = useContext(TextsCtx);
   const { user, profile } = useContext(AuthCtx);
   const myUid = user?.uid;
   const oid   = params?.id;
@@ -8937,7 +8939,10 @@ function OfferDetail({ th, go, params }) {
     <div style={{ background:th.card, borderRadius:th.r, padding:14, boxShadow:`0 3px 10px ${alpha(th.ink,0.04)}` }}>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
         <Avatar grad={theirMm.grad} name={theirMm.name} size={24} photo={theirMm.photoURL} />
-        <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם {theirMm.name}</span>
+        <div>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>התכתבות עם {theirMm.name}</div>
+          <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4), marginTop:1 }}>{theirMm.gender ? (isFemGender(theirMm.gender) ? 'השדכנית השנייה בהצעה' : 'השדכן השני בהצעה') : 'השדכן/ית השני/ה בהצעה'}</div>
+        </div>
       </div>
       <div style={{ maxHeight:260, overflowY:'auto', display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
         {allMsgs.length === 0 && (
@@ -9239,15 +9244,15 @@ function OfferDetail({ th, go, params }) {
 
           {/* Gender-split action panel */}
           {iAmMaleMm ? (
-            <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:12, boxShadow:`0 4px 14px ${alpha(th.ink,0.07)}` }}>
-              <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 14px', borderRadius:th.rSm, background:alpha(th.primary,0.06), border:`1px solid ${alpha(th.primary,0.18)}`, marginBottom:12 }}>
-                <div style={{ fontSize:24, flexShrink:0 }}>🏹</div>
+            <div style={{ borderRadius:th.r, padding:16, marginBottom:12, background:alpha(th.primary,0.07), border:`2px solid ${alpha(th.primary,0.32)}`, animation:'sabaChatBeat 2.2s ease-in-out infinite' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:14 }}>
+                <div style={{ fontSize:40, flexShrink:0, animation:'sabaHeartBeat 1.6s ease-in-out infinite' }}>🏹</div>
                 <div>
-                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:4 }}>
-                    {fillWa(txCtx, 'offer_bothapp_male_title', { שם: maleCand.name.split(' ')[0] })}
+                  <div style={{ fontFamily:th.display, fontWeight:900, fontSize:18, color:th.primary, marginBottom:5 }}>
+                    {inlineEditMode ? t('offer_bothapp_male_title') : fillWa(txCtx, 'offer_bothapp_male_title', { שם: maleCand.name.split(' ')[0] })}
                   </div>
-                  <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6), lineHeight:1.55 }}>
-                    {fillWa(txCtx, 'offer_bothapp_male_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
+                  <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
+                    {inlineEditMode ? t('offer_bothapp_male_body') : fillWa(txCtx, 'offer_bothapp_male_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
                   </div>
                 </div>
               </div>
@@ -9257,15 +9262,15 @@ function OfferDetail({ th, go, params }) {
                 false)}
             </div>
           ) : (
-            <div style={{ background:th.card, borderRadius:th.r, padding:16, marginBottom:12, boxShadow:`0 4px 14px ${alpha(th.ink,0.07)}` }}>
-              <div style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'12px 14px', borderRadius:th.rSm, background:alpha(th.primary,0.06), border:`1px solid ${alpha(th.primary,0.18)}` }}>
-                <div style={{ fontSize:24, flexShrink:0 }}>🎯</div>
+            <div style={{ borderRadius:th.r, padding:16, marginBottom:12, background:alpha(th.gold,0.08), border:`2px solid ${alpha(th.gold,0.38)}`, animation:'sabaGoldPulse 2.5s ease-in-out infinite' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                <div style={{ fontSize:40, flexShrink:0 }}>🎯</div>
                 <div>
-                  <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:6 }}>
-                    {fillWa(txCtx, 'offer_bothapp_female_title', { שם: maleCand.name.split(' ')[0] })}
+                  <div style={{ fontFamily:th.display, fontWeight:900, fontSize:18, color:th.gold, marginBottom:5 }}>
+                    {inlineEditMode ? t('offer_bothapp_female_title') : fillWa(txCtx, 'offer_bothapp_female_title', { שם: maleCand.name.split(' ')[0] })}
                   </div>
-                  <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.6 }}>
-                    {fillWa(txCtx, 'offer_bothapp_female_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
+                  <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
+                    {inlineEditMode ? t('offer_bothapp_female_body') : fillWa(txCtx, 'offer_bothapp_female_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
                   </div>
                 </div>
               </div>
