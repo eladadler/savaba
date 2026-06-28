@@ -7035,7 +7035,7 @@ function MatchFlow({ th, go, params }) {
                         try {
                           const _myF  = isCandMine(first) ? first  : second;
                           const _myS  = isCandMine(first) ? second : first;
-                          await addOffer({
+                          const _ref = await addOffer({
                             aId: _myF.id, aMm: myUid,
                             bId: _myS.id, bMm: _myS.mmId,
                             status: 'נשלחה',
@@ -7043,6 +7043,8 @@ function MatchFlow({ th, go, params }) {
                             ...(candApproved ? { candAApprovedByMm: true } : {}),
                             note: mmMsg.trim(), unread: 0,
                           });
+                          newOfferIdRef.current = _ref.id;
+                          setNewOfferId(_ref.id);
                           setStep(4);
                         } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
                         setSending(false);
