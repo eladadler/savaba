@@ -1744,6 +1744,49 @@ function MultiChips({ value = [], onChange, options, th, tone }) {
   );
 }
 
+function DualRangeSlider({ th, min, max, valueMin, valueMax, onChangeMin, onChangeMax }) {
+  const trackRef = React.useRef(null);
+  const pct = v => Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+  const minP = pct(valueMin);
+  const maxP = pct(valueMax);
+
+  const handleDrag = (which, startE) => {
+    startE.preventDefault();
+    const track = trackRef.current;
+    if (!track) return;
+    const update = clientX => {
+      const rect = track.getBoundingClientRect();
+      const frac = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const val  = Math.round(min + frac * (max - min));
+      if (which === 'min') onChangeMin(Math.min(val, valueMax));
+      else                 onChangeMax(Math.max(val, valueMin));
+    };
+    const onMove = e => { e.preventDefault(); update((e.touches ? e.touches[0] : e).clientX); };
+    const onUp   = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+      document.removeEventListener('touchend',  onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('mouseup',   onUp);
+    document.addEventListener('touchend',  onUp);
+    update((startE.touches ? startE.touches[0] : startE).clientX);
+  };
+
+  return (
+    <div ref={trackRef} dir="ltr" style={{ position:'relative', height:34, margin:'2px 0', userSelect:'none' }}>
+      <div style={{ position:'absolute', top:'50%', left:0, right:0, height:4, transform:'translateY(-50%)', borderRadius:999, background:alpha(th.ink,0.12) }} />
+      <div style={{ position:'absolute', top:'50%', left:`${minP}%`, right:`${100-maxP}%`, height:4, transform:'translateY(-50%)', borderRadius:999, background:th.primary }} />
+      <div onMouseDown={e=>handleDrag('min',e)} onTouchStart={e=>handleDrag('min',e)}
+        style={{ position:'absolute', top:'50%', left:`${minP}%`, transform:'translate(-50%,-50%)', width:22, height:22, borderRadius:'50%', background:'#fff', border:`2.5px solid ${th.primary}`, boxShadow:`0 1px 5px ${alpha(th.ink,0.22)}`, cursor:'grab', zIndex:3, touchAction:'none' }} />
+      <div onMouseDown={e=>handleDrag('max',e)} onTouchStart={e=>handleDrag('max',e)}
+        style={{ position:'absolute', top:'50%', left:`${maxP}%`, transform:'translate(-50%,-50%)', width:22, height:22, borderRadius:'50%', background:'#fff', border:`2.5px solid ${th.primary}`, boxShadow:`0 1px 5px ${alpha(th.ink,0.22)}`, cursor:'grab', zIndex:3, touchAction:'none' }} />
+    </div>
+  );
+}
+
 // striped image upload placeholder
 function PhotoSlot({ th, label = 'תמונה', size = 92, onClick }) {
   return (
@@ -3425,7 +3468,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
           <Field th={th} label="גיל"><TextInput th={th} type="number" value={f.age} onChange={v => setF(s => ({...s, age: +v}))} /></Field>
           <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה', 'גבר']} /></Field>
           <Field th={th} label="אזור"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
-          <Field th={th} label="קרבה לדת"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
+          <Field th={th} label="קרבה לדת *"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
           <Field th={th} label="סטטוס משפחתי"><Segmented th={th} value={f.family} onChange={set('family')} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
           <Field th={th} label="ילדים">
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -3641,7 +3684,10 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
           }
           {isLast
             ? !onApprove && <Btn th={th} full variant="primary" onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>שמור</Btn>
-            : <Btn th={th} full onClick={() => setStep(s => s + 1)}>הבא ←</Btn>
+            : <Btn th={th} full onClick={() => {
+                if (stepName === 'פרטים בסיסיים' && !f.religiosity) { alert('נא לבחור קרבה לדת'); return; }
+                setStep(s => s + 1);
+              }}>הבא ←</Btn>
           }
         </div>
       </div>
@@ -5040,10 +5086,8 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
       <Field th={th} label="מין"><Segmented th={th} value={filters.gender} onChange={v => set('gender', filters.gender === v ? '' : v)} options={['נשים', 'גברים']} /></Field>
       <Field th={th} label="סטטוס"><Segmented th={th} value={filters.status} onChange={v => set('status', filters.status === v ? '' : v)} options={['פנוי', 'תפוס']} /></Field>
       <Field th={th} label={`טווח גיל: ${filters.ageMin}–${filters.ageMax}`}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <input type="range" min={18} max={120} value={filters.ageMin} onChange={e => set('ageMin', Math.min(+e.target.value, filters.ageMax))} style={{ flex: 1, accentColor: th.primary }} />
-          <input type="range" min={18} max={120} value={filters.ageMax} onChange={e => set('ageMax', Math.max(+e.target.value, filters.ageMin))} style={{ flex: 1, accentColor: th.primary }} />
-        </div>
+        <DualRangeSlider th={th} min={18} max={120} valueMin={filters.ageMin} valueMax={filters.ageMax}
+          onChangeMin={v => set('ageMin', v)} onChangeMax={v => set('ageMax', v)} />
       </Field>
       <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={liveRegions} /></Field>
       <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={liveReligiosity} tone={th.gold} /></Field>
@@ -5290,7 +5334,7 @@ function CandidateSelfFill({ th, go, params }) {
   const setPrimaryPhoto = (i) => setPhotos(p => { const a = [...p]; [a[0], a[i]] = [a[i], a[0]]; return a; });
 
   const submit = async () => {
-    if (!f.name || !f.phone || !f.age || !f.region) return alert('נא למלא את כל שדות החובה');
+    if (!f.name || !f.phone || !f.age || !f.region || !f.religiosity) return alert('נא למלא את כל שדות החובה');
     setSub(true);
     try {
       const ref = await db.collection('candidates').add({
@@ -5505,7 +5549,7 @@ function CandidateSelfFill({ th, go, params }) {
             : <div style={{ flex:1 }} />
           }
           {isLast
-            ? <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.phone || !f.age || !f.region || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
+            ? <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.phone || !f.age || !f.region || !f.religiosity || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
             : <Btn th={th} full onClick={() => {
                 if (step === 0) {
                   if (!f.phone || !f.age || !f.region) { alert('נא למלא את כל שדות החובה (המסומנים ב-*)'); return; }
@@ -6707,9 +6751,7 @@ function MatchFlow({ th, go, params }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {candidates2.map(c => {
                   const alreadyMatched = offerExists(first?.id, c.id);
-                  const score = calcScore(first, c);
                   const isSelected = second?.id === c.id;
-                  const scoreColor = score >= 70 ? th.success : score >= 50 ? th.gold : alpha(th.ink, 0.45);
                   return (
                     <button key={c.id}
                       onClick={alreadyMatched ? undefined : () => setPreviewCand(c)}
@@ -6719,9 +6761,6 @@ function MatchFlow({ th, go, params }) {
                           ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
                           : <span style={{ fontFamily: th.display, fontSize: 52, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>
                         }
-                        <div style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)', borderRadius: 99, padding: '4px 9px', fontFamily: th.display, fontWeight: 800, fontSize: 12.5, color: scoreColor }}>
-                          {score}%
-                        </div>
                         {isSelected && (
                           <div style={{ position: 'absolute', top: 8, left: 8, background: th.primary, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 8px ${alpha(th.primary,0.4)}` }}>
                             <Icon name="check" size={15} style={{ color: '#fff' }} />
@@ -6912,10 +6951,8 @@ function MatchFlow({ th, go, params }) {
       {/* MatchFlow filter sheet */}
       <Sheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} title="פילטרים">
         <Field th={th} label={`טווח גיל: ${matchFilters.ageMin}–${matchFilters.ageMax}`}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <input type="range" min={18} max={60} value={matchFilters.ageMin} onChange={e => setMatchFilters(s => ({ ...s, ageMin: Math.min(+e.target.value, s.ageMax) }))} style={{ flex: 1, accentColor: th.primary }} />
-            <input type="range" min={18} max={60} value={matchFilters.ageMax} onChange={e => setMatchFilters(s => ({ ...s, ageMax: Math.max(+e.target.value, s.ageMin) }))} style={{ flex: 1, accentColor: th.primary }} />
-          </div>
+          <DualRangeSlider th={th} min={18} max={60} valueMin={matchFilters.ageMin} valueMax={matchFilters.ageMax}
+            onChangeMin={v => setMatchFilters(s => ({ ...s, ageMin: v }))} onChangeMax={v => setMatchFilters(s => ({ ...s, ageMax: v }))} />
         </Field>
         <Field th={th} label="אזור"><MultiChips th={th} value={matchFilters.region ? [matchFilters.region] : []} onChange={v => setMatchFilters(s => ({ ...s, region: v[v.length - 1] === s.region ? '' : v[v.length - 1] || '' }))} options={liveRegions} /></Field>
         <Field th={th} label="קרבה לדת"><MultiChips th={th} value={matchFilters.rel} onChange={v => setMatchFilters(s => ({ ...s, rel: v }))} options={liveReligiosity} tone={th.gold} /></Field>
@@ -7757,7 +7794,7 @@ function AIRecs({ th, go }) {
           const theirCand = a.mmId === myUid ? b : a;
           const pairKey   = `${p.aId}__${p.bId}`;
           const ai        = aiAnalyses[pairKey] || null;
-          const dispScore = ai?.score ?? boostScore(p.score);
+          const dispScore = ai?.score ?? null;
           const lc = ai?.label?.includes('מאוד') ? th.success : ai?.label?.includes('מומלץ') ? th.primary : ai?.label?.includes('בירור') ? th.gold : alpha(th.ink,0.35);
           return (
             <div key={i} style={{ background:th.card, borderRadius:th.rLg, padding:16, marginBottom:14, boxShadow:`0 6px 20px ${alpha(th.ink,0.07)}`, position:'relative' }}>
@@ -7772,7 +7809,7 @@ function AIRecs({ th, go }) {
                   <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>{a.name} · {b.name}</div>
                   <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5) }}>{a.age} · {b.age} | {a.region} · {b.region}</div>
                 </div>
-                <ScoreRing score={dispScore} th={th} />
+                {dispScore !== null && <ScoreRing score={dispScore} th={th} />}
               </div>
               {ai && (
                 <div style={{ background:alpha(th.gold,0.08), borderRadius:th.r, padding:12, marginBottom:12 }}>
@@ -8044,10 +8081,8 @@ function CandBrowse({ th, go, me }) {
       </div>
       <Sheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} title="פילטרים">
         <Field th={th} label={`טווח גיל: ${filters.ageMin}–${filters.ageMax}`}>
-          <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-            <input type="range" min={18} max={60} value={filters.ageMin} onChange={e => set('ageMin', Math.min(+e.target.value, filters.ageMax))} style={{ flex:1, accentColor:th.primary }} />
-            <input type="range" min={18} max={60} value={filters.ageMax} onChange={e => set('ageMax', Math.max(+e.target.value, filters.ageMin))} style={{ flex:1, accentColor:th.primary }} />
-          </div>
+          <DualRangeSlider th={th} min={18} max={60} valueMin={filters.ageMin} valueMax={filters.ageMax}
+            onChangeMin={v => set('ageMin', v)} onChangeMax={v => set('ageMax', v)} />
         </Field>
         <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={liveRegions} /></Field>
         <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={liveRelig} tone={th.gold} /></Field>
@@ -8891,7 +8926,9 @@ function OfferDetail({ th, go, params }) {
   const [noteText,       setNoteText]      = useState('');
   const [noteSaving,     setNoteSaving]    = useState(false);
   useEd(() => { setNoteText(o?.mmPrivateNote || ''); }, [o?.mmPrivateNote]);
-  const endRef = React.useRef(null);
+  const endRef   = React.useRef(null);
+  const scrollRef = React.useRef(null);
+  useEd(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [oid]);
 
   // Mark chat read when screen opens
   useEd(() => { if (oid) localStorage.setItem('chatRead_' + oid, String(Date.now())); }, [oid]);
@@ -9293,7 +9330,7 @@ function OfferDetail({ th, go, params }) {
     if (isEngaged) return (
       <>
         <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
-        <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
+        <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           {photoHeader}
           <div style={{ textAlign:'center', padding:'10px 0 20px', animation:'sabaPop .5s ease' }}>
             <div style={{ fontFamily:th.display, fontWeight:800, fontSize:22, color:th.gold }}>{t('offer_engaged_title')}</div>
@@ -9308,7 +9345,7 @@ function OfferDetail({ th, go, params }) {
     if (bothApp) return (
       <>
         <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
-        <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
+        <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           {photoHeader}
 
           {/* Celebration header */}
@@ -9378,7 +9415,7 @@ function OfferDetail({ th, go, params }) {
     return (
       <>
         <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
-        <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
+        <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           <div style={{ textAlign:'center', fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.4), marginBottom:16 }}>{t('offer_pending_subtitle')}</div>
           {photoHeader}
 
