@@ -3908,12 +3908,12 @@ const DEFAULT_TEXTS = {
   offer_bothapp_celebrate_title: 'כולם אישרו! 🎉',
   offer_bothapp_celebrate_sub:   'בע״ה תהיה טבעת!',
   offer_bothapp_male_title:      'הגיע הזמן ש{שם} ייצור קשר!',
-  offer_bothapp_male_body:       '{שם_מועמדת} אישרה את ההצעה ומצפה שיפנה אליה. שלח/י ל{שם} ווצאפ עם הפרטים שלה.',
+  offer_bothapp_male_body:       '{שם_מועמדת} אישרה את ההצעה ומצפה שיפנה אליה. {שלח_י} ל{שם} ווצאפ עם הפרטים שלה.',
   offer_bothapp_male_wa_label:   'שלח ל{שם} את הפרטים של {שם_מועמדת}',
   offer_bothapp_male_wa_sub:     '{שם_מועמדת} מחכה לשמוע ממנו',
   offer_bothapp_male_wa:         'היי {שם}! 🎉\n{שם_מועמדת} אישרה את ההצעה ומצפה שתיצור איתה קשר.\nווצאפ שלה: {קישור_מועמדת}',
   offer_bothapp_female_title:    'הכדור בידיים של {שם}',
-  offer_bothapp_female_body:     'שדכן/ית {שם} מסר/ה לו את הפרטים של {שם_מועמדת} — ובע״ה הוא יפנה אליה בקרוב.',
+  offer_bothapp_female_body:     'ה{שדכן_ית} {מסר_ה} ל{שם} את הפרטים של {שם_מועמדת} — ובע״ה הוא יפנה אליה בקרוב.',
   offer_bothapp_married_prompt:  'האם {שם_א} ו{שם_ב} כבר התחתנו? 🥹\nדווח/י ונחגוג יחד!',
   offer_bothapp_married_btn:     'הזוג התחתן! דווח/י',
 };
@@ -7462,7 +7462,7 @@ function AIRecs({ th, go }) {
     };
 
     const calcScore = (a, b) => {
-      const isFemale = c => c.gender === 'f' || c.gender === 'אשה';
+      const isFemale = c => c.gender === 'f' || c.gender === 'אשה' || c.gender === 'אישה';
       if (isFemale(a) === isFemale(b)) return -1;   // same gender → skip
       let s = 50;
       // Religiosity: +20 exact match, +8 compatible, -25 incompatible (high priority)
@@ -9059,6 +9059,11 @@ function OfferDetail({ th, go, params }) {
     const maleCand         = isMyCandFemale ? theirCand : myCand;
     const femaleCand       = isMyCandFemale ? myCand : theirCand;
     const iAmMaleMm        = !isMyCandFemale;
+    const gTheirMm = theirMm?.gender;
+    const gMe      = profile?.gender;
+    const theirMmTitle = gTheirMm ? (isFemGender(gTheirMm) ? 'שדכנית' : 'שדכן') : 'שדכן/ית';
+    const theirMmVerb  = gTheirMm ? (isFemGender(gTheirMm) ? 'מסרה'    : 'מסר')   : 'מסר/ה';
+    const myVerb       = gMe      ? (isFemGender(gMe)      ? 'שלחי'     : 'שלח')   : 'שלח/י';
     const waToMaleCandHref = bothApp ? (() => {
       const ph = waPhone(maleCand);
       if (!ph) return null;
@@ -9252,7 +9257,7 @@ function OfferDetail({ th, go, params }) {
                     {inlineEditMode ? t('offer_bothapp_male_title') : fillWa(txCtx, 'offer_bothapp_male_title', { שם: maleCand.name.split(' ')[0] })}
                   </div>
                   <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
-                    {inlineEditMode ? t('offer_bothapp_male_body') : fillWa(txCtx, 'offer_bothapp_male_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
+                    {inlineEditMode ? t('offer_bothapp_male_body') : fillWa(txCtx, 'offer_bothapp_male_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0], שלח_י: myVerb })}
                   </div>
                 </div>
               </div>
@@ -9270,7 +9275,7 @@ function OfferDetail({ th, go, params }) {
                     {inlineEditMode ? t('offer_bothapp_female_title') : fillWa(txCtx, 'offer_bothapp_female_title', { שם: maleCand.name.split(' ')[0] })}
                   </div>
                   <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
-                    {inlineEditMode ? t('offer_bothapp_female_body') : fillWa(txCtx, 'offer_bothapp_female_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0] })}
+                    {inlineEditMode ? t('offer_bothapp_female_body') : fillWa(txCtx, 'offer_bothapp_female_body', { שם: maleCand.name.split(' ')[0], שם_מועמדת: femaleCand.name.split(' ')[0], שדכן_ית: theirMmTitle, מסר_ה: theirMmVerb })}
                   </div>
                 </div>
               </div>
