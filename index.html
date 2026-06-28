@@ -1164,7 +1164,7 @@ function useAuthState() {
 }
 
 // ── Data hook (live Firestore listeners) ─────────────────────
-function useFirebaseData(uid) {
+function useFirebaseData(uid, isAdminMode = false) {
   const [candidates,    setCandidates]    = useState([]);
   const [offers,        setOffers]        = useState([]);
   const [matchmakers,   setMatchmakers]   = useState({});
@@ -1191,8 +1191,8 @@ function useFirebaseData(uid) {
           partner: data.partner || [],
         };
       });
-      // Hide candidates pending approval from everyone except their owning matchmaker / co-reps
-      setCandidates(all.filter(c =>
+      // Admin sees everything; others only see their own pending candidates
+      setCandidates(isAdminMode ? all : all.filter(c =>
         !c.pendingApproval || c.mmId === uid || (c.coMms || []).includes(uid)
       ));
       setLoading(false);
@@ -2852,8 +2852,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   const isSeed    = (id) => typeof id === 'string' && id.startsWith('seed_');
   const visibleCands   = hideSeed ? candidates.filter(c => !isSeed(c.id)) : candidates;
   const visibleMms     = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeedMm(id))) : matchmakers;
-  const myCands        = visibleCands.filter(c => c.mmId === profile?.uid && !c.pendingApproval);
-  const otherCands     = visibleCands.filter(c => c.mmId !== profile?.uid && !c.pendingApproval);
+  const myCands        = visibleCands.filter(c => c.mmId === profile?.uid);
+  const otherCands     = visibleCands.filter(c => c.mmId !== profile?.uid);
 
   const db_avatar = (seed, gender) =>
     `https://api.dicebear.com/9.x/${(gender === 'f' || gender === 'אשה') ? 'lorelei' : 'micah'}/png?seed=${encodeURIComponent(seed)}&size=300&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`;
@@ -10466,7 +10466,7 @@ function App() {
   const startImpersonate = React.useCallback((uid, prof, type) =>
     setImpersonate({ uid, profile: { ...prof, uid }, type }), []);
   const stopImpersonate = React.useCallback(() => setImpersonate(null), []);
-  const data = useFirebaseData(impersonate?.uid || user?.uid);
+  const data = useFirebaseData(impersonate?.uid || user?.uid, profile?.isAdmin && !impersonate);
   const [t]  = useTweaks(TWEAK_DEFAULTS);
   const th   = makeTheme(t);
   const [inviteToken] = React.useState(() => {
