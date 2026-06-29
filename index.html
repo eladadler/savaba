@@ -2032,19 +2032,20 @@ function CandidateInviteRegister({ th, inviteToken }) {
     }
   };
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const googleAuth = async () => {
     setBusy(true); setErr('');
+    const provider = new firebase.auth.GoogleAuthProvider();
     try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      if (isIOS) {
-        await auth.signInWithRedirect(provider);
-        // result handled by getRedirectResult() in useAuthState
+      const cred = await auth.signInWithPopup(provider);
+      await afterAuth(cred);
+    } catch (e) {
+      if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+        try { await auth.signInWithRedirect(provider); }
+        catch (e2) { setErr(e2.message); setBusy(false); }
       } else {
-        const cred = await auth.signInWithPopup(provider);
-        await afterAuth(cred);
+        setErr(e.message); setBusy(false);
       }
-    } catch (e) { setErr(e.message); setBusy(false); }
+    }
   };
 
   const emailAuth = async () => {
@@ -2157,18 +2158,19 @@ function LoginScreen({ th, inviteToken }) {
     'auth/popup-closed-by-user':   'החלון נסגר לפני השלמת הכניסה',
   })[code] || 'שגיאה — נסו שוב';
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const googleLogin = async () => {
     setBusy(true); setErr('');
+    const provider = new firebase.auth.GoogleAuthProvider();
     try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      if (isIOS) {
-        await auth.signInWithRedirect(provider);
-        // result handled by getRedirectResult() in useAuthState
+      await auth.signInWithPopup(provider);
+    } catch (e) {
+      if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+        try { await auth.signInWithRedirect(provider); }
+        catch (e2) { setErr(authErrMsg(e2.code)); setBusy(false); }
       } else {
-        await auth.signInWithPopup(provider);
+        setErr(authErrMsg(e.code)); setBusy(false);
       }
-    } catch (e) { setErr(authErrMsg(e.code)); setBusy(false); }
+    }
   };
 
   const emailLogin = async () => {
