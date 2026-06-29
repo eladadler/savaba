@@ -1340,8 +1340,20 @@ function useFirebaseData(uid, isAdminMode = false) {
   const updateCandidate = useCallback((id, data) =>
     db.collection('candidates').doc(id).update(data), []);
 
-  const deleteCandidate = useCallback((id) =>
-    db.collection('candidates').doc(id).delete(), []);
+  const deleteCandidate = useCallback(async (id) => {
+    // Cascade: delete all offers that reference this candidate
+    const [aSnap, bSnap] = await Promise.all([
+      db.collection('offers').where('aId', '==', id).get(),
+      db.collection('offers').where('bId', '==', id).get(),
+    ]);
+    const batch = db.batch();
+    const seen = new Set();
+    [...aSnap.docs, ...bSnap.docs].forEach(d => {
+      if (!seen.has(d.id)) { seen.add(d.id); batch.delete(d.ref); }
+    });
+    batch.delete(db.collection('candidates').doc(id));
+    await batch.commit();
+  }, []);
 
   const compressPhoto = (file, maxPx = 1200, quality = 0.82) => new Promise((resolve, reject) => {
     const img = new Image();
