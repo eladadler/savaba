@@ -9282,7 +9282,11 @@ function OfferDetail({ th, go, params }) {
   useEd(() => { setNoteText(o?.mmPrivateNote || ''); }, [o?.mmPrivateNote]);
   const endRef   = React.useRef(null);
   const scrollRef = React.useRef(null);
-  useEd(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, [oid]);
+  useEd(() => {
+    window.scrollTo(0, 0);
+    const t = setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
+    return () => clearTimeout(t);
+  }, [oid]);
 
   // Mark chat read when screen opens
   useEd(() => { if (oid) localStorage.setItem('chatRead_' + oid, String(Date.now())); }, [oid]);
