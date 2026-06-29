@@ -9281,12 +9281,14 @@ function OfferDetail({ th, go, params }) {
   const [noteText,       setNoteText]      = useState('');
   const [noteSaving,     setNoteSaving]    = useState(false);
   useEd(() => { setNoteText(o?.mmPrivateNote || ''); }, [o?.mmPrivateNote]);
-  const endRef   = React.useRef(null);
-  const scrollRef = React.useRef(null);
+  const endRef      = React.useRef(null);
+  const scrollRef   = React.useRef(null);
+  const prevMsgLen  = React.useRef(-1);
+
   useEd(() => {
     window.scrollTo(0, 0);
-    const t = setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = 0; }, 0);
-    return () => clearTimeout(t);
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    prevMsgLen.current = -1; // reset so next load is treated as first
   }, [oid]);
 
   // Mark chat read when screen opens
@@ -9298,8 +9300,13 @@ function OfferDetail({ th, go, params }) {
     return db.collection('mm_chats').doc(oid).onSnapshot(snap => setMsgs(snap.data()?.messages || []));
   }, [oid, myUid]);
 
-  // Scroll to bottom on new messages
-  useEd(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+  // Scroll to bottom ONLY when a new message arrives (not on initial load)
+  useEd(() => {
+    if (prevMsgLen.current >= 0 && msgs.length > prevMsgLen.current) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevMsgLen.current = msgs.length;
+  }, [msgs]);
 
   const o = offers.find(x => x.id === oid);
 
