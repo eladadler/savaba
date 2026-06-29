@@ -4924,7 +4924,7 @@ function Home({ th, go }) {
         title="איך יוצרים שידוך?"
         body={'לחץ על "מועמדים" בתפריט, בחר מועמד/ת, ואז לחץ "צור התאמה".'}
         spotStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)', left: 'calc(70% - 34px)', width: 68, height: 72, borderRadius: 14 }}
-        cardStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', left: '50%', transform: 'translateX(-50%)' }}
+        cardStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', left: 'calc(50% - 136px)' }}
         arrowDir="down"
       />
     </>
@@ -5311,7 +5311,7 @@ function Candidates({ th, go, params }) {
         title="הוסף מועמד/ת"
         body="לחץ על כפתור ״הוסף״ בפינה השמאלית העליונה כדי להוסיף מועמד/ת חדש/ה."
         spotStyle={{ top: 57, left: 66, width: 80, height: 38, borderRadius: 999 }}
-        cardStyle={{ top: 115, left: '50%', transform: 'translateX(-50%)' }}
+        cardStyle={{ top: 115, left: 'calc(50% - 136px)' }}
         arrowDir="up"
       />
       {/* ── Coachmark C: Bell / approve candidate — shows after B is dismissed ── */}
@@ -5320,7 +5320,7 @@ function Candidates({ th, go, params }) {
         title="אישור מועמד/ת חדש/ה"
         body="הפעמון מציג מועמדים שסיימו למלא פרטים וממתינים לאישורך."
         spotStyle={{ top: 55, left: 14, width: 44, height: 44, borderRadius: '50%' }}
-        cardStyle={{ top: 120, left: '50%', transform: 'translateX(-50%)' }}
+        cardStyle={{ top: 120, left: 'calc(50% - 136px)' }}
         arrowDir="up"
       />
     </>
@@ -10154,7 +10154,7 @@ function OfferDetail({ th, go, params }) {
         title="אישור הצעה מצדך"
         body="כשהמועמד/ת שלך מאשר/ת — לחץ/י כאן כדי לסמן שגם הם מעוניינים ולסגור את הענין."
         spotStyle={{ top: 195, left: '5%', width: '90%', height: 62, borderRadius: 14 }}
-        cardStyle={{ top: 274, left: '50%', transform: 'translateX(-50%)' }}
+        cardStyle={{ top: 274, left: 'calc(50% - 136px)' }}
         arrowDir="up"
       />
     </>
