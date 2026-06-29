@@ -7437,9 +7437,10 @@ function Offers({ th, go, params }) {
     setChatUnread(prev => { const n = { ...prev }; delete n[oid]; return n; });
   };
 
-  const pending  = offers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה' || o.status === 'ממתין למועמד' || o.status === 'ממתין למועמד ב');
-  const approved = offers.filter(o => o.status === 'אושרה');
-  const done     = offers.filter(o => o.status === 'נדחתה');
+  const myOffers = offers.filter(o => o.aMm === myUid || o.bMm === myUid);
+  const pending  = myOffers.filter(o => o.status === 'נשלחה' || o.status === 'נצפתה' || o.status === 'ממתין למועמד' || o.status === 'ממתין למועמד ב');
+  const approved = myOffers.filter(o => o.status === 'אושרה');
+  const done     = myOffers.filter(o => o.status === 'נדחתה');
   const listMap  = { pending, approved, done };
 
   // Apply sub-filter from home banner — when active, search across ALL offers (not tab-limited)
