@@ -1341,7 +1341,7 @@ function useFirebaseData(uid, isAdminMode = false) {
     db.collection('candidates').doc(id).update(data), []);
 
   const deleteCandidate = useCallback(async (id) => {
-    // Cascade: delete all offers that reference this candidate
+    // Cascade: delete related offers except engaged ones (wedding — keep for statistics)
     const [aSnap, bSnap] = await Promise.all([
       db.collection('offers').where('aId', '==', id).get(),
       db.collection('offers').where('bId', '==', id).get(),
@@ -1349,7 +1349,9 @@ function useFirebaseData(uid, isAdminMode = false) {
     const batch = db.batch();
     const seen = new Set();
     [...aSnap.docs, ...bSnap.docs].forEach(d => {
-      if (!seen.has(d.id)) { seen.add(d.id); batch.delete(d.ref); }
+      if (seen.has(d.id)) return;
+      seen.add(d.id);
+      if (!d.data().isEngaged) batch.delete(d.ref); // keep חתונה offers in statistics
     });
     batch.delete(db.collection('candidates').doc(id));
     await batch.commit();
