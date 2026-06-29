@@ -9328,7 +9328,7 @@ function OfferDetail({ th, go, params }) {
 
   if (!o) return (
     <>
-      <AppHeader th={th} title="הצעת שידוך" onBack={() => go('back')} />
+      <AppHeader th={th} title="הצעת שידוך" onBack={() => go('offers')} />
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:th.body, color:alpha(th.ink,0.4) }}>הצעה לא נמצאה</div>
     </>
   );
@@ -9696,7 +9696,7 @@ function OfferDetail({ th, go, params }) {
             onClick={async () => {
               await updateOffer(o.id, { status:'נדחתה', ...(declineReason.trim() ? { declineReason: declineReason.trim() } : {}) });
               if (th.aiMode === 'learning') saveOutcomeLearning(o, 'failure', candidates);
-              setConfirmReject(false); setDeclineReason(''); go('back');
+              setConfirmReject(false); setDeclineReason(''); go('offers');
             }}>דחה לצמיתות</Btn>
         </div>
       </Sheet>
@@ -9720,7 +9720,7 @@ function OfferDetail({ th, go, params }) {
 
     if (isEngaged) return (
       <>
-        <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
+        <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('offers')} />
         <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           {photoHeader}
           <div style={{ textAlign:'center', padding:'10px 0 20px', animation:'sabaPop .5s ease' }}>
@@ -9735,7 +9735,7 @@ function OfferDetail({ th, go, params }) {
 
     if (bothApp) return (
       <>
-        <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
+        <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('offers')} />
         <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           {photoHeader}
 
@@ -9805,7 +9805,7 @@ function OfferDetail({ th, go, params }) {
     // ── Pending / declined state ──
     return (
       <>
-        <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
+        <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('offers')} />
         <div ref={scrollRef} style={{ flex:1, overflowY:'auto', padding:'16px 18px 28px' }}>
           <div style={{ textAlign:'center', fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.4), marginBottom:16 }}>{t('offer_pending_subtitle')}</div>
           {photoHeader}
@@ -9944,7 +9944,7 @@ function OfferDetail({ th, go, params }) {
 
   return (
     <>
-      <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('back')} />
+      <AppHeader th={th} title={`${candA.name} · ${candB.name}`} onBack={() => go('offers')} />
       <div style={{ flex:1, overflowY:'auto', padding:'14px 18px 28px' }}>
 
         {isEngaged ? (
@@ -10177,7 +10177,7 @@ function OfferDetail({ th, go, params }) {
             onClick={async () => {
               await updateOffer(o.id, { status:'נדחתה', ...(declineReason.trim() ? { declineReason: declineReason.trim() } : {}) });
               if (th.aiMode === 'learning') saveOutcomeLearning(o, 'failure', candidates);
-              setConfirmReject(false); setDeclineReason(''); go('back');
+              setConfirmReject(false); setDeclineReason(''); go('offers');
             }}>
             דחה לצמיתות
           </Btn>
