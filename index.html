@@ -997,10 +997,10 @@ function makeTheme(t) {
     showMmNote: t.showMmNote !== false,
     aiMode: t.aiMode || 'top5',
     offerDetailLayout: t.offerDetailLayout || 'new',
-    cmNewMatch:    t.cmNewMatch    !== false,
-    cmAddCand:     t.cmAddCand     !== false,
-    cmApproveCand: t.cmApproveCand !== false,
-    cmApproveOffer:t.cmApproveOffer !== false,
+    cmNewMatch:    t.cmNewMatch    || 'on',
+    cmAddCand:     t.cmAddCand     || 'on',
+    cmApproveCand: t.cmApproveCand || 'on',
+    cmApproveOffer:t.cmApproveOffer || 'on',
   };
 }
 
@@ -1015,29 +1015,34 @@ function saveCmSeen(s) {
   try { localStorage.setItem(CM_SEEN_KEY, JSON.stringify([...s])); } catch {}
 }
 
-function useCoachmark(id, enabled) {
-  const [seen, setSeen] = useState(() => getCmSeen().has(id));
+// mode: 'on' = once per user (localStorage) | 'dev' = every screen mount | 'off' = hidden
+function useCoachmark(id, mode, prereqId) {
+  const [seenStorage, setSeenStorage] = useState(() => getCmSeen().has(id));
+  const [seenMount,   setSeenMount]   = useState(false);
+  const [prereqDone,  setPrereqDone]  = useState(() => !prereqId || getCmSeen().has(prereqId));
   useEffect(() => {
-    const handler = () => setSeen(getCmSeen().has(id));
-    window.addEventListener('cm_updated', handler);
-    return () => window.removeEventListener('cm_updated', handler);
-  }, [id]);
-  const dismiss = useCallback(() => {
-    const s = getCmSeen(); s.add(id); saveCmSeen(s); setSeen(true);
-    window.dispatchEvent(new Event('cm_updated'));
-  }, [id]);
-  return { visible: !!enabled && !seen, dismiss };
-}
-
-function CoachmarkOverlay({ id, enabled, requires, th, title, body, spotStyle, cardStyle, arrowDir }) {
-  const [prereqDone, setPrereqDone] = useState(() => !requires || getCmSeen().has(requires));
-  useEffect(() => {
-    if (!requires) return;
-    const h = () => setPrereqDone(getCmSeen().has(requires));
+    const h = () => {
+      setSeenStorage(getCmSeen().has(id));
+      if (prereqId) setPrereqDone(getCmSeen().has(prereqId));
+    };
     window.addEventListener('cm_updated', h);
     return () => window.removeEventListener('cm_updated', h);
-  }, [requires]);
-  const { visible, dismiss } = useCoachmark(id, !!enabled && prereqDone);
+  }, [id, prereqId]);
+  const dismiss = useCallback(() => {
+    setSeenMount(true);
+    if (mode !== 'dev') {
+      const s = getCmSeen(); s.add(id); saveCmSeen(s); setSeenStorage(true);
+      window.dispatchEvent(new Event('cm_updated'));
+    }
+  }, [id, mode]);
+  const visible = mode === 'off' ? false
+    : mode === 'dev' ? !seenMount
+    : !seenStorage && prereqDone;
+  return { visible, isDev: mode === 'dev', dismiss };
+}
+
+function CoachmarkOverlay({ id, mode, requires, th, title, body, spotStyle, cardStyle, arrowDir }) {
+  const { visible, isDev, dismiss } = useCoachmark(id, mode, requires);
   if (!visible) return null;
 
   const arrow = (dir) => {
@@ -1049,14 +1054,15 @@ function CoachmarkOverlay({ id, enabled, requires, th, title, body, spotStyle, c
 
   return (
     <div style={{ position:'absolute', inset:0, zIndex:8800, overflow:'hidden', direction:'rtl', pointerEvents:'none' }}>
-      {/* spotlight hole — box-shadow creates the dark overlay, element itself is the "hole" */}
       <div style={{ position:'absolute', animation:'cmRing 2s ease-in-out infinite', ...spotStyle }} />
-      {/* card */}
       <div style={{ position:'absolute', background:'#fff', borderRadius:20, padding:'20px 22px', width:272, boxSizing:'border-box', boxShadow:'0 12px 40px rgba(0,0,0,0.28)', textAlign:'center', direction:'rtl', pointerEvents:'all', animation:'cmBounce 3s ease-in-out infinite', ...cardStyle }}>
         {arrow(arrowDir)}
+        {isDev && <div style={{ position:'absolute', top:10, left:12, background:'#7B4B8A', color:'#fff', borderRadius:99, padding:'2px 8px', fontFamily:'monospace', fontSize:10, fontWeight:700, letterSpacing:1 }}>DEV</div>}
         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:8 }}>{title}</div>
         <div style={{ fontFamily:th.body, fontSize:14, color:'rgba(40,20,30,0.62)', lineHeight:1.55, marginBottom:18 }}>{body}</div>
-        <button onClick={dismiss} style={{ width:'100%', padding:'12px 0', borderRadius:99, border:'none', background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:15, cursor:'pointer', boxShadow:`0 4px 16px rgba(0,0,0,0.18)` }}>הבנתי ✓</button>
+        <button onClick={dismiss} style={{ width:'100%', padding:'12px 0', borderRadius:99, border:'none', background:isDev ? '#7B4B8A' : th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:15, cursor:'pointer', boxShadow:`0 4px 16px rgba(0,0,0,0.18)` }}>
+          {isDev ? 'סגור (DEV)' : 'הבנתי ✓'}
+        </button>
       </div>
     </div>
   );
@@ -2964,7 +2970,7 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
     </div>
   );
 
-  const tabs = [['candidates', 'מועמדים'], ['stats', 'סטטיסטיקות'], ['lists', 'רשימות'], ['texts', 'טקסטים'], ['users', 'שדכנים'], ['danger', '⚠️']];
+  const tabs = [['candidates', 'מועמדים'], ['stats', 'סטטיסטיקות'], ['lists', 'רשימות'], ['texts', 'טקסטים'], ['users', 'שדכנים'], ['coach', '🎯'], ['danger', '⚠️']];
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
@@ -3198,6 +3204,46 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
         {/* ── STATS ── */}
         {tab === 'stats' && <AdminStats th={th} hideSeed={hideSeed} isSeed={isSeed} />}
+
+        {/* ── COACHMARKS ── */}
+        {tab === 'coach' && (() => {
+          const CMS = [
+            { key: 'cmNewMatch',     label: 'שידוך חדש (בית)' },
+            { key: 'cmAddCand',      label: 'הוספת מועמד/ת' },
+            { key: 'cmApproveCand',  label: 'אישור פעמון' },
+            { key: 'cmApproveOffer', label: 'אישור הצעה' },
+          ];
+          const modeLabel = { on: 'פעיל', dev: 'פיתוח', off: 'כבוי' };
+          const modeColor = { on: th.primary, dev: '#7B4B8A', off: alpha(th.ink, 0.35) };
+          return (
+            <div style={{ padding: '16px 18px', direction: 'rtl', overflowY: 'auto', flex: 1 }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 4 }}>קואצ׳מארקס</div>
+              <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5), marginBottom: 20, lineHeight: 1.55 }}>
+                <b>פעיל</b> — מוצג פעם אחת לשדכן חדש<br/>
+                <b>פיתוח</b> — מוצג בכל כניסה למסך (DEV badge סגול)<br/>
+                <b>כבוי</b> — לא מוצג כלל
+              </div>
+              {CMS.map(({ key, label }) => {
+                const cur = th[key] || 'on';
+                return (
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, background: alpha(th.ink, 0.03), borderRadius: 14, padding: '10px 14px' }}>
+                    <span style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: th.ink }}>{label}</span>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {['on', 'dev', 'off'].map(mode => (
+                        <button key={mode} onClick={() => setTweak(key, mode)} style={{ padding: '5px 11px', borderRadius: 99, border: 'none', background: cur === mode ? modeColor[mode] : alpha(th.ink, 0.07), color: cur === mode ? '#fff' : alpha(th.ink, 0.5), fontFamily: th.display, fontWeight: 800, fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}>
+                          {modeLabel[mode]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              <button onClick={resetAllCoachmarks} style={{ marginTop: 8, width: '100%', padding: '11px 0', borderRadius: 99, border: `1.5px solid ${alpha(th.primary, 0.4)}`, background: alpha(th.primary, 0.07), color: th.primary, fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+                אפס מצב "נראה" לכולם — ירואו שוב
+              </button>
+            </div>
+          );
+        })()}
 
         {/* ── DANGER ZONE ── */}
         {tab === 'danger' && (() => {
@@ -4872,7 +4918,7 @@ function Home({ th, go }) {
 
       {/* ── Coachmark A: Create new match ── */}
       <CoachmarkOverlay
-        id="newMatch" enabled={th.cmNewMatch} th={th}
+        id="newMatch" mode={th.cmNewMatch} th={th}
         title="איך יוצרים שידוך?"
         body={'לחץ על "מועמדים" בתפריט, בחר מועמד/ת, ואז לחץ "צור התאמה".'}
         spotStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)', left: 'calc(70% - 34px)', width: 68, height: 72, borderRadius: 14 }}
@@ -5259,7 +5305,7 @@ function Candidates({ th, go, params }) {
 
       {/* ── Coachmark B: Add candidate ── */}
       <CoachmarkOverlay
-        id="addCand" enabled={th.cmAddCand} th={th}
+        id="addCand" mode={th.cmAddCand} th={th}
         title="הוסף מועמד/ת"
         body="לחץ על כפתור ״הוסף״ בפינה השמאלית העליונה כדי להוסיף מועמד/ת חדש/ה."
         spotStyle={{ top: 57, left: 66, width: 80, height: 38, borderRadius: 999 }}
@@ -5268,7 +5314,7 @@ function Candidates({ th, go, params }) {
       />
       {/* ── Coachmark C: Bell / approve candidate — shows after B is dismissed ── */}
       <CoachmarkOverlay
-        id="approveCand" enabled={th.cmApproveCand} requires="addCand" th={th}
+        id="approveCand" mode={th.cmApproveCand} requires="addCand" th={th}
         title="אישור מועמד/ת חדש/ה"
         body="הפעמון מציג מועמדים שסיימו למלא פרטים וממתינים לאישורך."
         spotStyle={{ top: 55, left: 14, width: 44, height: 44, borderRadius: '50%' }}
@@ -9206,7 +9252,7 @@ Object.assign(window, { Toggle, CandidateMode, Settings });
 const TWEAK_DEFAULTS = {
   "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
   "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new",
-  "cmNewMatch": true, "cmAddCand": true, "cmApproveCand": true, "cmApproveOffer": true
+  "cmNewMatch": "on", "cmAddCand": "on", "cmApproveCand": "on", "cmApproveOffer": "on"
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
 const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
@@ -10102,7 +10148,7 @@ function OfferDetail({ th, go, params }) {
 
       {/* ── Coachmark D: Approve offer ── */}
       <CoachmarkOverlay
-        id="approveOffer" enabled={th.cmApproveOffer && !!o && o.status !== 'נדחתה' && o.status !== 'אושרה'} th={th}
+        id="approveOffer" mode={!!o && o.status !== 'נדחתה' && o.status !== 'אושרה' ? th.cmApproveOffer : 'off'} th={th}
         title="אישור הצעה מצדך"
         body="כשהמועמד/ת שלך מאשר/ת — לחץ/י כאן כדי לסמן שגם הם מעוניינים ולסגור את הענין."
         spotStyle={{ top: 195, left: '5%', width: '90%', height: 62, borderRadius: 14 }}
@@ -10620,12 +10666,6 @@ function AppInner({ inviteToken }) {
         </div>
       </div>
       <TweaksPanel title="Tweaks">
-        <TweakSection label="קואצ׳מארקס" />
-        <TweakToggle label="שידוך חדש (בית)" value={t.cmNewMatch} onChange={v => setTweak('cmNewMatch',v)} />
-        <TweakToggle label="הוספת מועמד/ת" value={t.cmAddCand} onChange={v => setTweak('cmAddCand',v)} />
-        <TweakToggle label="אישור מועמד/ת (פעמון)" value={t.cmApproveCand} onChange={v => setTweak('cmApproveCand',v)} />
-        <TweakToggle label="אישור הצעה" value={t.cmApproveOffer} onChange={v => setTweak('cmApproveOffer',v)} />
-        <TweakRow label="איפוס"><button onClick={resetAllCoachmarks} style={{ padding:'6px 14px', borderRadius:99, border:'1.5px solid rgba(232,84,122,0.4)', background:'rgba(232,84,122,0.08)', color:'#E8547A', fontFamily:'inherit', fontSize:12, fontWeight:700, cursor:'pointer' }}>אפס לכולם (ירואו שוב)</button></TweakRow>
         <TweakSection label="כרטיסיית מועמד" />
         <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
         <TweakSection label="תוכן הכרטיסייה" />
