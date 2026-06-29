@@ -9280,7 +9280,7 @@ function OfferDetail({ th, go, params }) {
   const [declineReason,  setDeclineReason] = useState('');
   const [noteText,       setNoteText]      = useState('');
   const [noteSaving,     setNoteSaving]    = useState(false);
-  useEd(() => { setNoteText(o?.mmPrivateNote || ''); }, [o?.mmPrivateNote]);
+  useEd(() => { setNoteText(offers.find(x => x.id === oid)?.mmPrivateNote || ''); }, [oid, offers]);
   const endRef      = React.useRef(null);
   const scrollRef   = React.useRef(null);
   const prevMsgLen  = React.useRef(-1);
