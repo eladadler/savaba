@@ -2976,9 +2976,9 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
       <AppHeader th={th} title="פאנל ניהול" onBack={() => go('back')} />
-      <div style={{ display: 'flex', gap: 6, padding: '6px 18px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 6, padding: '6px 18px', flexShrink: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
         {tabs.map(([id, lbl]) => (
-          <button key={id} onClick={() => setTab(id)} style={{ flex: 1, padding: '8px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : alpha(th.ink, 0.07), color: tab === id ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
+          <button key={id} onClick={() => setTab(id)} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : alpha(th.ink, 0.07), color: tab === id ? th.cream : alpha(th.ink, 0.6), whiteSpace: 'nowrap' }}>{lbl}</button>
         ))}
       </div>
 
