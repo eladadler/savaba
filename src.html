@@ -9317,7 +9317,18 @@ function OfferDetail({ th, go, params }) {
     </>
   );
 
-  const findC = id => candidates.find(c => c.id === id) || { name:'?', grad:gradForId(id||'x'), photos:[] };
+  const [extraCands, setExtraCands] = useSc({});
+  const findC = id => {
+    if (!id) return { name:'?', grad:gradForId('x'), photos:[] };
+    const found = candidates.find(c => c.id === id);
+    if (found) return found;
+    if (extraCands[id]) return extraCands[id];
+    // Candidate not in pre-loaded array (e.g. pendingApproval from another mm) — fetch directly
+    db.collection('candidates').doc(id).get().then(snap => {
+      if (snap.exists) setExtraCands(prev => ({ ...prev, [id]: { id: snap.id, ...snap.data(), photos: snap.data().photos || [], grad: snap.data().grad || gradForId(id) } }));
+    }).catch(() => {});
+    return { name:'?', grad:gradForId(id), photos:[] };
+  };
   const findM = id => { const mm = matchmakers[id]; if (!mm) return { name:'—', grad:gradForId(id||'x') }; return { ...mm, name:mm.displayName||mm.name||'—', grad:mm.grad||gradForId(id) }; };
 
   const iAmA      = o.aMm === myUid;
