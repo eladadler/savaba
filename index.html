@@ -4919,7 +4919,7 @@ function Home({ th, go }) {
 
       {/* ── Coachmark A: Create new match ── */}
       <CoachmarkOverlay
-        id="newMatch" mode={th.cmNewMatch} th={th}
+        id="newMatch" mode={approvalPopupCand ? 'off' : th.cmNewMatch} th={th}
         title="איך יוצרים שידוך?"
         body={'לחץ על "מועמדים" בתפריט, בחר מועמד/ת, ואז לחץ "צור התאמה".'}
         spotStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)', left: 'calc(70% - 34px)', width: 68, height: 72, borderRadius: 14 }}
