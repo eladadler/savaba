@@ -9308,6 +9308,8 @@ function OfferDetail({ th, go, params }) {
     prevMsgLen.current = msgs.length;
   }, [msgs]);
 
+  const [extraCands, setExtraCands] = useSc({});  // must be before any conditional return
+
   const o = offers.find(x => x.id === oid);
 
   if (!o) return (
@@ -9316,8 +9318,6 @@ function OfferDetail({ th, go, params }) {
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:th.body, color:alpha(th.ink,0.4) }}>הצעה לא נמצאה</div>
     </>
   );
-
-  const [extraCands, setExtraCands] = useSc({});
   const findC = id => {
     if (!id) return { name:'?', grad:gradForId('x'), photos:[] };
     const found = candidates.find(c => c.id === id);
