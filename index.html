@@ -35,6 +35,8 @@
   @keyframes sabaChatBeat { 0%,100%{box-shadow:0 0 0 0 rgba(232,84,122,0.5),0 2px 8px rgba(232,84,122,0.3)} 55%{box-shadow:0 0 0 7px rgba(232,84,122,0),0 2px 8px rgba(232,84,122,0.3)} }
   @keyframes sabaHeartBeat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.32)} 28%{transform:scale(1)} 42%{transform:scale(1.16)} 56%{transform:scale(1)} }
   @keyframes sabaGoldPulse { 0%,100%{box-shadow:0 4px 14px rgba(212,168,84,0.15)} 50%{box-shadow:0 6px 28px rgba(212,168,84,0.4), 0 0 0 4px rgba(212,168,84,0.12)} }
+  @keyframes cmRing { 0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,0.72),0 0 0 3px rgba(255,255,255,0.55)} 50%{box-shadow:0 0 0 9999px rgba(0,0,0,0.72),0 0 0 6px rgba(255,255,255,0.9)} }
+  @keyframes cmBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
   /* img fade-in: starts transparent, animates in once painted */
   img { animation: sabaFade 0.28s ease both; will-change: opacity; }
 </style>
@@ -995,7 +997,74 @@ function makeTheme(t) {
     showMmNote: t.showMmNote !== false,
     aiMode: t.aiMode || 'top5',
     offerDetailLayout: t.offerDetailLayout || 'new',
+    cmNewMatch:    t.cmNewMatch    !== false,
+    cmAddCand:     t.cmAddCand     !== false,
+    cmApproveCand: t.cmApproveCand !== false,
+    cmApproveOffer:t.cmApproveOffer !== false,
   };
+}
+
+// ─── Coachmarks ─────────────────────────────────────────────────────────────
+const CM_SEEN_KEY = 'cm_seen_v1';
+
+function getCmSeen() {
+  try { return new Set(JSON.parse(localStorage.getItem(CM_SEEN_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+function saveCmSeen(s) {
+  try { localStorage.setItem(CM_SEEN_KEY, JSON.stringify([...s])); } catch {}
+}
+
+function useCoachmark(id, enabled) {
+  const [seen, setSeen] = useState(() => getCmSeen().has(id));
+  useEffect(() => {
+    const handler = () => setSeen(getCmSeen().has(id));
+    window.addEventListener('cm_updated', handler);
+    return () => window.removeEventListener('cm_updated', handler);
+  }, [id]);
+  const dismiss = useCallback(() => {
+    const s = getCmSeen(); s.add(id); saveCmSeen(s); setSeen(true);
+    window.dispatchEvent(new Event('cm_updated'));
+  }, [id]);
+  return { visible: !!enabled && !seen, dismiss };
+}
+
+function CoachmarkOverlay({ id, enabled, requires, th, title, body, spotStyle, cardStyle, arrowDir }) {
+  const [prereqDone, setPrereqDone] = useState(() => !requires || getCmSeen().has(requires));
+  useEffect(() => {
+    if (!requires) return;
+    const h = () => setPrereqDone(getCmSeen().has(requires));
+    window.addEventListener('cm_updated', h);
+    return () => window.removeEventListener('cm_updated', h);
+  }, [requires]);
+  const { visible, dismiss } = useCoachmark(id, !!enabled && prereqDone);
+  if (!visible) return null;
+
+  const arrow = (dir) => {
+    const base = { position:'absolute', left:'50%', transform:'translateX(-50%)', width:0, height:0, borderLeft:'13px solid transparent', borderRight:'13px solid transparent' };
+    if (dir === 'up')   return <div style={{ ...base, top:-13, borderBottom:'13px solid #fff' }} />;
+    if (dir === 'down') return <div style={{ ...base, bottom:-13, borderTop:'13px solid #fff' }} />;
+    return null;
+  };
+
+  return (
+    <div style={{ position:'absolute', inset:0, zIndex:8800, overflow:'hidden', direction:'rtl', pointerEvents:'none' }}>
+      {/* spotlight hole — box-shadow creates the dark overlay, element itself is the "hole" */}
+      <div style={{ position:'absolute', animation:'cmRing 2s ease-in-out infinite', ...spotStyle }} />
+      {/* card */}
+      <div style={{ position:'absolute', background:'#fff', borderRadius:20, padding:'20px 22px', width:272, boxSizing:'border-box', boxShadow:'0 12px 40px rgba(0,0,0,0.28)', textAlign:'center', direction:'rtl', pointerEvents:'all', animation:'cmBounce 3s ease-in-out infinite', ...cardStyle }}>
+        {arrow(arrowDir)}
+        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:8 }}>{title}</div>
+        <div style={{ fontFamily:th.body, fontSize:14, color:'rgba(40,20,30,0.62)', lineHeight:1.55, marginBottom:18 }}>{body}</div>
+        <button onClick={dismiss} style={{ width:'100%', padding:'12px 0', borderRadius:99, border:'none', background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:15, cursor:'pointer', boxShadow:`0 4px 16px rgba(0,0,0,0.18)` }}>הבנתי ✓</button>
+      </div>
+    </div>
+  );
+}
+
+function resetAllCoachmarks() {
+  try { localStorage.removeItem(CM_SEEN_KEY); } catch {}
+  window.dispatchEvent(new Event('cm_updated'));
 }
 
 // soft tint of a hex color toward white
@@ -4772,6 +4841,16 @@ function Home({ th, go }) {
           </div>
         </div>
       )}
+
+      {/* ── Coachmark A: Create new match ── */}
+      <CoachmarkOverlay
+        id="newMatch" enabled={th.cmNewMatch} th={th}
+        title="איך יוצרים שידוך?"
+        body={'לחץ על "מועמדים" בתפריט, בחר מועמד/ת, ואז לחץ "צור התאמה".'}
+        spotStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)', left: 'calc(70% - 34px)', width: 68, height: 72, borderRadius: 14 }}
+        cardStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', left: '50%', transform: 'translateX(-50%)' }}
+        arrowDir="down"
+      />
     </>
   );
 }
@@ -5149,6 +5228,25 @@ function Candidates({ th, go, params }) {
       <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} filters={filters} setFilters={setFilters} />
       <AddSheet open={addOpen} onClose={() => setAddOpen(false)} th={th} go={go} />
       <InvitationsSheet open={invOpen} onClose={() => { setInvOpen(false); db.collection('invitations').where('mmId','==',myUid).where('status','==','pending').get().then(s=>setPendingCount(s.size)).catch(()=>{}); }} th={th} mmUid={myUid} go={go} />
+
+      {/* ── Coachmark B: Add candidate ── */}
+      <CoachmarkOverlay
+        id="addCand" enabled={th.cmAddCand} th={th}
+        title="הוסף מועמד/ת"
+        body="לחץ על כפתור ״הוסף״ בפינה השמאלית העליונה כדי להוסיף מועמד/ת חדש/ה."
+        spotStyle={{ top: 57, left: 66, width: 80, height: 38, borderRadius: 999 }}
+        cardStyle={{ top: 115, left: '50%', transform: 'translateX(-50%)' }}
+        arrowDir="up"
+      />
+      {/* ── Coachmark C: Bell / approve candidate — shows after B is dismissed ── */}
+      <CoachmarkOverlay
+        id="approveCand" enabled={th.cmApproveCand} requires="addCand" th={th}
+        title="אישור מועמד/ת חדש/ה"
+        body="הפעמון מציג מועמדים שסיימו למלא פרטים וממתינים לאישורך."
+        spotStyle={{ top: 55, left: 14, width: 44, height: 44, borderRadius: '50%' }}
+        cardStyle={{ top: 120, left: '50%', transform: 'translateX(-50%)' }}
+        arrowDir="up"
+      />
     </>
   );
 }
@@ -9073,7 +9171,8 @@ Object.assign(window, { Toggle, CandidateMode, Settings });
 // ════════════════════════════════════════════════════════════
 const TWEAK_DEFAULTS = {
   "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
-  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new"
+  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new",
+  "cmNewMatch": true, "cmAddCand": true, "cmApproveCand": true, "cmApproveOffer": true
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
 const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
@@ -9966,6 +10065,16 @@ function OfferDetail({ th, go, params }) {
           </Btn>
         </div>
       </Sheet>
+
+      {/* ── Coachmark D: Approve offer ── */}
+      <CoachmarkOverlay
+        id="approveOffer" enabled={th.cmApproveOffer && !!o && o.status !== 'נדחתה' && o.status !== 'אושרה'} th={th}
+        title="אישור הצעה מצדך"
+        body="כשהמועמד/ת שלך מאשר/ת — לחץ/י כאן כדי לסמן שגם הם מעוניינים ולסגור את הענין."
+        spotStyle={{ top: 195, left: '5%', width: '90%', height: 62, borderRadius: 14 }}
+        cardStyle={{ top: 274, left: '50%', transform: 'translateX(-50%)' }}
+        arrowDir="up"
+      />
     </>
   );
 }
@@ -10477,6 +10586,12 @@ function AppInner({ inviteToken }) {
         </div>
       </div>
       <TweaksPanel title="Tweaks">
+        <TweakSection label="קואצ׳מארקס" />
+        <TweakToggle label="שידוך חדש (בית)" value={t.cmNewMatch} onChange={v => setTweak('cmNewMatch',v)} />
+        <TweakToggle label="הוספת מועמד/ת" value={t.cmAddCand} onChange={v => setTweak('cmAddCand',v)} />
+        <TweakToggle label="אישור מועמד/ת (פעמון)" value={t.cmApproveCand} onChange={v => setTweak('cmApproveCand',v)} />
+        <TweakToggle label="אישור הצעה" value={t.cmApproveOffer} onChange={v => setTweak('cmApproveOffer',v)} />
+        <TweakRow label="איפוס"><button onClick={resetAllCoachmarks} style={{ padding:'6px 14px', borderRadius:99, border:'1.5px solid rgba(232,84,122,0.4)', background:'rgba(232,84,122,0.08)', color:'#E8547A', fontFamily:'inherit', fontSize:12, fontWeight:700, cursor:'pointer' }}>אפס לכולם (ירואו שוב)</button></TweakRow>
         <TweakSection label="כרטיסיית מועמד" />
         <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
         <TweakSection label="תוכן הכרטיסייה" />
