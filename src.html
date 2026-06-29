@@ -4158,7 +4158,7 @@ const DEFAULT_TEXTS = {
   wa_cand_done:        'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
   wa_invite:           'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
   wa_cand_offer:       'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
-  wa_mm_contact:       'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}',
+  wa_mm_contact:       'היי {שם}, בנושא ההצעה: {שם_א} ו{שם_ב}\n{קישור}',
   wa_cand_app_link:    'היי {שם}! 🎉\nיש לנו בשבילך הצעת שידוך מעניינת.\nכדאי שתיכנס/י לאפליקציה ותכיר/י את ההצעה — ומשם תוכל/י ליצור קשר עם המועמד/ת המתאים/ה לך 😊\n{קישור}',
   wa_cand_interested:  'היי {שם_שדכן},\n\nזה אני, {שם}.\nראיתי את הפרופיל של {שם_ב} ואני מאוד {מעוניין_ת} לברר התאמה.\nאשמח אם {תוכל_י} לפנות ל{שדכן_ית_ב} {שלו_שלה} ({שם_שדכן_ב}).\n\nקישור לכרטיסייה:\n{קישור}',
   wa_mm_both_approved: 'היי {שם}, בנושא ההצעה של {שם_מועמד_א} ו{שם_מועמד_ב} 🎉',
@@ -7731,7 +7731,7 @@ function Chat({ th, go, params }) {
   // WhatsApp link
   const waPhone = theirMm.phone ? String(theirMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
   const waUrl = waPhone
-    ? `https://wa.me/${waPhone}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name }))}`
+    ? `https://wa.me/${waPhone}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + o.id }))}`
     : `https://wa.me/`;
 
   return (
@@ -9406,7 +9406,7 @@ function OfferDetail({ th, go, params }) {
       ]
     : [
         waCandLink(myCand, theirCand) && { href: waCandLink(myCand, theirCand), avatar: myCand, label: `שלח/י כרטיסיה של ${theirCand.name} ל:`, name: myCand.name },
-        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name }))}`, avatar: theirMm, label: 'שדכן/ית הצד השני', name: theirMm.name, isMm: true } : null; })(),
+        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + oid }))}`, avatar: theirMm, label: 'שדכן/ית הצד השני', name: theirMm.name, isMm: true } : null; })(),
       ].filter(Boolean);
 
   const sendMsg = async () => {
@@ -9550,7 +9550,7 @@ function OfferDetail({ th, go, params }) {
     const myCandNewOther = approvalCols[0].newOtherApp;
     const waCandHref   = waCandLink(myCand, theirCand);
     const waTheirMmHref = waPhone(theirMm)
-      ? `https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name }))}`
+      ? `https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + oid }))}`
       : null;
 
     const isMyCandFemale   = isFemGender(myCand.gender);
@@ -10604,6 +10604,12 @@ function AppInner({ inviteToken }) {
         return;
       }
     }
+    // Deep link: ?offer=OFFER_ID sent via WhatsApp mm-to-mm
+    if (offerParam && stack.length === 1 && stack[0].name !== 'offerDetail') {
+      setStack([{ name: 'offers', params: {} }, { name: 'offerDetail', params: { id: offerParam } }]);
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
     // Skip onboarding if already registered
     if (profile.profileComplete && stack.length === 1 && stack[0].name === 'onboarding') {
       setStack([{ name: 'home', params: {} }]);
@@ -10737,6 +10743,7 @@ function App() {
     const clean = raw.split(/https?:\/\//)[0];
     return clean || null;
   });
+  const [offerParam] = React.useState(() => new URLSearchParams(window.location.search).get('offer') || null);
 
   if (user === undefined) {
     return (
