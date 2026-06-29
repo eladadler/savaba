@@ -1056,7 +1056,6 @@ function CoachmarkOverlay({ id, mode, requires, th, title, body, spotStyle, card
     <div style={{ position:'absolute', inset:0, zIndex:8800, overflow:'hidden', direction:'rtl', pointerEvents:'none' }}>
       <div style={{ position:'absolute', animation:'cmRing 2s ease-in-out infinite', ...spotStyle }} />
       <div style={{ position:'absolute', background:'#fff', borderRadius:20, padding:'20px 22px', width:272, boxSizing:'border-box', boxShadow:'0 12px 40px rgba(0,0,0,0.28)', textAlign:'center', direction:'rtl', pointerEvents:'all', animation:'cmBounce 3s ease-in-out infinite', ...cardStyle }}>
-        {arrow(arrowDir)}
         {isDev && <div style={{ position:'absolute', top:10, left:12, background:'#7B4B8A', color:'#fff', borderRadius:99, padding:'2px 8px', fontFamily:'monospace', fontSize:10, fontWeight:700, letterSpacing:1 }}>DEV</div>}
         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:8 }}>{title}</div>
         <div style={{ fontFamily:th.body, fontSize:14, color:'rgba(40,20,30,0.62)', lineHeight:1.55, marginBottom:18 }}>{body}</div>
