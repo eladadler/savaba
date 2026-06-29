@@ -10529,7 +10529,7 @@ function ImpersonateBanner({ th }) {
   );
 }
 
-function AppInner({ inviteToken }) {
+function AppInner({ inviteToken, offerParam }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
   const [aiMode, setAiModeState] = React.useState('top5');
   React.useEffect(() => {
@@ -10791,7 +10791,7 @@ function App() {
       startImpersonate, stopImpersonate,
     }}>
       <DataCtx.Provider value={data}>
-        <AppInner inviteToken={inviteToken} />
+        <AppInner inviteToken={inviteToken} offerParam={offerParam} />
       </DataCtx.Provider>
     </AuthCtx.Provider>
   );
