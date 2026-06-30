@@ -996,6 +996,7 @@ function makeTheme(t) {
     cardVariant: t.cardVariant || 'קלאסי',
     showMmNote: t.showMmNote !== false,
     aiMode: t.aiMode || 'top5',
+    groupTagsByCategory: t.groupTagsByCategory !== false,
     offerDetailLayout: t.offerDetailLayout || 'new',
     cmNewMatch:    t.cmNewMatch    || 'on',
     cmAddCand:     t.cmAddCand     || 'on',
@@ -1500,6 +1501,50 @@ const REGIONS     = ['ירושלים', 'מרכז', 'צפון', 'דרום', 'גו
 const RELIGIOSITY = ['חילוני', 'מסורתי קל', 'מסורתי', 'דתי לשעבר', 'דתי קל', 'דתי', 'דתי לאומי', 'חרדי לשעבר', 'חרדי', 'אחר'];
 const INTERESTS   = ['איש של אנשים','אמנות','ספרות','טיולים','פוליטיקה','רוחניות','ספורט','בישול','מוזיקה','קולנוע','טכנולוגיה','חינוך','התנדבות','משפחה','קריירה','חיות מחמד','יוגה / מדיטציה','הומור','יזמות','דת ומסורת'];
 const PARTNER_TRAITS = ['הלכתי','רוחניקי','ביתי','קרייריסטי','חברתי','מצחיק','יציב כלכלית','עם ערכים','פתוח לעולם','דתי','חילוני','ישראלי בנשמה','שאפתן','רגוע','הרפתקן','שמח בחלקו'];
+// Default categorized tag lists — used until an admin saves custom categories in config/lists.
+// Best-effort categorization of tags already live in the system; fully editable from admin → רשימות.
+const DEFAULT_INTEREST_CATEGORIES = [
+  { id: 'work',    label: 'תעסוקה ולימודים', tags: ['קריירייסט/ית','ראש טכנולוגי','איש/אשת חינוך בנשמה','איש/אשת מחשבים','להמציא דברים חדשים','ללמוד כל רגע פנוי','לשבת על סוגיא בגמרא','קריירה','טכנולוגיה','חינוך'] },
+  { id: 'leisure', label: 'בשעות הפנאי',      tags: ['יוגה / מדיטציה','פק"ל קפה במעין','ספר טוב על הספה','לחרוש על עגלות קפה','ספורט זה החיים','הופעות וכמה שיותר','לגדל מחמצת','ידי זהב','לקרוע את העיר','טיול עם הכלב','לבשל','חיית רשת','לשבת עם חברים','לפצח חידה טובה','לעשות שביל ישראל','לטוס כל הזדמנות','לשבת לנגן','טיולים','ספורט','בישול','מוזיקה','קולנוע','חיות מחמד'] },
+  { id: 'social',  label: 'חברה סגנון ורוח',  tags: ['פוליטיקה','איש של אנשים','רוחני/ת','אינטואיציה רגישית חזקה','נפש של אמנ/ית','אוהב/ת לצחוק','מיסטיקה','משפחה זה העיקר','שיחה טובה','משורר/ת בנשמה','לעזור לכל מי שצריך','להשקיע בסטייל','שקט','הלכה','יודע/ת מה רוצה','רגליים על הקרקע','אמנות','ספרות','רוחניות','התנדבות','משפחה','הומור','יזמות','דת ומסורת'] },
+];
+const DEFAULT_PARTNER_CATEGORIES = [
+  { id: 'religious', label: 'סגנון דתי',         tags: ['רוחניקי','שלוש תפילות ביום',"מחובר/ת לה'",'דומה בסגנון הדתי שלי','הלכתי','דתי','חילוני'] },
+  { id: 'work',      label: 'תעסוקה ולימודים',   tags: ['קרייריסטי','יציב כלכלית','אקדמאי/ת','שאפתן/ית','שאפתן'] },
+  { id: 'leisure',   label: 'בשעות הפנאי',       tags: ['הרפתקן','אוהב/ת לבלות'] },
+  { id: 'social',    label: 'חברה סגנון ורוח',   tags: ['מצחיק','פתוח לעולם','רגוע','מטופח/ת','אינטואיציה רגישית','דיבור עומק','חברותי/ת','יודע/ת להקשיב','אופטימיות','זורם/ת','אידיאליסט/ית','ישובניק/ית','עירוני/ת','יודע/ת מה רוצה','חוש הומור','חוצני/קית','חברתי','עם ערכים','ישראלי בנשמה','שמח בחלקו'] },
+  { id: 'family',    label: 'סטטוס משפחתי',      tags: ['ביתי/ת','משפחתי/ת','ביתי'] },
+];
+function flattenCategories(categories) {
+  return (categories || []).flatMap(c => c.tags || []);
+}
+// Picks the live categorized list (admin-saved, or defaults). Before any save has ever
+// happened, also folds in any tag from the old flat list (lists.interests/partnerTraits)
+// that isn't covered by the defaults yet, under a trailing "אחר" bucket — so nothing a
+// candidate may already have selected silently disappears from the picker.
+function deriveCategories(savedCategories, legacyFlatList, defaultCategories) {
+  const base = (savedCategories && savedCategories.length) ? savedCategories : defaultCategories;
+  if (savedCategories && savedCategories.length) return base;
+  if (!legacyFlatList || !legacyFlatList.length) return base;
+  const known = new Set(flattenCategories(base));
+  const missing = legacyFlatList.filter(tg => !known.has(tg));
+  if (!missing.length) return base;
+  return [...base, { id: 'other', label: 'אחר', tags: missing }];
+}
+// Groups a candidate's already-selected tags by category, for display. Tags that don't
+// match any category (e.g. typed before categories existed) land in a trailing unlabeled group.
+function groupSelectedByCategory(selected, categories) {
+  const sel = selected || [];
+  const used = new Set();
+  const groups = (categories || []).map(cat => {
+    const tags = (cat.tags || []).filter(t => sel.includes(t));
+    tags.forEach(t => used.add(t));
+    return { label: cat.label, tags };
+  }).filter(g => g.tags.length > 0);
+  const leftover = sel.filter(t => !used.has(t));
+  if (leftover.length) groups.push({ label: null, tags: leftover });
+  return groups;
+}
 const AV_GRADS = [
   ['#FFD7B5', '#E8547A'], ['#C9A96E', '#8C6B3D'], ['#A8D8C0', '#3E8E73'],
   ['#B9C5FF', '#6A5ACD'], ['#FFC4D6', '#C0436B'], ['#FFE3A3', '#C9A96E'],
@@ -1521,7 +1566,7 @@ function calcAge(birthDate) {
   if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
   return age;
 }
-Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, AV_GRADS, gradForId, calcAge });
+Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, AV_GRADS, gradForId, calcAge, DEFAULT_INTEREST_CATEGORIES, DEFAULT_PARTNER_CATEGORIES, flattenCategories, groupSelectedByCategory, deriveCategories });
 // ui.jsx — shared UI primitives for "סבבה והכל"
 const { useState: useStateUI } = React;
 
@@ -1851,6 +1896,22 @@ function MultiChips({ value = [], onChange, options, th, tone }) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {options.map(o => <Chip key={o} label={o} active={value.includes(o)} onClick={() => toggle(o)} th={th} tone={tone} />)}
+    </div>
+  );
+}
+// Same as MultiChips but options are grouped into categories with a sub-header per group
+function CategorizedMultiChips({ value = [], onChange, categories, th, tone }) {
+  const toggle = (o) => onChange?.(value.includes(o) ? value.filter(x => x !== o) : [...value, o]);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {(categories || []).map(cat => (
+        <div key={cat.id || cat.label}>
+          <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{cat.label}</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {(cat.tags || []).map(o => <Chip key={o} label={o} active={value.includes(o)} onClick={() => toggle(o)} th={th} tone={tone} />)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -2472,6 +2533,87 @@ async function seedTestData(eladUid) {
   await batch.commit();
 }
 
+// Editor for a categorized tag list (תחומי עניין / חשוב לי בפרטנר): each category has an
+// editable label and its own set of tags; categories can be added/removed, tags added/removed.
+function CategorizedListsEditor({ th, label, live, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [cats, setCats] = useState([]);
+  const [newCatLabel, setNewCatLabel] = useState('');
+  const [newTagInputs, setNewTagInputs] = useState({});
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = () => { setCats(live.map(c => ({ ...c, tags: [...c.tags] }))); setNewCatLabel(''); setNewTagInputs({}); setEditing(true); };
+  const addCategory = () => {
+    const l = newCatLabel.trim();
+    if (!l) return;
+    setCats(cs => [...cs, { id: 'cat_' + Date.now(), label: l, tags: [] }]);
+    setNewCatLabel('');
+  };
+  const removeCategory = (id) => setCats(cs => cs.filter(c => c.id !== id));
+  const renameCategory = (id, val) => setCats(cs => cs.map(c => c.id === id ? { ...c, label: val } : c));
+  const addTag = (catId) => {
+    const v = (newTagInputs[catId] || '').trim();
+    if (!v) return;
+    setCats(cs => cs.map(c => c.id === catId && !c.tags.includes(v) ? { ...c, tags: [...c.tags, v] } : c));
+    setNewTagInputs(p => ({ ...p, [catId]: '' }));
+  };
+  const removeTag = (catId, tag) => setCats(cs => cs.map(c => c.id === catId ? { ...c, tags: c.tags.filter(t => t !== tag) } : c));
+
+  if (!editing) {
+    return (
+      <button onClick={startEdit} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 10, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>{label}</div>
+          <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{live.length} קטגוריות · {flattenCategories(live).length} תגיות</div>
+        </div>
+        <Icon name="edit" size={17} style={{ color: alpha(th.ink, 0.4), flexShrink: 0 }} />
+      </button>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <button onClick={() => setEditing(false)} style={{ border: 'none', background: alpha(th.ink, 0.07), borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="back" size={18} /></button>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{label}</div>
+      </div>
+      {cats.map(cat => (
+        <div key={cat.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <input value={cat.label} onChange={e => renameCategory(cat.id, e.target.value)}
+              style={{ flex: 1, border: 'none', borderBottom: `1.5px solid ${alpha(th.ink,0.15)}`, padding: '4px 2px', fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink, outline: 'none', background: 'transparent' }} />
+            <button onClick={() => removeCategory(cat.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 999, padding: '4px 10px', fontFamily: th.body, fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>מחק קטגוריה</button>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+            {cat.tags.map(tag => (
+              <div key={tag} style={{ display: 'flex', alignItems: 'center', gap: 5, background: alpha(th.primary, 0.1), border: `1.5px solid ${alpha(th.primary, 0.3)}`, borderRadius: 999, padding: '6px 12px' }}>
+                <span style={{ fontFamily: th.body, fontSize: 13, color: th.ink }}>{tag}</span>
+                <button onClick={() => removeTag(cat.id, tag)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: alpha(th.ink, 0.4), lineHeight: 1, padding: 0, fontSize: 16 }}>×</button>
+              </div>
+            ))}
+            {!cat.tags.length && <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.35) }}>אין תגיות בקטגוריה זו</div>}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input value={newTagInputs[cat.id] || ''} onChange={e => setNewTagInputs(p => ({ ...p, [cat.id]: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && addTag(cat.id)} placeholder="תגית חדשה…"
+              style={{ flex: 1, border: `1.5px solid ${alpha(th.ink,0.15)}`, borderRadius: th.rSm, padding: '8px 10px', fontFamily: th.body, fontSize: 13.5, outline: 'none', background: th.cream, color: th.ink }} />
+            <Btn th={th} size="s" onClick={() => addTag(cat.id)}>+ הוסף</Btn>
+          </div>
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCategory()} placeholder="שם קטגוריה חדשה…"
+          style={{ flex: 1, border: `1.5px dashed ${alpha(th.ink,0.25)}`, borderRadius: th.rSm, padding: '10px 12px', fontFamily: th.body, fontSize: 14, outline: 'none', background: th.cream, color: th.ink }} />
+        <Btn th={th} size="s" variant="ghost" onClick={addCategory}>+ קטגוריה</Btn>
+      </div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Btn th={th} full disabled={saving} onClick={async () => { setSaving(true); await onSave(cats); setSaving(false); setEditing(false); }}>{saving ? 'שומר…' : 'שמור שינויים'}</Btn>
+        <Btn th={th} variant="ghost" onClick={() => setEditing(false)}>ביטול</Btn>
+      </div>
+    </div>
+  );
+}
+
 function ListsEditor({ th, listDefs, onSave }) {
   const [editKey, setEditKey] = useState(null);
   const [items,   setItems]   = useState([]);
@@ -2899,7 +3041,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
   );
 }
 
-function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setTweak }) {
+function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setTweak, setGroupTagsByCategory }) {
   const { profile, startImpersonate }  = useContext(AuthCtx);
   const { candidates, matchmakers, texts, lists, addCandidate, updateCandidate,
           deleteCandidate, uploadPhoto, uploadVoice, updateText, setUserAdmin, updateList } = useContext(DataCtx);
@@ -3201,21 +3343,37 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
         {tab === 'lists' && (() => {
           const liveRegions       = (lists.regions       && lists.regions.length)       ? lists.regions       : REGIONS;
           const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
-          const liveInterests     = (lists.interests      && lists.interests.length)     ? lists.interests     : INTERESTS;
-          const livePartnerTraits = (lists.partnerTraits  && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
           const DEFAULT_DEL_REASONS = ['מצאתי בן/בת זוג בדרך אחרת', 'אין לי זמן כרגע', 'לא מרוצה מהשירות', 'לוקח/ת הפסקה', 'אחר'];
           const liveDeleteReasons = (lists.deleteReasons  && lists.deleteReasons.length) ? lists.deleteReasons : DEFAULT_DEL_REASONS;
+          const liveInterestCategories = deriveCategories(lists.interestCategories, lists.interests,     DEFAULT_INTEREST_CATEGORIES);
+          const livePartnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits,  DEFAULT_PARTNER_CATEGORIES);
 
           const listDefs = [
-            { key: 'interests',     label: 'תחומי עניין',       live: liveInterests },
-            { key: 'partnerTraits', label: 'חשוב בפרטנר',       live: livePartnerTraits },
             { key: 'religiosity',   label: 'קרבה לדת',          live: liveReligiosity },
             { key: 'regions',       label: 'אזורים',             live: liveRegions },
             { key: 'deleteReasons', label: 'סיבות מחיקה',       live: liveDeleteReasons },
           ];
 
           return (
-            <ListsEditor th={th} listDefs={listDefs} onSave={(key, val) => updateList(key, val)} />
+            <div>
+              <div style={{ background: alpha(th.primary, 0.06), border: `1.5px solid ${alpha(th.primary, 0.22)}`, borderRadius: th.r, padding: '12px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink, marginBottom: 2 }}>תצוגת תגיות בכרטיסיית מועמד</div>
+                  <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.55) }}>חלוקה לקטגוריות בכרטיסיה, או רשימה אחת שטוחה כמו היום</div>
+                </div>
+                <button onClick={() => setGroupTagsByCategory && setGroupTagsByCategory(!th.groupTagsByCategory)}
+                  style={{ border: 'none', borderRadius: 999, width: 46, height: 27, background: th.groupTagsByCategory ? th.primary : alpha(th.ink, 0.18), position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background .15s' }}>
+                  <div style={{ position: 'absolute', top: 2.5, insetInlineStart: th.groupTagsByCategory ? 21 : 2.5, width: 22, height: 22, borderRadius: '50%', background: '#fff', transition: 'inset-inline-start .15s', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }} />
+                </button>
+              </div>
+
+              <CategorizedListsEditor th={th} label="תחומי עניין" live={liveInterestCategories}
+                onSave={(cats) => updateList('interestCategories', cats)} />
+              <CategorizedListsEditor th={th} label="חשוב לי בפרטנר" live={livePartnerCategories}
+                onSave={(cats) => updateList('partnerCategories', cats)} />
+
+              <ListsEditor th={th} listDefs={listDefs} onSave={(key, val) => updateList(key, val)} />
+            </div>
           );
         })()}
 
@@ -3578,8 +3736,8 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   const { t: _t, texts: _tx, defaults: _dx } = useTexts();
   const liveRegions       = (lists.regions      && lists.regions.length)      ? lists.regions      : REGIONS;
   const liveReligiosity   = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
-  const liveInterests     = (lists.interests     && lists.interests.length)    ? lists.interests    : INTERESTS;
-  const livePartnerTraits = (lists.partnerTraits && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
+  const liveInterestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
+  const livePartnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
 
   const [step, setStep] = useState(0);
   const normFamily = (v) => v?.includes('גרוש') ? 'גרוש/ה' : v?.includes('אלמן') || v?.includes('אלמנ') ? 'אלמן/ה' : 'רווק/ה';
@@ -3851,12 +4009,12 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
         <>
           <EmptyHighlight isEmpty={!(f.interests?.length)}>
             <Field th={th} label="קצת עלי">
-              <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} options={liveInterests} tone={th.primary} />
+              <CategorizedMultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} categories={liveInterestCategories} tone={th.primary} />
             </Field>
           </EmptyHighlight>
           <EmptyHighlight isEmpty={!(f.partner?.length)}>
             <Field th={th} label="חשוב בפרטנר">
-              <MultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner: v}))} options={livePartnerTraits} tone={th.gold} />
+              <CategorizedMultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner: v}))} categories={livePartnerCategories} tone={th.gold} />
             </Field>
           </EmptyHighlight>
         </>
@@ -5726,8 +5884,8 @@ function CandidateSelfFill({ th, go, params }) {
   const { t } = useTexts();
   const liveRegions       = (lists.regions       && lists.regions.length)       ? lists.regions       : REGIONS;
   const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
-  const liveInterests     = (lists.interests      && lists.interests.length)     ? lists.interests     : INTERESTS;
-  const livePartnerTraits = (lists.partnerTraits  && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
+  const liveInterestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
+  const livePartnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
   const { token, invite } = params;
   const [f, setF] = useState({
     name: invite?.recipientName || '', phone: '', birthDate: '', gender: 'אשה',
@@ -5957,10 +6115,10 @@ function CandidateSelfFill({ th, go, params }) {
         {step === 3 && (
           <>
             <Field th={th} label="קצת עלי">
-              <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests:v}))} options={liveInterests} tone={th.primary} />
+              <CategorizedMultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests:v}))} categories={liveInterestCategories} tone={th.primary} />
             </Field>
             <Field th={th} label="חשוב לי בפרטנר">
-              <MultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner:v}))} options={livePartnerTraits} tone={th.gold} />
+              <CategorizedMultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner:v}))} categories={livePartnerCategories} tone={th.gold} />
             </Field>
           </>
         )}
@@ -6514,7 +6672,21 @@ function CandidateDetail({ th, go, params }) {
 }
 
 // shared sub-sections
-function InterestChips({ items, th, tone }) {
+function InterestChips({ items, th, tone, categories, grouped }) {
+  if (grouped && categories && categories.length) {
+    const groups = groupSelectedByCategory(items, categories);
+    if (!groups.length) return null;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {groups.map((g, i) => (
+          <div key={g.label || `_other_${i}`}>
+            {g.label && <div style={{ fontFamily: th.body, fontSize: 11, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{g.label}</div>}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{g.tags.map(i2 => <Chip key={i2} label={i2} th={th} tone={tone} active />)}</div>
+          </div>
+        ))}
+      </div>
+    );
+  }
   return <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{items.map(i => <Chip key={i} label={i} th={th} tone={tone} active />)}</div>;
 }
 function DiscreteBox({ c, th, show, setShow, mag }) {
@@ -6612,6 +6784,9 @@ function MmNoteCard({ c, mm, th }) {
 
 function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   const { t } = useTexts();
+  const { lists } = useContext(DataCtx);
+  const interestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
+  const partnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
   const Section = ({ label, children, icon }) => (
     <div style={{ background: th.card, borderRadius: th.r, padding: 16, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
@@ -6654,8 +6829,8 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
         <Section label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')} icon="heart">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
         </Section>
-        <Section label={t('card_interests_label')} icon="spark"><InterestChips items={c.interests} th={th} /></Section>
-        <Section label={t('card_partner_label')} icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} /></Section>
+        <Section label={t('card_interests_label')} icon="spark"><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Section>
+        <Section label={t('card_partner_label')} icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></Section>
         {canSeeDiscrete && <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>}
       </div>
     </div>
@@ -6665,6 +6840,9 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
 // ── VARIANT 2 — מגזין (editorial) ──────────────────────────────
 function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   const { t } = useTexts();
+  const { lists } = useContext(DataCtx);
+  const interestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
+  const partnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
   const Rule = () => <div style={{ height: 1.5, background: alpha(th.gold, 0.4), margin: '22px 0' }} />;
   const Label = ({ children }) => <div style={{ fontFamily: th.display, fontSize: 12, color: th.gold, letterSpacing: 2, marginBottom: 10 }}>{children}</div>;
   return (
@@ -6696,12 +6874,25 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
         <Rule />
         <Label>{t('card_interests_label')}</Label>
-        <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
-          {c.interests.map((it, i) => <span key={it}>{it}{i < c.interests.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
-        </div>
+        {th.groupTagsByCategory ? (
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            {groupSelectedByCategory(c.interests, interestCategories).map((g, gi) => (
+              <div key={g.label || `_o${gi}`}>
+                {g.label && <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:alpha(th.gold,0.85), letterSpacing:1, marginBottom:4 }}>{g.label}</div>}
+                <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
+                  {g.tags.map((it, i) => <span key={it}>{it}{i < g.tags.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
+            {c.interests.map((it, i) => <span key={it}>{it}{i < c.interests.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
+          </div>
+        )}
         <Rule />
         <Label>{t('card_partner_label')}</Label>
-        <InterestChips items={c.partner} th={th} tone={th.gold} />
+        <InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} />
         <Rule />
         <Label>{t('card_details_label')}</Label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
@@ -6722,6 +6913,9 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
 // ── VARIANT 3 — מינימלי (clean, airy) ──────────────────────────
 function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   const { t } = useTexts();
+  const { lists } = useContext(DataCtx);
+  const interestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
+  const partnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
   const Hr = () => <div style={{ height: 1, background: alpha(th.ink, 0.09), margin: '0 0' }} />;
   const Block = ({ label, children }) => (
     <div style={{ padding: '20px 0' }}>
@@ -6757,9 +6951,9 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       <Hr />
       <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p></Block>
       <Hr />
-      <Block label={t('card_interests_label')}><InterestChips items={c.interests} th={th} /></Block>
+      <Block label={t('card_interests_label')}><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Block>
       <Hr />
-      <Block label={t('card_partner_label')}><InterestChips items={c.partner} th={th} tone={th.gold} /></Block>
+      <Block label={t('card_partner_label')}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></Block>
       <Hr />
       <Block label={t('card_details_label')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
@@ -10512,7 +10706,7 @@ function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
     case 'candViewCand':  return <CandViewCand th={th} go={go} params={p} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
     case 'textsAdmin':  return <TextsAdmin th={th} go={go} />;
-    case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} editMethod={opts.editMethod} setEditMethod={opts.setEditMethod} setTweak={opts.setTweak} />;
+    case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} editMethod={opts.editMethod} setEditMethod={opts.setEditMethod} setTweak={opts.setTweak} setGroupTagsByCategory={opts.setGroupTagsByCategory} />;
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
     case 'candSelfFill':  return <CandidateSelfFill th={th} go={go} params={p} />;
     case 'editCand':      return <EditCandidateScreen th={th} go={go} params={p} />;
@@ -10643,16 +10837,25 @@ function ImpersonateBanner({ th }) {
 function AppInner({ inviteToken, offerParam }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
   const [aiMode, setAiModeState] = React.useState('top5');
+  const [groupTagsByCategory, setGroupTagsState] = React.useState(true);
   React.useEffect(() => {
     db.collection('config').doc('settings').get()
-      .then(d => { if (d.exists && d.data().aiMode) setAiModeState(d.data().aiMode); })
+      .then(d => {
+        if (!d.exists) return;
+        if (d.data().aiMode) setAiModeState(d.data().aiMode);
+        if (d.data().groupTagsByCategory !== undefined) setGroupTagsState(d.data().groupTagsByCategory);
+      })
       .catch(() => {});
   }, []);
   const setAiMode = async (val) => {
     setAiModeState(val);
     await db.collection('config').doc('settings').set({ aiMode: val }, { merge: true });
   };
-  const th = makeTheme({ ...t, aiMode });
+  const setGroupTagsByCategory = async (val) => {
+    setGroupTagsState(val);
+    await db.collection('config').doc('settings').set({ groupTagsByCategory: val }, { merge: true });
+  };
+  const th = makeTheme({ ...t, aiMode, groupTagsByCategory });
   const { user, profile } = useContext(AuthCtx);
   const data           = useContext(DataCtx);
   const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
@@ -10781,7 +10984,7 @@ function AppInner({ inviteToken, offerParam }) {
           )}
           {data.loading
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
-            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak })}
+            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak, setGroupTagsByCategory })}
           {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
