@@ -3797,7 +3797,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       {stepName === 'תחומי עניין' && (
         <>
           <EmptyHighlight isEmpty={!(f.interests?.length)}>
-            <Field th={th} label="תחומי עניין">
+            <Field th={th} label="קצת עלי">
               <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} options={liveInterests} tone={th.primary} />
             </Field>
           </EmptyHighlight>
@@ -5903,7 +5903,7 @@ function CandidateSelfFill({ th, go, params }) {
 
         {step === 3 && (
           <>
-            <Field th={th} label="תחומי עניין">
+            <Field th={th} label="קצת עלי">
               <MultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests:v}))} options={liveInterests} tone={th.primary} />
             </Field>
             <Field th={th} label="חשוב לי בפרטנר">
