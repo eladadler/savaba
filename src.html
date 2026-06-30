@@ -1848,8 +1848,8 @@ const inputBase = (th) => ({
   borderRadius: th.rSm, padding: '12px 14px', fontFamily: th.body, fontSize: 15,
   color: th.ink, background: th.card, outline: 'none',
 });
-function TextInput({ value, onChange, onBlur, th, placeholder, type = 'text' }) {
-  return <input type={type} value={value || ''} placeholder={placeholder}
+function TextInput({ value, onChange, onBlur, th, placeholder, type = 'text', min, max }) {
+  return <input type={type} value={value || ''} placeholder={placeholder} min={min} max={max}
     onChange={(e) => onChange?.(e.target.value)}
     onBlur={onBlur}
     style={inputBase(th)} />;
@@ -5408,7 +5408,7 @@ function Candidates({ th, go, params }) {
   const [invOpen, setInvOpen]   = useSb(false);
   const [pendingCount, setPendingCount] = useSb(0);
   const [coRepPending, setCoRepPending] = useSb(0);
-  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: [], status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 });
+  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: [], ageMin: 18, ageMax: 120, heightMin: 120, heightMax: 220, maritalStatus: [], hasChildren: '', childrenMin: 1 });
   const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
   const [sentRequests, setSentRequests] = useSb(new Set());
   const [cardStyle, setCardStyle] = useSb(() => localStorage.getItem('candCardStyle') || 'square');
@@ -10834,6 +10834,12 @@ function ImpersonateBanner({ th }) {
   );
 }
 
+// Tweak keys that are admin-configurable in production (AdminPanel + the
+// design Tweaks panel) and must survive a page reload, unlike the rest of
+// TWEAK_DEFAULTS which is purely for in-session design iteration.
+const PROD_TWEAK_KEYS = ['cardVariant', 'offerDetailLayout', 'primaryColor', 'fontPair', 'radius', 'density',
+  'showMmNote', 'cmNewMatch', 'cmAddCand', 'cmApproveCand', 'cmApproveOffer'];
+
 function AppInner({ inviteToken, offerParam }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
   const [aiMode, setAiModeState] = React.useState('top5');
@@ -10844,6 +10850,9 @@ function AppInner({ inviteToken, offerParam }) {
         if (!d.exists) return;
         if (d.data().aiMode) setAiModeState(d.data().aiMode);
         if (d.data().groupTagsByCategory !== undefined) setGroupTagsState(d.data().groupTagsByCategory);
+        const loadedTweaks = {};
+        PROD_TWEAK_KEYS.forEach(k => { if (d.data()[k] !== undefined) loadedTweaks[k] = d.data()[k]; });
+        if (Object.keys(loadedTweaks).length) setTweak(loadedTweaks);
       })
       .catch(() => {});
   }, []);
@@ -10854,6 +10863,15 @@ function AppInner({ inviteToken, offerParam }) {
   const setGroupTagsByCategory = async (val) => {
     setGroupTagsState(val);
     await db.collection('config').doc('settings').set({ groupTagsByCategory: val }, { merge: true });
+  };
+  // Persists production-admin tweaks to Firestore so they survive a reload,
+  // while still going through setTweak so local state + the design-tool
+  // postMessage sync keep working exactly as before.
+  const setProdTweak = async (keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setTweak(edits);
+    await db.collection('config').doc('settings').set(edits, { merge: true });
   };
   const th = makeTheme({ ...t, aiMode, groupTagsByCategory });
   const { user, profile } = useContext(AuthCtx);
@@ -10984,7 +11002,7 @@ function AppInner({ inviteToken, offerParam }) {
           )}
           {data.loading
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
-            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak, setGroupTagsByCategory })}
+            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak: setProdTweak, setGroupTagsByCategory })}
           {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
@@ -11025,16 +11043,16 @@ function AppInner({ inviteToken, offerParam }) {
       </div>
       <TweaksPanel title="Tweaks">
         <TweakSection label="כרטיסיית מועמד" />
-        <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setTweak('cardVariant',v)} />
+        <TweakRadio label="סגנון" value={t.cardVariant} options={['קלאסי','מגזין','מינימלי']} onChange={v => setProdTweak('cardVariant',v)} />
         <TweakSection label="תוכן הכרטיסייה" />
-        <TweakToggle label="דבר השדכן" value={t.showMmNote} onChange={v => setTweak('showMmNote', v)} />
+        <TweakToggle label="דבר השדכן" value={t.showMmNote} onChange={v => setProdTweak('showMmNote', v)} />
         <TweakSection label="צבע" />
-        <TweakColor label="צבע ראשי" value={t.primaryColor} options={['#E8547A','#C0436B','#7B4B8A','#E0533F','#2B6E5C']} onChange={v => setTweak('primaryColor',v)} />
+        <TweakColor label="צבע ראשי" value={t.primaryColor} options={['#E8547A','#C0436B','#7B4B8A','#E0533F','#2B6E5C']} onChange={v => setProdTweak('primaryColor',v)} />
         <TweakSection label="טיפוגרפיה" />
-        <TweakRadio label="פונט" value={t.fontPair} options={['אופי','נקי','ידידותי']} onChange={v => setTweak('fontPair',v)} />
+        <TweakRadio label="פונט" value={t.fontPair} options={['אופי','נקי','ידידותי']} onChange={v => setProdTweak('fontPair',v)} />
         <TweakSection label="פריסה" />
-        <TweakRadio label="עיגול פינות" value={t.radius} options={['חד','רך','מעוגל']} onChange={v => setTweak('radius',v)} />
-        <TweakRadio label="צפיפות" value={t.density} options={['קומפקטי','רגיל','מרווח']} onChange={v => setTweak('density',v)} />
+        <TweakRadio label="עיגול פינות" value={t.radius} options={['חד','רך','מעוגל']} onChange={v => setProdTweak('radius',v)} />
+        <TweakRadio label="צפיפות" value={t.density} options={['קומפקטי','רגיל','מרווח']} onChange={v => setProdTweak('density',v)} />
       </TweaksPanel>
       </>
     </TextsCtx.Provider>
