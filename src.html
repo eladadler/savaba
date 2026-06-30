@@ -5146,7 +5146,7 @@ function Candidates({ th, go, params }) {
   const [invOpen, setInvOpen]   = useSb(false);
   const [pendingCount, setPendingCount] = useSb(0);
   const [coRepPending, setCoRepPending] = useSb(0);
-  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: '', status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 });
+  const [filters, setFilters]   = useSb({ gender: '', rel: [], region: [], status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 });
   const [linkMode, setLinkMode] = useSb(params?.linkMode === true);
   const [sentRequests, setSentRequests] = useSb(new Set());
   const [cardStyle, setCardStyle] = useSb(() => localStorage.getItem('candCardStyle') || 'square');
@@ -5188,7 +5188,7 @@ function Candidates({ th, go, params }) {
     if (scope === 'all'  && c.hidden) return false;
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
     if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
-    if (filters.region && c.region !== filters.region) return false;
+    if (filters.region.length && !filters.region.includes(c.region)) return false;
     if (filters.status === 'פנוי' && !c.available) return false;
     if (filters.status === 'תפוס' && c.available) return false;
     if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
@@ -5199,7 +5199,7 @@ function Candidates({ th, go, params }) {
     return true;
   }), [candidates, scope, q, filters, myUid, neglectedIds]);
 
-  const activeFilters = (filters.gender ? 1 : 0) + (filters.region ? 1 : 0) + (filters.status ? 1 : 0) + filters.rel.length + filters.maritalStatus.length + (filters.hasChildren ? 1 : 0);
+  const activeFilters = (filters.gender ? 1 : 0) + filters.region.length + (filters.status ? 1 : 0) + filters.rel.length + filters.maritalStatus.length + (filters.hasChildren ? 1 : 0);
 
   return (
     <>
@@ -5405,7 +5405,7 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
         <DualRangeSlider th={th} min={18} max={120} valueMin={filters.ageMin} valueMax={filters.ageMax}
           onChangeMin={v => set('ageMin', v)} onChangeMax={v => set('ageMax', v)} />
       </Field>
-      <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={liveRegions} /></Field>
+      <Field th={th} label="אזור"><MultiChips th={th} value={filters.region} onChange={v => set('region', v)} options={liveRegions} /></Field>
       <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={liveReligiosity} tone={th.gold} /></Field>
       <Field th={th} label="סטטוס משפחתי"><MultiChips th={th} value={filters.maritalStatus} onChange={v => set('maritalStatus', v)} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
       <Field th={th} label="ילדים">
@@ -5423,7 +5423,7 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
         </div>
       </Field>
       <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-        <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: '', status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 })}>נקה</Btn>
+        <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: [], status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 })}>נקה</Btn>
         <Btn th={th} full onClick={onClose}>הצג תוצאות</Btn>
       </div>
     </Sheet>
@@ -6761,7 +6761,7 @@ function MatchFlow({ th, go, params }) {
   const [second, setSecond] = useSc(presetSecond);
   const [note, setNote] = useSc('');
   const [mmMsg, setMmMsg] = useSc('');
-  const [matchFilters, setMatchFilters] = useSc({ rel: [], region: '', ageMin: 18, ageMax: 60, maritalStatus: [] });
+  const [matchFilters, setMatchFilters] = useSc({ rel: [], region: [], ageMin: 18, ageMax: 60, maritalStatus: [] });
   const [filterOpen, setFilterOpen] = useSc(false);
   const [q1, setQ1] = useSc('');
   const [q2, setQ2] = useSc('');
@@ -6854,7 +6854,7 @@ function MatchFlow({ th, go, params }) {
     // Exactly one of the two candidates must be mine — never match two of my own
     if (firstIsMine === isCandMine(c)) return false;
     if (q2 && !c.name.includes(q2) && !(c.oneLine || '').includes(q2)) return false;
-    if (matchFilters.region && c.region !== matchFilters.region) return false;
+    if (matchFilters.region.length && !matchFilters.region.includes(c.region)) return false;
     if (matchFilters.rel.length && !matchFilters.rel.includes(c.religiosity)) return false;
     if (c.age < matchFilters.ageMin || c.age > matchFilters.ageMax) return false;
     if (matchFilters.maritalStatus.length && !matchFilters.maritalStatus.includes(c.family)) return false;
@@ -7071,7 +7071,7 @@ function MatchFlow({ th, go, params }) {
         )}
 
         {step === 2 && (() => {
-          const activeMatchFilters = (matchFilters.region ? 1 : 0) + matchFilters.rel.length + matchFilters.maritalStatus.length;
+          const activeMatchFilters = matchFilters.region.length + matchFilters.rel.length + matchFilters.maritalStatus.length;
           return (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: !firstIsMine ? 6 : 10 }}>
@@ -7303,11 +7303,11 @@ function MatchFlow({ th, go, params }) {
           <DualRangeSlider th={th} min={18} max={60} valueMin={matchFilters.ageMin} valueMax={matchFilters.ageMax}
             onChangeMin={v => setMatchFilters(s => ({ ...s, ageMin: v }))} onChangeMax={v => setMatchFilters(s => ({ ...s, ageMax: v }))} />
         </Field>
-        <Field th={th} label="אזור"><MultiChips th={th} value={matchFilters.region ? [matchFilters.region] : []} onChange={v => setMatchFilters(s => ({ ...s, region: v[v.length - 1] === s.region ? '' : v[v.length - 1] || '' }))} options={liveRegions} /></Field>
+        <Field th={th} label="אזור"><MultiChips th={th} value={matchFilters.region} onChange={v => setMatchFilters(s => ({ ...s, region: v }))} options={liveRegions} /></Field>
         <Field th={th} label="קרבה לדת"><MultiChips th={th} value={matchFilters.rel} onChange={v => setMatchFilters(s => ({ ...s, rel: v }))} options={liveReligiosity} tone={th.gold} /></Field>
         <Field th={th} label="סטטוס משפחתי"><MultiChips th={th} value={matchFilters.maritalStatus} onChange={v => setMatchFilters(s => ({ ...s, maritalStatus: v }))} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
         <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-          <Btn th={th} variant="ghost" onClick={() => setMatchFilters({ rel: [], region: '', ageMin: 18, ageMax: 60, maritalStatus: [] })}>נקה</Btn>
+          <Btn th={th} variant="ghost" onClick={() => setMatchFilters({ rel: [], region: [], ageMin: 18, ageMax: 60, maritalStatus: [] })}>נקה</Btn>
           <Btn th={th} full onClick={() => setFilterOpen(false)}>הצג תוצאות</Btn>
         </div>
       </Sheet>
@@ -8389,7 +8389,7 @@ function CandBrowse({ th, go, me }) {
   const { t, texts: txCtx } = useTexts();
   const [q, setQ] = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
-  const [filters, setFilters] = useSb({ rel: [], region: '', ageMin: 18, ageMax: 55, maritalStatus: [] });
+  const [filters, setFilters] = useSb({ rel: [], region: [], ageMin: 18, ageMax: 55, maritalStatus: [] });
 
   const isFemaleG = g => g === 'f' || g === 'אשה' || g === 'אישה';
   const isMaleG   = g => g === 'm' || g === 'גבר' || g === 'גברים';
@@ -8406,14 +8406,14 @@ function CandBrowse({ th, go, me }) {
     if (c.available === false) return false;
     if (c.hidden) return false;
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
-    if (filters.region && c.region !== filters.region) return false;
+    if (filters.region.length && !filters.region.includes(c.region)) return false;
     if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
     if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax)) return false;
     if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
     return true;
   }), [candidates, q, filters, meIsMale]);
 
-  const activeFilters = (filters.region ? 1 : 0) + filters.rel.length + filters.maritalStatus.length;
+  const activeFilters = filters.region.length + filters.rel.length + filters.maritalStatus.length;
   const liveRegions = (lists.regions && lists.regions.length) ? lists.regions : REGIONS;
   const liveRelig   = (lists.religiosity && lists.religiosity.length) ? lists.religiosity : RELIGIOSITY;
   const set = (k, v) => setFilters(s => ({ ...s, [k]: v }));
@@ -8452,11 +8452,11 @@ function CandBrowse({ th, go, me }) {
           <DualRangeSlider th={th} min={18} max={60} valueMin={filters.ageMin} valueMax={filters.ageMax}
             onChangeMin={v => set('ageMin', v)} onChangeMax={v => set('ageMax', v)} />
         </Field>
-        <Field th={th} label="אזור"><MultiChips th={th} value={filters.region ? [filters.region] : []} onChange={v => set('region', v[v.length-1] === filters.region ? '' : v[v.length-1] || '')} options={liveRegions} /></Field>
+        <Field th={th} label="אזור"><MultiChips th={th} value={filters.region} onChange={v => set('region', v)} options={liveRegions} /></Field>
         <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={liveRelig} tone={th.gold} /></Field>
         <Field th={th} label="סטטוס משפחתי"><MultiChips th={th} value={filters.maritalStatus} onChange={v => set('maritalStatus', v)} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
         <div style={{ display:'flex', gap:10, marginTop:6 }}>
-          <Btn th={th} variant="ghost" onClick={() => setFilters({ rel:[], region:'', ageMin:18, ageMax:55, maritalStatus:[] })}>נקה</Btn>
+          <Btn th={th} variant="ghost" onClick={() => setFilters({ rel:[], region:[], ageMin:18, ageMax:55, maritalStatus:[] })}>נקה</Btn>
           <Btn th={th} full onClick={() => setFilterOpen(false)}>הצג תוצאות</Btn>
         </div>
       </Sheet>
