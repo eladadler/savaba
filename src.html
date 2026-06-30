@@ -3575,6 +3575,16 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
     ? ['פרטים בסיסיים', 'תמונות', 'הקלטה קולית', 'אישיות', 'תחומי עניין', ...(showMmNote ? ['דבר השדכן'] : []), 'פרטים נוספים']
     : ['פרטים בסיסיים', 'אישיות', 'תחומי עניין', ...(showMmNote ? ['דבר השדכן'] : []), 'פרטים נוספים'];
 
+  const STEP_TITLE_KEYS = {
+    'פרטים בסיסיים': 'form_step_basic',
+    'תמונות':        'form_step_photos',
+    'הקלטה קולית':   'form_step_voice',
+    'אישיות':        'form_step_personality',
+    'תחומי עניין':   'form_step_interests',
+    'דבר השדכן':     'form_step_mmnote',
+    'פרטים נוספים':  'form_step_extra',
+  };
+
   const EmptyHighlight = ({ isEmpty, children }) => !reviewMode || !isEmpty ? children : (
     <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.primary, 0.45)}`, background: alpha(th.primary, 0.04), padding: 10, position: 'relative' }}>
       <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary, marginBottom: 6 }}>
@@ -3609,7 +3619,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   return (
     <div style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 16, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
       <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 10, textAlign: 'center' }}>
-        {stepName}
+        {_t(STEP_TITLE_KEYS[stepName])}
       </div>
       <StepDots />
 
@@ -3888,6 +3898,23 @@ const TEXT_KEYS = {
   cands_search:        'מועמדים — placeholder חיפוש',
   cands_add_btn:       'מועמדים — כפתור הוספה',
   cand_match_btn:      'כרטיסיית מועמד — כפתור CTA',
+  card_oneline_label:      'כרטיסיית מועמד — כותרת: במשפט אחד',
+  card_seeking_label_f:    'כרטיסיית מועמד — כותרת: מחפשת (נקבה)',
+  card_seeking_label_m:    'כרטיסיית מועמד — כותרת: מחפש (זכר)',
+  card_interests_label:    'כרטיסיית מועמד — כותרת: תחומי עניין',
+  card_partner_label:      'כרטיסיית מועמד — כותרת: מה חשוב אצל הפרטנר',
+  card_details_label:      'כרטיסיית מועמד — כותרת: פרטים',
+  form_step_basic:         'טופס מועמד (שדכן) — כותרת שלב: פרטים בסיסיים',
+  form_step_photos:        'טופס מועמד (שדכן) — כותרת שלב: תמונות',
+  form_step_voice:         'טופס מועמד (שדכן) — כותרת שלב: הקלטה קולית',
+  form_step_personality:   'טופס מועמד (שדכן) — כותרת שלב: אישיות',
+  form_step_interests:     'טופס מועמד (שדכן) — כותרת שלב: קצת עלי',
+  form_step_mmnote:        'טופס מועמד (שדכן) — כותרת שלב: דבר השדכן',
+  form_step_extra:         'טופס מועמד (שדכן) — כותרת שלב: פרטים נוספים',
+  selfform_step_basic:     'טופס הרשמה עצמית — כותרת שלב: פרטים בסיסיים',
+  selfform_step_photos:    'טופס הרשמה עצמית — כותרת שלב: תמונות',
+  selfform_step_about:     'טופס הרשמה עצמית — כותרת שלב: קצת עלייך',
+  selfform_step_interests: 'טופס הרשמה עצמית — כותרת שלב: קצת עלי',
   ai_info_text:        'AI — טקסט הסבר',
   ai_title:            'AI — כותרת מסך',
   ai_sub:              'AI — כותרת משנה',
@@ -4088,6 +4115,23 @@ const DEFAULT_TEXTS = {
   cands_search:       'חיפוש מועמד…',
   cands_add_btn:      'הוסף',
   cand_match_btn:     'שדך/י את',
+  card_oneline_label:      'במשפט אחד',
+  card_seeking_label_f:    'מחפשת',
+  card_seeking_label_m:    'מחפש',
+  card_interests_label:    'תחומי עניין',
+  card_partner_label:      'מה חשוב אצל הפרטנר',
+  card_details_label:      'פרטים',
+  form_step_basic:         'פרטים בסיסיים',
+  form_step_photos:        'תמונות',
+  form_step_voice:         'הקלטה קולית',
+  form_step_personality:   'אישיות',
+  form_step_interests:     'קצת עלי',
+  form_step_mmnote:        'דבר השדכן',
+  form_step_extra:         'פרטים נוספים',
+  selfform_step_basic:     'פרטים בסיסיים',
+  selfform_step_photos:    'תמונות',
+  selfform_step_about:     'קצת עלייך',
+  selfform_step_interests: 'קצת עלי',
   ai_info_text:        'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
   ai_title:            'המלצות AI',
   ai_sub:              'ניתוח חכם של זיווגים פוטנציאליים',
@@ -4253,12 +4297,12 @@ const SCREEN_TEXTS = {
   register:      ['register_title','register_sub'],
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn'],
-  candidate:     ['cand_match_btn'],
+  candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
   ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn','ai_load_more_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
-  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
+  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
-  editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn'],
+  editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn','form_step_basic','form_step_photos','form_step_voice','form_step_personality','form_step_interests','form_step_mmnote','form_step_extra'],
   candidateMode: [
     'cand_available','cand_available_sub','cand_busy','cand_busy_sub',
     'cand_offers_title','cand_no_offer','cand_no_offer_sub',
@@ -5679,6 +5723,7 @@ function CandidateSelfFill({ th, go, params }) {
 
   const [step, setStep] = useState(0);
   const steps = ['פרטים בסיסיים', 'תמונות', 'קצת עלייך', 'תחומי עניין'];
+  const stepTitleKeys = ['selfform_step_basic', 'selfform_step_photos', 'selfform_step_about', 'selfform_step_interests'];
   const isLast = step === steps.length - 1;
 
   const SelfStepDots = () => (
@@ -5726,7 +5771,7 @@ function CandidateSelfFill({ th, go, params }) {
     <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
       <AppHeader th={th} title="הפרטים שלי" sub={`עבור ${invite.mmName}`} />
       <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
-        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, marginBottom:10, textAlign:'center' }}>{steps[step]}</div>
+        <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, marginBottom:10, textAlign:'center' }}>{t(stepTitleKeys[step])}</div>
         <SelfStepDots />
 
         {step === 0 && (
@@ -6506,6 +6551,7 @@ function MmNoteCard({ c, mm, th }) {
 }
 
 function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
+  const { t } = useTexts();
   const Section = ({ label, children, icon }) => (
     <div style={{ background: th.card, borderRadius: th.r, padding: 16, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
@@ -6542,14 +6588,14 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
         <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={c.sabaBut} size="l" /></div>
         {th.showMmNote && <MmNoteCard c={c} mm={mm} th={th} />}
 
-        <Section label="במשפט אחד" icon="user">
+        <Section label={t('card_oneline_label')} icon="user">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p>
         </Section>
-        <Section label={isFemGender(c.gender) ? 'מחפשת…' : 'מחפש…'} icon="heart">
+        <Section label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')} icon="heart">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
         </Section>
-        <Section label="תחומי עניין" icon="spark"><InterestChips items={c.interests} th={th} /></Section>
-        <Section label="מה חשוב אצל הפרטנר" icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} /></Section>
+        <Section label={t('card_interests_label')} icon="spark"><InterestChips items={c.interests} th={th} /></Section>
+        <Section label={t('card_partner_label')} icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} /></Section>
         {canSeeDiscrete && <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>}
       </div>
     </div>
@@ -6558,6 +6604,7 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
 
 // ── VARIANT 2 — מגזין (editorial) ──────────────────────────────
 function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
+  const { t } = useTexts();
   const Rule = () => <div style={{ height: 1.5, background: alpha(th.gold, 0.4), margin: '22px 0' }} />;
   const Label = ({ children }) => <div style={{ fontFamily: th.display, fontSize: 12, color: th.gold, letterSpacing: 2, marginBottom: 10 }}>{children}</div>;
   return (
@@ -6582,21 +6629,21 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
         </div>
         <Rule />
         {th.showMmNote && c.mmNote && <><MmNoteCard c={c} mm={mm} th={th} /><Rule /></>}
-        <Label>במשפט אחד</Label>
+        <Label>{t('card_oneline_label')}</Label>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p>
         <Rule />
-        <Label>{isFemGender(c.gender) ? 'מחפשת' : 'מחפש'}</Label>
+        <Label>{isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}</Label>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
         <Rule />
-        <Label>תחומי עניין</Label>
+        <Label>{t('card_interests_label')}</Label>
         <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
           {c.interests.map((it, i) => <span key={it}>{it}{i < c.interests.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
         </div>
         <Rule />
-        <Label>מה חשוב אצל הפרטנר</Label>
+        <Label>{t('card_partner_label')}</Label>
         <InterestChips items={c.partner} th={th} tone={th.gold} />
         <Rule />
-        <Label>פרטים</Label>
+        <Label>{t('card_details_label')}</Label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
           {infoPairs(c).map(([k, v]) => (
             <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(th.ink, 0.08)}`, paddingBottom: 6 }}>
@@ -6614,6 +6661,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
 
 // ── VARIANT 3 — מינימלי (clean, airy) ──────────────────────────
 function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
+  const { t } = useTexts();
   const Hr = () => <div style={{ height: 1, background: alpha(th.ink, 0.09), margin: '0 0' }} />;
   const Block = ({ label, children }) => (
     <div style={{ padding: '20px 0' }}>
@@ -6645,15 +6693,15 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       {c.voiceNote && <div style={{ marginTop:12 }}><VoiceNotePlayer url={c.voiceNote} th={th} /></div>}
       {th.showMmNote && c.mmNote && <div style={{ marginTop:12 }}><MmNoteCard c={c} mm={mm} th={th} /></div>}
 
-      <Block label="במשפט אחד"><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
+      <Block label={t('card_oneline_label')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
       <Hr />
-      <Block label={isFemGender(c.gender) ? 'מחפשת' : 'מחפש'}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p></Block>
+      <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p></Block>
       <Hr />
-      <Block label="תחומי עניין"><InterestChips items={c.interests} th={th} /></Block>
+      <Block label={t('card_interests_label')}><InterestChips items={c.interests} th={th} /></Block>
       <Hr />
-      <Block label="חשוב בפרטנר"><InterestChips items={c.partner} th={th} tone={th.gold} /></Block>
+      <Block label={t('card_partner_label')}><InterestChips items={c.partner} th={th} tone={th.gold} /></Block>
       <Hr />
-      <Block label="פרטים">
+      <Block label={t('card_details_label')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {infoPairs(c).map(([k, v]) => (
             <div key={k} style={{ display: 'flex', justifyContent: 'space-between' }}>
