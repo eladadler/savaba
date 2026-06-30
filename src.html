@@ -3742,7 +3742,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   const [step, setStep] = useState(0);
   const normFamily = (v) => v?.includes('גרוש') ? 'גרוש/ה' : v?.includes('אלמן') || v?.includes('אלמנ') ? 'אלמן/ה' : 'רווק/ה';
   const [f, setF] = useState(() => {
-    const base = initial || { name:'', birthDate:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true };
+    const base = initial || { name:'', birthDate:'', height:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true };
     const fam = base.family || '';
     return { ...base, family: ['רווק/ה','גרוש/ה','אלמן/ה'].includes(fam) ? fam : normFamily(fam), kids: base.kids || 0 };
   });
@@ -3847,6 +3847,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
           <Field th={th} label="שם"><TextInput th={th} value={f.name} onChange={set('name')} /></Field>
           <Field th={th} label="טלפון"><TextInput th={th} type="tel" value={f.phone || ''} onChange={set('phone')} placeholder="05X-XXXXXXX" /></Field>
           <Field th={th} label="תאריך לידה"><TextInput th={th} type="date" value={f.birthDate} onChange={set('birthDate')} /></Field>
+          <Field th={th} label="גובה (בס״מ)"><TextInput th={th} type="number" min={120} max={220} value={f.height} onChange={v => setF(s => ({...s, height: v === '' ? '' : +v}))} /></Field>
           <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה', 'גבר']} /></Field>
           <Field th={th} label="אזור"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
           <Field th={th} label="קרבה לדת *"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
@@ -5451,17 +5452,16 @@ function Candidates({ th, go, params }) {
     if (q && !c.name.includes(q) && !(c.oneLine || '').includes(q)) return false;
     if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
     if (filters.region.length && !filters.region.includes(c.region)) return false;
-    if (filters.status === 'פנוי' && !c.available) return false;
-    if (filters.status === 'תפוס' && c.available) return false;
     if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
     if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax)) return false;
+    if (c.height && (c.height < filters.heightMin || c.height > filters.heightMax)) return false;
     if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
     if (filters.hasChildren === 'ללא ילדים' && (c.kids || 0) > 0) return false;
     if (filters.hasChildren === 'עם ילדים' && (c.kids || 0) < filters.childrenMin) return false;
     return true;
   }), [candidates, scope, q, filters, myUid, neglectedIds]);
 
-  const activeFilters = (filters.gender ? 1 : 0) + filters.region.length + (filters.status ? 1 : 0) + filters.rel.length + filters.maritalStatus.length + (filters.hasChildren ? 1 : 0);
+  const activeFilters = (filters.gender ? 1 : 0) + filters.region.length + filters.rel.length + filters.maritalStatus.length + (filters.hasChildren ? 1 : 0);
 
   return (
     <>
@@ -5631,7 +5631,7 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
       </div>
       <div style={{ padding: '10px 12px 12px', flex: 1 }}>
         <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{c.name}, {c.age}</div>
-        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}</div>
+        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 9px' }}>
           <Logo size={15} color={th.primary} flaw={th.cream} />
           <span style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
@@ -5662,10 +5662,13 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
   return (
     <Sheet open={open} onClose={onClose} th={th} title="פילטרים">
       <Field th={th} label="מין"><Segmented th={th} value={filters.gender} onChange={v => set('gender', filters.gender === v ? '' : v)} options={['נשים', 'גברים']} /></Field>
-      <Field th={th} label="סטטוס"><Segmented th={th} value={filters.status} onChange={v => set('status', filters.status === v ? '' : v)} options={['פנוי', 'תפוס']} /></Field>
       <Field th={th} label={`טווח גיל: ${filters.ageMin}–${filters.ageMax}`}>
         <DualRangeSlider th={th} min={18} max={120} valueMin={filters.ageMin} valueMax={filters.ageMax}
           onChangeMin={v => set('ageMin', v)} onChangeMax={v => set('ageMax', v)} />
+      </Field>
+      <Field th={th} label={`טווח גובה: ${filters.heightMin}–${filters.heightMax} ס"מ`}>
+        <DualRangeSlider th={th} min={120} max={220} valueMin={filters.heightMin} valueMax={filters.heightMax}
+          onChangeMin={v => set('heightMin', v)} onChangeMax={v => set('heightMax', v)} />
       </Field>
       <Field th={th} label="אזור"><MultiChips th={th} value={filters.region} onChange={v => set('region', v)} options={liveRegions} /></Field>
       <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={liveReligiosity} tone={th.gold} /></Field>
@@ -5685,7 +5688,7 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
         </div>
       </Field>
       <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-        <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: [], status: '', ageMin: 18, ageMax: 120, maritalStatus: [], hasChildren: '', childrenMin: 1 })}>נקה</Btn>
+        <Btn th={th} variant="ghost" onClick={() => setFilters({ gender: '', rel: [], region: [], ageMin: 18, ageMax: 120, heightMin: 120, heightMax: 220, maritalStatus: [], hasChildren: '', childrenMin: 1 })}>נקה</Btn>
         <Btn th={th} full onClick={onClose}>הצג תוצאות</Btn>
       </div>
     </Sheet>
@@ -5888,7 +5891,7 @@ function CandidateSelfFill({ th, go, params }) {
   const livePartnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
   const { token, invite } = params;
   const [f, setF] = useState({
-    name: invite?.recipientName || '', phone: '', birthDate: '', gender: 'אשה',
+    name: invite?.recipientName || '', phone: '', birthDate: '', height: '', gender: 'אשה',
     region: '', religiosity: '', family: 'רווק/ה', kids: 0,
     sabaBut: '', oneLine: '', seesWith: '', interests: [], partner: [], discrete: '', available: true,
   });
@@ -5917,7 +5920,7 @@ function CandidateSelfFill({ th, go, params }) {
     setSub(true);
     try {
       const ref = await db.collection('candidates').add({
-        ...f, phone: f.phone.trim(), photos,
+        ...f, phone: f.phone.trim(), height: f.height ? +f.height : null, photos,
         mmId: invite.mmId, candidateUid: user.uid,
         pendingApproval: true, available: true,
         grad: gradForId(user.uid),
@@ -5996,6 +5999,7 @@ function CandidateSelfFill({ th, go, params }) {
           <>
             <Field th={th} label="טלפון *"><TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} /></Field>
             <Field th={th} label="תאריך לידה *"><TextInput th={th} type="date" value={f.birthDate} onChange={set('birthDate')} /></Field>
+            <Field th={th} label="גובה (בס״מ)"><TextInput th={th} type="number" min={120} max={220} value={f.height} onChange={set('height')} /></Field>
             <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
             <Field th={th} label="אזור מגורים *"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
             <Field th={th} label="קרבה לדת *"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
@@ -6711,6 +6715,7 @@ const { useState: useSb2 } = React;
 function infoPairs(c) {
   return [
     ['גיל', c.age],
+    ['גובה', c.height ? `${c.height} ס"מ` : '—'],
     ['אזור', c.region],
     ['מצב משפחתי', c.family || '—'],
     ['ילדים', c.kids > 0 ? (c.kids === 1 ? 'ילד/ה אחד/ת' : `${c.kids} ילדים`) : 'ללא ילדים'],
@@ -6807,7 +6812,7 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
             {c.hidden && <Tag th={th} tone={th.gold} soft={false}><Icon name="eye" size={12} style={{ marginLeft:4 }} /> מוסתר משדכנים</Tag>}
           </div>
           <div style={{ fontFamily: th.display, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{c.name}, {c.age}</div>
-          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.92, marginTop: 4 }}>{c.region} · {c.religiosity}</div>
+          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.92, marginTop: 4 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
           {(c.family || c.kids > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8 }}>
               {c.family && <span style={{ background:'rgba(255,255,255,0.18)', backdropFilter:'blur(6px)', borderRadius:999, padding:'3px 10px', fontFamily:th.body, fontSize:13, fontWeight:600 }}>{c.family}</span>}
@@ -6851,7 +6856,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       <PhotoGallery c={c} th={th} height={440}>
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${alpha(th.ink, 0.82)} 6%, transparent 55%)`, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 26, right: 24, left: 24, color: '#fff', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: th.display, fontSize: 13, letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age} · {c.available ? 'פנוי/ה' : 'תפוס/ה'}{c.family ? ` · ${c.family}` : ''}{c.kids > 0 ? ` · ${c.kids === 1 ? 'ילד/ה אחד/ת' : `${c.kids} ילדים`}` : ''}</div>
+          <div style={{ fontFamily: th.display, fontSize: 13, letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age}{c.height ? ` · ${c.height} ס"מ` : ''} · {c.available ? 'פנוי/ה' : 'תפוס/ה'}{c.family ? ` · ${c.family}` : ''}{c.kids > 0 ? ` · ${c.kids === 1 ? 'ילד/ה אחד/ת' : `${c.kids} ילדים`}` : ''}</div>
           <div style={{ fontFamily: th.display, fontSize: 52, fontWeight: 800, lineHeight: 0.95 }}>{c.name}</div>
           <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.85, marginTop: 8 }}>{c.religiosity}</div>
         </div>
@@ -6929,7 +6934,7 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       <div style={{ textAlign: 'center', paddingTop: 104, paddingBottom: 6 }}>
         <AvatarGallery c={c} th={th} size={120} />
         <div style={{ fontFamily: th.display, fontSize: 30, fontWeight: 800, color: th.ink, marginTop: 18 }}>{c.name}, {c.age}</div>
-        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5), marginTop: 3 }}>{c.region} · {c.religiosity}</div>
+        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5), marginTop: 3 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
         <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
           <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)}>{c.available ? 'פנוי/ה להצעות' : 'תפוס/ה'}</Tag>
         </div>
@@ -7063,7 +7068,7 @@ function MatchFlow({ th, go, params }) {
   const [second, setSecond] = useSc(presetSecond);
   const [note, setNote] = useSc('');
   const [mmMsg, setMmMsg] = useSc('');
-  const [matchFilters, setMatchFilters] = useSc({ rel: [], region: [], ageMin: 18, ageMax: 60, maritalStatus: [] });
+  const [matchFilters, setMatchFilters] = useSc({ rel: [], region: [], ageMin: 18, ageMax: 60, heightMin: 120, heightMax: 220, maritalStatus: [] });
   const [filterOpen, setFilterOpen] = useSc(false);
   const [q1, setQ1] = useSc('');
   const [q2, setQ2] = useSc('');
@@ -7159,6 +7164,7 @@ function MatchFlow({ th, go, params }) {
     if (matchFilters.region.length && !matchFilters.region.includes(c.region)) return false;
     if (matchFilters.rel.length && !matchFilters.rel.includes(c.religiosity)) return false;
     if (c.age < matchFilters.ageMin || c.age > matchFilters.ageMax) return false;
+    if (c.height && (c.height < matchFilters.heightMin || c.height > matchFilters.heightMax)) return false;
     if (matchFilters.maritalStatus.length && !matchFilters.maritalStatus.includes(c.family)) return false;
     return true;
   }).sort((a, b) => {
@@ -7605,11 +7611,15 @@ function MatchFlow({ th, go, params }) {
           <DualRangeSlider th={th} min={18} max={60} valueMin={matchFilters.ageMin} valueMax={matchFilters.ageMax}
             onChangeMin={v => setMatchFilters(s => ({ ...s, ageMin: v }))} onChangeMax={v => setMatchFilters(s => ({ ...s, ageMax: v }))} />
         </Field>
+        <Field th={th} label={`טווח גובה: ${matchFilters.heightMin}–${matchFilters.heightMax} ס"מ`}>
+          <DualRangeSlider th={th} min={120} max={220} valueMin={matchFilters.heightMin} valueMax={matchFilters.heightMax}
+            onChangeMin={v => setMatchFilters(s => ({ ...s, heightMin: v }))} onChangeMax={v => setMatchFilters(s => ({ ...s, heightMax: v }))} />
+        </Field>
         <Field th={th} label="אזור"><MultiChips th={th} value={matchFilters.region} onChange={v => setMatchFilters(s => ({ ...s, region: v }))} options={liveRegions} /></Field>
         <Field th={th} label="קרבה לדת"><MultiChips th={th} value={matchFilters.rel} onChange={v => setMatchFilters(s => ({ ...s, rel: v }))} options={liveReligiosity} tone={th.gold} /></Field>
         <Field th={th} label="סטטוס משפחתי"><MultiChips th={th} value={matchFilters.maritalStatus} onChange={v => setMatchFilters(s => ({ ...s, maritalStatus: v }))} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
         <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-          <Btn th={th} variant="ghost" onClick={() => setMatchFilters({ rel: [], region: [], ageMin: 18, ageMax: 60, maritalStatus: [] })}>נקה</Btn>
+          <Btn th={th} variant="ghost" onClick={() => setMatchFilters({ rel: [], region: [], ageMin: 18, ageMax: 60, heightMin: 120, heightMax: 220, maritalStatus: [] })}>נקה</Btn>
           <Btn th={th} full onClick={() => setFilterOpen(false)}>הצג תוצאות</Btn>
         </div>
       </Sheet>
@@ -8691,7 +8701,7 @@ function CandBrowse({ th, go, me }) {
   const { t, texts: txCtx } = useTexts();
   const [q, setQ] = useSb('');
   const [filterOpen, setFilterOpen] = useSb(false);
-  const [filters, setFilters] = useSb({ rel: [], region: [], ageMin: 18, ageMax: 55, maritalStatus: [] });
+  const [filters, setFilters] = useSb({ rel: [], region: [], ageMin: 18, ageMax: 55, heightMin: 120, heightMax: 220, maritalStatus: [] });
 
   const isFemaleG = g => g === 'f' || g === 'אשה' || g === 'אישה';
   const isMaleG   = g => g === 'm' || g === 'גבר' || g === 'גברים';
@@ -8711,6 +8721,7 @@ function CandBrowse({ th, go, me }) {
     if (filters.region.length && !filters.region.includes(c.region)) return false;
     if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
     if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax)) return false;
+    if (c.height && (c.height < filters.heightMin || c.height > filters.heightMax)) return false;
     if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
     return true;
   }), [candidates, q, filters, meIsMale]);
@@ -8754,11 +8765,15 @@ function CandBrowse({ th, go, me }) {
           <DualRangeSlider th={th} min={18} max={60} valueMin={filters.ageMin} valueMax={filters.ageMax}
             onChangeMin={v => set('ageMin', v)} onChangeMax={v => set('ageMax', v)} />
         </Field>
+        <Field th={th} label={`טווח גובה: ${filters.heightMin}–${filters.heightMax} ס"מ`}>
+          <DualRangeSlider th={th} min={120} max={220} valueMin={filters.heightMin} valueMax={filters.heightMax}
+            onChangeMin={v => set('heightMin', v)} onChangeMax={v => set('heightMax', v)} />
+        </Field>
         <Field th={th} label="אזור"><MultiChips th={th} value={filters.region} onChange={v => set('region', v)} options={liveRegions} /></Field>
         <Field th={th} label="קרבה לדת"><MultiChips th={th} value={filters.rel} onChange={v => set('rel', v)} options={liveRelig} tone={th.gold} /></Field>
         <Field th={th} label="סטטוס משפחתי"><MultiChips th={th} value={filters.maritalStatus} onChange={v => set('maritalStatus', v)} options={['רווק/ה', 'גרוש/ה', 'אלמן/ה']} /></Field>
         <div style={{ display:'flex', gap:10, marginTop:6 }}>
-          <Btn th={th} variant="ghost" onClick={() => setFilters({ rel:[], region:[], ageMin:18, ageMax:55, maritalStatus:[] })}>נקה</Btn>
+          <Btn th={th} variant="ghost" onClick={() => setFilters({ rel:[], region:[], ageMin:18, ageMax:55, heightMin:120, heightMax:220, maritalStatus:[] })}>נקה</Btn>
           <Btn th={th} full onClick={() => setFilterOpen(false)}>הצג תוצאות</Btn>
         </div>
       </Sheet>
