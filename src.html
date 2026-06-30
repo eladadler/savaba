@@ -1211,25 +1211,33 @@ function useAuthState() {
       setUser(u);
       if (!u) { setProfile(null); return; }
       const ref = db.collection('users').doc(u.uid);
-      const snap = await ref.get();
-      if (!snap.exists) {
-        // first user → admin
-        const allSnap = await db.collection('users').get();
-        const isFirst = allSnap.empty;
-        const p = {
-          email: u.email,
-          displayName: u.displayName || '',
-          photoURL: u.photoURL || '',
-          isAdmin: isFirst,
-          role: 'matchmaker',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-        await ref.set(p);
-        setProfile({ uid: u.uid, ...p, isAdmin: isFirst });
-      } else {
-        setProfile({ uid: u.uid, ...snap.data() });
-        // live updates
-        ref.onSnapshot(d => setProfile({ uid: u.uid, ...d.data() }));
+      try {
+        const snap = await ref.get();
+        if (!snap.exists) {
+          // first user → admin (if listing fails due to permissions, default to non-admin
+          // rather than letting the whole signup hang)
+          let isFirst = false;
+          try {
+            const allSnap = await db.collection('users').get();
+            isFirst = allSnap.empty;
+          } catch (e) { isFirst = false; }
+          const p = {
+            email: u.email,
+            displayName: u.displayName || '',
+            photoURL: u.photoURL || '',
+            isAdmin: isFirst,
+            role: 'matchmaker',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          };
+          await ref.set(p);
+          setProfile({ uid: u.uid, ...p, isAdmin: isFirst });
+        } else {
+          setProfile({ uid: u.uid, ...snap.data() });
+          // live updates
+          ref.onSnapshot(d => setProfile({ uid: u.uid, ...d.data() }));
+        }
+      } catch (e) {
+        console.error('Failed to load/create profile:', e);
       }
     });
   }, []);
@@ -4300,7 +4308,7 @@ const SCREEN_TEXTS = {
   candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
   ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn','ai_load_more_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
-  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests'],
+  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests','cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
   editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn','form_step_basic','form_step_photos','form_step_voice','form_step_personality','form_step_interests','form_step_mmnote','form_step_extra'],
   candidateMode: [
@@ -4312,7 +4320,6 @@ const SCREEN_TEXTS = {
     'cand_settings_mm','cand_settings_mm_sub',
     'cand_settings_engage','cand_settings_engage_sub',
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
-    'cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body',
   ],
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved'],
   matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn','match_no_mine_title','match_no_mine_sub','match_no_mine_btn','mf_step1_label','mf_step2_label','mf_step3_label','mf_s1_title_m','mf_s1_title_f','mf_s1_sub_m','mf_s1_sub_f','mf_s1_mine_m','mf_s1_mine_f','mf_s1_other_m','mf_s1_other_f','mf_s1_btn','mf_s2_title_m','mf_s2_title_f'],
@@ -5662,7 +5669,7 @@ function InvitationLanding({ th, go, token }) {
 function CandidateSelfFill({ th, go, params }) {
   const { user, profile } = useContext(AuthCtx);
   const { lists } = useContext(DataCtx);
-  const { texts: txCtx } = useContext(TextsCtx);
+  const { texts: txCtx, inlineEditMode } = useContext(TextsCtx);
   const { t } = useTexts();
   const liveRegions       = (lists.regions       && lists.regions.length)       ? lists.regions       : REGIONS;
   const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
@@ -5743,14 +5750,14 @@ function CandidateSelfFill({ th, go, params }) {
         <div style={{ fontSize:52, marginBottom:12 }}>🎉</div>
         <div style={{ fontFamily:th.display, fontSize:22, fontWeight:800, color:th.ink, marginBottom:6 }}>{t('cand_done_title')}</div>
         <div style={{ fontFamily:th.body, fontSize:15, color:alpha(th.ink,0.6), lineHeight:1.6, maxWidth:280, marginBottom:28 }}>
-          {fillWa(txCtx, 'cand_done_body', { שם_שדכן: invite.mmName || '' })}
+          {inlineEditMode ? t('cand_done_body') : fillWa(txCtx, 'cand_done_body', { שם_שדכן: invite.mmName || '' })}
         </div>
 
         {mmWaPhone && (
           <a href={`https://wa.me/${mmWaPhone}?text=${waMsg}`} target="_blank" rel="noopener noreferrer"
             style={{ display:'flex', alignItems:'center', gap:10, background:'#25D366', color:'#fff', borderRadius:14, padding:'13px 22px', fontFamily:th.display, fontWeight:800, fontSize:15, textDecoration:'none', boxShadow:`0 4px 16px rgba(37,211,102,0.35)`, marginBottom:20 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            {fillWa(txCtx, 'cand_done_wa_btn', { שם_שדכן: mmFirst || '' })}
+            {inlineEditMode ? t('cand_done_wa_btn') : fillWa(txCtx, 'cand_done_wa_btn', { שם_שדכן: mmFirst || '' })}
           </a>
         )}
 
@@ -5760,7 +5767,7 @@ function CandidateSelfFill({ th, go, params }) {
             {t('cand_done_nudge_title')}
           </div>
           <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
-            {fillWa(txCtx, 'cand_done_nudge_body', { שם_שדכן: mmFirst || '' })}
+            {inlineEditMode ? t('cand_done_nudge_body') : fillWa(txCtx, 'cand_done_nudge_body', { שם_שדכן: mmFirst || '' })}
           </div>
         </div>
       </div>
