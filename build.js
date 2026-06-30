@@ -1,6 +1,7 @@
 // build.js — extracts JSX from src.html, compiles it, outputs app.js + index.html (production)
 // Edit src.html; run `npm run build` before pushing.
 const fs   = require('fs');
+const crypto = require('crypto');
 const babel = require('@babel/core');
 
 const html = fs.readFileSync('src.html', 'utf8');
@@ -34,11 +35,14 @@ if (!fs.existsSync('dist')) fs.mkdirSync('dist');
 
 const BABEL_CDN = '<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>';
 
+// Cache-bust app.js so browsers/CDNs always fetch the latest build after each deploy
+const version = crypto.createHash('md5').update(result.code).digest('hex').slice(0, 10);
+
 const beforeScript = html.slice(0, openIdx);
 const distHtml = beforeScript
   .replace(BABEL_CDN + '\n', '')
   .replace(BABEL_CDN, '')
-  + `<script src="app.js"></script>`
+  + `<script src="app.js?v=${version}"></script>`
   + afterScript;
 
 // Swap React development → production minified
