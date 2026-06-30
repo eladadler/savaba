@@ -1499,6 +1499,11 @@ function useFinders() {
 // ════════════════════════════════════════════════════════════
 const REGIONS     = ['ירושלים', 'מרכז', 'צפון', 'דרום', 'גולן', 'חו"ל'];
 const RELIGIOSITY = ['חילוני', 'מסורתי קל', 'מסורתי', 'דתי לשעבר', 'דתי קל', 'דתי', 'דתי לאומי', 'חרדי לשעבר', 'חרדי', 'אחר'];
+const SABA_BUT_EXAMPLES = [
+  'בודק/ת את התחזית חמש פעמים ביום, גם כשלא מתכנן/ת לצאת מהבית',
+  'זוכר/ת בעל פה דיאלוגים שלמים מסדרות, אבל לא איפה הניח/ה את המפתחות',
+  'משוכנע/ת שהוא/היא אלוף/ת החניה המקבילית של השכונה, בלי שאף אחד ראה בפועל',
+];
 const INTERESTS   = ['איש של אנשים','אמנות','ספרות','טיולים','פוליטיקה','רוחניות','ספורט','בישול','מוזיקה','קולנוע','טכנולוגיה','חינוך','התנדבות','משפחה','קריירה','חיות מחמד','יוגה / מדיטציה','הומור','יזמות','דת ומסורת'];
 const PARTNER_TRAITS = ['הלכתי','רוחניקי','ביתי','קרייריסטי','חברתי','מצחיק','יציב כלכלית','עם ערכים','פתוח לעולם','דתי','חילוני','ישראלי בנשמה','שאפתן','רגוע','הרפתקן','שמח בחלקו'];
 // Default categorized tag lists — used until an admin saves custom categories in config/lists.
@@ -1566,7 +1571,7 @@ function calcAge(birthDate) {
   if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
   return age;
 }
-Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, AV_GRADS, gradForId, calcAge, DEFAULT_INTEREST_CATEGORIES, DEFAULT_PARTNER_CATEGORIES, flattenCategories, groupSelectedByCategory, deriveCategories });
+Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, SABA_BUT_EXAMPLES, AV_GRADS, gradForId, calcAge, DEFAULT_INTEREST_CATEGORIES, DEFAULT_PARTNER_CATEGORIES, flattenCategories, groupSelectedByCategory, deriveCategories });
 // ui.jsx — shared UI primitives for "סבבה והכל"
 const { useState: useStateUI } = React;
 
@@ -1832,12 +1837,13 @@ function ScoreRing({ score, th, size = 54 }) {
 }
 
 // ── Form fields ────────────────────────────────────────────────
-function Field({ label, required, children, th, hint }) {
+function Field({ label, required, children, th, hint, desc }) {
   return (
     <div style={{ marginBottom: th.sp(16) }}>
-      <label style={{ display: 'block', fontFamily: th.body, fontWeight: 700, fontSize: 14, color: th.ink, marginBottom: 6 }}>
+      <label style={{ display: 'block', fontFamily: th.body, fontWeight: 700, fontSize: 14, color: th.ink, marginBottom: desc ? 4 : 6 }}>
         {label}{required && <span style={{ color: th.primary }}> *</span>}
       </label>
+      {desc && <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), lineHeight: 1.4, marginBottom: 6 }}>{desc}</div>}
       {children}
       {hint && <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5), marginTop: 4 }}>{hint}</div>}
     </div>
@@ -3393,11 +3399,13 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
           const liveDeleteReasons = (lists.deleteReasons  && lists.deleteReasons.length) ? lists.deleteReasons : DEFAULT_DEL_REASONS;
           const liveInterestCategories = deriveCategories(lists.interestCategories, lists.interests,     DEFAULT_INTEREST_CATEGORIES);
           const livePartnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits,  DEFAULT_PARTNER_CATEGORIES);
+          const liveSabaExamples = (lists.sabaButExamples && lists.sabaButExamples.length) ? lists.sabaButExamples : SABA_BUT_EXAMPLES;
 
           const listDefs = [
-            { key: 'religiosity',   label: 'קרבה לדת',          live: liveReligiosity },
-            { key: 'regions',       label: 'אזורים',             live: liveRegions },
-            { key: 'deleteReasons', label: 'סיבות מחיקה',       live: liveDeleteReasons },
+            { key: 'religiosity',      label: 'קרבה לדת',                    live: liveReligiosity },
+            { key: 'regions',          label: 'אזורים',                       live: liveRegions },
+            { key: 'deleteReasons',    label: 'סיבות מחיקה',                 live: liveDeleteReasons },
+            { key: 'sabaButExamples',  label: 'דוגמאות ל"סבבה והכל, אבל"',  live: liveSabaExamples },
           ];
 
           return (
@@ -3784,6 +3792,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   const liveReligiosity   = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
   const liveInterestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
   const livePartnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
+  const liveSabaExamples  = (lists.sabaButExamples && lists.sabaButExamples.length) ? lists.sabaButExamples : SABA_BUT_EXAMPLES;
 
   const [step, setStep] = useState(0);
   const normFamily = (v) => v?.includes('גרוש') ? 'גרוש/ה' : v?.includes('אלמן') || v?.includes('אלמנ') ? 'אלמן/ה' : 'רווק/ה';
@@ -4041,7 +4050,12 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       {stepName === 'אישיות' && (
         <>
           <EmptyHighlight isEmpty={!f.sabaBut}>
-            <Field th={th} label="סבבה והכל, אבל…" hint='למשל: "שואל את גוגל Maps כשהוא יודע בדיוק לאן הוא הולך"'>
+            <Field th={th} label="(אני) סבבה והכל אבל..."
+              desc="מכירים את המשחק? בעולם בו אתם מושלמים, ספרו על צד פחות זוהר שלכם בצורה הומוריסטית"
+              hint={<div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                <span>לדוגמה:</span>
+                {liveSabaExamples.map((ex, i) => <span key={i}>• {ex}</span>)}
+              </div>}>
               <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder='משהו אמיתי ומצחיק שמאפיין אותו/ה…' rows={2} />
             </Field>
           </EmptyHighlight>
@@ -5939,6 +5953,7 @@ function CandidateSelfFill({ th, go, params }) {
   const liveReligiosity   = (lists.religiosity    && lists.religiosity.length)   ? lists.religiosity   : RELIGIOSITY;
   const liveInterestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
   const livePartnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
+  const liveSabaExamples  = (lists.sabaButExamples && lists.sabaButExamples.length) ? lists.sabaButExamples : SABA_BUT_EXAMPLES;
   const { token, invite } = params;
   const [f, setF] = useState({
     name: invite?.recipientName || '', phone: '', birthDate: '', height: '', gender: 'אשה',
@@ -6158,7 +6173,12 @@ function CandidateSelfFill({ th, go, params }) {
 
         {step === 2 && (
           <>
-            <Field th={th} label='סבבה והכל, אבל…' hint="משהו מצחיק/ייחודי עליך">
+            <Field th={th} label="(אני) סבבה והכל אבל..."
+              desc="מכירים את המשחק? בעולם בו אתם מושלמים, ספרו על צד פחות זוהר שלכם בצורה הומוריסטית"
+              hint={<div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                <span>לדוגמה:</span>
+                {liveSabaExamples.map((ex, i) => <span key={i}>• {ex}</span>)}
+              </div>}>
               <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} rows={2} />
             </Field>
             <Field th={th} label="ספר/י על עצמך במשפט">
