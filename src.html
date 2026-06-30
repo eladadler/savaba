@@ -1271,6 +1271,7 @@ function useFirebaseData(uid, isAdminMode = false) {
           photos: data.photos || [],
           interests: data.interests || [],
           partner: data.partner || [],
+          age: data.birthDate ? calcAge(data.birthDate) : data.age,
         };
       });
       // Admin sees everything; others only see their own pending candidates
@@ -1509,7 +1510,18 @@ function gradForId(id) {
   let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0xffff;
   return AV_GRADS[h % AV_GRADS.length];
 }
-Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, AV_GRADS, gradForId });
+// Whole completed years between a 'YYYY-MM-DD' birth date and today
+function calcAge(birthDate) {
+  if (!birthDate) return null;
+  const b = new Date(birthDate);
+  if (isNaN(b.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - b.getFullYear();
+  const m = today.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < b.getDate())) age--;
+  return age;
+}
+Object.assign(window, { REGIONS, RELIGIOSITY, INTERESTS, PARTNER_TRAITS, AV_GRADS, gradForId, calcAge });
 // ui.jsx — shared UI primitives for "סבבה והכל"
 const { useState: useStateUI } = React;
 
@@ -2910,6 +2922,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   const [anthropicKeyInput, setAnthropicKeyInput] = useState('');
   const [savingApiKey, setSavingApiKey] = useState(false);
   const [apiTestStatus, setApiTestStatus] = useState(null); // null | 'testing' | 'ok' | 'fail'
+  const [backfillingBirthDates, setBackfillingBirthDates] = useState(false);
+  const [backfillDone, setBackfillDone] = useState(0); // count fixed in last run
 
   useEffect(() => {
     db.collection('deletions').orderBy('at', 'desc').limit(50).get()
@@ -2985,6 +2999,27 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
     } finally {
       setUpdatingPhotos(false);
     }
+  };
+
+  // One-time migration: candidates that only have a static `age` (no birthDate) get an
+  // approximate birthDate (today, N years back) so their age starts updating automatically.
+  const candsMissingBirthDate = candidates.filter(c => !c.birthDate && c.age);
+  const backfillBirthDates = async () => {
+    setBackfillingBirthDates(true);
+    try {
+      const toFix = candsMissingBirthDate;
+      for (let i = 0; i < toFix.length; i += 500) {
+        const batch = db.batch();
+        toFix.slice(i, i + 500).forEach(c => {
+          const d = new Date();
+          d.setFullYear(d.getFullYear() - c.age);
+          batch.update(db.collection('candidates').doc(c.id), { birthDate: d.toISOString().slice(0, 10) });
+        });
+        await batch.commit();
+      }
+      setBackfillDone(toFix.length);
+    } catch(e) { alert('שגיאה: ' + e.message); }
+    setBackfillingBirthDates(false);
   };
 
   if (!profile?.isAdmin) return (
@@ -3365,6 +3400,24 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                 </div>
               </div>
 
+              {/* ── BIRTH DATE BACKFILL ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>📅 השלמת תאריכי לידה</div>
+                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
+                  מועמדים חדשים מזינים תאריך לידה, והגיל שמוצג מתעדכן לבד עם הזמן. מועמדים ישנים נשמרו עם גיל קבוע בלבד.
+                  הפעולה הזו תיתן להם תאריך לידה משוער (לפי הגיל הנוכחי שלהם, מהיום אחורה) — כך גם הם יתחילו להתעדכן אוטומטית מעכשיו והלאה.
+                </div>
+                {candsMissingBirthDate.length === 0 ? (
+                  <div style={{ fontFamily: th.body, fontSize: 13, color: th.success, fontWeight: 700 }}>✓ לכל המועמדים יש תאריך לידה</div>
+                ) : (
+                  <button disabled={backfillingBirthDates} onClick={backfillBirthDates}
+                    style={{ border: 'none', borderRadius: th.rSm, padding: '9px 16px', background: th.primary, color: '#fff', cursor: backfillingBirthDates ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, opacity: backfillingBirthDates ? 0.6 : 1 }}>
+                    {backfillingBirthDates ? 'מעדכן…' : `השלם תאריך לידה משוער ל-${candsMissingBirthDate.length} מועמדים`}
+                  </button>
+                )}
+                {backfillDone > 0 && <div style={{ fontFamily:th.body, fontSize:11.5, color:th.success, marginTop:8 }}>✓ עודכנו {backfillDone} מועמדים</div>}
+              </div>
+
               {/* ── ANTHROPIC API KEY ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
                 <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>✦ מפתח Anthropic API</div>
@@ -3531,7 +3584,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   const [step, setStep] = useState(0);
   const normFamily = (v) => v?.includes('גרוש') ? 'גרוש/ה' : v?.includes('אלמן') || v?.includes('אלמנ') ? 'אלמן/ה' : 'רווק/ה';
   const [f, setF] = useState(() => {
-    const base = initial || { name:'', age:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true };
+    const base = initial || { name:'', birthDate:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true };
     const fam = base.family || '';
     return { ...base, family: ['רווק/ה','גרוש/ה','אלמן/ה'].includes(fam) ? fam : normFamily(fam), kids: base.kids || 0 };
   });
@@ -3635,7 +3688,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
         <>
           <Field th={th} label="שם"><TextInput th={th} value={f.name} onChange={set('name')} /></Field>
           <Field th={th} label="טלפון"><TextInput th={th} type="tel" value={f.phone || ''} onChange={set('phone')} placeholder="05X-XXXXXXX" /></Field>
-          <Field th={th} label="גיל"><TextInput th={th} type="number" value={f.age} onChange={v => setF(s => ({...s, age: +v}))} /></Field>
+          <Field th={th} label="תאריך לידה"><TextInput th={th} type="date" value={f.birthDate} onChange={set('birthDate')} /></Field>
           <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה', 'גבר']} /></Field>
           <Field th={th} label="אזור"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
           <Field th={th} label="קרבה לדת *"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
@@ -5677,7 +5730,7 @@ function CandidateSelfFill({ th, go, params }) {
   const livePartnerTraits = (lists.partnerTraits  && lists.partnerTraits.length) ? lists.partnerTraits : PARTNER_TRAITS;
   const { token, invite } = params;
   const [f, setF] = useState({
-    name: invite?.recipientName || '', phone: '', age: '', gender: 'אשה',
+    name: invite?.recipientName || '', phone: '', birthDate: '', gender: 'אשה',
     region: '', religiosity: '', family: 'רווק/ה', kids: 0,
     sabaBut: '', oneLine: '', seesWith: '', interests: [], partner: [], discrete: '', available: true,
   });
@@ -5702,11 +5755,11 @@ function CandidateSelfFill({ th, go, params }) {
   const setPrimaryPhoto = (i) => setPhotos(p => { const a = [...p]; [a[0], a[i]] = [a[i], a[0]]; return a; });
 
   const submit = async () => {
-    if (!f.name || !f.phone || !f.age || !f.region || !f.religiosity) return alert('נא למלא את כל שדות החובה');
+    if (!f.name || !f.phone || !f.birthDate || !f.region || !f.religiosity) return alert('נא למלא את כל שדות החובה');
     setSub(true);
     try {
       const ref = await db.collection('candidates').add({
-        ...f, age: +f.age, phone: f.phone.trim(), photos,
+        ...f, phone: f.phone.trim(), photos,
         mmId: invite.mmId, candidateUid: user.uid,
         pendingApproval: true, available: true,
         grad: gradForId(user.uid),
@@ -5719,7 +5772,7 @@ function CandidateSelfFill({ th, go, params }) {
       await db.collection('notifications').add({
         toUid: invite.mmId, type: 'cand_filled',
         candidateId: ref.id, candidateName: f.name,
-        candidateAge: +f.age, candidateRegion: f.region, candidateReligiosity: f.religiosity,
+        candidateAge: calcAge(f.birthDate), candidateRegion: f.region, candidateReligiosity: f.religiosity,
         inviteToken: token, read: false,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -5784,7 +5837,7 @@ function CandidateSelfFill({ th, go, params }) {
         {step === 0 && (
           <>
             <Field th={th} label="טלפון *"><TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} /></Field>
-            <Field th={th} label="גיל *"><TextInput th={th} type="number" value={f.age} onChange={set('age')} /></Field>
+            <Field th={th} label="תאריך לידה *"><TextInput th={th} type="date" value={f.birthDate} onChange={set('birthDate')} /></Field>
             <Field th={th} label="מין"><Segmented th={th} value={f.gender} onChange={set('gender')} options={['אשה','גבר']} /></Field>
             <Field th={th} label="אזור מגורים *"><Select th={th} value={f.region} onChange={set('region')} options={liveRegions} /></Field>
             <Field th={th} label="קרבה לדת *"><Select th={th} value={f.religiosity} onChange={set('religiosity')} options={liveReligiosity} /></Field>
@@ -5918,10 +5971,10 @@ function CandidateSelfFill({ th, go, params }) {
             : <div style={{ flex:1 }} />
           }
           {isLast
-            ? <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.phone || !f.age || !f.region || !f.religiosity || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
+            ? <Btn th={th} full size="l" onClick={submit} disabled={submitting || !f.name || !f.phone || !f.birthDate || !f.region || !f.religiosity || photos.length === 0}>{submitting ? 'שולח…' : 'שלח/י פרטים לאישור'}</Btn>
             : <Btn th={th} full onClick={() => {
                 if (step === 0) {
-                  if (!f.phone || !f.age || !f.region || !f.religiosity) { alert('נא למלא את כל שדות החובה (המסומנים ב-*)'); return; }
+                  if (!f.phone || !f.birthDate || !f.region || !f.religiosity) { alert('נא למלא את כל שדות החובה (המסומנים ב-*)'); return; }
                   if (!/^05\d[-]?\d{7}$/.test(f.phone.replace(/\s/g,''))) { alert('נא להזין מספר נייד ישראלי תקין (למשל 050-1234567)'); return; }
                 }
                 if (step === 1 && photos.length === 0) { alert('נא להעלות לפחות תמונה אחת'); return; }
@@ -9394,7 +9447,10 @@ function OfferDetail({ th, go, params }) {
     if (extraCands[id]) return extraCands[id];
     // Candidate not in pre-loaded array (e.g. pendingApproval from another mm) — fetch directly
     db.collection('candidates').doc(id).get().then(snap => {
-      if (snap.exists) setExtraCands(prev => ({ ...prev, [id]: { id: snap.id, ...snap.data(), photos: snap.data().photos || [], grad: snap.data().grad || gradForId(id) } }));
+      if (snap.exists) {
+        const d = snap.data();
+        setExtraCands(prev => ({ ...prev, [id]: { id: snap.id, ...d, photos: d.photos || [], grad: d.grad || gradForId(id), age: d.birthDate ? calcAge(d.birthDate) : d.age } }));
+      }
     }).catch(() => {});
     return { name:'?', grad:gradForId(id), photos:[] };
   };
