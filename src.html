@@ -4804,7 +4804,7 @@ function Register({ th, go }) {
     setUploading(true);
     try {
       const blob = await compressPhoto(file);
-      const ref = storage.ref(`users/${user.uid}/${Date.now()}.jpg`);
+      const ref = storage.ref(`candidates/mm_${user.uid}/${Date.now()}.jpg`);
       await ref.put(blob, { contentType: 'image/jpeg' });
       const url = await ref.getDownloadURL();
       setPhotoURL(url);
@@ -6028,7 +6028,7 @@ function CandidateSelfFill({ th, go, params }) {
     try {
       const urls = await Promise.all(files.map(async (file, i) => {
         const blob = await compressPhoto(file);
-        const ref = storage.ref(`users/${user.uid}/cand_${Date.now()}_${i}.jpg`);
+        const ref = storage.ref(`candidates/self_${user.uid}_${Date.now()}_${i}.jpg`);
         await ref.put(blob, { contentType: 'image/jpeg' });
         return await ref.getDownloadURL();
       }));
