@@ -3131,6 +3131,7 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   const [apiTestStatus, setApiTestStatus] = useState(null); // null | 'testing' | 'ok' | 'fail'
   const [backfillingBirthDates, setBackfillingBirthDates] = useState(false);
   const [backfillDone, setBackfillDone] = useState(0); // count fixed in last run
+  const [storageTestStatus, setStorageTestStatus] = useState(null); // null | 'testing' | {ok, msg}
 
   useEffect(() => {
     db.collection('deletions').orderBy('at', 'desc').limit(50).get()
@@ -3227,6 +3228,28 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
       setBackfillDone(toFix.length);
     } catch(e) { alert('שגיאה: ' + e.message); }
     setBackfillingBirthDates(false);
+  };
+
+  const testStorage = async () => {
+    setStorageTestStatus({ ok: null, msg: 'בודק…' });
+    const uid = profile?.uid || 'test';
+    try {
+      // 1. Firestore write
+      await db.collection('config').doc('settings').set({ _storagePing: Date.now() }, { merge: true });
+      // 2. Storage upload — 1×1 transparent PNG (68 bytes)
+      const b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+      const byteChars = atob(b64);
+      const bytes = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+      const testBlob = new Blob([bytes], { type: 'image/png' });
+      const testRef = storage.ref(`users/${uid}/storage_test_${Date.now()}.png`);
+      await testRef.put(testBlob, { contentType: 'image/png' });
+      const url = await testRef.getDownloadURL();
+      await testRef.delete().catch(() => {});
+      setStorageTestStatus({ ok: true, msg: `✅ Storage עובד תקין. URL: ${url.slice(0, 60)}…` });
+    } catch(e) {
+      setStorageTestStatus({ ok: false, msg: `❌ שגיאה: ${e.code || ''} — ${e.message}` });
+    }
   };
 
   if (!profile?.isAdmin) return (
@@ -3551,6 +3574,25 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
           };
           return (
             <div>
+
+              {/* ── STORAGE DIAGNOSTIC ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>🔍 בדיקת Firebase Storage</div>
+                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
+                  מנסה להעלות קובץ בדיקה קטן ל-Storage ומחזיר את השגיאה המדויקת אם יש בעיה.
+                </div>
+                <button onClick={testStorage} disabled={storageTestStatus?.msg === 'בודק…'}
+                  style={{ border:'none', borderRadius:th.rSm, padding:'9px 16px', background:th.primary, color:'#fff', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:13, opacity: storageTestStatus?.msg === 'בודק…' ? 0.6 : 1 }}>
+                  {storageTestStatus?.msg === 'בודק…' ? 'בודק…' : 'בדוק Storage עכשיו'}
+                </button>
+                {storageTestStatus && storageTestStatus.msg !== 'בודק…' && (
+                  <div style={{ fontFamily:th.body, fontSize:12.5, marginTop:10, padding:'10px 12px', borderRadius:th.rSm,
+                    background: storageTestStatus.ok ? alpha(th.success,0.1) : alpha(th.error,0.08),
+                    color: storageTestStatus.ok ? th.success : th.error, lineHeight:1.5, wordBreak:'break-all', direction:'ltr', textAlign:'left' }}>
+                    {storageTestStatus.msg}
+                  </div>
+                )}
+              </div>
 
               {/* ── EMAIL FOR NOTIFICATIONS ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
