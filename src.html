@@ -2153,9 +2153,12 @@ function CandidateInviteRegister({ th, inviteToken }) {
         const invData = invDoc.data();
         setInvite(invData);
         if (invData.recipientName) setStep('welcome');
+        else console.warn('[invite] no recipientName:', JSON.stringify(invData));
+      } else {
+        console.warn('[invite] doc not found:', inviteToken);
       }
       if (txDoc.exists)  setCmsTexts(txDoc.data());
-    }).catch(() => {});
+    }).catch(err => console.error('[invite] error:', err?.code, err?.message));
   }, [inviteToken]);
 
   const t = (key) => cmsTexts[key] || DEFAULT_TEXTS[key] || '';
