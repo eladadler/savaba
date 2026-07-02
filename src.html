@@ -8628,7 +8628,7 @@ function AIRecs({ th, go }) {
                       </li>
                     ))}
                   </ul>
-                  {ai.caution && !['אין','אזהרה','אזהרה חמורה','warning'].includes(ai.caution.replace(/⚠️/g,'').trim()) && (
+                  {ai.caution && !['אין','[אין]','אזהרה','אזהרה חמורה','warning'].includes(ai.caution.replace(/⚠️/g,'').replace(/[\[\]]/g,'').trim()) && (
                     <div style={{ display:'flex', alignItems:'flex-start', gap:5, padding:'5px 8px', background:alpha(th.gold,0.2), borderRadius:th.rSm, marginTop:6 }}>
                       <span style={{ flexShrink:0 }}>⚠️</span>
                       <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.72) }}>{ai.caution.replace(/⚠️/g,'').trim()}</span>
