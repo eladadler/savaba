@@ -3810,11 +3810,16 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 }
 
 function EmptyHighlight({ isEmpty, reviewMode, th, children }) {
-  return !reviewMode || !isEmpty ? children : (
-    <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.primary, 0.45)}`, background: alpha(th.primary, 0.04), padding: 10, position: 'relative' }}>
-      <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary, marginBottom: 6 }}>
-        כדאי למלא — יחזק את הכרטיסייה
-      </div>
+  if (!reviewMode) return children;
+  // Always render the same outer div to prevent React from unmounting/remounting
+  // children when isEmpty flips (which would dismiss the iOS keyboard).
+  return (
+    <div style={{ borderRadius: th.r, border: `1.5px solid ${isEmpty ? alpha(th.primary, 0.45) : 'transparent'}`, background: isEmpty ? alpha(th.primary, 0.04) : 'transparent', padding: isEmpty ? 10 : 0, position: 'relative', transition: 'border-color 0.2s, background 0.2s, padding 0.2s' }}>
+      {isEmpty && (
+        <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary, marginBottom: 6 }}>
+          כדאי למלא — יחזק את הכרטיסייה
+        </div>
+      )}
       {children}
     </div>
   );
@@ -11460,8 +11465,14 @@ function AppInner({ inviteToken, offerParam }) {
     (data.candidates||[]).filter(c => c.mmId === myUid && (c.status === 'pending_mm' || c.pendingApproval)).length,
     [data.candidates, myUid]);
 
+  const textsCtxValue = React.useMemo(() => ({
+    texts: { ...data.texts, ...drafts, ...inlineDrafts },
+    defaults: DEFAULT_TEXTS,
+    inlineEditMode, inlineDrafts, setInlineDraft, startInlineEdit,
+  }), [data.texts, drafts, inlineDrafts, inlineEditMode, setInlineDraft, startInlineEdit]);
+
   return (
-    <TextsCtx.Provider value={{ texts: { ...data.texts, ...drafts, ...inlineDrafts }, defaults: DEFAULT_TEXTS, inlineEditMode, inlineDrafts, setInlineDraft, startInlineEdit }}>
+    <TextsCtx.Provider value={textsCtxValue}>
       <>
       <div className="app-shell" style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div dir="rtl" style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', background:th.cream, fontFamily:th.body, overflow:'hidden', position:'relative' }}>
