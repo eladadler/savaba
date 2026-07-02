@@ -1483,11 +1483,12 @@ async function saveOutcomeLearning(offer, outcome, candidates) {
 const INVITE_BASE_URL = 'https://eladadler.github.io/savaba/';
 const inviteURL = (token) => `${INVITE_BASE_URL}?invite=${token}`;
 
-async function createInvitation(mmId, mmName, flow, recipientName, mmPhone) {
+async function createInvitation(mmId, mmName, flow, recipientName, mmPhone, mmGender) {
   const token = Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
   await db.collection('invitations').doc(token).set({
     mmId, mmName, flow,
     mmPhone: mmPhone || null,
+    mmGender: mmGender || null,
     recipientName: recipientName || null,
     status: 'pending',
     candidateId: null, candidateUid: null, candidateName: null,
@@ -4504,8 +4505,8 @@ const DEFAULT_TEXTS = {
   cand_done_title:          'הפרטים נשלחו!',
   cand_done_body:           '{שם_שדכן} יקבל/ת הודעה ויעיין/תעיין בפרטים שלך. לאחר האישור תהיה/י רשמית במערכת.',
   cand_done_wa_btn:         'לחצו כדי לעדכן את השדכן שסיימתם',
-  cand_done_nudge_title:    'אבל זה לא מספיק!',
-  cand_done_nudge_body:     'נדנד/י ל{שם_שדכן} שיאשר/תאשר אותך באפליקציה כמה שיותר מהר — עוד השנה!!! 💍',
+  cand_done_nudge_title:    'מזל טוב!',
+  cand_done_nudge_body:     'אחרי האישור השדכנים שלכם יכולים להתחיל לחפש לכם הצעות מעולות ובדוקות!',
   wa_cand_done:        'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
   wa_invite:           'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
   wa_cand_offer:       'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
@@ -4748,6 +4749,7 @@ function Register({ th, go }) {
   const [step, setStep] = useS(1);
   const [firstName, setFirstName] = useS('');
   const [lastName, setLastName] = useS('');
+  const [gender, setGender] = useS('');
   const [phone, setPhone] = useS('');
   const [phoneError, setPhoneError] = useS('');
   const [photoURL, setPhotoURL] = useS('');
@@ -4759,7 +4761,7 @@ function Register({ th, go }) {
     return (d.length === 10 && d.startsWith('05')) || (d.length === 12 && d.startsWith('9725'));
   };
 
-  const step1Valid = firstName.trim() && lastName.trim() && phone && isPhoneValid(phone);
+  const step1Valid = firstName.trim() && lastName.trim() && gender && phone && isPhoneValid(phone);
 
   const handlePhoneBlur = () => {
     if (phone && !isPhoneValid(phone)) setPhoneError('מספר לא תקין — לדוגמה: 050-0000000');
@@ -4787,6 +4789,7 @@ function Register({ th, go }) {
       await db.collection('users').doc(user.uid).update({
         displayName: `${firstName.trim()} ${lastName.trim()}`,
         phone: phone.trim(),
+        gender: gender === 'זכר' ? 'm' : 'f',
         ...(photoURL ? { photoURL } : {}),
         profileComplete: true,
       });
@@ -4814,6 +4817,9 @@ function Register({ th, go }) {
         </Field>
         <Field th={th} label="שם משפחה" required>
           <TextInput th={th} value={lastName} onChange={setLastName} placeholder="" />
+        </Field>
+        <Field th={th} label="מין" required>
+          <Segmented th={th} value={gender} onChange={setGender} options={['נקבה', 'זכר']} />
         </Field>
         <Field th={th} label="טלפון (ווצאפ)" required hint="לא יוצג למועמדים — משמש לתיאומים">
           <TextInput th={th} type="tel" value={phone}
@@ -5786,7 +5792,7 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
 // ════════════════════════════════════════════════════════════
 // INVITE FLOW — matchmaker creates invitation link
 // ════════════════════════════════════════════════════════════
-function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone }) {
+function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
   const { texts: txCtx } = useContext(TextsCtx);
   const [step, setStep]         = useState(1); // 1=name, 2=link
   const [recipFirst, setFirst]  = useState('');
@@ -5801,7 +5807,7 @@ function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone }) {
   const generate = async () => {
     setCreating(true);
     try {
-      const tok = await createInvitation(mmId, mmName, 'cand_fills', recipientName, mmPhone);
+      const tok = await createInvitation(mmId, mmName, 'cand_fills', recipientName, mmPhone, mmGender);
       setToken(tok);
       setStep(2);
     } finally { setCreating(false); }
@@ -6050,12 +6056,17 @@ function CandidateSelfFill({ th, go, params }) {
     const mmWaPhone = invite.mmPhone ? String(invite.mmPhone).replace(/\D/g,'').replace(/^0/,'972') : '';
     const waMsg = encodeURIComponent(fillWa(txCtx, 'wa_cand_done', { שם: f.name, שם_שדכן: invite.mmName?.split(' ')[0] || invite.mmName || '', פעל: f.gender === 'גבר' ? 'סיים' : 'סיימה' }));
     const mmFirst = invite.mmName ? invite.mmName.split(' ')[0] : invite.mmName;
+    const mmGenderBody = invite.mmGender === 'm'
+      ? `${mmFirst} צריך כעת לאשר את הרישום`
+      : invite.mmGender === 'f'
+        ? `${mmFirst} צריכה כעת לאשר את הרישום`
+        : null;
     return (
       <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:'32px 28px', textAlign:'center', direction:'rtl', gap:0 }}>
         <div style={{ fontSize:52, marginBottom:12 }}>🎉</div>
         <div style={{ fontFamily:th.display, fontSize:22, fontWeight:800, color:th.ink, marginBottom:6 }}>{t('cand_done_title')}</div>
         <div style={{ fontFamily:th.body, fontSize:15, color:alpha(th.ink,0.6), lineHeight:1.6, maxWidth:280, marginBottom:28 }}>
-          {inlineEditMode ? t('cand_done_body') : fillWa(txCtx, 'cand_done_body', { שם_שדכן: invite.mmName || '' })}
+          {inlineEditMode ? t('cand_done_body') : (mmGenderBody || fillWa(txCtx, 'cand_done_body', { שם_שדכן: invite.mmName || '' }))}
         </div>
 
         {mmWaPhone && (
@@ -6067,12 +6078,12 @@ function CandidateSelfFill({ th, go, params }) {
         )}
 
         <div style={{ background:`linear-gradient(135deg, ${alpha(th.primary,0.08)}, ${alpha(th.gold,0.1)})`, border:`1.5px solid ${alpha(th.primary,0.15)}`, borderRadius:16, padding:'16px 20px', maxWidth:300, direction:'rtl' }}>
-          <div style={{ fontSize:32, marginBottom:8 }}>📣</div>
+          <div style={{ fontSize:32, marginBottom:8 }}>🎊</div>
           <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15.5, color:th.ink, marginBottom:6 }}>
             {t('cand_done_nudge_title')}
           </div>
           <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.7), lineHeight:1.6 }}>
-            {inlineEditMode ? t('cand_done_nudge_body') : fillWa(txCtx, 'cand_done_nudge_body', { שם_שדכן: mmFirst || '' })}
+            {inlineEditMode ? t('cand_done_nudge_body') : t('cand_done_nudge_body')}
           </div>
         </div>
       </div>
@@ -6555,7 +6566,7 @@ function AddSheet({ open, onClose, th, go }) {
         </div>
       </Sheet>
       <InviteFlow open={inviteOpen} onClose={() => setInviteOpen(false)} th={th}
-        mmId={profile?.uid} mmName={profile?.displayName || user?.displayName || profile?.email?.split('@')[0] || 'השדכן/ית'} mmPhone={profile?.phone} />
+        mmId={profile?.uid} mmName={profile?.displayName || user?.displayName || profile?.email?.split('@')[0] || 'השדכן/ית'} mmPhone={profile?.phone} mmGender={profile?.gender} />
     </>
   );
 }
