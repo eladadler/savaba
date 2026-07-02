@@ -3850,6 +3850,14 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   const liveSabaExamples  = (lists.sabaButExamples && lists.sabaButExamples.length) ? lists.sabaButExamples : SABA_BUT_EXAMPLES;
 
   const [step, setStep] = useState(0);
+  const formRef = React.useRef(null);
+  React.useEffect(() => {
+    let el = formRef.current?.parentElement;
+    while (el) {
+      if (el.scrollHeight > el.clientHeight + 5) { el.scrollTop = 0; break; }
+      el = el.parentElement;
+    }
+  }, [step]);
   const normFamily = (v) => v?.includes('גרוש') ? 'גרוש/ה' : v?.includes('אלמן') || v?.includes('אלמנ') ? 'אלמן/ה' : 'רווק/ה';
   const [f, setF] = useState(() => {
     const base = initial || { name:'', birthDate:'', height:'', gender:'אשה', region:'', religiosity:'', family:'רווק/ה', kids:0, sabaBut:'', oneLine:'', seesWith:'', interests:[], partner:[], discrete:'', available:true };
@@ -3930,7 +3938,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
 
 
   return (
-    <div style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 16, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
+    <div ref={formRef} style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 16, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
       <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 10, textAlign: 'center' }}>
         {_t(STEP_TITLE_KEYS[stepName])}
       </div>
@@ -6291,6 +6299,8 @@ function CandidateSelfFill({ th, go, params }) {
   };
 
   const [step, setStep] = useState(0);
+  const selfScrollRef = React.useRef(null);
+  React.useEffect(() => { if (selfScrollRef.current) selfScrollRef.current.scrollTop = 0; }, [step]);
   const steps = ['פרטים בסיסיים', 'תמונות', 'קצת עלייך', 'תחומי עניין'];
   const stepTitleKeys = ['selfform_step_basic', 'selfform_step_photos', 'selfform_step_about', 'selfform_step_interests'];
   const isLast = step === steps.length - 1;
@@ -6337,7 +6347,7 @@ function CandidateSelfFill({ th, go, params }) {
   return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
       <AppHeader th={th} title={t('selfform_header_title')} sub={`עבור ${invite.mmName}`} />
-      <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
+      <div ref={selfScrollRef} style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, marginBottom:10, textAlign:'center' }}>{t(stepTitleKeys[step])}</div>
         <SelfStepDots steps={steps} step={step} th={th} />
 
