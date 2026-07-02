@@ -3842,7 +3842,10 @@ function SelfStepDots({ steps, step, th }) {
 
 function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote, onApprove, onSaveStep }) {
   const { lists } = useContext(DataCtx);
+  const { profile } = useContext(AuthCtx);
   const { t: _t, texts: _tx, defaults: _dx } = useTexts();
+  const mmG = profile?.gender === 'f' ? 'f' : 'm';
+  const tg = (keyM, keyF) => _t(mmG === 'f' ? keyF : keyM);
   const liveRegions       = (lists.regions      && lists.regions.length)      ? lists.regions      : REGIONS;
   const liveReligiosity   = (lists.religiosity   && lists.religiosity.length)  ? lists.religiosity  : RELIGIOSITY;
   const liveInterestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
@@ -4058,17 +4061,17 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
             </div>
           )}
           <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.6, marginBottom:20 }}>
-            הקלט/י כמה מילים על המועמד/ת<br/>
-            <span style={{ fontSize:12.5, opacity:0.8 }}>הקלטה מוסיפה אישיות — שדכנים אחרים ישמעו אותך</span>
+            {tg('form_voice_desc_m','form_voice_desc_f')}<br/>
+            <span style={{ fontSize:12.5, opacity:0.8 }}>{_t('form_voice_hint')}</span>
           </div>
 
           {voiceUrl && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary, marginBottom:10 }}>✓ ההקלטה נשמרה</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.primary, marginBottom:10 }}>{_t('form_voice_saved')}</div>
               <audio controls src={voiceUrl} style={{ width:'100%', maxWidth:340, borderRadius:8 }} />
               <button onClick={() => { setVoiceUrl(null); setVoiceBlob(null); }}
                 style={{ fontFamily:th.body, fontSize:13, color:th.error, background:'none', border:'none', cursor:'pointer', fontWeight:700, marginTop:10 }}>
-                × הסר והקלט מחדש
+                {tg('form_voice_remove_m','form_voice_remove_f')}
               </button>
             </div>
           )}
@@ -4087,7 +4090,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
                 <Icon name={voiceRecording ? 'stop' : 'mic'} size={38} color={voiceRecording ? th.error : th.primary} fill={voiceRecording ? alpha(th.error,0.25) : alpha(th.primary,0.15)} />
               </button>
               <div style={{ fontFamily:th.body, fontSize:13.5, color:voiceRecording ? th.error : alpha(th.ink,0.5), fontWeight:voiceRecording ? 700 : 400, marginBottom:14, transition:'color 0.2s' }}>
-                {voiceRecording ? '⏺ מקליט… לחץ/י להפסקה' : 'לחץ/י להתחיל הקלטה'}
+                {voiceRecording ? tg('form_voice_recording_m','form_voice_recording_f') : tg('form_voice_start_m','form_voice_start_f')}
               </div>
             </>
           )}
@@ -4097,7 +4100,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       {stepName === 'אישיות' && (
         <>
           <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!f.sabaBut}>
-            <Field th={th} label="(אני) סבבה והכל אבל..."
+            <Field th={th} label={_t('form_label_saba')}
               desc="מכירים את המשחק? בעולם בו אתם מושלמים, ספרו על צד פחות זוהר שלכם בצורה הומוריסטית"
               hint={<div style={{ display:'flex', flexDirection:'column', gap:3 }}>
                 <span>לדוגמה:</span>
@@ -4107,10 +4110,10 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
             </Field>
           </EmptyHighlight>
           <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!f.oneLine}>
-            <Field th={th} label="במשפט אחד"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder='הגדרה קצרה של האדם…' /></Field>
+            <Field th={th} label={_t('form_label_oneline')}><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder='הגדרה קצרה של האדם…' /></Field>
           </EmptyHighlight>
           <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!f.seesWith}>
-            <Field th={th} label="רואה את עצמו/ה עם">
+            <Field th={th} label={_t('form_label_seeswith')}>
               <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} placeholder='תאר/י את הזוגיות שהוא/היא מדמיין/ת לעצמו/ה…' rows={3} />
             </Field>
           </EmptyHighlight>
@@ -4120,12 +4123,12 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       {stepName === 'תחומי עניין' && (
         <>
           <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!(f.interests?.length)}>
-            <Field th={th} label="קצת עלי">
+            <Field th={th} label={_t('form_label_interests')}>
               <CategorizedMultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} categories={liveInterestCategories} tone={th.primary} />
             </Field>
           </EmptyHighlight>
           <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!(f.partner?.length)}>
-            <Field th={th} label="חשוב בפרטנר">
+            <Field th={th} label={_t('form_label_partner')}>
               <CategorizedMultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner: v}))} categories={livePartnerCategories} tone={th.gold} />
             </Field>
           </EmptyHighlight>
@@ -4143,11 +4146,10 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink, marginBottom: 3 }}>
-                גלוי לך בלבד
+                {_t('form_discrete_title')}
               </div>
               <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), lineHeight: 1.5 }}>
-                שדכנים אחרים לא רואים שדה זה.<br/>
-                אם למועמד/ת יש כמה שדכנים — כל אחד רואה רק את מה <em>שהוא</em> כתב כאן.
+                {_t('form_discrete_body')}
               </div>
             </div>
           </div>
@@ -4158,7 +4160,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       {stepName === 'דבר השדכן' && (
         <div>
           <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.6), lineHeight:1.6, marginBottom:14 }}>
-            כתוב/י משפט או שניים על המועמד/ת מנקודת מבטך — יופיע בכרטיסייה עם תמונתך ושמך.
+            {tg('form_mmnote_desc_m','form_mmnote_desc_f')}
           </div>
           <TextArea th={th} value={mmNote} onChange={setMmNote} placeholder='למה אני משדך/ת את האדם הזה? מה מיוחד בו/ה?' rows={4} />
         </div>
@@ -4515,6 +4517,25 @@ const TEXT_KEYS = {
   editcand_status_editing:          'עריכת מועמד — סטטוס: עריכה',
   editcand_banner_title:            'עריכת מועמד — באנר: כותרת',
   editcand_banner_body:             'עריכת מועמד — באנר: גוף',
+  form_mmnote_desc_m:               'דבר השדכן — תיאור (זכר)',
+  form_mmnote_desc_f:               'דבר השדכן — תיאור (נקבה)',
+  form_voice_desc_m:                'הקלטה קולית — תיאור (זכר)',
+  form_voice_desc_f:                'הקלטה קולית — תיאור (נקבה)',
+  form_voice_hint:                  'הקלטה קולית — הערה',
+  form_voice_saved:                 'הקלטה קולית — נשמרה',
+  form_voice_remove_m:              'הקלטה קולית — הסר (זכר)',
+  form_voice_remove_f:              'הקלטה קולית — הסר (נקבה)',
+  form_voice_start_m:               'הקלטה קולית — התחל (זכר)',
+  form_voice_start_f:               'הקלטה קולית — התחל (נקבה)',
+  form_voice_recording_m:           'הקלטה קולית — מקליט (זכר)',
+  form_voice_recording_f:           'הקלטה קולית — מקליטה (נקבה)',
+  form_discrete_title:              'פרטים נוספים — כותרת "גלוי לך"',
+  form_discrete_body:               'פרטים נוספים — גוף "גלוי לך"',
+  form_label_saba:                  'שדה: סבבה והכל אבל',
+  form_label_oneline:               'שדה: במשפט אחד',
+  form_label_seeswith:              'שדה: רואה את עצמו/ה עם',
+  form_label_interests:             'שדה: קצת עלי',
+  form_label_partner:               'שדה: חשוב בפרטנר',
 };
 const DEFAULT_TEXTS = {
   onb_slide1_title: 'סבבה והכל אבל...',
@@ -4752,6 +4773,25 @@ const DEFAULT_TEXTS = {
   editcand_status_editing:          'עריכת פרטים',
   editcand_banner_title:            'מלא/י את פרטי המועמד/ת',
   editcand_banner_body:             'לאחר שמירה יופיע/תופיע ברשימת המועמדים שלך.',
+  form_mmnote_desc_m:               'כתוב משפט או שניים על המועמד/ת מנקודת מבטך — יופיע בכרטיסייה עם תמונתך ושמך.',
+  form_mmnote_desc_f:               'כתבי משפט או שניים על המועמד/ת מנקודת מבטך — יופיע בכרטיסייה עם תמונתך ושמך.',
+  form_voice_desc_m:                'הקלט כמה מילים על המועמד/ת',
+  form_voice_desc_f:                'הקלטי כמה מילים על המועמד/ת',
+  form_voice_hint:                  'הקלטה מוסיפה אישיות — שדכנים אחרים ישמעו אותך',
+  form_voice_saved:                 '✓ ההקלטה נשמרה',
+  form_voice_remove_m:              '× הסר והקלט מחדש',
+  form_voice_remove_f:              '× הסירי והקליטי מחדש',
+  form_voice_start_m:               'לחץ להתחיל הקלטה',
+  form_voice_start_f:               'לחצי להתחיל הקלטה',
+  form_voice_recording_m:           '⏺ מקליט… לחץ להפסקה',
+  form_voice_recording_f:           '⏺ מקליטה… לחצי להפסקה',
+  form_discrete_title:              'גלוי לך בלבד',
+  form_discrete_body:               'שדכנים אחרים לא רואים שדה זה. אם למועמד/ת יש כמה שדכנים — כל אחד רואה רק את מה שהוא/היא כתב/ה כאן.',
+  form_label_saba:                  '(אני) סבבה והכל אבל...',
+  form_label_oneline:               'במשפט אחד',
+  form_label_seeswith:              'רואה את עצמו/ה עם',
+  form_label_interests:             'קצת עלי',
+  form_label_partner:               'חשוב בפרטנר',
   wa_cand_done:        'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
   wa_invite:           'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
   wa_cand_offer:       'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
@@ -4859,7 +4899,7 @@ const SCREEN_TEXTS = {
   inviteFlow:    ['invite_flow_title','invite_flow_who','invite_flow_who_hint','invite_flow_first_label','invite_flow_last_label','invite_flow_btn','invite_flow_ready','invite_flow_copy','invite_flow_copied','invite_flow_wa_btn','invite_flow_close'],
   invitationsSheet: ['inv_tab_review','inv_tab_fill','inv_tab_active','inv_corep_section','inv_approve_btn','inv_decline_btn','inv_clear_filter','inv_loading','inv_status_fill','inv_status_replied','inv_status_filled','inv_action_fill','inv_action_review','inv_action_view','inv_refresh_btn'],
   notifDrawer:   ['notif_title','notif_clear_all','notif_empty','notif_view_offer','notif_go_chat','notif_pending_section'],
-  editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn','form_step_basic','form_step_photos','form_step_voice','form_step_personality','form_step_interests','form_step_mmnote','form_step_extra','editcand_status_pending_fill','editcand_status_pending_approval','editcand_status_editing','editcand_banner_title','editcand_banner_body'],
+  editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn','form_step_basic','form_step_photos','form_step_voice','form_step_personality','form_step_interests','form_step_mmnote','form_step_extra','editcand_status_pending_fill','editcand_status_pending_approval','editcand_status_editing','editcand_banner_title','editcand_banner_body','form_mmnote_desc_m','form_mmnote_desc_f','form_voice_desc_m','form_voice_desc_f','form_voice_hint','form_voice_saved','form_voice_remove_m','form_voice_remove_f','form_voice_start_m','form_voice_start_f','form_voice_recording_m','form_voice_recording_f','form_discrete_title','form_discrete_body','form_label_saba','form_label_oneline','form_label_seeswith','form_label_interests','form_label_partner'],
   candidateMode: [
     'cand_available','cand_available_sub','cand_busy','cand_busy_sub',
     'cand_offers_title','cand_no_offer','cand_no_offer_sub',
