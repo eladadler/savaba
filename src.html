@@ -3446,14 +3446,19 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
             <div style={{ background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 14, boxShadow: `0 2px 8px ${alpha(th.ink,0.05)}` }}>
               <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink, marginBottom: 10 }}>שיטת עריכת טקסטים</div>
               <div style={{ display: 'flex', gap: 8 }}>
-                {[['modal','מודאל 📋'],['inline','Inline ✏️']].map(([v,lbl]) => (
-                  <button key={v} onClick={() => setEditMethod && setEditMethod(v)}
-                    style={{ flex: 1, padding: '9px 0', border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13,
-                      background: (editMethod||'modal') === v ? th.primary : alpha(th.ink,0.08),
-                      color: (editMethod||'modal') === v ? '#fff' : alpha(th.ink,0.6) }}>
-                    {lbl}
-                  </button>
-                ))}
+                {[['inline','✏️ Inline'],['modal','📋 מודאל']].map(([v,lbl]) => {
+                  const isDisabled = v === 'modal';
+                  const isActive = (editMethod||'inline') === v;
+                  return (
+                    <button key={v} onClick={() => !isDisabled && setEditMethod && setEditMethod(v)} disabled={isDisabled}
+                      style={{ flex: 1, padding: '9px 0', border: 'none', borderRadius: 999, cursor: isDisabled ? 'not-allowed' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13,
+                        background: isActive ? th.primary : alpha(th.ink,0.08),
+                        color: isActive ? '#fff' : alpha(th.ink, isDisabled ? 0.25 : 0.6),
+                        opacity: isDisabled ? 0.5 : 1 }}>
+                      {lbl}
+                    </button>
+                  );
+                })}
               </div>
               <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink,0.45), marginTop: 8, lineHeight: 1.4 }}>
                 {(editMethod||'modal') === 'inline' ? 'לחץ על כפתור "עריכת טקסטים" בכל מסך — הטקסטים ייפתחו לעריכה ישירה.' : 'לחץ על כפתור "עריכת טקסטים" בכל מסך — נפתח מודאל עם כל שדות הטקסט.'}
@@ -11378,7 +11383,7 @@ function AppInner({ inviteToken, offerParam }) {
   const cancelEdit   = () => { setEditMode(false); setDrafts({}); };
 
   // ── Inline edit mode ──────────────────────────────────────────
-  const [editMethod, setEditMethod] = React.useState(() => localStorage.getItem('textEditMethod') || 'modal');
+  const [editMethod, setEditMethod] = React.useState(() => localStorage.getItem('textEditMethod') || 'inline');
   const saveEditMethod = (v) => { setEditMethod(v); localStorage.setItem('textEditMethod', v); };
   const [inlineEditMode, setInlineEditMode] = React.useState(false);
   const [inlineDrafts, setInlineDrafts] = React.useState({});
