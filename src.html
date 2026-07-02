@@ -8259,9 +8259,10 @@ function Chat({ th, go, params }) {
 // ════════════════════════════════════════════════════════════
 function AIRecs({ th, go }) {
   const { candidates, offers } = React.useContext(DataCtx);
-  const { user }               = React.useContext(AuthCtx);
+  const { user, profile }      = React.useContext(AuthCtx);
   const { t, texts: tx, defaults: dx } = useTexts();
-  const myUid = user?.uid;
+  const myUid   = user?.uid;
+  const isAdmin = profile?.isAdmin;
 
   const [aiAnalyses,       setAiAnalyses]      = React.useState({});
   const [aiLoading,        setAiLoading]       = React.useState(false);
@@ -8647,8 +8648,8 @@ function AIRecs({ th, go }) {
                 </button>
               </div>
 
-              {/* ── Training feedback (collapsible) ── */}
-              <div style={{ marginTop: 10, borderTop: `1px solid ${alpha(th.ink,0.07)}`, paddingTop: 10 }}>
+              {/* ── Training feedback (collapsible) — admin only ── */}
+              {isAdmin && <div style={{ marginTop: 10, borderTop: `1px solid ${alpha(th.ink,0.07)}`, paddingTop: 10 }}>
                 <button
                   onClick={() => setFeedbackOpen(prev => ({ ...prev, [pairKey]: !prev[pairKey] }))}
                   style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5,
@@ -8680,7 +8681,7 @@ function AIRecs({ th, go }) {
                     </div>
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           );
         })}
