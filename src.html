@@ -7076,12 +7076,12 @@ function CandidateDetail({ th, go, params }) {
           return (
             <div style={{ padding: '0 16px 28px', background: th.cream }}>
               <div style={{ background: th.card, borderRadius: th.r, padding: 16, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 10 }}>השדכן/ית של {c.name}</div>
+                <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 10 }}>ה{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {c.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                   <Avatar grad={mm.grad} name={mm.name} size={44} />
                   <div>
                     <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{mm.name}</div>
-                    <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>שדכן/ית</div>
+                    <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'}</div>
                   </div>
                 </div>
                 <Btn th={th} full variant="soft" size="m"
@@ -7668,7 +7668,7 @@ function MatchFlow({ th, go, params }) {
             : (() => {
                 const bMm = matchmakers?.[candB.mmId];
                 const bMmName = bMm?.displayName || bMm?.name || null;
-                const bMmTitle = isFemGender(bMm?.gender) ? 'שדכנית' : (bMm?.gender ? 'שדכן' : 'שדכן/ית');
+                const bMmTitle = isFemGender(bMm?.gender) ? 'שדכנית' : 'שדכן';
                 return <>שלחנו את ההצעה ל{bMmName ? <><strong>{bMmName}</strong>, {bMmTitle}</> : bMmTitle} של {candB.name}.</>;
               })()
           }
@@ -8101,7 +8101,7 @@ function MatchFlow({ th, go, params }) {
                         <Avatar grad={mm.grad} name={mm.name} size={38} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{mm.name}</div>
-                          <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.45) }}>שדכן/ית של {previewCand.name}</div>
+                          <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.45) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {previewCand.name}</div>
                         </div>
                       </div>
                     </div>
@@ -9343,7 +9343,7 @@ function CandViewCand({ th, go, params }) {
             <div style={{ background:alpha(th.ink,0.04), borderRadius:th.r, padding:'11px 13px', marginBottom:18, display:'flex', alignItems:'center', gap:10 }}>
               <Avatar grad={theirMm.grad || gradForId(theirMm.id || theirMm.uid || '')} name={theirMmName} size={36} photo={theirMm.photoURL} />
               <div>
-                <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>שדכן/ית של {c.name}</div>
+                <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>{isFemGender(theirMm?.gender) ? 'שדכנית' : 'שדכן'} של {c.name}</div>
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{theirMmName}</div>
               </div>
             </div>
