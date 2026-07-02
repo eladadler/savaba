@@ -8263,17 +8263,43 @@ function AIRecs({ th, go }) {
   const { t, texts: tx, defaults: dx } = useTexts();
   const myUid = user?.uid;
 
-  const [aiAnalyses, setAiAnalyses] = React.useState({});
-  const [aiLoading,  setAiLoading]  = React.useState(false);
-  const [hasRun,     setHasRun]     = React.useState(false);
-  const [offset,     setOffset]     = React.useState(0);
-  const [shownPairs, setShownPairs] = React.useState([]);
-  const [dismissed,  setDismissed]  = React.useState(new Set());
+  const [aiAnalyses,       setAiAnalyses]      = React.useState({});
+  const [aiLoading,        setAiLoading]       = React.useState(false);
+  const [hasRun,           setHasRun]          = React.useState(false);
+  const [offset,           setOffset]          = React.useState(0);
+  const [shownPairs,       setShownPairs]      = React.useState([]);
+  const [dismissed,        setDismissed]       = React.useState(new Set());
+  const [feedbackOpen,     setFeedbackOpen]    = React.useState({});
+  const [feedbackText,     setFeedbackText]    = React.useState({});
+  const [feedbackSaved,    setFeedbackSaved]   = React.useState({});
+  const [existingFeedback, setExistingFeedback] = React.useState({});
 
   React.useEffect(() => {
     if (!myUid) return;
     try { setDismissed(new Set(JSON.parse(localStorage.getItem(`ai_dismissed_${myUid}`) || '[]'))); } catch {}
+    db.collection('ai_pair_feedback').orderBy('savedAt','desc').limit(100).get()
+      .then(snap => {
+        const fb = {};
+        snap.docs.forEach(d => { fb[d.data().pairKey] = d.data().feedback; });
+        setExistingFeedback(fb);
+        setFeedbackText(prev => ({ ...fb, ...prev }));
+      }).catch(() => {});
   }, [myUid]);
+
+  const saveFeedback = async (pairKey, a, b) => {
+    const text = (feedbackText[pairKey] || '').trim();
+    if (!text) return;
+    await db.collection('ai_pair_feedback').doc(pairKey).set({
+      pairKey, aId: a.id, bId: b.id, aName: a.name, bName: b.name,
+      feedback: text,
+      originalAnalysis: aiAnalyses[pairKey] || null,
+      savedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      savedBy: myUid,
+    });
+    setExistingFeedback(prev => ({ ...prev, [pairKey]: text }));
+    setFeedbackSaved(prev => ({ ...prev, [pairKey]: true }));
+    setTimeout(() => setFeedbackSaved(prev => ({ ...prev, [pairKey]: false })), 2500);
+  };
 
   const dismissPair = pairKey => {
     setDismissed(prev => {
@@ -8458,7 +8484,18 @@ function AIRecs({ th, go }) {
           if (exLines.length > 0) examplesBlock = `דוגמאות מהיסטוריה:\n${exLines.join('\n')}\n\n`;
         }
 
-        const prompt = `${examplesBlock}ניתח ${toAnalyze.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[50-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
+        const feedbackLines = toAnalyze.map(p => {
+          const key = `${p.aId}__${p.bId}`;
+          const fb = existingFeedback[key];
+          if (!fb) return null;
+          const ca = candidates.find(x => x.id === p.aId);
+          const cb = candidates.find(x => x.id === p.bId);
+          return `• ${ca?.name||''} · ${cb?.name||''}: "${fb}"`;
+        }).filter(Boolean);
+        const feedbackBlock = feedbackLines.length > 0
+          ? `הערות תיקון מהשדכן על זוגות אלו — קח אותן בחשבון:\n${feedbackLines.join('\n')}\n\n`
+          : '';
+        const prompt = `${feedbackBlock}${examplesBlock}ניתח ${toAnalyze.length} זוגות. עבור כל זוג ענה בשורה אחת בלבד, ללא הסברים נוספים:\n[מספר]: ציון:[50-100] | סיבות:[סיבה1·סיבה2] | לשים לב:[משפט קצר על הבעיה העיקרית, או "אין"] | המלצה:[מומלץ מאוד/מומלץ/דורש בירור/לא מומלץ]\n\n${pairsBlock}`;
 
         const d = await callAnthropicAPI({
           model: 'claude-haiku-4-5-20251001', max_tokens: 1200,
@@ -8608,6 +8645,41 @@ function AIRecs({ th, go }) {
                   <Icon name="heart" size={15} fill="#fff" stroke={0} />
                   {t('ai_create_btn')}
                 </button>
+              </div>
+
+              {/* ── Training feedback (collapsible) ── */}
+              <div style={{ marginTop: 10, borderTop: `1px solid ${alpha(th.ink,0.07)}`, paddingTop: 10 }}>
+                <button
+                  onClick={() => setFeedbackOpen(prev => ({ ...prev, [pairKey]: !prev[pairKey] }))}
+                  style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:5,
+                    fontFamily:th.body, fontSize:12, color: existingFeedback[pairKey] ? th.primary : alpha(th.ink,0.4),
+                    width:'100%', justifyContent:'center' }}>
+                  <span style={{ fontSize:13 }}>🎓</span>
+                  {existingFeedback[pairKey] ? 'ערוך הערת אימון ל-AI' : 'הוסף הערת אימון ל-AI'}
+                  <span style={{ fontSize:10, marginRight:2 }}>{feedbackOpen[pairKey] ? '▲' : '▼'}</span>
+                </button>
+                {feedbackOpen[pairKey] && (
+                  <div style={{ marginTop: 8 }}>
+                    <textarea
+                      value={feedbackText[pairKey] || ''}
+                      onChange={e => setFeedbackText(prev => ({ ...prev, [pairKey]: e.target.value }))}
+                      placeholder={`הסבר ל-AI מה הוא פספס, הגזים, או טעה בניתוח ${a.name} · ${b.name}…`}
+                      rows={3}
+                      style={{ ...inputBase(th), width:'100%', resize:'vertical', lineHeight:1.5, fontSize:13, direction:'rtl' }}
+                    />
+                    <div style={{ display:'flex', justifyContent:'flex-end', marginTop:6 }}>
+                      <button
+                        onClick={() => saveFeedback(pairKey, a, b)}
+                        disabled={!(feedbackText[pairKey]||'').trim()}
+                        style={{ padding:'7px 18px', borderRadius:th.rSm, border:'none', cursor:'pointer',
+                          background: feedbackSaved[pairKey] ? th.success : th.primary,
+                          color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:13,
+                          opacity: (feedbackText[pairKey]||'').trim() ? 1 : 0.4, transition:'background 0.3s' }}>
+                        {feedbackSaved[pairKey] ? '✓ נשמר' : 'שמור'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );
