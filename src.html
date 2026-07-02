@@ -2149,7 +2149,11 @@ function CandidateInviteRegister({ th, inviteToken }) {
       db.collection('invitations').doc(inviteToken).get(),
       db.collection('config').doc('texts').get(),
     ]).then(([invDoc, txDoc]) => {
-      if (invDoc.exists) setInvite(invDoc.data());
+      if (invDoc.exists) {
+        const invData = invDoc.data();
+        setInvite(invData);
+        if (invData.recipientName) setStep('welcome');
+      }
       if (txDoc.exists)  setCmsTexts(txDoc.data());
     }).catch(() => {});
   }, [inviteToken]);
@@ -2204,7 +2208,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
         </div>
         {invite && (
           <div style={{ marginTop:14, background:alpha(th.primary,0.08), border:`1.5px solid ${alpha(th.primary,0.22)}`, borderRadius:10, padding:'10px 16px', fontFamily:th.body, fontSize:13.5, color:th.ink, lineHeight:1.5 }}>
-            <b>{invite.mmName}</b> מזמין/ת אותך להצטרף כמועמד/ת
+            <b>{invite.mmName}</b> {isFemGender(invite.mmGender) ? t('invite_mm_invites_f') : t('invite_mm_invites_m')}
           </div>
         )}
         {invite && (
@@ -2216,6 +2220,33 @@ function CandidateInviteRegister({ th, inviteToken }) {
       </div>
 
       <div style={{ width:'100%', maxWidth:360 }}>
+        {step === 'welcome' && invite?.recipientName && (
+          <div style={{ display:'flex', flexDirection:'column', gap:14, animation:'sabaUp .3s ease', textAlign:'center' }}>
+            <div style={{ fontFamily:th.display, fontSize:24, fontWeight:900, color:th.ink, lineHeight:1.2 }}>
+              היי <span style={{ color:th.primary }}>{invite.recipientName}</span>! 👋
+            </div>
+            <div style={{ fontFamily:th.body, fontSize:14.5, color:alpha(th.ink,0.6), lineHeight:1.5 }}>
+              {t('invite_welcome_greeting')}
+            </div>
+            <Btn th={th} full size="l" onClick={() => {
+              const parts = (invite.recipientName || '').trim().split(' ');
+              setFirst(parts[0] || '');
+              setLast(parts.slice(1).join(' ') || '');
+              setStep('auth');
+            }}>
+              {t('invite_btn_register')}
+            </Btn>
+            <div style={{ marginTop:2 }}>
+              <button onClick={() => { setFirst(''); setLast(''); setStep('name'); }} style={{ border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontWeight:600, fontSize:14, color:alpha(th.ink,0.5), textDecoration:'underline', padding:'6px 8px' }}>
+                {t('invite_btn_wrong')}
+              </button>
+              <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.4), marginTop:3 }}>
+                {t('invite_wrong_hint')}
+              </div>
+            </div>
+          </div>
+        )}
+
         {step === 'name' && (
           <div style={{ display:'flex', flexDirection:'column', gap:12, animation:'sabaUp .3s ease' }}>
             <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:4 }}>{t('invite_name_title')}</div>
@@ -4277,6 +4308,12 @@ const TEXT_KEYS = {
   invite_name_title: 'הזמנה — שאלת שם',
   invite_what_next_mm:   'הזמנה — מה קורה אחרי (שדכן ממלא)',
   invite_what_next_self: 'הזמנה — מה קורה אחרי (מועמד ממלא)',
+  invite_welcome_greeting: 'הזמנה — ברכת פנים',
+  invite_btn_register:     'הזמנה — כפתור: הרשמה',
+  invite_btn_wrong:        'הזמנה — כפתור: זה לא אני',
+  invite_wrong_hint:       'הזמנה — הערת טעות בנמען',
+  invite_mm_invites_m:     'הזמנה — פעולת שדכן (זכר)',
+  invite_mm_invites_f:     'הזמנה — פעולת שדכנית (נקבה)',
   add_sheet_title:    'הוספת מועמד — כותרת',
   add_sheet_sub1:     'הוספת מועמד — תיאור שורה 1',
   add_sheet_sub2:     'הוספת מועמד — תיאור שורה 2',
@@ -4627,6 +4664,12 @@ const DEFAULT_TEXTS = {
   invite_name_title: 'מה שמך?',
   invite_what_next_mm:   'השדכן/ית ימלא/תמלא את הפרטים שלך ויצור/תיצור עבורך כרטיסייה.',
   invite_what_next_self: 'תתבקש/י למלא את הפרטים שלך ולהעלות תמונות. השדכן/ית יאשר/תאשר לפני פרסום.',
+  invite_welcome_greeting: 'שמחים שהגעת — קיבלת הזמנה אישית להצטרף.',
+  invite_btn_register:     'אשמח להירשם ←',
+  invite_btn_wrong:        'זה לא אני',
+  invite_wrong_hint:       'כנראה קיבלתי את הקישור הזה בטעות',
+  invite_mm_invites_m:     'מזמין אותך להצטרף כמועמד/ת',
+  invite_mm_invites_f:     'מזמינה אותך להצטרף כמועמד/ת',
   add_sheet_title:     'הוספת מועמד/ת',
   add_sheet_sub1:      'בחרו כיצד תרצו להוסיף את המועמד/ת',
   add_sheet_sub2:      'ייצוג מועמד/ת חדש/ת בנוסף לשדיכון/ית שלו/ה',
@@ -4910,7 +4953,7 @@ const SCREEN_TEXTS = {
   candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
   ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn','ai_load_more_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','invite_land_error','invite_land_accepted_title','invite_land_section_after','invite_land_btn_accept','invite_land_btn_self_fill'],
-  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests','selfform_mm_can_fill','selfform_header_title','selfform_label_phone','selfform_label_birthdate','selfform_label_height','selfform_label_gender','selfform_label_region','selfform_label_religion','selfform_label_family','selfform_label_kids','selfform_kids_count_suffix','selfform_photos_hint','selfform_photos_required','selfform_photos_count','selfform_photos_upload_title','selfform_photos_upload_body','selfform_photos_btn','selfform_photos_primary','selfform_photos_set_primary','selfform_photos_add_more','selfform_photos_tap_hint','selfform_saba_label','selfform_saba_desc','selfform_saba_example','selfform_label_oneline','selfform_label_seeking','selfform_label_interests','selfform_label_partner','selfform_btn_back','selfform_btn_next','selfform_btn_submit','cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body'],
+  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','invite_welcome_greeting','invite_btn_register','invite_btn_wrong','invite_wrong_hint','invite_mm_invites_m','invite_mm_invites_f','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests','selfform_mm_can_fill','selfform_header_title','selfform_label_phone','selfform_label_birthdate','selfform_label_height','selfform_label_gender','selfform_label_region','selfform_label_religion','selfform_label_family','selfform_label_kids','selfform_kids_count_suffix','selfform_photos_hint','selfform_photos_required','selfform_photos_count','selfform_photos_upload_title','selfform_photos_upload_body','selfform_photos_btn','selfform_photos_primary','selfform_photos_set_primary','selfform_photos_add_more','selfform_photos_tap_hint','selfform_saba_label','selfform_saba_desc','selfform_saba_example','selfform_label_oneline','selfform_label_seeking','selfform_label_interests','selfform_label_partner','selfform_btn_back','selfform_btn_next','selfform_btn_submit','cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
   inviteFlow:    ['invite_flow_title','invite_flow_who','invite_flow_who_hint','invite_flow_first_label','invite_flow_last_label','invite_flow_btn','invite_flow_ready','invite_flow_copy','invite_flow_copied','invite_flow_wa_btn','invite_flow_close'],
   invitationsSheet: ['inv_tab_review','inv_tab_fill','inv_tab_active','inv_corep_section','inv_approve_btn','inv_decline_btn','inv_clear_filter','inv_loading','inv_status_fill','inv_status_replied','inv_status_filled','inv_action_fill','inv_action_review','inv_action_view','inv_refresh_btn'],
