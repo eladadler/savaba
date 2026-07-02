@@ -4290,6 +4290,17 @@ const TEXT_KEYS = {
   cand_done_wa_btn:         'מועמד/ת — מסך סיום: כפתור ווצאפ ({שם_שדכן})',
   cand_done_nudge_title:    'מועמד/ת — מסך סיום: כרטיס — כותרת',
   cand_done_nudge_body:     'מועמד/ת — מסך סיום: כרטיס — גוף ({שם_שדכן})',
+  invite_flow_title:      'מודאל הזמנה: כותרת',
+  invite_flow_who:        'מודאל הזמנה: שאלת נמען',
+  invite_flow_who_hint:   'מודאל הזמנה: הערת נמען',
+  invite_flow_first_label:'מודאל הזמנה: תווית שם פרטי',
+  invite_flow_last_label: 'מודאל הזמנה: תווית שם משפחה',
+  invite_flow_btn:        'מודאל הזמנה: כפתור יצירה',
+  invite_flow_ready:      'מודאל הזמנה: קישור מוכן',
+  invite_flow_copy:       'מודאל הזמנה: כפתור העתקה',
+  invite_flow_copied:     'מודאל הזמנה: הועתק',
+  invite_flow_wa_btn:     'מודאל הזמנה: כפתור ווצאפ ({שם})',
+  invite_flow_close:      'מודאל הזמנה: סגור',
   wa_invite:           'ווצאפ — הזמנת מועמד/ת',
   wa_cand_offer:       'ווצאפ — שליחת הצעה למועמד/ת',
   wa_mm_contact:       'ווצאפ — פנייה לשדכן/ית השני',
@@ -4507,6 +4518,17 @@ const DEFAULT_TEXTS = {
   cand_done_wa_btn:         'לחצו כדי לעדכן את השדכן שסיימתם',
   cand_done_nudge_title:    'מזל טוב!',
   cand_done_nudge_body:     'אחרי האישור השדכנים שלכם יכולים להתחיל לחפש לכם הצעות מעולות ובדוקות!',
+  invite_flow_title:      'הזמנת מועמד/ת',
+  invite_flow_who:        'למי שולחים את ההזמנה?',
+  invite_flow_who_hint:   'זה ישמש למעקב אחרי ההזמנה',
+  invite_flow_first_label:'שם פרטי',
+  invite_flow_last_label: 'שם משפחה',
+  invite_flow_btn:        'צור קישור הזמנה ←',
+  invite_flow_ready:      '✓ קישור מוכן לשליחה!',
+  invite_flow_copy:       'העתק קישור',
+  invite_flow_copied:     '✓ הועתק!',
+  invite_flow_wa_btn:     'שלח/י ב-WhatsApp ל{שם}',
+  invite_flow_close:      'סגור',
   wa_cand_done:        'היי {שם_שדכן}! 🎉 {שם} {פעל} את ההרשמה ומחכה לאישורך באפליקציה — אפשר לאשר עכשיו 😊',
   wa_invite:           'היי {שם} 👋\n\n{שם_שדכן} מזמין/ת אותך להצטרף לאפליקציית השידוכים *סבבה והכל* 💝\n\nתוך כמה דקות תוכל/י למלא את הפרטים שלך — ונתחיל לעבוד בשבילך 🙏\n\n👇 לחץ/י כאן להרשמה:\n{קישור}',
   wa_cand_offer:       'שלום {שם}! שלחתי לך הצעה לשידוך עם {שם_שני} 😊 הכרטיסיה: {קישור}',
@@ -4610,6 +4632,7 @@ const SCREEN_TEXTS = {
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests','cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
+  inviteFlow:    ['invite_flow_title','invite_flow_who','invite_flow_who_hint','invite_flow_first_label','invite_flow_last_label','invite_flow_btn','invite_flow_ready','invite_flow_copy','invite_flow_copied','invite_flow_wa_btn','invite_flow_close'],
   editCand:      ['review_banner_title','review_banner_body','review_banner_empty_suffix','review_approve_btn','form_step_basic','form_step_photos','form_step_voice','form_step_personality','form_step_interests','form_step_mmnote','form_step_extra'],
   candidateMode: [
     'cand_available','cand_available_sub','cand_busy','cand_busy_sub',
@@ -5794,6 +5817,7 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
 // ════════════════════════════════════════════════════════════
 function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
   const { texts: txCtx } = useContext(TextsCtx);
+  const { t } = useTexts();
   const [step, setStep]         = useState(1); // 1=name, 2=link
   const [recipFirst, setFirst]  = useState('');
   const [recipLast,  setLast]   = useState('');
@@ -5823,29 +5847,31 @@ function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
     fillWa(txCtx, 'wa_invite', { שם: recipFirst.trim(), שם_שדכן: mmName, קישור: inviteURL(token) })
   );
 
+  const INVITE_FLOW_KEYS = ['invite_flow_title','invite_flow_who','invite_flow_who_hint','invite_flow_first_label','invite_flow_last_label','invite_flow_btn','invite_flow_ready','invite_flow_copy','invite_flow_copied','invite_flow_wa_btn','invite_flow_close'];
+
   return (
-    <Sheet open={open} onClose={() => { onClose(); reset(); }} th={th} title="הזמנת מועמד/ת">
+    <Sheet open={open} onClose={() => { onClose(); reset(); }} th={th} title={t('invite_flow_title')} inlineEditKeys={INVITE_FLOW_KEYS}>
       {/* ── Step 1: recipient name ── */}
       {step === 1 && (
         <>
           <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginBottom: 16 }}>
-            למי שולחים את ההזמנה?<br/>
-            <span style={{ fontSize: 12, color: alpha(th.ink, 0.4) }}>זה ישמש למעקב אחרי ההזמנה</span>
+            {t('invite_flow_who')}<br/>
+            <span style={{ fontSize: 12, color: alpha(th.ink, 0.4) }}>{t('invite_flow_who_hint')}</span>
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>שם פרטי</div>
+              <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>{t('invite_flow_first_label')}</div>
               <input value={recipFirst} onChange={e => setFirst(e.target.value)} placeholder="ישראל"
                 style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: 15, background: th.card, color: th.ink, outline: 'none' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>שם משפחה</div>
+              <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>{t('invite_flow_last_label')}</div>
               <input value={recipLast} onChange={e => setLast(e.target.value)} placeholder="כהן"
                 style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: 15, background: th.card, color: th.ink, outline: 'none' }} />
             </div>
           </div>
           <Btn th={th} full disabled={!recipFirst.trim() || !recipLast.trim() || creating} onClick={generate}>
-            {creating ? 'יוצר קישור…' : 'צור קישור הזמנה ←'}
+            {creating ? 'יוצר קישור…' : t('invite_flow_btn')}
           </Btn>
         </>
       )}
@@ -5854,17 +5880,17 @@ function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
       {step === 2 && (
         <>
           <div style={{ background: alpha(th.success, 0.1), border: `1.5px solid ${alpha(th.success, 0.25)}`, borderRadius: th.r, padding: 14, marginBottom: 16, textAlign: 'center' }}>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.success, marginBottom: 4 }}>✓ קישור מוכן לשליחה!</div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.success, marginBottom: 4 }}>{t('invite_flow_ready')}</div>
             <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: 15, color: th.ink, marginBottom: 2 }}>{recipientName}</div>
             <div style={{ fontFamily: 'monospace', fontSize: 10, color: alpha(th.ink, 0.4), wordBreak: 'break-all' }}>{inviteURL(token)}</div>
           </div>
           <Btn th={th} full onClick={copyLink} icon={<Icon name="link" size={18} />} style={{ marginBottom: 10 }}>
-            {copied ? '✓ הועתק!' : 'העתק קישור'}
+            {copied ? t('invite_flow_copied') : t('invite_flow_copy')}
           </Btn>
           <a href={`https://wa.me/?text=${waText}`} target="_blank" rel="noreferrer" style={{ display: 'block', textDecoration: 'none', marginBottom: 10 }}>
-            <Btn th={th} full variant="ghost"><Icon name="whatsapp" size={18} /> שלח/י ב-WhatsApp ל{recipFirst.trim()}</Btn>
+            <Btn th={th} full variant="ghost"><Icon name="whatsapp" size={18} /> {fillWa(txCtx, 'invite_flow_wa_btn', { שם: recipFirst.trim() })}</Btn>
           </a>
-          <Btn th={th} full variant="ghost" onClick={() => { onClose(); reset(); }}>סגור</Btn>
+          <Btn th={th} full variant="ghost" onClick={() => { onClose(); reset(); }}>{t('invite_flow_close')}</Btn>
         </>
       )}
     </Sheet>
