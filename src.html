@@ -3809,6 +3809,37 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   );
 }
 
+function EmptyHighlight({ isEmpty, reviewMode, th, children }) {
+  return !reviewMode || !isEmpty ? children : (
+    <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.primary, 0.45)}`, background: alpha(th.primary, 0.04), padding: 10, position: 'relative' }}>
+      <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary, marginBottom: 6 }}>
+        כדאי למלא — יחזק את הכרטיסייה
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function FormStepDots({ steps, step, setStep, th }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 18 }}>
+      {steps.map((s, i) => (
+        <div key={i} onClick={() => i < step && setStep(i)} style={{ width: i === step ? 22 : 8, height: 8, borderRadius: 999, background: i === step ? th.primary : i < step ? alpha(th.primary, 0.4) : alpha(th.ink, 0.15), cursor: i < step ? 'pointer' : 'default', transition: 'all 0.2s' }} />
+      ))}
+    </div>
+  );
+}
+
+function SelfStepDots({ steps, step, th }) {
+  return (
+    <div style={{ display:'flex', justifyContent:'center', gap:6, marginBottom:18 }}>
+      {steps.map((_, i) => (
+        <div key={i} style={{ width: i === step ? 22 : 8, height:8, borderRadius:999, background: i === step ? th.primary : i < step ? alpha(th.primary,0.4) : alpha(th.ink,0.15), transition:'all 0.2s' }} />
+      ))}
+    </div>
+  );
+}
+
 function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice, reviewMode, showMmNote, onApprove, onSaveStep }) {
   const { lists } = useContext(DataCtx);
   const { t: _t, texts: _tx, defaults: _dx } = useTexts();
@@ -3883,15 +3914,6 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
     'פרטים נוספים':  'form_step_extra',
   };
 
-  const EmptyHighlight = ({ isEmpty, children }) => !reviewMode || !isEmpty ? children : (
-    <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.primary, 0.45)}`, background: alpha(th.primary, 0.04), padding: 10, position: 'relative' }}>
-      <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary, marginBottom: 6 }}>
-        כדאי למלא — יחזק את הכרטיסייה
-      </div>
-      {children}
-    </div>
-  );
-
   const isLast = step === steps.length - 1;
   const stepName = steps[step];
 
@@ -3906,20 +3928,13 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   const removePhoto = (i) => setPhotos(p => p.filter((_, j) => j !== i));
   const setPrimaryPhoto = (i) => setPhotos(p => { const a = [...p]; [a[0], a[i]] = [a[i], a[0]]; return a; });
 
-  const StepDots = () => (
-    <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 18 }}>
-      {steps.map((s, i) => (
-        <div key={i} onClick={() => i < step && setStep(i)} style={{ width: i === step ? 22 : 8, height: 8, borderRadius: 999, background: i === step ? th.primary : i < step ? alpha(th.primary, 0.4) : alpha(th.ink, 0.15), cursor: i < step ? 'pointer' : 'default', transition: 'all 0.2s' }} />
-      ))}
-    </div>
-  );
 
   return (
     <div style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 16, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
       <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 10, textAlign: 'center' }}>
         {_t(STEP_TITLE_KEYS[stepName])}
       </div>
-      <StepDots />
+      <FormStepDots steps={steps} step={step} setStep={setStep} th={th} />
 
       {stepName === 'פרטים בסיסיים' && (
         <>
@@ -4073,7 +4088,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
 
       {stepName === 'אישיות' && (
         <>
-          <EmptyHighlight isEmpty={!f.sabaBut}>
+          <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!f.sabaBut}>
             <Field th={th} label="(אני) סבבה והכל אבל..."
               desc="מכירים את המשחק? בעולם בו אתם מושלמים, ספרו על צד פחות זוהר שלכם בצורה הומוריסטית"
               hint={<div style={{ display:'flex', flexDirection:'column', gap:3 }}>
@@ -4083,10 +4098,10 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
               <TextArea th={th} value={f.sabaBut} onChange={set('sabaBut')} placeholder='משהו אמיתי ומצחיק שמאפיין אותו/ה…' rows={2} />
             </Field>
           </EmptyHighlight>
-          <EmptyHighlight isEmpty={!f.oneLine}>
+          <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!f.oneLine}>
             <Field th={th} label="במשפט אחד"><TextInput th={th} value={f.oneLine} onChange={set('oneLine')} placeholder='הגדרה קצרה של האדם…' /></Field>
           </EmptyHighlight>
-          <EmptyHighlight isEmpty={!f.seesWith}>
+          <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!f.seesWith}>
             <Field th={th} label="רואה את עצמו/ה עם">
               <TextArea th={th} value={f.seesWith} onChange={set('seesWith')} placeholder='תאר/י את הזוגיות שהוא/היא מדמיין/ת לעצמו/ה…' rows={3} />
             </Field>
@@ -4096,12 +4111,12 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
 
       {stepName === 'תחומי עניין' && (
         <>
-          <EmptyHighlight isEmpty={!(f.interests?.length)}>
+          <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!(f.interests?.length)}>
             <Field th={th} label="קצת עלי">
               <CategorizedMultiChips th={th} value={f.interests} onChange={v => setF(s => ({...s, interests: v}))} categories={liveInterestCategories} tone={th.primary} />
             </Field>
           </EmptyHighlight>
-          <EmptyHighlight isEmpty={!(f.partner?.length)}>
+          <EmptyHighlight th={th} reviewMode={reviewMode} isEmpty={!(f.partner?.length)}>
             <Field th={th} label="חשוב בפרטנר">
               <CategorizedMultiChips th={th} value={f.partner} onChange={v => setF(s => ({...s, partner: v}))} categories={livePartnerCategories} tone={th.gold} />
             </Field>
@@ -6280,13 +6295,6 @@ function CandidateSelfFill({ th, go, params }) {
   const stepTitleKeys = ['selfform_step_basic', 'selfform_step_photos', 'selfform_step_about', 'selfform_step_interests'];
   const isLast = step === steps.length - 1;
 
-  const SelfStepDots = () => (
-    <div style={{ display:'flex', justifyContent:'center', gap:6, marginBottom:18 }}>
-      {steps.map((_, i) => (
-        <div key={i} style={{ width: i === step ? 22 : 8, height:8, borderRadius:999, background: i === step ? th.primary : i < step ? alpha(th.primary,0.4) : alpha(th.ink,0.15), transition:'all 0.2s' }} />
-      ))}
-    </div>
-  );
 
   if (done) {
     const mmWaPhone = invite.mmPhone ? String(invite.mmPhone).replace(/\D/g,'').replace(/^0/,'972') : '';
@@ -6331,7 +6339,7 @@ function CandidateSelfFill({ th, go, params }) {
       <AppHeader th={th} title={t('selfform_header_title')} sub={`עבור ${invite.mmName}`} />
       <div style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, marginBottom:10, textAlign:'center' }}>{t(stepTitleKeys[step])}</div>
-        <SelfStepDots />
+        <SelfStepDots steps={steps} step={step} th={th} />
 
         {step === 0 && (
           <>
