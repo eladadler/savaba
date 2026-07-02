@@ -4476,6 +4476,8 @@ const TEXT_KEYS = {
   filters_btn_clear:         'פילטרים — כפתור: נקה',
   filters_btn_apply:         'פילטרים — כפתור: הצג תוצאות',
   cands_filter_neglected:    'מועמדים — פילטר: ללא יחס',
+  cands_linkmode_title:      'מועמדים — באנר ייצוג: כותרת',
+  cands_linkmode_body:       'מועמדים — באנר ייצוג: גוף',
   // Candidate card badges
   cands_available_f:         'כרטיס מועמד — פנויה',
   cands_available_m:         'כרטיס מועמד — פנוי',
@@ -4732,6 +4734,8 @@ const DEFAULT_TEXTS = {
   filters_btn_clear:        'נקה',
   filters_btn_apply:        'הצג תוצאות',
   cands_filter_neglected:   'מציג מועמדים ללא יחס 7+ ימים',
+  cands_linkmode_title:     '🤝 הוסף מועמד/ת לייצוג שלך',
+  cands_linkmode_body:      'בחר/י מועמד/ת — לאחר הוספה יופיע/תופיע גם ברשימת ״שלי״ ותוכל/י להציע אותו/ה לשידוכים',
   // Candidate card badges
   cands_available_f:        'פנויה',
   cands_available_m:        'פנוי',
@@ -4894,7 +4898,7 @@ const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
   register:      ['register_title','register_sub','register_field_firstname','register_field_lastname','register_field_gender','register_field_phone','register_phone_hint','register_btn_next','register_photo_title','register_photo_why_title','register_photo_why_body','register_btn_upload','register_btn_change','register_btn_save','register_btn_skip','register_photo_hint'],
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss'],
-  cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
+  cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_linkmode_title','cands_linkmode_body','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
   filtersSheet:  ['filters_title','filters_gender_label','filters_gender_f','filters_gender_m','filters_btn_clear','filters_btn_apply'],
   candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
   ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn','ai_load_more_btn'],
@@ -5893,8 +5897,8 @@ function Candidates({ th, go, params }) {
         {/* linkMode banner */}
         {linkMode && (
           <div style={{ background:alpha(th.primary,0.07), border:`1.5px solid ${alpha(th.primary,0.2)}`, borderRadius:th.r, padding:'12px 14px', marginBottom:12 }}>
-            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:4 }}>🤝 הוסף מועמד/ת לייצוג שלך</div>
-            <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6) }}>בחר/י מועמד/ת — לאחר הוספה יופיע/תופיע גם ברשימת ״שלי״ ותוכל/י להציע אותו/ה לשידוכים</div>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink, marginBottom:4 }}>{t('cands_linkmode_title')}</div>
+            <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.6) }}>{t('cands_linkmode_body')}</div>
           </div>
         )}
 
