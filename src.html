@@ -7665,7 +7665,8 @@ function MatchFlow({ th, go, params }) {
             : (() => {
                 const bMm = matchmakers?.[candB.mmId];
                 const bMmName = bMm?.displayName || bMm?.name || null;
-                return <>שלחנו את ההצעה ל{bMmName ? <strong>{bMmName}</strong> : 'שדכן/ית'}, שדכן/ית של {candB.name}. ברגע שתתקבל — {candA.name} יעודכן/תעודכן.</>;
+                const bMmTitle = isFemGender(bMm?.gender) ? 'שדכנית' : (bMm?.gender ? 'שדכן' : 'שדכן/ית');
+                return <>שלחנו את ההצעה ל{bMmName ? <><strong>{bMmName}</strong>, {bMmTitle}</> : bMmTitle} של {candB.name}.</>;
               })()
           }
         </p>
