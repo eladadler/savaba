@@ -4258,6 +4258,7 @@ const TEXT_KEYS = {
   selfform_step_photos:    'טופס הרשמה עצמית — כותרת שלב: תמונות',
   selfform_step_about:     'טופס הרשמה עצמית — כותרת שלב: קצת עלייך',
   selfform_step_interests: 'טופס הרשמה עצמית — כותרת שלב: קצת עלי',
+  selfform_mm_can_fill:    'טופס הרשמה עצמית — הערה: השדכן/ית ישלים',
   ai_info_text:        'AI — טקסט הסבר',
   ai_title:            'AI — כותרת מסך',
   ai_sub:              'AI — כותרת משנה',
@@ -4607,6 +4608,7 @@ const DEFAULT_TEXTS = {
   selfform_step_photos:    'תמונות',
   selfform_step_about:     'קצת עלייך',
   selfform_step_interests: 'קצת עלי',
+  selfform_mm_can_fill:    'לא חייב/ת למלא הכל עכשיו — אם אין לך חשק לחלק מהשאלות, השאר/י ריק. השדכן/ית שלך ישלים/תשלים בהמשך.',
   ai_info_text:        'ה-AI מנתח תחומי עניין, קרבה לדת, אזור ומה חשוב בפרטנר. אתם מחליטים — הוא רק מציע.',
   ai_title:            'המלצות AI',
   ai_sub:              'ניתוח חכם של זיווגים פוטנציאליים',
@@ -4908,7 +4910,7 @@ const SCREEN_TEXTS = {
   candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
   ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn','ai_load_more_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','invite_land_error','invite_land_accepted_title','invite_land_section_after','invite_land_btn_accept','invite_land_btn_self_fill'],
-  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests','selfform_header_title','selfform_label_phone','selfform_label_birthdate','selfform_label_height','selfform_label_gender','selfform_label_region','selfform_label_religion','selfform_label_family','selfform_label_kids','selfform_kids_count_suffix','selfform_photos_hint','selfform_photos_required','selfform_photos_count','selfform_photos_upload_title','selfform_photos_upload_body','selfform_photos_btn','selfform_photos_primary','selfform_photos_set_primary','selfform_photos_add_more','selfform_photos_tap_hint','selfform_saba_label','selfform_saba_desc','selfform_saba_example','selfform_label_oneline','selfform_label_seeking','selfform_label_interests','selfform_label_partner','selfform_btn_back','selfform_btn_next','selfform_btn_submit','cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body'],
+  candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests','selfform_mm_can_fill','selfform_header_title','selfform_label_phone','selfform_label_birthdate','selfform_label_height','selfform_label_gender','selfform_label_region','selfform_label_religion','selfform_label_family','selfform_label_kids','selfform_kids_count_suffix','selfform_photos_hint','selfform_photos_required','selfform_photos_count','selfform_photos_upload_title','selfform_photos_upload_body','selfform_photos_btn','selfform_photos_primary','selfform_photos_set_primary','selfform_photos_add_more','selfform_photos_tap_hint','selfform_saba_label','selfform_saba_desc','selfform_saba_example','selfform_label_oneline','selfform_label_seeking','selfform_label_interests','selfform_label_partner','selfform_btn_back','selfform_btn_next','selfform_btn_submit','cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body'],
   addSheet:      ['add_sheet_title','add_sheet_sub1','add_sheet_sub2','add_sheet_new_title','add_sheet_new_sub','add_sheet_rep_title','add_sheet_rep_sub'],
   inviteFlow:    ['invite_flow_title','invite_flow_who','invite_flow_who_hint','invite_flow_first_label','invite_flow_last_label','invite_flow_btn','invite_flow_ready','invite_flow_copy','invite_flow_copied','invite_flow_wa_btn','invite_flow_close'],
   invitationsSheet: ['inv_tab_review','inv_tab_fill','inv_tab_active','inv_corep_section','inv_approve_btn','inv_decline_btn','inv_clear_filter','inv_loading','inv_status_fill','inv_status_replied','inv_status_filled','inv_action_fill','inv_action_review','inv_action_view','inv_refresh_btn'],
@@ -5971,10 +5973,6 @@ function Candidates({ th, go, params }) {
         )}
       </div>
 
-      {/* FAB */}
-      <button onClick={() => setAddOpen(true)} style={{ position: 'absolute', bottom: 102, left: 20, zIndex: 30, width: 58, height: 58, borderRadius: '50%', border: 'none', background: th.primary, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 12px 28px ${alpha(th.primary, 0.45)}` }}>
-        <Icon name="plus" size={28} />
-      </button>
 
       <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} filters={filters} setFilters={setFilters} />
       <AddSheet open={addOpen} onClose={() => setAddOpen(false)} th={th} go={go} />
@@ -6404,6 +6402,11 @@ function CandidateSelfFill({ th, go, params }) {
       <div ref={selfScrollRef} style={{ flex:1, overflowY:'auto', padding:'10px 18px 40px' }}>
         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, marginBottom:10, textAlign:'center' }}>{t(stepTitleKeys[step])}</div>
         <SelfStepDots steps={steps} step={step} th={th} />
+
+        <div style={{ background:alpha(th.gold,0.1), border:`1px solid ${alpha(th.gold,0.25)}`, borderRadius:th.rSm, padding:'8px 12px', marginBottom:14, display:'flex', alignItems:'flex-start', gap:8 }}>
+          <span style={{ fontSize:15, flexShrink:0 }}>💡</span>
+          <span style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.65), lineHeight:1.45 }}>{t('selfform_mm_can_fill')}</span>
+        </div>
 
         {step === 0 && (
           <>
