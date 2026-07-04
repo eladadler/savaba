@@ -9323,6 +9323,7 @@ function CandBrowse({ th, go, me }) {
 function CandViewCand({ th, go, params }) {
   const { candidates, matchmakers } = useContext(DataCtx);
   const { user, isImpersonating, profile } = useContext(AuthCtx);
+  const { texts: txCtx } = useTexts();
 
   const c = candidates.find(x => x.id === params?.id);
   const me = candidates.find(x => x.candidateUid === user?.uid)
