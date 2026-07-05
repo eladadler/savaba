@@ -8365,7 +8365,7 @@ function Offers({ th, go, params }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 18px 10px', flexShrink: 0 }}>
         <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>↕ {t('offers_sort_label')}</span>
         <div style={{ display: 'flex', background: alpha(th.ink, 0.06), borderRadius: 999, padding: 3, gap: 2 }}>
-          {[{ id: 'newest', lbl: t('offers_sort_newest') }, { id: 'oldest', lbl: t('offers_sort_oldest') }, ...(tab === 'pending' ? [{ id: 'myAction', lbl: t('offers_sort_mine') }] : []), { id: 'hasUnread', lbl: t('offers_sort_chat') }].map(({ id, lbl }) => (
+          {[{ id: 'newest', lbl: t('offers_sort_newest') }, { id: 'oldest', lbl: t('offers_sort_oldest') }].map(({ id, lbl }) => (
             <button key={id} onClick={() => setSortBy(id)}
               style={{ border: 'none', cursor: 'pointer', borderRadius: 999, padding: '4px 11px',
                 fontFamily: th.body, fontWeight: 700, fontSize: 12,
