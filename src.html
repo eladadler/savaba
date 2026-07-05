@@ -4361,6 +4361,8 @@ const TEXT_KEYS = {
   cand_settings_delete:     'מועמד/ת — הגדרות: מחיקת פרופיל',
   cand_settings_delete_sub: 'מועמד/ת — הגדרות: מחיקת פרופיל (תיאור)',
   cand_footer:              'מועמד/ת — כיתוב גרסה',
+  cand_married_title:       'מועמד/ת — מסך נישואין: כותרת',
+  cand_married_body:        'מועמד/ת — מסך נישואין: גוף',
   cand_done_title:          'מועמד/ת — מסך סיום: כותרת',
   cand_done_body:           'מועמד/ת — מסך סיום: גוף ({שם_שדכן})',
   cand_done_wa_btn:         'מועמד/ת — מסך סיום: כפתור ווצאפ ({שם_שדכן})',
@@ -4717,6 +4719,8 @@ const DEFAULT_TEXTS = {
   cand_settings_delete:     'מחיקת פרופיל',
   cand_settings_delete_sub: 'הסרת הכרטיסייה שלך מהמערכת',
   cand_footer:              'גרסה 1.0 · סבבה, והכל אבל…',
+  cand_married_title:       'מזל טוב וברכות!',
+  cand_married_body:        'שיהיה בנין עדי עד 💐\nהפרופיל שלך הוסתר מהמערכת.',
   cand_done_title:          'הפרטים נשלחו!',
   cand_done_body:           '{שם_שדכן} יקבל/ת הודעה ויעיין/תעיין בפרטים שלך. לאחר האישור תהיה/י רשמית במערכת.',
   cand_done_wa_btn:         'לחצו כדי לעדכן את השדכן שסיימתם',
@@ -4971,6 +4975,7 @@ const SCREEN_TEXTS = {
     'cand_settings_mm','cand_settings_mm_sub',
     'cand_settings_engage','cand_settings_engage_sub',
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
+    'cand_married_title','cand_married_body',
   ],
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved'],
   matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn','match_no_mine_title','match_no_mine_sub','match_no_mine_btn','mf_step1_label','mf_step2_label','mf_step3_label','mf_s1_title_m','mf_s1_title_f','mf_s1_sub_m','mf_s1_sub_f','mf_s1_mine_m','mf_s1_mine_f','mf_s1_other_m','mf_s1_other_f','mf_s1_btn','mf_s2_title_m','mf_s2_title_f'],
@@ -9543,6 +9548,21 @@ function CandidateMode({ th, go }) {
           אם אתה/את גם שדכן/ית — ייתכן שאין לך עדיין כרטיסייה.
         </div>
         <Btn th={th} variant="ghost" onClick={() => go('home')}>חזרה למצב שדכן/ית</Btn>
+      </div>
+    );
+  }
+
+  // Permanent married screen — shown on every login when isEngaged
+  if (me.isEngaged) {
+    return (
+      <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:32, textAlign:'center', direction:'rtl' }}>
+        <div style={{ fontSize:80 }}>🥂</div>
+        <div style={{ fontFamily:th.display, fontWeight:900, fontSize:28, color:th.primary, marginTop:20 }}>
+          {t('cand_married_title')}
+        </div>
+        <div style={{ fontFamily:th.body, fontSize:16, color:alpha(th.ink,0.65), marginTop:14, lineHeight:1.75, maxWidth:290, whiteSpace:'pre-line' }}>
+          {t('cand_married_body')}
+        </div>
       </div>
     );
   }
