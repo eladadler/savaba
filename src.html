@@ -11336,6 +11336,8 @@ function Stage({ children }) {
 // Settings screen (replaces screens-e Settings, adds admin link + signout)
 function AppSettings({ th, go, profile }) {
   const { user } = useContext(AuthCtx);
+  const { candidates } = useContext(DataCtx);
+  const myCandProfile = React.useMemo(() => (candidates||[]).find(c => c.candidateUid === user?.uid), [candidates, user?.uid]);
   const [editOpen, setEditOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
@@ -11387,9 +11389,26 @@ function AppSettings({ th, go, profile }) {
           </Group>
         )}
 
-        <Group>
-          <Row icon="users" label="מעבר למצב מועמד/ת" tone={th.primary} onClick={() => go('candidateMode')} last />
-        </Group>
+        <button disabled={!myCandProfile} onClick={() => myCandProfile && go('candidateMode')}
+          style={{ all:'unset', cursor: myCandProfile ? 'pointer' : 'default', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14,
+            background: myCandProfile ? `linear-gradient(135deg, ${alpha(th.primary,0.12)}, ${alpha(th.primary,0.05)})` : alpha(th.ink,0.04),
+            border:`1.5px solid ${myCandProfile ? alpha(th.primary,0.3) : alpha(th.ink,0.1)}`,
+            borderRadius:th.rLg, padding:'16px 18px', marginBottom:16,
+            boxShadow: myCandProfile ? `0 6px 22px ${alpha(th.primary,0.18)}` : 'none',
+            opacity: myCandProfile ? 1 : 0.6 }}>
+          <div style={{ width:50, height:50, borderRadius:14, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center',
+            background: myCandProfile ? `linear-gradient(135deg, ${th.primary}, ${alpha(th.primary,0.75)})` : alpha(th.ink,0.1),
+            boxShadow: myCandProfile ? `0 4px 14px ${alpha(th.primary,0.4)}` : 'none' }}>
+            <Icon name="users" size={24} style={{ color: myCandProfile ? '#fff' : alpha(th.ink,0.35) }} />
+          </div>
+          <div style={{ flex:1, textAlign:'right' }}>
+            <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color: myCandProfile ? th.primary : alpha(th.ink,0.4), lineHeight:1.2 }}>מעבר למצב מועמד/ת</div>
+            <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:3 }}>
+              {myCandProfile ? 'עבור/י לחשבון המועמד/ת שלך' : 'אין לך פרופיל מועמד/ת פעיל'}
+            </div>
+          </div>
+          {myCandProfile && <Icon name="chevL" size={20} style={{ color:th.primary, flexShrink:0 }} />}
+        </button>
         <Group>
           <Row icon="info" label="הצהרת נגישות" />
           <Row icon="lock" label="פרטיות ואבטחה" last />
@@ -11479,6 +11498,8 @@ function AppInner({ inviteToken, offerParam }) {
   const data           = useContext(DataCtx);
   const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
   const cur  = stack[stack.length - 1];
+  const [showModeModal, setShowModeModal] = React.useState(false);
+  const modeModalShownRef = React.useRef(false);
 
   // ── Edit mode (admin only) ──────────────────────────────────
   const [editMode, setEditMode]     = React.useState(false);
@@ -11548,6 +11569,20 @@ function AppInner({ inviteToken, offerParam }) {
       setStack([{ name: 'home', params: {} }]);
     }
   }, [profile]);
+
+  // Show mode-choice modal once per session for dual-role users (matchmaker + candidate)
+  React.useEffect(() => {
+    if (!profile?.profileComplete) return;
+    if (!user?.uid) return;
+    if (modeModalShownRef.current) return;
+    if (sessionStorage.getItem('modeChosen')) return;
+    if (!data.candidates?.length) return;
+    const myCandProfile = data.candidates.find(c => c.candidateUid === user.uid);
+    if (myCandProfile) {
+      modeModalShownRef.current = true;
+      setShowModeModal(true);
+    }
+  }, [profile, data.candidates, user]);
 
   // Patch static globals so existing screens work
   React.useEffect(() => {
@@ -11621,6 +11656,45 @@ function AppInner({ inviteToken, offerParam }) {
             </button>
           )}
 
+
+          {/* Mode-choice modal — shown once per session for dual-role users */}
+          {showModeModal && (
+            <div style={{ position:'absolute', inset:0, zIndex:950, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.52)', backdropFilter:'blur(4px)' }}>
+              <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'28px 24px 44px', width:'100%', boxShadow:`0 -12px 48px ${alpha(th.ink,0.22)}`, animation:'sabaUp .3s cubic-bezier(.2,.9,.3,1)' }}>
+                <div style={{ textAlign:'center', marginBottom:24 }}>
+                  <div style={{ fontSize:40, marginBottom:10 }}>👋</div>
+                  <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:th.ink, marginBottom:8 }}>ברוכ/ה השב/ה!</div>
+                  <div style={{ fontFamily:th.body, fontSize:14.5, color:alpha(th.ink,0.6), lineHeight:1.65 }}>
+                    את/ה רשום/ה גם כשדכן/ית וגם כמועמד/ת.<br/>כמי תרצה/י להיכנס עכשיו?
+                  </div>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                  <button onClick={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); }}
+                    style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:14, padding:'15px 18px', borderRadius:th.rLg, background:alpha(th.ink,0.05), border:`1.5px solid ${alpha(th.ink,0.13)}`, boxSizing:'border-box' }}>
+                    <div style={{ width:44, height:44, borderRadius:12, background:alpha(th.gold,0.15), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                      <Icon name="spark" size={22} style={{ color:th.gold }} />
+                    </div>
+                    <div style={{ flex:1, textAlign:'right' }}>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>כשדכן/ית</div>
+                      <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:2 }}>ניהול מועמדים והצעות</div>
+                    </div>
+                    <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3), flexShrink:0 }} />
+                  </button>
+                  <button onClick={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); setStack([{ name:'candidateMode', params:{} }]); }}
+                    style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:14, padding:'15px 18px', borderRadius:th.rLg, background:`linear-gradient(135deg, ${alpha(th.primary,0.1)}, ${alpha(th.primary,0.04)})`, border:`1.5px solid ${alpha(th.primary,0.3)}`, boxSizing:'border-box' }}>
+                    <div style={{ width:44, height:44, borderRadius:12, background:alpha(th.primary,0.15), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 4px 12px ${alpha(th.primary,0.3)}` }}>
+                      <Icon name="users" size={22} style={{ color:th.primary }} />
+                    </div>
+                    <div style={{ flex:1, textAlign:'right' }}>
+                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.primary }}>כמועמד/ת</div>
+                      <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:2 }}>צפייה בפרופיל ובהצעות שלי</div>
+                    </div>
+                    <Icon name="chevL" size={18} style={{ color:th.primary, flexShrink:0 }} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Edit mode Sheet */}
           <Sheet open={editMode} onClose={cancelEdit} th={th} title="עריכת טקסטים" height="82%">
