@@ -7308,10 +7308,10 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
         <Section label={t('card_oneline_label')} icon="user">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p>
         </Section>
+        <Section label={t('card_interests_label')} icon="spark"><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Section>
         <Section label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')} icon="heart">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
         </Section>
-        <Section label={t('card_interests_label')} icon="spark"><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Section>
         <Section label={t('card_partner_label')} icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></Section>
         {canSeeDiscrete && <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>}
       </div>
@@ -7352,9 +7352,6 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
         <Label>{t('card_oneline_label')}</Label>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p>
         <Rule />
-        <Label>{isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}</Label>
-        <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
-        <Rule />
         <Label>{t('card_interests_label')}</Label>
         {th.groupTagsByCategory ? (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -7372,6 +7369,9 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
             {c.interests.map((it, i) => <span key={it}>{it}{i < c.interests.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
           </div>
         )}
+        <Rule />
+        <Label>{isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}</Label>
+        <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
         <Rule />
         <Label>{t('card_partner_label')}</Label>
         <InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} />
@@ -7431,9 +7431,9 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
 
       <Block label={t('card_oneline_label')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
       <Hr />
-      <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p></Block>
-      <Hr />
       <Block label={t('card_interests_label')}><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Block>
+      <Hr />
+      <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p></Block>
       <Hr />
       <Block label={t('card_partner_label')}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></Block>
       <Hr />
