@@ -5254,6 +5254,20 @@ function Home({ th, go }) {
   const mine   = candidates.filter(c => !c.pendingApproval && c.status !== 'pending_mm' && (c.mmId === myUid || c.coMms?.includes(myUid)));
   const others = candidates.filter(c => !c.pendingApproval && c.status !== 'pending_mm' && c.mmId !== myUid && !c.coMms?.includes(myUid));
   const [candTab, setCandTab] = useS('others');
+  const [filterOpen, setFilterOpen] = useS(false);
+  const [filters, setFilters] = useS({ gender: '', rel: [], region: [], ageMin: 18, ageMax: 120, heightMin: 120, heightMax: 220, maritalStatus: [], hasChildren: '', childrenMin: 1 });
+  const activeFilters = (filters.gender ? 1 : 0) + filters.region.length + filters.rel.length + filters.maritalStatus.length + (filters.hasChildren ? 1 : 0);
+  const applyFilters = list => list.filter(c => {
+    if (filters.gender && (filters.gender === 'נשים' ? (c.gender !== 'f' && c.gender !== 'אשה') : (c.gender !== 'm' && c.gender !== 'גבר'))) return false;
+    if (filters.region.length && !filters.region.includes(c.region)) return false;
+    if (filters.rel.length && !filters.rel.includes(c.religiosity)) return false;
+    if (c.age && (c.age < filters.ageMin || c.age > filters.ageMax)) return false;
+    if (c.height && (c.height < filters.heightMin || c.height > filters.heightMax)) return false;
+    if (filters.maritalStatus.length && !filters.maritalStatus.includes(c.family)) return false;
+    if (filters.hasChildren === 'ללא ילדים' && (c.kids || 0) > 0) return false;
+    if (filters.hasChildren === 'עם ילדים' && (c.kids || 0) < filters.childrenMin) return false;
+    return true;
+  });
 
   // Pending-approval popup
   const pendingApprovalCands = React.useMemo(() =>
@@ -5572,7 +5586,11 @@ function Home({ th, go }) {
         </div>
 
         {/* CANDIDATES preview — tabbed */}
-        <div style={{ textAlign: 'right', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <button onClick={() => setFilterOpen(true)} style={{ position:'relative', border:'none', background: activeFilters > 0 ? alpha(th.primary, 0.1) : th.card, width:38, height:38, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color: activeFilters > 0 ? th.primary : th.ink, cursor:'pointer', flexShrink:0, boxShadow: activeFilters > 0 ? `0 0 0 1.5px ${alpha(th.primary,0.35)}, 0 2px 8px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.07)' }}>
+            <Icon name="filter" size={18} />
+            {activeFilters > 0 && <span style={{ position:'absolute', top:-3, left:-3, background:th.primary, color:'#fff', borderRadius:'50%', minWidth:16, height:16, fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 3px' }}>{activeFilters}</span>}
+          </button>
           <div style={{ display: 'inline-flex', gap: 4, background: alpha(th.ink, 0.07), borderRadius: 999, padding: 3 }}>
             {[{ id:'others', label:t('home_tab_others') }, { id:'mine', label:t('home_tab_mine') }].map(tab => (
               <button key={tab.id} onClick={() => setCandTab(tab.id)} style={{ border:'none', cursor:'pointer', borderRadius:999, padding:'5px 12px', fontFamily:th.body, fontWeight:700, fontSize:12.5, transition:'all 0.18s',
@@ -5585,7 +5603,7 @@ function Home({ th, go }) {
           </div>
         </div>
         {(() => {
-          const list = candTab === 'mine' ? mine : others;
+          const list = applyFilters(candTab === 'mine' ? mine : others);
           if (list.length === 0) return (
             <div style={{ textAlign:'center', padding:'24px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.4) }}>
               {candTab === 'mine' ? t('home_empty_mine') : t('home_empty_others')}
@@ -5663,6 +5681,7 @@ function Home({ th, go }) {
         cardStyle={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)', left: 'calc(50% - 136px)' }}
         arrowDir="down"
       />
+      <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} filters={filters} setFilters={setFilters} />
     </>
   );
 }
