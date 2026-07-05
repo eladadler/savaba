@@ -1023,8 +1023,13 @@ function getCmSeen() {
 function saveCmSeen(s) {
   try { localStorage.setItem(CM_SEEN_KEY, JSON.stringify([...s])); } catch {}
 }
+function saveCmSeenFirestore(s) {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+  db.collection('users').doc(uid).set({ cmSeen: [...s] }, { merge: true }).catch(() => {});
+}
 
-// mode: 'on' = once per user (localStorage) | 'dev' = every screen mount | 'off' = hidden
+// mode: 'on' = once per user (Firestore+localStorage) | 'dev' = every screen mount | 'off' = hidden
 function useCoachmark(id, mode, prereqId) {
   const [seenStorage, setSeenStorage] = useState(() => getCmSeen().has(id));
   const [seenMount,   setSeenMount]   = useState(false);
@@ -1042,6 +1047,7 @@ function useCoachmark(id, mode, prereqId) {
     if (mode !== 'dev') {
       const s = getCmSeen(); s.add(id); saveCmSeen(s); setSeenStorage(true);
       window.dispatchEvent(new Event('cm_updated'));
+      saveCmSeenFirestore(s);
     }
   }, [id, mode]);
   const visible = mode === 'off' ? false
@@ -6083,7 +6089,7 @@ function Candidates({ th, go, params }) {
         id="addCand" mode={th.cmAddCand} th={th}
         title="הוסף מועמד/ת"
         body="לחץ על כפתור ״הוסף״ בפינה השמאלית העליונה כדי להוסיף מועמד/ת חדש/ה."
-        spotStyle={{ top: 57, left: 66, width: 80, height: 38, borderRadius: 999 }}
+        spotStyle={{ top: 57, left: 60, width: 136, height: 38, borderRadius: 999 }}
         cardStyle={{ top: 115, left: 'calc(50% - 136px)' }}
         arrowDir="up"
       />
@@ -11570,6 +11576,23 @@ function AppInner({ inviteToken, offerParam }) {
     } catch(e) { alert('שגיאה בשמירה: ' + e.message); }
     setSavingTexts(false);
   };
+
+  // Sync coachmark dismissals from Firestore → localStorage so cache clears don't reset them
+  React.useEffect(() => {
+    const uid = user?.uid;
+    if (!uid) return;
+    db.collection('users').doc(uid).get().then(doc => {
+      if (!doc.exists) return;
+      const fsSeen = doc.data()?.cmSeen;
+      if (!Array.isArray(fsSeen) || !fsSeen.length) return;
+      const localSet = getCmSeen();
+      const merged = new Set([...localSet, ...fsSeen]);
+      if (merged.size > localSet.size) {
+        saveCmSeen(merged);
+        window.dispatchEvent(new Event('cm_updated'));
+      }
+    }).catch(() => {});
+  }, [user?.uid]);
 
   // Handle invite token: route to inviteLanding once profile is loaded
   React.useEffect(() => {
