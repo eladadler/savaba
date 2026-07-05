@@ -10718,8 +10718,11 @@ function OfferDetail({ th, go, params }) {
               </div>
               <span style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>{t('offer_my_cand_header')}</span>
             </div>
+            <div style={{ marginBottom:10 }}>{waRow(waCandHref,
+              inlineEditMode ? t('offer_send_card_title') : fillWa(txCtx, 'offer_send_card_title', { שם: theirCand.name.split(' ')[0] }),
+              inlineEditMode ? t('offer_send_card_sub')   : fillWa(txCtx, 'offer_send_card_sub',   { שם: theirCand.name }))}</div>
             {myCandApp ? (
-              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.success,0.08), border:`1.5px solid ${alpha(th.success,0.22)}`, marginBottom:10 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.success,0.08), border:`1.5px solid ${alpha(th.success,0.22)}` }}>
                 <div style={{ width:30, height:30, borderRadius:'50%', background:th.success, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <Icon name="check" size={14} style={{ color:'#fff' }} />
                 </div>
@@ -10732,7 +10735,7 @@ function OfferDetail({ th, go, params }) {
               <button disabled={approving} onClick={() => markApproved(myCandField, myCandNewOther)}
                 style={{ all:'unset', display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm,
                   background:alpha(th.primary,0.06), border:`1.5px dashed ${alpha(th.primary,0.4)}`,
-                  width:'100%', boxSizing:'border-box', cursor:approving?'default':'pointer', marginBottom:10,
+                  width:'100%', boxSizing:'border-box', cursor:approving?'default':'pointer',
                   opacity:approving?0.65:1, animation:approving?'none':'sabaChatBeat 2.5s ease-in-out infinite' }}>
                 <div style={{ width:30, height:30, borderRadius:'50%', border:`2px solid ${th.primary}`, background:alpha(th.primary,0.1), flexShrink:0 }} />
                 <div>
@@ -10741,9 +10744,6 @@ function OfferDetail({ th, go, params }) {
                 </div>
               </button>
             ) : null}
-            {waRow(waCandHref,
-              inlineEditMode ? t('offer_send_card_title') : fillWa(txCtx, 'offer_send_card_title', { שם: theirCand.name.split(' ')[0] }),
-              inlineEditMode ? t('offer_send_card_sub')   : fillWa(txCtx, 'offer_send_card_sub',   { שם: theirCand.name }))}
           </div>
 
           {/* Their candidate card */}
