@@ -3980,7 +3980,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
       setPhotos(p => [...p, ...urls]);
     } finally { setUploading(false); if (e.target) e.target.value = ''; }
   };
-  const removePhoto = (i) => setPhotos(p => p.filter((_, j) => j !== i));
+  const removePhoto = (i) => { if (window.confirm('למחוק את התמונה?')) setPhotos(p => p.filter((_, j) => j !== i)); };
   const setPrimaryPhoto = (i) => setPhotos(p => { const a = [...p]; [a[0], a[i]] = [a[i], a[0]]; return a; });
 
 
