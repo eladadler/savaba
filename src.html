@@ -4268,6 +4268,16 @@ const TEXT_KEYS = {
   home_waiting_empty:          'בית — פאנל: ריק (הכל מסודר)',
   home_empty_mine:        'בית — קרוסלה שלי: ריק',
   home_empty_others:      'בית — קרוסלה אחרים: ריק',
+  mode_modal_greeting_m:  'בית — מודאל בחירת מצב: כותרת גבר',
+  mode_modal_greeting_f:  'בית — מודאל בחירת מצב: כותרת אשה',
+  mode_modal_body_m:      'בית — מודאל בחירת מצב: גוף גבר',
+  mode_modal_body_f:      'בית — מודאל בחירת מצב: גוף אשה',
+  mode_modal_as_mm_m:     'בית — מודאל בחירת מצב: שדכן גבר',
+  mode_modal_as_mm_f:     'בית — מודאל בחירת מצב: שדכנית אשה',
+  mode_modal_as_cand_m:   'בית — מודאל בחירת מצב: מועמד גבר',
+  mode_modal_as_cand_f:   'בית — מודאל בחירת מצב: מועמדת אשה',
+  mode_modal_mm_sub:      'בית — מודאל בחירת מצב: תיאור שדכן/ית',
+  mode_modal_cand_sub:    'בית — מודאל בחירת מצב: תיאור מועמד/ת',
   cands_title:         'מועמדים — כותרת מסך',
   cands_count_suffix:  'מועמדים — סיומת ספירה',
   cands_tab_mine:      'מועמדים — טאב: שלי',
@@ -4631,6 +4641,16 @@ const DEFAULT_TEXTS = {
   home_waiting_empty:          '✅ הכל מסודר — אין פעולות ממתינות',
   home_empty_mine:        'עדיין לא הוספת מועמדים',
   home_empty_others:      'אין מועמדים של שדכנים אחרים עדיין',
+  mode_modal_greeting_m:  'ברוך השב!',
+  mode_modal_greeting_f:  'ברוכה השבה!',
+  mode_modal_body_m:      'אתה רשום גם כשדכן וגם כמועמד.\nכמי תרצה להיכנס עכשיו?',
+  mode_modal_body_f:      'את רשומה גם כשדכנית וגם כמועמדת.\nכמי תרצי להיכנס עכשיו?',
+  mode_modal_as_mm_m:     'כשדכן',
+  mode_modal_as_mm_f:     'כשדכנית',
+  mode_modal_as_cand_m:   'כמועמד',
+  mode_modal_as_cand_f:   'כמועמדת',
+  mode_modal_mm_sub:      'ניהול מועמדים והצעות',
+  mode_modal_cand_sub:    'צפייה בפרופיל ובהצעות שלי',
   cands_title:        'מועמדים',
   cands_count_suffix: 'ברשימה',
   cands_tab_mine:     'שלי',
@@ -4964,7 +4984,7 @@ const DEFAULT_TEXTS = {
 const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
   register:      ['register_title','register_sub','register_field_firstname','register_field_lastname','register_field_gender','register_field_phone','register_phone_hint','register_btn_next','register_photo_title','register_photo_why_title','register_photo_why_body','register_btn_upload','register_btn_change','register_btn_save','register_btn_skip','register_photo_hint'],
-  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss'],
+  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_linkmode_title','cands_linkmode_body','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
   filtersSheet:  ['filters_title','filters_gender_label','filters_gender_f','filters_gender_m','filters_btn_clear','filters_btn_apply'],
   candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
@@ -11659,41 +11679,10 @@ function AppInner({ inviteToken, offerParam }) {
 
           {/* Mode-choice modal — shown once per session for dual-role users */}
           {showModeModal && (
-            <div style={{ position:'absolute', inset:0, zIndex:950, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.52)', backdropFilter:'blur(4px)' }}>
-              <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'28px 24px 44px', width:'100%', boxShadow:`0 -12px 48px ${alpha(th.ink,0.22)}`, animation:'sabaUp .3s cubic-bezier(.2,.9,.3,1)' }}>
-                <div style={{ textAlign:'center', marginBottom:24 }}>
-                  <div style={{ fontSize:40, marginBottom:10 }}>👋</div>
-                  <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:th.ink, marginBottom:8 }}>ברוכ/ה השב/ה!</div>
-                  <div style={{ fontFamily:th.body, fontSize:14.5, color:alpha(th.ink,0.6), lineHeight:1.65 }}>
-                    את/ה רשום/ה גם כשדכן/ית וגם כמועמד/ת.<br/>כמי תרצה/י להיכנס עכשיו?
-                  </div>
-                </div>
-                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                  <button onClick={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); }}
-                    style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:14, padding:'15px 18px', borderRadius:th.rLg, background:alpha(th.ink,0.05), border:`1.5px solid ${alpha(th.ink,0.13)}`, boxSizing:'border-box' }}>
-                    <div style={{ width:44, height:44, borderRadius:12, background:alpha(th.gold,0.15), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      <Icon name="spark" size={22} style={{ color:th.gold }} />
-                    </div>
-                    <div style={{ flex:1, textAlign:'right' }}>
-                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>כשדכן/ית</div>
-                      <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:2 }}>ניהול מועמדים והצעות</div>
-                    </div>
-                    <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3), flexShrink:0 }} />
-                  </button>
-                  <button onClick={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); setStack([{ name:'candidateMode', params:{} }]); }}
-                    style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:14, padding:'15px 18px', borderRadius:th.rLg, background:`linear-gradient(135deg, ${alpha(th.primary,0.1)}, ${alpha(th.primary,0.04)})`, border:`1.5px solid ${alpha(th.primary,0.3)}`, boxSizing:'border-box' }}>
-                    <div style={{ width:44, height:44, borderRadius:12, background:alpha(th.primary,0.15), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 4px 12px ${alpha(th.primary,0.3)}` }}>
-                      <Icon name="users" size={22} style={{ color:th.primary }} />
-                    </div>
-                    <div style={{ flex:1, textAlign:'right' }}>
-                      <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.primary }}>כמועמד/ת</div>
-                      <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:2 }}>צפייה בפרופיל ובהצעות שלי</div>
-                    </div>
-                    <Icon name="chevL" size={18} style={{ color:th.primary, flexShrink:0 }} />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <ModeChoiceModal th={th} profile={profile}
+              onPickMm={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); }}
+              onPickCand={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); setStack([{ name:'candidateMode', params:{} }]); }}
+            />
           )}
 
           {/* Edit mode Sheet */}
@@ -11737,6 +11726,54 @@ function AppInner({ inviteToken, offerParam }) {
       </TweaksPanel>
       </>
     </TextsCtx.Provider>
+  );
+}
+
+function ModeChoiceModal({ th, profile, onPickMm, onPickCand }) {
+  const { t } = useTexts();
+  const isFem = isFemGender(profile?.gender);
+  return (
+    <div style={{ position:'absolute', inset:0, zIndex:950, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.52)', backdropFilter:'blur(4px)' }}>
+      <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'28px 24px 44px', width:'100%', boxShadow:`0 -12px 48px ${alpha(th.ink,0.22)}`, animation:'sabaUp .3s cubic-bezier(.2,.9,.3,1)' }}>
+        <div style={{ textAlign:'center', marginBottom:24 }}>
+          <div style={{ fontSize:40, marginBottom:10 }}>👋</div>
+          <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:th.ink, marginBottom:8 }}>
+            {t(isFem ? 'mode_modal_greeting_f' : 'mode_modal_greeting_m')}
+          </div>
+          <div style={{ fontFamily:th.body, fontSize:14.5, color:alpha(th.ink,0.6), lineHeight:1.65, whiteSpace:'pre-line' }}>
+            {t(isFem ? 'mode_modal_body_f' : 'mode_modal_body_m')}
+          </div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          <button onClick={onPickMm}
+            style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:14, padding:'15px 18px', borderRadius:th.rLg, background:alpha(th.ink,0.05), border:`1.5px solid ${alpha(th.ink,0.13)}`, boxSizing:'border-box' }}>
+            <div style={{ width:44, height:44, borderRadius:12, background:alpha(th.gold,0.15), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <Icon name="spark" size={22} style={{ color:th.gold }} />
+            </div>
+            <div style={{ flex:1, textAlign:'right' }}>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink }}>
+                {t(isFem ? 'mode_modal_as_mm_f' : 'mode_modal_as_mm_m')}
+              </div>
+              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:2 }}>{t('mode_modal_mm_sub')}</div>
+            </div>
+            <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3), flexShrink:0 }} />
+          </button>
+          <button onClick={onPickCand}
+            style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:14, padding:'15px 18px', borderRadius:th.rLg, background:`linear-gradient(135deg, ${alpha(th.primary,0.1)}, ${alpha(th.primary,0.04)})`, border:`1.5px solid ${alpha(th.primary,0.3)}`, boxSizing:'border-box' }}>
+            <div style={{ width:44, height:44, borderRadius:12, background:alpha(th.primary,0.15), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:`0 4px 12px ${alpha(th.primary,0.3)}` }}>
+              <Icon name="users" size={22} style={{ color:th.primary }} />
+            </div>
+            <div style={{ flex:1, textAlign:'right' }}>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.primary }}>
+                {t(isFem ? 'mode_modal_as_cand_f' : 'mode_modal_as_cand_m')}
+              </div>
+              <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginTop:2 }}>{t('mode_modal_cand_sub')}</div>
+            </div>
+            <Icon name="chevL" size={18} style={{ color:th.primary, flexShrink:0 }} />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
