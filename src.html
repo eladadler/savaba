@@ -11434,6 +11434,16 @@ function AppSettings({ th, go, profile }) {
           <Row icon="lock" label="פרטיות ואבטחה" last />
         </Group>
         <Group>
+          <a href="https://wa.me/972509077788" target="_blank" rel="noreferrer"
+            style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, padding:'13px 14px' }}>
+            <div style={{ width:34, height:34, borderRadius:10, background:'#25D36618', color:'#25D366', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <Icon name="whatsapp" size={19} />
+            </div>
+            <span style={{ flex:1, fontFamily:th.body, fontWeight:600, fontSize:15, color:th.ink }}>צרו קשר</span>
+            <span style={{ color:alpha(th.ink,0.3) }}><Icon name="chevL" size={18} /></span>
+          </a>
+        </Group>
+        <Group>
           <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); }} />
         </Group>
         <div style={{ textAlign:'center', marginTop:8 }}>
