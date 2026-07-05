@@ -4412,6 +4412,11 @@ const TEXT_KEYS = {
   mf_s1_btn:         'שידוך חדש — שלב 1: כפתור',
   mf_s2_title_m:     'שידוך חדש — שלב 2: כותרת (מועמד, עם {שם})',
   mf_s2_title_f:     'שידוך חדש — שלב 2: כותרת (מועמדת, עם {שם})',
+  mf_mm_modal_title:     'שידוך — מודאל הודעה: כותרת (עם {שם})',
+  mf_mm_modal_sub:       'שידוך — מודאל הודעה: תיאור',
+  mf_mm_modal_placeholder: 'שידוך — מודאל הודעה: placeholder ({שם_א}, {שם_ב})',
+  mf_mm_modal_hint:      'שידוך — מודאל הודעה: רמז שדה ריק',
+  mf_mm_modal_btn:       'שידוך — מודאל הודעה: כפתור שליחה',
   offers_title:          'הצעות — כותרת המסך',
   offers_active_suffix:  'הצעות — סיומת מונה פעיל',
   offers_new_btn:        'הצעות — כפתור הצעה חדשה',
@@ -4891,6 +4896,11 @@ const DEFAULT_TEXTS = {
   mf_s1_btn:         'בחרו התאמה',
   mf_s2_title_m:     'מי מתאימה ל{שם}?',
   mf_s2_title_f:     'מי מתאים ל{שם}?',
+  mf_mm_modal_title:     'כתוב/י הודעה לשדכן/ית של {שם}',
+  mf_mm_modal_sub:       'ההודעה תגיע לשדכן/ית יחד עם בקשת ההתאמה',
+  mf_mm_modal_placeholder: 'למה לדעתך {שם_א} ו{שם_ב} מתאימים?',
+  mf_mm_modal_hint:      'יש לכתוב הודעה לפני השליחה',
+  mf_mm_modal_btn:       'שלח/י פנייה',
   offers_title:          'הצעות',
   offers_active_suffix:  'פעילות',
   offers_new_btn:        'צרו הצעה חדשה',
@@ -4978,7 +4988,7 @@ const SCREEN_TEXTS = {
     'cand_married_title','cand_married_body',
   ],
   waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved'],
-  matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn','match_no_mine_title','match_no_mine_sub','match_no_mine_btn','mf_step1_label','mf_step2_label','mf_step3_label','mf_s1_title_m','mf_s1_title_f','mf_s1_sub_m','mf_s1_sub_f','mf_s1_mine_m','mf_s1_mine_f','mf_s1_other_m','mf_s1_other_f','mf_s1_btn','mf_s2_title_m','mf_s2_title_f'],
+  matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn','match_no_mine_title','match_no_mine_sub','match_no_mine_btn','mf_step1_label','mf_step2_label','mf_step3_label','mf_s1_title_m','mf_s1_title_f','mf_s1_sub_m','mf_s1_sub_f','mf_s1_mine_m','mf_s1_mine_f','mf_s1_other_m','mf_s1_other_f','mf_s1_btn','mf_s2_title_m','mf_s2_title_f','mf_mm_modal_title','mf_mm_modal_sub','mf_mm_modal_placeholder','mf_mm_modal_hint','mf_mm_modal_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_sort_chat','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
   offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn','offer_pending_subtitle','offer_my_cand_header','offer_approved_label','offer_mark_approval_hint','offer_their_cand_header','offer_their_approval_q','offer_approved_chip','offer_pending_chip','offer_chat_empty','offer_note_label','offer_decline_btn','offer_decline_sub','offer_declined_banner','offer_engaged_title','offer_engaged_sub','offer_send_card_title','offer_send_card_sub','offer_chat_header','offer_wa_mm_title','offer_wa_mm_sub','offer_bothapp_wa_mm_title','offer_bothapp_wa_mm_sub','offer_their_no_update'],
 };
@@ -8020,22 +8030,22 @@ function MatchFlow({ th, go, params }) {
                   {confirmModal === 'step2' && (
                     <>
                       <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink, marginBottom: 6 }}>
-                        כתוב/י הודעה לשדכן/ית של {second.name}
+                        {inlineEditMode ? t('mf_mm_modal_title') : fillWa(txCtx, 'mf_mm_modal_title', { שם: second.name })}
                       </div>
                       <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: 14, lineHeight: 1.5 }}>
-                        ההודעה תגיע לשדכן/ית יחד עם בקשת ההתאמה
+                        {t('mf_mm_modal_sub')}
                       </div>
                       <textarea
                         autoFocus
                         value={mmMsg}
                         onChange={e => setMmMsg(e.target.value)}
-                        placeholder={`למה לדעתך ${first.name} ו${second.name} מתאימים?`}
+                        placeholder={fillWa(txCtx, 'mf_mm_modal_placeholder', { שם_א: first.name, שם_ב: second.name })}
                         rows={4}
                         style={{ width: '100%', boxSizing: 'border-box', fontFamily: th.body, fontSize: 14, color: th.ink, background: th.card, border: `1.5px solid ${mmMsg.trim() ? alpha(th.primary, 0.45) : alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '10px 12px', resize: 'none', outline: 'none', lineHeight: 1.5, direction: 'rtl', marginBottom: 6 }}
                       />
                       {!mmMsg.trim() && (
                         <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.4), marginBottom: 14 }}>
-                          יש לכתוב הודעה לפני השליחה
+                          {t('mf_mm_modal_hint')}
                         </div>
                       )}
                       {mmMsg.trim() && <div style={{ marginBottom: 14 }} />}
@@ -8059,7 +8069,7 @@ function MatchFlow({ th, go, params }) {
                         } catch(e) { alert('שגיאה בשליחה: ' + e.message); }
                         setSending(false);
                       }} icon={<Icon name="send" size={18} fill="#fff" stroke={0} />}>
-                        {sending ? 'שולח…' : 'שלח/י פנייה'}
+                        {sending ? 'שולח…' : t('mf_mm_modal_btn')}
                       </Btn>
                     </>
                   )}
