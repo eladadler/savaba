@@ -5170,8 +5170,10 @@ function Register({ th, go }) {
   const [otpError, setOtpError] = useS('');
   const [otpCode, setOtpCode] = useS('');
   const [confirmResult, setConfirmResult] = useS(null);
+  const [captchaShown, setCaptchaShown] = useS(false);
   const recaptchaContainerRef = React.useRef(null);
   const recaptchaVerifierRef  = React.useRef(null);
+  const phoneRef = React.useRef(phone);
 
   const isPhoneValid = (p) => {
     const d = p.replace(/\D/g, '');
@@ -5179,6 +5181,7 @@ function Register({ th, go }) {
   };
 
   const step1Valid = firstName.trim() && lastName.trim() && gender && phone && isPhoneValid(phone);
+  React.useEffect(() => { phoneRef.current = phone; }, [phone]);
 
   const handlePhoneBlur = () => {
     if (phone && !isPhoneValid(phone)) setPhoneError('מספר לא תקין — לדוגמה: 050-0000000');
@@ -5207,40 +5210,53 @@ function Register({ th, go }) {
     }
   };
 
-  const sendOtp = async () => {
+  const otpErrorMessages = {
+    'auth/provider-already-linked': 'הטלפון כבר מאומת לחשבון זה',
+    'auth/phone-number-already-exists': 'מספר זה רשום כבר למשתמש אחר',
+    'auth/invalid-phone-number': 'מספר הטלפון אינו תקין',
+    'auth/too-many-requests': 'יותר מדי ניסיונות — נסה שוב מאוחר יותר',
+    'auth/captcha-check-failed': 'בדיקת reCAPTCHA נכשלה — נסה שוב',
+  };
+
+  const sendOtp = () => {
     if (auth.currentUser?.providerData?.some(p => p.providerId === 'phone')) {
       setStep(3); return;
     }
-    setOtpSending(true); setOtpError('');
+    if (captchaShown) return;
+    setOtpError('');
     clearRecaptcha();
-    try {
-      const container = document.createElement('div');
-      document.body.appendChild(container);
-      recaptchaContainerRef.current = container;
-      recaptchaVerifierRef.current = new firebase.auth.RecaptchaVerifier(
-        container, {
-          size: 'normal',
-          callback: () => {},
-          'expired-callback': () => { clearRecaptcha(); setOtpError('reCAPTCHA פג תוקף — נסה שוב'); setOtpSending(false); },
-        }
-      );
-      await recaptchaVerifierRef.current.render();
-      const result = await auth.currentUser.linkWithPhoneNumber(
-        formatPhoneE164(phone), recaptchaVerifierRef.current
-      );
-      setConfirmResult(result);
-      setStep(2);
-    } catch (e) {
+    setCaptchaShown(true);
+
+    recaptchaVerifierRef.current = new firebase.auth.RecaptchaVerifier(
+      recaptchaContainerRef.current, {
+        size: 'normal',
+        callback: async () => {
+          setOtpSending(true);
+          try {
+            const result = await auth.currentUser.linkWithPhoneNumber(
+              formatPhoneE164(phoneRef.current), recaptchaVerifierRef.current
+            );
+            setConfirmResult(result);
+            setStep(2);
+          } catch (e) {
+            clearRecaptcha();
+            setCaptchaShown(false);
+            setOtpError(otpErrorMessages[e.code] || ('שגיאה בשליחת קוד — ' + (e.message || e.code)));
+          }
+          setOtpSending(false);
+        },
+        'expired-callback': () => {
+          clearRecaptcha();
+          setCaptchaShown(false);
+          setOtpError('reCAPTCHA פג תוקף — לחץ שוב על שלח קוד');
+        },
+      }
+    );
+    recaptchaVerifierRef.current.render().catch(e => {
       clearRecaptcha();
-      setOtpError(({
-        'auth/provider-already-linked': 'הטלפון כבר מאומת לחשבון זה',
-        'auth/phone-number-already-exists': 'מספר זה רשום כבר למשתמש אחר',
-        'auth/invalid-phone-number': 'מספר הטלפון אינו תקין',
-        'auth/too-many-requests': 'יותר מדי ניסיונות — נסה שוב מאוחר יותר',
-        'auth/captcha-check-failed': 'בדיקת reCAPTCHA נכשלה — נסה שוב',
-      })[e.code] || ('שגיאה בשליחת קוד — ' + (e.message || e.code)));
-    }
-    setOtpSending(false);
+      setCaptchaShown(false);
+      setOtpError('שגיאה בטעינת reCAPTCHA — נסה שוב');
+    });
   };
 
   const verifyOtp = async () => {
@@ -5260,7 +5276,7 @@ function Register({ th, go }) {
   };
 
   const goBackToStep1 = () => {
-    setStep(1); setOtpCode(''); setOtpError(''); clearRecaptcha();
+    setStep(1); setOtpCode(''); setOtpError(''); clearRecaptcha(); setCaptchaShown(false);
   };
 
   const handlePhoto = async (e) => {
@@ -5336,9 +5352,15 @@ function Register({ th, go }) {
         </button>
         <div style={{ marginTop: 4 }}>
           {otpError && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 10 }}>{otpError}</div>}
-          <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms || otpSending} onClick={sendOtp}>
-            {otpSending ? 'שולח…' : 'שלח קוד אימות'}
-          </Btn>
+          <div ref={recaptchaContainerRef} style={{ marginBottom: captchaShown ? 12 : 0 }} />
+          {otpSending
+            ? <Btn th={th} full size="l" disabled>{' שולח…'}</Btn>
+            : !captchaShown && (
+              <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms} onClick={sendOtp}>
+                שלח קוד אימות
+              </Btn>
+            )
+          }
         </div>
       </div>
       <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון, תנאי שימוש ומדיניות פרטיות" height="92%">
