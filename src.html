@@ -5218,7 +5218,11 @@ function Register({ th, go }) {
       document.body.appendChild(container);
       recaptchaContainerRef.current = container;
       recaptchaVerifierRef.current = new firebase.auth.RecaptchaVerifier(
-        container, { size: 'invisible' }
+        container, {
+          size: 'normal',
+          callback: () => {},
+          'expired-callback': () => { clearRecaptcha(); setOtpError('reCAPTCHA פג תוקף — נסה שוב'); setOtpSending(false); },
+        }
       );
       await recaptchaVerifierRef.current.render();
       const result = await auth.currentUser.linkWithPhoneNumber(
