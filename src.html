@@ -5204,12 +5204,6 @@ function Register({ th, go }) {
     setCaptchaShown(false);
   };
 
-  React.useEffect(() => {
-    if (!user) return;
-    const t = setTimeout(renderRecaptcha, 150);
-    return () => clearTimeout(t);
-  }, [user?.uid]);
-
   const otpErrorMessages = {
     'auth/provider-already-linked': 'הטלפון כבר מאומת לחשבון זה',
     'auth/phone-number-already-exists': 'מספר זה רשום כבר למשתמש אחר',
