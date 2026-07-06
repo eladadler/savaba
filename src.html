@@ -9956,6 +9956,20 @@ function CandidateMode({ th, go }) {
             </div>
           )}
 
+          {/* Accessibility */}
+          <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:14 }}>
+            <button onClick={() => go('accessibility')}
+              style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
+              <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.ink,0.07), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon name="info" size={20} style={{ color:alpha(th.ink,0.6) }} />
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>הצהרת נגישות</div>
+              </div>
+              <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
+            </button>
+          </div>
+
           {/* Terms */}
           <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:14 }}>
             <button onClick={() => go('terms')}
@@ -10218,7 +10232,8 @@ function Settings({ th, go }) {
           <Row icon="users" label="מעבר למצב מועמד/ת" tone={th.primary} onClick={() => go('candidateMode')} last />
         </Group>
         <Group>
-          <Row icon="info" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
+          <Row icon="info" label="הצהרת נגישות" onClick={() => go('accessibility')} />
+          <Row icon="lock" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
         </Group>
         <Group>
           <Row icon="trash" label="מחיקת חשבון" danger />
@@ -11361,6 +11376,72 @@ function TextsAdmin({ th, go }) {
   );
 }
 
+function AccessibilityBody({ th }) {
+  const H = ({ children }) => (
+    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink, marginTop:20, marginBottom:6 }}>{children}</div>
+  );
+  const P = ({ children, style }) => (
+    <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.72), lineHeight:1.8, marginBottom:4, ...style }}>{children}</div>
+  );
+  const Bullet = ({ children }) => (
+    <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.72), lineHeight:1.8, marginBottom:2, paddingRight:14, position:'relative' }}>
+      <span style={{ position:'absolute', right:0 }}>•</span>
+      {children}
+    </div>
+  );
+  return (
+    <div style={{ direction:'rtl' }}>
+      <P>עמותת <strong>באים בטוב</strong> מחויבת להנגשת שירותיה הדיגיטליים לאנשים עם מוגבלות, ופועלת לשיפור מתמיד של נגישות האפליקציה.</P>
+
+      <H>רמת הנגישות</H>
+      <P>אנו שואפים לעמוד בדרישות תקן נגישות WCAG 2.1 ברמה AA ובתקן הישראלי ת"י 5568, בהתאם לחוק שוויון זכויות לאנשים עם מוגבלות והתקנות שהותקנו מכוחו.</P>
+
+      <H>פעולות שבוצעו להנגשה</H>
+      <Bullet>מבנה היררכי ברור של תכנים ודפי המסך</Bullet>
+      <Bullet>ניגודיות צבעים תקנית לטקסט ולאלמנטים אינטראקטיביים</Bullet>
+      <Bullet>תמיכה בהגדלת טקסט ובהגדרות נגישות מובנות של מכשיר</Bullet>
+      <Bullet>טפסי הרשמה עם תוויות ברורות והודעות שגיאה מפורשות</Bullet>
+      <Bullet>אלמנטים אינטראקטיביים עם אזורי לחיצה מספיקים</Bullet>
+      <Bullet>תמיכה בכיוון RTL (ימין לשמאל) לשפה העברית</Bullet>
+
+      <H>מגבלות ידועות</H>
+      <P>ייתכן שחלק מהתכנים טרם הותאמו במלואם לדרישות הנגישות. אנו עובדים על שיפור מתמיד ומברכים על משוב מהמשתמשים.</P>
+
+      <H>פניות בנושא נגישות</H>
+      <P>נתקלת בקושי נגישות באפליקציה? נשמח לשמוע ולסייע:</P>
+      <div style={{ marginTop:8, marginBottom:4 }}>
+        <a href="https://wa.me/972509077788" target="_blank" rel="noreferrer"
+          style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:th.r, background:'#25D36618', border:'1.5px solid #25D36640', textDecoration:'none' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3.5a8.5 8.5 0 0 0-7.3 12.8L4 20.5l4.4-1.1A8.5 8.5 0 1 0 12 3.5Z"/>
+            <path d="M9 9c0 4 2.5 6 5.5 6.5.8.1 1.4-.6 1.2-1.3l-.3-1-1.8-.4-.9.8c-1-.5-1.7-1.2-2.2-2.2l.8-.9-.4-1.8-1-.3C9.2 7.9 9 8.4 9 9Z" fill="#25D366"/>
+          </svg>
+          <span style={{ fontFamily:th.body, fontWeight:700, fontSize:14, color:'#25D366' }}>050-90-777-88</span>
+        </a>
+      </div>
+      <P>אנו נשתדל להגיב תוך 14 ימי עסקים.</P>
+
+      <H>גורם ממונה על נגישות</H>
+      <P>עמותת באים בטוב — <a href="https://good-vibes.org.il/" target="_blank" rel="noreferrer" style={{ fontWeight:700, textDecoration:'underline', color:th.primary }}>good-vibes.org.il</a></P>
+
+      <div style={{ marginTop:24, padding:'12px 14px', background:alpha(th.ink,0.04), borderRadius:th.r }}>
+        <P style={{ fontSize:12, color:alpha(th.ink,0.45), marginBottom:0 }}>תאריך עדכון הצהרה זו: יולי 2026</P>
+      </div>
+    </div>
+  );
+}
+
+function AccessibilityScreen({ th, go }) {
+  return (
+    <>
+      <AppHeader th={th} title="הצהרת נגישות" onBack={() => go('back')} />
+      <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 40px', direction:'rtl' }}>
+        <AccessibilityBody th={th} />
+      </div>
+    </>
+  );
+}
+
 function TermsBody({ th }) {
   const H = ({ children }) => (
     <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink, marginTop:20, marginBottom:6 }}>{children}</div>
@@ -11490,6 +11571,7 @@ function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
     case 'candViewCand':  return <CandViewCand th={th} go={go} params={p} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
     case 'terms':       return <TermsScreen th={th} go={go} />;
+    case 'accessibility': return <AccessibilityScreen th={th} go={go} />;
     case 'textsAdmin':  return <TextsAdmin th={th} go={go} />;
     case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} editMethod={opts.editMethod} setEditMethod={opts.setEditMethod} setTweak={opts.setTweak} setGroupTagsByCategory={opts.setGroupTagsByCategory} />;
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
@@ -11594,7 +11676,8 @@ function AppSettings({ th, go, profile }) {
           {myCandProfile && <Icon name="chevL" size={20} style={{ color:th.primary, flexShrink:0 }} />}
         </button>
         <Group>
-          <Row icon="info" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
+          <Row icon="info" label="הצהרת נגישות" onClick={() => go('accessibility')} />
+          <Row icon="lock" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
         </Group>
         <Group>
           <a href="https://wa.me/972509077788" target="_blank" rel="noreferrer"
