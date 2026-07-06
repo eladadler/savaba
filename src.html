@@ -5197,6 +5197,9 @@ function Register({ th, go }) {
       try { recaptchaVerifierRef.current.clear(); } catch {}
       recaptchaVerifierRef.current = null;
     }
+    if (recaptchaContainerRef.current) {
+      recaptchaContainerRef.current.innerHTML = '';
+    }
   };
 
   const sendOtp = async () => {
