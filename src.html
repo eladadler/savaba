@@ -5198,7 +5198,12 @@ function Register({ th, go }) {
       recaptchaVerifierRef.current = null;
     }
     if (recaptchaContainerRef.current) {
-      recaptchaContainerRef.current.innerHTML = '';
+      try {
+        if (recaptchaContainerRef.current.parentNode) {
+          recaptchaContainerRef.current.parentNode.removeChild(recaptchaContainerRef.current);
+        }
+      } catch {}
+      recaptchaContainerRef.current = null;
     }
   };
 
@@ -5209,8 +5214,11 @@ function Register({ th, go }) {
     setOtpSending(true); setOtpError('');
     clearRecaptcha();
     try {
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      recaptchaContainerRef.current = container;
       recaptchaVerifierRef.current = new firebase.auth.RecaptchaVerifier(
-        recaptchaContainerRef.current, { size: 'invisible' }
+        container, { size: 'invisible' }
       );
       await recaptchaVerifierRef.current.render();
       const result = await auth.currentUser.linkWithPhoneNumber(
@@ -5327,7 +5335,6 @@ function Register({ th, go }) {
           <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms || otpSending} onClick={sendOtp}>
             {otpSending ? 'שולח…' : 'שלח קוד אימות'}
           </Btn>
-          <div ref={recaptchaContainerRef} />
         </div>
       </div>
       <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון, תנאי שימוש ומדיניות פרטיות" height="92%">
