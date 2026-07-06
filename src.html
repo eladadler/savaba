@@ -2283,7 +2283,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
               <span style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.5 }}>
                 קראתי ואני מסכים/ה ל
                 <button onClick={e => { e.stopPropagation(); setTermsOpen(true); }} style={{ border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontWeight:700, fontSize:13, color:th.primary, textDecoration:'underline', padding:'0 2px' }}>
-                  תקנון ותנאי השימוש
+                  תקנון, תנאי שימוש ומדיניות פרטיות
                 </button>
               </span>
             </button>
@@ -2320,7 +2320,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
           </div>
         )}
       </div>
-      <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון ותנאי שימוש" height="92%">
+      <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון, תנאי שימוש ומדיניות פרטיות" height="92%">
         <TermsBody th={th} />
       </Sheet>
     </div>
@@ -5244,7 +5244,7 @@ function Register({ th, go }) {
           <span style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.5 }}>
             {gender === 'נקבה' ? 'קראתי ואני מסכימה' : gender === 'זכר' ? 'קראתי ואני מסכים' : 'קראתי ואני מסכים/ה'} ל
             <button onClick={e => { e.stopPropagation(); setTermsOpen(true); }} style={{ border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontWeight:700, fontSize:13, color:th.primary, textDecoration:'underline', padding:'0 2px' }}>
-              תקנון ותנאי השימוש
+              תקנון, תנאי שימוש ומדיניות פרטיות
             </button>
           </span>
         </button>
@@ -5252,7 +5252,7 @@ function Register({ th, go }) {
           <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms} onClick={() => setStep(2)}>{t('register_btn_next')}</Btn>
         </div>
       </div>
-      <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון ותנאי שימוש" height="92%">
+      <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון, תנאי שימוש ומדיניות פרטיות" height="92%">
         <TermsBody th={th} />
       </Sheet>
     </>
@@ -9978,7 +9978,7 @@ function CandidateMode({ th, go }) {
                 <Icon name="info" size={20} style={{ color:alpha(th.ink,0.6) }} />
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>תקנון ותנאי שימוש</div>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>תקנון, תנאי שימוש ומדיניות פרטיות</div>
               </div>
               <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
             </button>
@@ -10233,7 +10233,7 @@ function Settings({ th, go }) {
         </Group>
         <Group>
           <Row icon="info" label="הצהרת נגישות" onClick={() => go('accessibility')} />
-          <Row icon="lock" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
+          <Row icon="lock" label="תקנון, תנאי שימוש ומדיניות פרטיות" last onClick={() => go('terms')} />
         </Group>
         <Group>
           <Row icon="trash" label="מחיקת חשבון" danger />
@@ -11543,7 +11543,7 @@ function TermsBody({ th }) {
 function TermsScreen({ th, go }) {
   return (
     <>
-      <AppHeader th={th} title="תקנון ותנאי שימוש" onBack={() => go('back')} />
+      <AppHeader th={th} title="תקנון, תנאי שימוש ומדיניות פרטיות" onBack={() => go('back')} />
       <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 40px', direction:'rtl' }}>
         <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginBottom:4 }}>
           תקנון, תנאי שימוש ומדיניות פרטיות
@@ -11677,7 +11677,7 @@ function AppSettings({ th, go, profile }) {
         </button>
         <Group>
           <Row icon="info" label="הצהרת נגישות" onClick={() => go('accessibility')} />
-          <Row icon="lock" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
+          <Row icon="lock" label="תקנון, תנאי שימוש ומדיניות פרטיות" last onClick={() => go('terms')} />
         </Group>
         <Group>
           <a href="https://wa.me/972509077788" target="_blank" rel="noreferrer"
