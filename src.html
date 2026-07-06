@@ -5170,7 +5170,7 @@ function Register({ th, go }) {
   const [otpError, setOtpError] = useS('');
   const [otpCode, setOtpCode] = useS('');
   const [confirmResult, setConfirmResult] = useS(null);
-  const [captchaSolved, setCaptchaSolved] = useS(false);
+  const [captchaReady, setCaptchaReady] = useS(false);
   const recaptchaContainerRef = React.useRef(null);
   const recaptchaVerifierRef  = React.useRef(null);
 
@@ -5201,20 +5201,18 @@ function Register({ th, go }) {
     if (recaptchaContainerRef.current) {
       recaptchaContainerRef.current.innerHTML = '';
     }
-    setCaptchaSolved(false);
+    setCaptchaReady(false);
   };
 
   const renderRecaptcha = () => {
     if (!recaptchaContainerRef.current || recaptchaVerifierRef.current) return;
     const verifier = new firebase.auth.RecaptchaVerifier(
-      recaptchaContainerRef.current, {
-        size: 'normal',
-        callback: () => setCaptchaSolved(true),
-        'expired-callback': () => setCaptchaSolved(false),
-      }
+      recaptchaContainerRef.current, { size: 'invisible' }
     );
     recaptchaVerifierRef.current = verifier;
-    verifier.render().catch(() => clearRecaptcha());
+    verifier.render()
+      .then(() => setCaptchaReady(true))
+      .catch(() => clearRecaptcha());
   };
 
   React.useEffect(() => {
@@ -5343,11 +5341,11 @@ function Register({ th, go }) {
             </button>
           </span>
         </button>
-        <div style={{ marginTop: 12 }}>
-          <div ref={recaptchaContainerRef} style={{ marginBottom: 12 }} />
+        <div style={{ marginTop: 4 }}>
+          <div ref={recaptchaContainerRef} style={{ display: 'none' }} />
           {otpError && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 10 }}>{otpError}</div>}
           <Btn th={th} full size="l"
-            disabled={!step1Valid || !agreedTerms || !captchaSolved || otpSending}
+            disabled={!step1Valid || !agreedTerms || !captchaReady || otpSending}
             onClick={sendOtp}>
             {otpSending ? 'שולח…' : 'שלח קוד אימות'}
           </Btn>
