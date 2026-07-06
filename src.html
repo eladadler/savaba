@@ -2148,6 +2148,8 @@ function CandidateInviteRegister({ th, inviteToken }) {
   const [busy,      setBusy]  = useState(false);
   const [invite,    setInvite] = useState(null);
   const [cmsTexts,  setCmsTexts] = useState({});
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [termsOpen,   setTermsOpen]   = useState(false);
 
   React.useEffect(() => {
     if (!inviteToken) return;
@@ -2274,10 +2276,21 @@ function CandidateInviteRegister({ th, inviteToken }) {
             <div style={{ fontFamily:th.display, fontWeight:800, fontSize:17, color:th.ink, marginBottom:4 }}>
               היי {firstName}, נרשמ/י עם:
             </div>
+            <button onClick={() => setAgreedTerms(v => !v)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'flex', alignItems:'flex-start', gap:10, marginBottom:4, width:'100%' }}>
+              <div style={{ width:20, height:20, borderRadius:5, border:`1.5px solid ${agreedTerms ? th.primary : alpha(th.ink,0.3)}`, background:agreedTerms ? th.primary : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+                {agreedTerms && <Icon name="check" size={12} style={{ color:'#fff' }} />}
+              </div>
+              <span style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.5 }}>
+                קראתי ואני מסכים/ה ל
+                <button onClick={e => { e.stopPropagation(); setTermsOpen(true); }} style={{ border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontWeight:700, fontSize:13, color:th.primary, textDecoration:'underline', padding:'0 2px' }}>
+                  תקנון ותנאי השימוש
+                </button>
+              </span>
+            </button>
 
             {mode === 'choose' && (
               <>
-                <button onClick={googleAuth} disabled={busy} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, width:'100%', padding:'14px 18px', borderRadius:th.r, border:`1.5px solid ${alpha(th.ink,0.18)}`, background:th.card, fontFamily:th.body, fontWeight:700, fontSize:15.5, color:th.ink, cursor:'pointer' }}>
+                <button onClick={googleAuth} disabled={busy || !agreedTerms} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, width:'100%', padding:'14px 18px', borderRadius:th.r, border:`1.5px solid ${alpha(th.ink,0.18)}`, background:th.card, fontFamily:th.body, fontWeight:700, fontSize:15.5, color:th.ink, cursor:'pointer' }}>
                   <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.8-2.1 5.1-4.4 6.7l6.9 5.4c4-3.7 6.3-9.2 6.3-16.1z"/><path fill="#FBBC05" d="M10.6 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5L2.3 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.6 10.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-6.9-5.4c-2.1 1.4-4.8 2.2-8.9 2.2-6.2 0-11.5-3.5-13.4-9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
                   {busy ? 'מתחבר…' : 'הרשמה עם Google'}
                 </button>
@@ -2298,7 +2311,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
                 <input type="email"    value={email} onChange={e => setEmail(e.target.value)} placeholder="אימייל"  style={inStyle} />
                 <input type="password" value={pass}  onChange={e => setPass(e.target.value)}  placeholder="סיסמה (6+ תווים)"  style={inStyle} />
                 {err && <div style={{ fontFamily:th.body, fontSize:13, color:th.error, textAlign:'center' }}>{err}</div>}
-                <Btn th={th} full size="l" disabled={busy || !email || !pass} onClick={emailAuth}>
+                <Btn th={th} full size="l" disabled={busy || !email || !pass || !agreedTerms} onClick={emailAuth}>
                   {busy ? '...' : isNew ? 'הרשמה' : 'כניסה'}
                 </Btn>
                 <button onClick={() => setMode('choose')} style={{ border:'none', background:'none', color:alpha(th.ink,0.5), fontFamily:th.body, fontSize:13, cursor:'pointer', textDecoration:'underline', textAlign:'center' }}>חזרה</button>
@@ -2307,6 +2320,9 @@ function CandidateInviteRegister({ th, inviteToken }) {
           </div>
         )}
       </div>
+      <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון ותנאי שימוש" height="92%">
+        <TermsBody th={th} />
+      </Sheet>
     </div>
   );
 }
@@ -5147,6 +5163,8 @@ function Register({ th, go }) {
   const [photoURL, setPhotoURL] = useS('');
   const [uploading, setUploading] = useS(false);
   const [saving, setSaving] = useS(false);
+  const [agreedTerms, setAgreedTerms] = useS(false);
+  const [termsOpen, setTermsOpen] = useS(false);
 
   const isPhoneValid = (p) => {
     const d = p.replace(/\D/g, '');
@@ -5219,10 +5237,24 @@ function Register({ th, go }) {
             onBlur={handlePhoneBlur} placeholder="" />
           {phoneError && <div style={{ fontFamily: th.body, fontSize: 12, color: '#d93025', marginTop: 5 }}>{phoneError}</div>}
         </Field>
-        <div style={{ marginTop: 8 }}>
-          <Btn th={th} full size="l" disabled={!step1Valid} onClick={() => setStep(2)}>{t('register_btn_next')}</Btn>
+        <button onClick={() => setAgreedTerms(v => !v)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'flex', alignItems:'flex-start', gap:10, marginTop:16, marginBottom:10, width:'100%' }}>
+          <div style={{ width:20, height:20, borderRadius:5, border:`1.5px solid ${agreedTerms ? th.primary : alpha(th.ink,0.3)}`, background:agreedTerms ? th.primary : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+            {agreedTerms && <Icon name="check" size={12} style={{ color:'#fff' }} />}
+          </div>
+          <span style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.65), lineHeight:1.5 }}>
+            {gender === 'נקבה' ? 'קראתי ואני מסכימה' : gender === 'זכר' ? 'קראתי ואני מסכים' : 'קראתי ואני מסכים/ה'} ל
+            <button onClick={e => { e.stopPropagation(); setTermsOpen(true); }} style={{ border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontWeight:700, fontSize:13, color:th.primary, textDecoration:'underline', padding:'0 2px' }}>
+              תקנון ותנאי השימוש
+            </button>
+          </span>
+        </button>
+        <div style={{ marginTop: 4 }}>
+          <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms} onClick={() => setStep(2)}>{t('register_btn_next')}</Btn>
         </div>
       </div>
+      <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון ותנאי שימוש" height="92%">
+        <TermsBody th={th} />
+      </Sheet>
     </>
   );
 
@@ -9924,6 +9956,20 @@ function CandidateMode({ th, go }) {
             </div>
           )}
 
+          {/* Terms */}
+          <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:14 }}>
+            <button onClick={() => go('terms')}
+              style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
+              <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.ink,0.07), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon name="info" size={20} style={{ color:alpha(th.ink,0.6) }} />
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>תקנון ותנאי שימוש</div>
+              </div>
+              <Icon name="chevL" size={18} style={{ color:alpha(th.ink,0.3) }} />
+            </button>
+          </div>
+
           {/* Delete profile */}
           <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:20 }}>
             <button onClick={() => { setDeleteReason(''); setDeleteNote(''); setDeleteModal('reason'); }}
@@ -10172,8 +10218,7 @@ function Settings({ th, go }) {
           <Row icon="users" label="מעבר למצב מועמד/ת" tone={th.primary} onClick={() => go('candidateMode')} last />
         </Group>
         <Group>
-          <Row icon="info" label="הצהרת נגישות" />
-          <Row icon="lock" label="פרטיות ואבטחה" last />
+          <Row icon="info" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
         </Group>
         <Group>
           <Row icon="trash" label="מחיקת חשבון" danger />
@@ -11316,6 +11361,118 @@ function TextsAdmin({ th, go }) {
   );
 }
 
+function TermsBody({ th }) {
+  const H = ({ children }) => (
+    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:15, color:th.ink, marginTop:20, marginBottom:6 }}>{children}</div>
+  );
+  const P = ({ children, style }) => (
+    <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.72), lineHeight:1.8, marginBottom:4, ...style }}>{children}</div>
+  );
+  const BvLink = () => (
+    <a href="https://good-vibes.org.il/" target="_blank" rel="noreferrer"
+      style={{ fontWeight:700, textDecoration:'underline', color:th.primary }}>באים בטוב</a>
+  );
+  return (
+    <div style={{ direction:'rtl' }}>
+      <H>1. כללי</H>
+      <P>התקנון מנוסח בלשון זכר מטעמי נוחות בלבד אך מיועד לכל המגדרים.</P>
+      <P>מטרת האפליקציה היא יצירת היכרויות בלבד.</P>
+      <P>תקנון זה מסדיר את היחסים המשפטיים בין עמותת <BvLink /> מפעילת האפליקציה (להלן - החברה) לבין כל אדם המשתמש (להלן - משתמש) בשירותי אפליקציית ההיכרויות (להלן – האפליקציה/השירות).</P>
+      <P>המונח "משתמש" בתקנון זה משמעו - כל מועמד ליצירת היכרויות וכן כל שדכן מטעם או עבור מועמד כאמור, בכל מעשה או מחדל יחד או לחוד.</P>
+      <P>השימוש באפליקציה מהווה הסכמה מלאה, מוחלטת ובלתי חוזרת של המשתמש לכל תנאי התקנון.</P>
+      <P>החברה רשאית לעדכן, לשנות או להוסיף תנאים בתקנון בכל עת לפי שיקול דעתה הבלעדי - המשך השימוש לאחר שינוי התקנון ייחשב כהסכמה לתיקונים.</P>
+      <P>שימוש באפליקציה מותר לבני 18 ומעלה בעלי כשירות משפטית.</P>
+      <P>החברה רשאית למנוע הרשמה או להשתמש באמצעי זיהוי נוספים, לרבות אימות זהות, בהתאם לשיקול דעתה.</P>
+      <P>החברה רשאית לחסום משתמש בכל עת ובהתאם לשיקול דעתה וללא צורך בנימוק.</P>
+
+      <H>2. הרשמה וחשבון משתמש</H>
+      <P>לצורך השימוש באפליקציה ופתיחת פרופיל נדרש המשתמש למסור פרטים מדויקים, נכונים, עדכניים ומלאים.</P>
+      <P>מסירת מידע כוזב, חלקי או מטעה אסורה בהחלט ומהווה עילה למחיקת חשבון, חסימה ולנקיטת צעדים משפטיים.</P>
+      <P>כל חשבון או פרופיל הוא אישי ואינו ניתן להעברה, וכל פעולה המבוצעת מחשבון המשתמש תיחשב פעולה אשר בוצעה על ידו.</P>
+      <P>שימוש בפרטי משתמש אחר או התחזות אסורים בהחלט ועשויים להוביל לחסימה ולנקיטת צעדים משפטיים.</P>
+      <P>המשתמש אחראי לשמירת סיסמה ופרטי גישה בסודיות, וכל פעולה המתבצעת מחשבון המשתמש היא באחריותו.</P>
+      <P>חל איסור מוחלט על המשתמש לייצג את עצמו כמועמד באפליקציה. שדכן לא רשאי לרשום או לייצג את עצמו כמועמד — גם לא בפרטי התקשרות נפרדים. שדכן רשאי להיות מועמד רק אם שדכן אחר מייצג אותו. כל הפרה תגרור ביטול מיידי של רישום מהאפליקציה ללא זכאות להחזר כספי.</P>
+      <P>אין להוסיף מועמד לאפליקציה ללא הסכמה מפורשת ממנו על ידי פעולת אישור עצמית. חל איסור מוחלט לאשר רישום בשם אדם אחר.</P>
+
+      <H>3. אבטחת מידע ופרטיות</H>
+      <P>החברה נוקטת באמצעי אבטחה סבירים התואמים את הפרקטיקה הטובה בתחום, אך אינה יכולה למנוע פריצות באופן מוחלט.</P>
+      <P>מדיניות הפרטיות המלאה מהווה חלק בלתי נפרד מתקנון זה.</P>
+      <P>המשתמש מאשר כי ידוע לו שמידע אודותיו עשוי להישמר, להיות מעובד או מאוחסן על ידי החברה בהתאם למדיניות הפרטיות שלה.</P>
+      <P style={{ fontWeight:700, color:th.ink }}>תקציר מדיניות פרטיות</P>
+      <P>(ניתן לעיין במדיניות המלאה <a href="https://good-vibes.org.il/" target="_blank" rel="noreferrer" style={{ fontWeight:700, textDecoration:'underline', color:th.primary }}>באתר עמותת <BvLink /></a>)</P>
+      <P>הנתונים האישיים נאספים לטובת תפעול האפליקציה ושירותי התאמה.</P>
+      <P>מסירת מידע היא וולונטרית אך אי מסירתו עלולה למנוע או להגביל שימוש בשירות.</P>
+      <P>האפליקציה נוקטת באמצעי אבטחה סבירים אך אינה יכולה להבטיח הגנה מוחלטת מפני פריצות.</P>
+      <P>פרטים עשויים להיות מועברים לצדדים שלישיים במקרים שנדרשים על פי דין או לצרכי תפעול האפליקציה.</P>
+
+      <H>4. שימוש באפליקציה</H>
+      <P>מטרת האפליקציה היא יצירת היכרויות בלבד, וכל שימוש אחר אסור.</P>
+      <P>המשתמש מתחייב שלא להשתמש באפליקציה לצורך הטרדה, התחזות, ניצול, גיוס לקוחות, פרסום מסחרי, קשירת קשר לפעילות בלתי חוקית ועוד.</P>
+      <P>החברה אינה מבטיחה כי השירות לא יופרע, יהיה רציף או נקי מתקלות.</P>
+      <P>אין לפרסם תכנים אלימים, פוגעניים, פורנוגרפיים, פרסומיים, או כל תוכן שאינו חוקי.</P>
+      <P>הנהלת האפליקציה רשאית להסיר פרופילים, תמונות או תכנים לפי שיקול דעתה.</P>
+      <P>האפליקציה אינה מתחייבת לבצע בדיקות רקע או לוודא את נכונות המידע שמוסרים המשתמשים.</P>
+      <P>תקשורת עם משתמשים אחרים, מפגשים והיכרות – הינם באחריות המשתמש בלבד.</P>
+
+      <H>5. שירותי האפליקציה – הצגת פרופילים והתאמות</H>
+      <P>האפליקציה מבצעת התאמות בין משתמשים בהתאם למידע שסיפקו.</P>
+      <P>אין לראות במידע או בתהליך ההתאמה משום התחייבות לתוצאה.</P>
+      <P>החברה אינה מתחייבת לדייק במידע, לבצע בדיקות רקע או להבטיח התאמה בין המשתמשים.</P>
+      <P>ייתכן שהפרופיל יוצג למשתמשים אחרים לפי הגדרות האפליקציה.</P>
+      <P>הצעות התאמה עשויות להישלח לפי שיקול דעת האפליקציה ואינן מהוות התחייבות להצלחה.</P>
+
+      <H>6. תכנים ופעולות המשתמש</H>
+      <P>משתמשים אחראים באופן בלעדי לכל תוכן שהם מפרסמים.</P>
+      <P>החברה רשאית להסיר תכנים, תמונות או חשבונות לפי שיקול דעתה.</P>
+      <P>חל איסור מוחלט לפרסם תכנים: פורנוגרפיים או אלימים, גזעניים או פוגעניים, בעלי אופי מסחרי, המפרים זכויות יוצרים.</P>
+      <P>המשתמש מתחייב שלא לבצע: פעולה פלילית, איסוף מידע ללא רשות, שימוש אוטומטי (BOT/SCRIPT), חדירה לקוד, הנדסה לאחור, עקיפת מנגנוני אבטחה, הטרדת משתמשים, הפצת תוכנות זדוניות, פגיעה בקניין רוחני.</P>
+
+      <H>7. אחריות</H>
+      <P>השירות ניתן כמות שהוא (AS IS) ללא כל מצג, אחריות או התחייבות לתוצאות.</P>
+      <P>החברה לא תהיה אחראית לכל נזק, ישיר או עקיף, שייגרם למשתמש בקשר לשימוש באפליקציה.</P>
+      <P>החברה אינה צד לכל התקשרות או מפגש בין משתמשים.</P>
+      <P>כל הסתמכות על התוכן שמופיע באפליקציה היא על אחריות המשתמש בלבד.</P>
+
+      <H>8. הפסקת שימוש</H>
+      <P>הנהלת האפליקציה רשאית להשעות או לחסום כל משתמש שהפר תנאי תקנון זה.</P>
+      <P>חסימת משתמש עקב הפרה אינה מזכה בהחזר כספי.</P>
+
+      <H>9. שינויים, תקלות והפסקת שירות</H>
+      <P>האפליקציה רשאית לשנות או להשעות את פעילותה בכל עת.</P>
+      <P>יתכנו תקלות, שיבושים או הפרעות בפעילות – ללא אחריות מצד האפליקציה.</P>
+
+      <H>10. שיפוי</H>
+      <P>המשתמש מתחייב לשפות את החברה בגין כל נזק ישיר או עקיף, תביעה, הפסד או הוצאה אשר ייגרמו לחברה או לצד שלישי עקב הפרה של תנאי התקנון או עבירה על פי דין.</P>
+
+      <H>11. הדין החל וסמכות שיפוט</H>
+      <P>הדין החל הוא הדין הישראלי בלבד.</P>
+      <P>סמכות השיפוט הבלעדית – בתי המשפט במחוז תל אביב.</P>
+
+      <div style={{ marginTop:24, padding:'12px 14px', background:alpha(th.ink,0.04), borderRadius:th.r, textAlign:'center' }}>
+        <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), lineHeight:1.6 }}>
+          מדיניות פרטיות מלאה:{' '}
+          <a href="https://good-vibes.org.il/" target="_blank" rel="noreferrer"
+            style={{ fontWeight:700, textDecoration:'underline', color:th.primary }}>good-vibes.org.il</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TermsScreen({ th, go }) {
+  return (
+    <>
+      <AppHeader th={th} title="תקנון ותנאי שימוש" onBack={() => go('back')} />
+      <div style={{ flex:1, overflowY:'auto', padding:'16px 18px 40px', direction:'rtl' }}>
+        <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5), marginBottom:4 }}>
+          תקנון, תנאי שימוש ומדיניות פרטיות
+        </div>
+        <TermsBody th={th} />
+      </div>
+    </>
+  );
+}
+
 function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
   const p = cur.params;
   switch (cur.name) {
@@ -11332,6 +11489,7 @@ function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
     case 'candidateMode': return <CandidateMode th={th} go={go} />;
     case 'candViewCand':  return <CandViewCand th={th} go={go} params={p} />;
     case 'set':         return <AppSettings th={th} go={go} profile={profile} />;
+    case 'terms':       return <TermsScreen th={th} go={go} />;
     case 'textsAdmin':  return <TextsAdmin th={th} go={go} />;
     case 'admin':         return <AdminPanel th={th} go={go} aiMode={aiMode} setAiMode={setAiMode} editMethod={opts.editMethod} setEditMethod={opts.setEditMethod} setTweak={opts.setTweak} setGroupTagsByCategory={opts.setGroupTagsByCategory} />;
     case 'inviteLanding': return <InvitationLanding th={th} go={go} token={p.token} />;
@@ -11436,8 +11594,7 @@ function AppSettings({ th, go, profile }) {
           {myCandProfile && <Icon name="chevL" size={20} style={{ color:th.primary, flexShrink:0 }} />}
         </button>
         <Group>
-          <Row icon="info" label="הצהרת נגישות" />
-          <Row icon="lock" label="פרטיות ואבטחה" last />
+          <Row icon="info" label="תקנון ותנאי שימוש" last onClick={() => go('terms')} />
         </Group>
         <Group>
           <a href="https://wa.me/972509077788" target="_blank" rel="noreferrer"
