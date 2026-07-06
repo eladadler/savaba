@@ -1248,9 +1248,10 @@ function useAuthState() {
           setProfile({ uid: u.uid, ...p, isAdmin: isFirst });
         } else {
           setProfile({ uid: u.uid, ...snap.data() });
-          // live updates
-          ref.onSnapshot(d => setProfile({ uid: u.uid, ...d.data() }));
         }
+        // live updates — always, including for brand-new users so Register's
+        // handleSave (name/phone/profileComplete) is reflected immediately
+        ref.onSnapshot(d => setProfile({ uid: u.uid, ...d.data() }));
       } catch (e) {
         console.error('Failed to load/create profile:', e);
       }
@@ -11817,10 +11818,20 @@ function AppInner({ inviteToken, offerParam }) {
     setSavingTexts(false);
   };
 
-  // Sync coachmark dismissals from Firestore → localStorage so cache clears don't reset them
+  // Sync coachmark dismissals from Firestore → localStorage so cache clears don't reset them.
+  // Also clears localStorage when a different user logs in so they start fresh.
   React.useEffect(() => {
     const uid = user?.uid;
     if (!uid) return;
+    const CM_UID_KEY = 'cm_uid_v1';
+    try {
+      const storedUid = localStorage.getItem(CM_UID_KEY);
+      if (storedUid !== uid) {
+        localStorage.removeItem(CM_SEEN_KEY);
+        localStorage.setItem(CM_UID_KEY, uid);
+        window.dispatchEvent(new Event('cm_updated'));
+      }
+    } catch {}
     db.collection('users').doc(uid).get().then(doc => {
       if (!doc.exists) return;
       const fsSeen = doc.data()?.cmSeen;
