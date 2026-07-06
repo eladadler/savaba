@@ -5230,7 +5230,7 @@ function Register({ th, go }) {
           setOtpSending(true);
           try {
             const result = await auth.currentUser.linkWithPhoneNumber(
-              formatPhoneE164(phoneRef.current), recaptchaVerifierRef.current
+              formatPhoneE164(phone), recaptchaVerifierRef.current
             );
             setConfirmResult(result);
             setStep(2);
