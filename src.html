@@ -6517,6 +6517,46 @@ function CandidateSelfFill({ th, go, params }) {
   const [uploading, setUpl]   = useState(false);
   const [done, setDone]       = useState(false);
 
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [otpSubStep, setOtpSubStep] = useState('phone'); // 'phone' | 'code'
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpError, setOtpError]     = useState('');
+  const [otpCode,  setOtpCode]      = useState('');
+
+  const isPhoneValid = (p) => {
+    const d = p.replace(/\D/g, '');
+    return (d.length === 10 && d.startsWith('05')) || (d.length === 12 && d.startsWith('9725'));
+  };
+  const formatE164 = (p) => {
+    const d = p.replace(/\D/g, '');
+    if (d.startsWith('972')) return '+' + d;
+    if (d.startsWith('05')) return '+972' + d.slice(1);
+    return '+' + d;
+  };
+  const sendOtp = async () => {
+    setOtpSending(true); setOtpError('');
+    try {
+      const fn = firebase.functions().httpsCallable('sendVerificationCode');
+      await fn({ phone: formatE164(f.phone) });
+      setOtpSubStep('code');
+    } catch(e) {
+      setOtpError('שגיאה בשליחת הקוד — ' + (e.message || 'נסה שוב'));
+    }
+    setOtpSending(false);
+  };
+  const verifyOtp = async () => {
+    setOtpSending(true); setOtpError('');
+    try {
+      const fn = firebase.functions().httpsCallable('verifyCode');
+      await fn({ phone: formatE164(f.phone), code: otpCode });
+      setPhoneVerified(true);
+    } catch(e) {
+      setOtpError(e.message === 'קוד שגוי' ? 'קוד שגוי — נסה שוב' : 'שגיאה — נסה שוב');
+      setOtpCode('');
+    }
+    setOtpSending(false);
+  };
+
   const addPhoto = async (e) => {
     const files = Array.from(e.target.files || []); if (!files.length) return;
     setUpl(true);
@@ -6540,7 +6580,7 @@ function CandidateSelfFill({ th, go, params }) {
       const ref = await db.collection('candidates').add({
         ...f, phone: f.phone.trim(), height: f.height ? +f.height : null, photos,
         mmId: invite.mmId, candidateUid: user.uid,
-        pendingApproval: true, available: true,
+        phoneVerified: true, pendingApproval: true, available: true,
         grad: gradForId(user.uid),
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -6567,6 +6607,53 @@ function CandidateSelfFill({ th, go, params }) {
   const stepTitleKeys = ['selfform_step_basic', 'selfform_step_photos', 'selfform_step_interests', 'selfform_step_about'];
   const isLast = step === steps.length - 1;
 
+
+  if (!phoneVerified) {
+    return (
+      <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
+        <AppHeader th={th} title={t('selfform_header_title')} sub={`עבור ${invite.mmName}`} />
+        <div style={{ flex:1, overflowY:'auto', padding:'28px 18px 40px' }}>
+          {otpSubStep === 'phone' ? (
+            <>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginBottom:8 }}>מה מספר הטלפון שלך?</div>
+              <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.55), marginBottom:28, lineHeight:1.5 }}>נאמת אותו בקוד SMS — לוקח שנייה</div>
+              <Field th={th} label={t('selfform_label_phone')} required>
+                <TextInput th={th} type="tel" value={f.phone} onChange={v => { set('phone')(v); if(otpError) setOtpError(''); }} placeholder="050-0000000" />
+              </Field>
+              {otpError && <div style={{ fontFamily:th.body, fontSize:13, color:'#d93025', marginBottom:12 }}>{otpError}</div>}
+              <Btn th={th} full size="l" disabled={!isPhoneValid(f.phone) || otpSending} onClick={sendOtp}>
+                {otpSending ? 'שולח…' : 'שלח קוד אימות'}
+              </Btn>
+            </>
+          ) : (
+            <>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:20, color:th.ink, marginBottom:8 }}>הזן/י קוד אימות</div>
+              <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.55), marginBottom:28, lineHeight:1.5 }}>
+                שלחנו קוד ב-SMS למספר <strong>{f.phone}</strong>
+              </div>
+              <Field th={th} label="קוד אימות (6 ספרות)" required>
+                <TextInput th={th} type="tel" value={otpCode}
+                  onChange={v => { setOtpCode(v.replace(/\D/g,'').slice(0,6)); if(otpError) setOtpError(''); }}
+                  placeholder="000000" />
+              </Field>
+              {otpError && <div style={{ fontFamily:th.body, fontSize:13, color:'#d93025', marginBottom:12 }}>{otpError}</div>}
+              <Btn th={th} full size="l" disabled={otpCode.length !== 6 || otpSending} onClick={verifyOtp}>
+                {otpSending ? 'מאמת…' : 'אמת קוד'}
+              </Btn>
+              <button onClick={() => { setOtpSubStep('phone'); setOtpCode(''); setOtpError(''); }}
+                style={{ all:'unset', cursor:'pointer', display:'block', width:'100%', textAlign:'center', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), marginTop:16, textDecoration:'underline' }}>
+                שנה/י מספר
+              </button>
+              <button onClick={sendOtp} disabled={otpSending}
+                style={{ all:'unset', cursor:'pointer', display:'block', width:'100%', textAlign:'center', fontFamily:th.body, fontSize:13, color:th.primary, marginTop:10 }}>
+                לא קיבלתי קוד — שלח שוב
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (done) {
     const mmWaPhone = invite.mmPhone ? String(invite.mmPhone).replace(/\D/g,'').replace(/^0/,'972') : '';
@@ -6620,7 +6707,14 @@ function CandidateSelfFill({ th, go, params }) {
 
         {step === 0 && (
           <>
-            <Field th={th} label={t('selfform_label_phone')}><TextInput th={th} type="tel" value={f.phone} onChange={set('phone')} /></Field>
+            <div style={{ display:'flex', alignItems:'center', gap:10, background:alpha(th.success,0.08), border:`1.5px solid ${alpha(th.success,0.28)}`, borderRadius:th.r, padding:'11px 14px', marginBottom:16 }}>
+              <Icon name="check" size={18} style={{ color:th.success, flexShrink:0 }} />
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.45), marginBottom:1 }}>{t('selfform_label_phone')}</div>
+                <div style={{ fontFamily:th.body, fontSize:15, fontWeight:700, color:th.ink }}>{f.phone}</div>
+              </div>
+              <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.success }}>מאומת ✓</div>
+            </div>
             <Field th={th} label={t('selfform_label_birthdate')}><DateInput th={th} value={f.birthDate} onChange={set('birthDate')} /></Field>
             <Field th={th} label={t('selfform_label_height')}>
               <TextInput th={th} type="number" min={120} max={220} value={f.height}
