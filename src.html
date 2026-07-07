@@ -1793,7 +1793,7 @@ function BottomNav({ active, onNav, th, badges = {} }) {
 // ── Bottom sheet / modal ───────────────────────────────────────
 function Sheet({ open, onClose, children, th, title, height, inlineEditKeys }) {
   const textsCtx = React.useContext(TextsCtx);
-  const { profile } = React.useContext(AuthCtx);
+  const { profile } = React.useContext(AuthCtx) ?? {};
   const isAdmin = profile?.isAdmin;
   const hasEdit = isAdmin && inlineEditKeys?.length > 0;
 
