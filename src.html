@@ -5169,10 +5169,20 @@ function Register({ th, go }) {
   const [saving, setSaving] = useS(false);
   const [agreedTerms, setAgreedTerms] = useS(false);
   const [termsOpen, setTermsOpen] = useS(false);
+  const [otpSending, setOtpSending] = useS(false);
+  const [otpError, setOtpError] = useS('');
+  const [otpCode, setOtpCode] = useS('');
 
   const isPhoneValid = (p) => {
     const d = p.replace(/\D/g, '');
     return (d.length === 10 && d.startsWith('05')) || (d.length === 12 && d.startsWith('9725'));
+  };
+
+  const formatE164 = (p) => {
+    const d = p.replace(/\D/g, '');
+    if (d.startsWith('972')) return '+' + d;
+    if (d.startsWith('05')) return '+972' + d.slice(1);
+    return '+' + d;
   };
 
   const step1Valid = firstName.trim() && lastName.trim() && gender && phone && isPhoneValid(phone);
@@ -5182,6 +5192,30 @@ function Register({ th, go }) {
     else setPhoneError('');
   };
 
+  const sendOtp = async () => {
+    setOtpSending(true); setOtpError('');
+    try {
+      const fn = firebase.functions().httpsCallable('sendVerificationCode');
+      await fn({ phone: formatE164(phone) });
+      setStep(2);
+    } catch(e) {
+      setOtpError('שגיאה בשליחת הקוד — ' + (e.message || 'נסה שוב'));
+    }
+    setOtpSending(false);
+  };
+
+  const verifyOtp = async () => {
+    setOtpSending(true); setOtpError('');
+    try {
+      const fn = firebase.functions().httpsCallable('verifyCode');
+      await fn({ phone: formatE164(phone), code: otpCode });
+      setStep(3);
+    } catch(e) {
+      setOtpError(e.message === 'קוד שגוי' ? 'קוד שגוי — נסה שוב' : 'שגיאה — נסה שוב');
+      setOtpCode('');
+    }
+    setOtpSending(false);
+  };
 
   const handlePhoto = async (e) => {
     const file = e.target.files[0];
@@ -5207,6 +5241,7 @@ function Register({ th, go }) {
         gender: gender === 'זכר' ? 'm' : 'f',
         ...(photoURL ? { photoURL } : {}),
         profileComplete: true,
+        phoneVerified: true,
       });
       go('home');
     } catch(err) { alert('שגיאה: ' + err.message); setSaving(false); }
@@ -5214,7 +5249,7 @@ function Register({ th, go }) {
 
   const StepDots = ({ active }) => (
     <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 28 }}>
-      {[1, 2].map(n => (
+      {[1, 2, 3].map(n => (
         <div key={n} style={{ height: 4, borderRadius: 2, transition: 'all 0.25s',
           width: active === n ? 28 : 16,
           background: active === n ? th.primary : alpha(th.ink, 0.15) }} />
@@ -5254,7 +5289,10 @@ function Register({ th, go }) {
           </span>
         </button>
         <div style={{ marginTop: 4 }}>
-          <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms} onClick={() => setStep(2)}>{t('register_btn_next')}</Btn>
+          {otpError && step === 1 && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 8 }}>{otpError}</div>}
+          <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms || otpSending} onClick={sendOtp}>
+            {otpSending ? 'שולח…' : 'שלח קוד אימות'}
+          </Btn>
         </div>
       </div>
       <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון, תנאי שימוש ומדיניות פרטיות" height="92%">
@@ -5263,11 +5301,36 @@ function Register({ th, go }) {
     </>
   );
 
-  return (
+  if (step === 2) return (
     <>
-      <AppHeader th={th} title={t('register_photo_title')} onBack={() => setStep(1)} />
+      <AppHeader th={th} title="אימות מספר טלפון" onBack={() => { setStep(1); setOtpCode(''); setOtpError(''); }} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
         <StepDots active={2} />
+        <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.7), marginBottom: 22, lineHeight: 1.6 }}>
+          שלחנו קוד אימות ב-SMS למספר <strong>{phone}</strong>. הזן את הקוד להמשך.
+        </div>
+        <Field th={th} label="קוד אימות (6 ספרות)" required>
+          <TextInput th={th} type="tel" value={otpCode}
+            onChange={v => { setOtpCode(v.replace(/\D/g, '').slice(0, 6)); if (otpError) setOtpError(''); }}
+            placeholder="000000" />
+        </Field>
+        {otpError && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 10 }}>{otpError}</div>}
+        <Btn th={th} full size="l" disabled={otpCode.length !== 6 || otpSending} onClick={verifyOtp} style={{ marginTop: 4 }}>
+          {otpSending ? 'מאמת…' : 'אמת קוד'}
+        </Btn>
+        <button onClick={sendOtp} disabled={otpSending}
+          style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: th.primary, marginTop: 16 }}>
+          לא קיבלתי קוד — שלח שוב
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <AppHeader th={th} title={t('register_photo_title')} onBack={() => setStep(2)} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
+        <StepDots active={3} />
         <div style={{ background: alpha(th.gold, 0.09), border: `1px solid ${alpha(th.gold, 0.22)}`, borderRadius: th.r, padding: '13px 15px', marginBottom: 26 }}>
           <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 5 }}>{t('register_photo_why_title')}</div>
           <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.68), lineHeight: 1.55 }}>
