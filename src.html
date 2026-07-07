@@ -6314,16 +6314,19 @@ function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
   const [token, setToken]       = useState('');
   const [creating, setCreating] = useState(false);
   const [copied,   setCopied]   = useState(false);
+  const [genError, setGenError] = useState('');
 
   const recipientName = `${recipFirst.trim()} ${recipLast.trim()}`.trim();
-  const reset = () => { setStep(1); setFirst(''); setLast(''); setToken(''); setCopied(false); };
+  const reset = () => { setStep(1); setFirst(''); setLast(''); setToken(''); setCopied(false); setGenError(''); };
 
   const generate = async () => {
-    setCreating(true);
+    setCreating(true); setGenError('');
     try {
       const tok = await createInvitation(mmId, mmName, 'cand_fills', recipientName, mmPhone, mmGender);
       setToken(tok);
       setStep(2);
+    } catch(e) {
+      setGenError(e?.message || 'שגיאה ביצירת קישור — נסה שוב');
     } finally { setCreating(false); }
   };
 
@@ -6363,6 +6366,7 @@ function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
           <Btn th={th} full disabled={!recipFirst.trim() || !recipLast.trim() || creating} onClick={generate}>
             {creating ? 'יוצר קישור…' : t('invite_flow_btn')}
           </Btn>
+          {genError && <div style={{ marginTop: 10, color: '#c00', fontSize: 13, textAlign: 'center', fontFamily: th.body }}>{genError}</div>}
         </>
       )}
 
