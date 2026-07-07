@@ -12033,8 +12033,9 @@ function AppInner({ inviteToken, offerParam }) {
       window.history.replaceState(null, '', window.location.pathname);
       return;
     }
-    // Skip onboarding if already registered
-    if (profile.profileComplete && stack.length === 1 && stack[0].name === 'onboarding') {
+    // Skip onboarding if already registered (profileComplete, or is a matchmaker/admin regardless)
+    const alreadyIn = profile.profileComplete || profile.isAdmin || profile.role === 'matchmaker';
+    if (alreadyIn && stack.length === 1 && stack[0].name === 'onboarding') {
       setStack([{ name: 'home', params: {} }]);
     }
   }, [profile]);
