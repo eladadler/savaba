@@ -5169,13 +5169,6 @@ function Register({ th, go }) {
   const [saving, setSaving] = useS(false);
   const [agreedTerms, setAgreedTerms] = useS(false);
   const [termsOpen, setTermsOpen] = useS(false);
-  const [otpSending, setOtpSending] = useS(false);
-  const [otpError, setOtpError] = useS('');
-  const [otpCode, setOtpCode] = useS('');
-  const [confirmResult, setConfirmResult] = useS(null);
-  const [captchaShown, setCaptchaShown] = useS(false);
-  const recaptchaContainerRef = React.useRef(null);
-  const recaptchaVerifierRef  = React.useRef(null);
 
   const isPhoneValid = (p) => {
     const d = p.replace(/\D/g, '');
@@ -5189,91 +5182,6 @@ function Register({ th, go }) {
     else setPhoneError('');
   };
 
-  const formatPhoneE164 = (p) => {
-    const d = p.replace(/\D/g, '');
-    if (d.startsWith('972')) return '+' + d;
-    if (d.startsWith('05')) return '+972' + d.slice(1);
-    return '+' + d;
-  };
-
-  const clearRecaptcha = () => {
-    if (recaptchaVerifierRef.current) {
-      try { recaptchaVerifierRef.current.clear(); } catch {}
-      recaptchaVerifierRef.current = null;
-    }
-    if (recaptchaContainerRef.current) {
-      recaptchaContainerRef.current.innerHTML = '';
-    }
-    setCaptchaShown(false);
-  };
-
-  const otpErrorMessages = {
-    'auth/provider-already-linked': 'הטלפון כבר מאומת לחשבון זה',
-    'auth/phone-number-already-exists': 'מספר זה רשום כבר למשתמש אחר',
-    'auth/invalid-phone-number': 'מספר הטלפון אינו תקין',
-    'auth/too-many-requests': 'יותר מדי ניסיונות — נסה שוב מאוחר יותר',
-    'auth/captcha-check-failed': 'בדיקת reCAPTCHA נכשלה — נסה שוב',
-  };
-
-  const sendOtp = () => {
-    if (auth.currentUser?.providerData?.some(p => p.providerId === 'phone')) {
-      setStep(3); return;
-    }
-    if (captchaShown) return;
-    setOtpError('');
-    clearRecaptcha();
-    setCaptchaShown(true);
-    recaptchaVerifierRef.current = new firebase.auth.RecaptchaVerifier(
-      recaptchaContainerRef.current, {
-        size: 'normal',
-        callback: async () => {
-          setOtpSending(true);
-          try {
-            const result = await auth.currentUser.linkWithPhoneNumber(
-              formatPhoneE164(phone), recaptchaVerifierRef.current
-            );
-            setConfirmResult(result);
-            setStep(2);
-          } catch (e) {
-            clearRecaptcha();
-            setCaptchaShown(false);
-            setOtpError(otpErrorMessages[e.code] || ('שגיאה — ' + (e.message || e.code)));
-          }
-          setOtpSending(false);
-        },
-        'expired-callback': () => {
-          clearRecaptcha();
-          setCaptchaShown(false);
-          setOtpError('reCAPTCHA פג תוקף — לחץ שוב על שלח קוד');
-        },
-      }
-    );
-    recaptchaVerifierRef.current.render().catch(() => {
-      clearRecaptcha();
-      setCaptchaShown(false);
-      setOtpError('שגיאה בטעינת reCAPTCHA — נסה שוב');
-    });
-  };
-
-  const verifyOtp = async () => {
-    if (!confirmResult || otpCode.length !== 6) return;
-    setOtpSending(true); setOtpError('');
-    try {
-      await confirmResult.confirm(otpCode);
-      setStep(3);
-    } catch (e) {
-      setOtpError(({
-        'auth/invalid-verification-code': 'קוד שגוי — נסה שוב',
-        'auth/code-expired': 'הקוד פג תוקף — חזור ושלח קוד חדש',
-      })[e.code] || 'שגיאה — נסה שוב');
-      setOtpCode('');
-    }
-    setOtpSending(false);
-  };
-
-  const goBackToStep1 = () => {
-    setStep(1); setOtpCode(''); setOtpError(''); clearRecaptcha(); setCaptchaShown(false);
-  };
 
   const handlePhoto = async (e) => {
     const file = e.target.files[0];
@@ -5299,7 +5207,6 @@ function Register({ th, go }) {
         gender: gender === 'זכר' ? 'm' : 'f',
         ...(photoURL ? { photoURL } : {}),
         profileComplete: true,
-        phoneVerified: true,
       });
       go('home');
     } catch(err) { alert('שגיאה: ' + err.message); setSaving(false); }
@@ -5307,7 +5214,7 @@ function Register({ th, go }) {
 
   const StepDots = ({ active }) => (
     <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 28 }}>
-      {[1, 2, 3].map(n => (
+      {[1, 2].map(n => (
         <div key={n} style={{ height: 4, borderRadius: 2, transition: 'all 0.25s',
           width: active === n ? 28 : 16,
           background: active === n ? th.primary : alpha(th.ink, 0.15) }} />
@@ -5347,16 +5254,7 @@ function Register({ th, go }) {
           </span>
         </button>
         <div style={{ marginTop: 4 }}>
-          {otpError && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 10 }}>{otpError}</div>}
-          <div ref={recaptchaContainerRef} style={{ marginBottom: captchaShown ? 12 : 0 }} />
-          {otpSending
-            ? <Btn th={th} full size="l" disabled>שולח…</Btn>
-            : !captchaShown && (
-              <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms} onClick={sendOtp}>
-                שלח קוד אימות
-              </Btn>
-            )
-          }
+          <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms} onClick={() => setStep(2)}>{t('register_btn_next')}</Btn>
         </div>
       </div>
       <Sheet open={termsOpen} onClose={() => setTermsOpen(false)} th={th} title="תקנון, תנאי שימוש ומדיניות פרטיות" height="92%">
@@ -5365,36 +5263,11 @@ function Register({ th, go }) {
     </>
   );
 
-  if (step === 2) return (
-    <>
-      <AppHeader th={th} title="אימות מספר טלפון" onBack={goBackToStep1} />
-      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
-        <StepDots active={2} />
-        <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.7), marginBottom: 22, lineHeight: 1.6 }}>
-          שלחנו קוד אימות ל-<strong>{phone}</strong>. הזיני את הקוד להמשך.
-        </div>
-        <Field th={th} label="קוד אימות (6 ספרות)" required>
-          <TextInput th={th} type="tel" value={otpCode}
-            onChange={v => { setOtpCode(v.replace(/\D/g, '').slice(0, 6)); if (otpError) setOtpError(''); }}
-            placeholder="000000" />
-        </Field>
-        {otpError && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 10 }}>{otpError}</div>}
-        <Btn th={th} full size="l" disabled={otpCode.length !== 6 || otpSending} onClick={verifyOtp} style={{ marginTop: 4 }}>
-          {otpSending ? 'מאמת…' : 'אמת קוד'}
-        </Btn>
-        <button onClick={goBackToStep1}
-          style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: th.primary, marginTop: 16 }}>
-          לא קיבלתי קוד — שלח שוב
-        </button>
-      </div>
-    </>
-  );
-
   return (
     <>
-      <AppHeader th={th} title={t('register_photo_title')} onBack={() => setStep(2)} />
+      <AppHeader th={th} title={t('register_photo_title')} onBack={() => setStep(1)} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
-        <StepDots active={3} />
+        <StepDots active={2} />
         <div style={{ background: alpha(th.gold, 0.09), border: `1px solid ${alpha(th.gold, 0.22)}`, borderRadius: th.r, padding: '13px 15px', marginBottom: 26 }}>
           <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 5 }}>{t('register_photo_why_title')}</div>
           <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.68), lineHeight: 1.55 }}>
