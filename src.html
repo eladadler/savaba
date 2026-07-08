@@ -10429,6 +10429,55 @@ const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
 const TAB_TO_ROUTE = { home:'home', cands:'cands', match:'offers', ai:'ai', set:'set' };
 const ROUTE_TO_TAB = { home:'home', cands:'cands', candidate:'cands', candInquiry:'cands', offers:'match', chat:'match', matchFlow:'match', offerDetail:'match', ai:'ai', set:'set' };
 
+// ── URL routing helpers (hash-based, works with GitHub Pages) ──
+function screenToHash(name, params = {}) {
+  switch(name) {
+    case 'home':          return '#/home';
+    case 'cands':         return '#/candidates';
+    case 'offers':        return '#/offers';
+    case 'ai':            return '#/ai';
+    case 'set':           return '#/settings';
+    case 'candidate':     return `#/candidate/${params.id || ''}`;
+    case 'offerDetail':   return `#/offer/${params.id || ''}`;
+    case 'matchFlow':     return `#/match/${params.candId || ''}`;
+    case 'chat':          return `#/chat/${params.offerId || ''}`;
+    case 'candInquiry':   return `#/inquiry/${params.id || ''}`;
+    case 'admin':         return '#/admin';
+    case 'textsAdmin':    return '#/texts';
+    case 'editCand':      return `#/edit-candidate/${params.id || ''}`;
+    case 'terms':         return '#/terms';
+    case 'accessibility': return '#/accessibility';
+    case 'candidateMode': return '#/me';
+    case 'candViewCand':  return `#/my-profile/${params.id || ''}`;
+    default:              return null; // transient (onboarding, register, inviteLanding, candSelfFill)
+  }
+}
+
+function parseHash(hash) {
+  const h = (hash || '').replace(/^#\/?/, '');
+  if (!h || h === 'home')    return { name:'home', params:{} };
+  if (h === 'candidates')    return { name:'cands', params:{} };
+  if (h === 'offers')        return { name:'offers', params:{} };
+  if (h === 'ai')            return { name:'ai', params:{} };
+  if (h === 'settings')      return { name:'set', params:{} };
+  if (h === 'admin')         return { name:'admin', params:{} };
+  if (h === 'texts')         return { name:'textsAdmin', params:{} };
+  if (h === 'terms')         return { name:'terms', params:{} };
+  if (h === 'accessibility') return { name:'accessibility', params:{} };
+  if (h === 'me')            return { name:'candidateMode', params:{} };
+  const m = (re, fn) => { const r = h.match(re); return r ? fn(r) : null; };
+  return (
+    m(/^candidate\/(.+)$/,     r => ({ name:'candidate',    params:{ id: r[1] } })) ||
+    m(/^offer\/(.+)$/,         r => ({ name:'offerDetail',  params:{ id: r[1] } })) ||
+    m(/^match\/(.+)$/,         r => ({ name:'matchFlow',    params:{ candId: r[1] } })) ||
+    m(/^chat\/(.+)$/,          r => ({ name:'chat',         params:{ offerId: r[1] } })) ||
+    m(/^inquiry\/(.+)$/,       r => ({ name:'candInquiry',  params:{ id: r[1] } })) ||
+    m(/^edit-candidate\/(.+)$/,r => ({ name:'editCand',     params:{ id: r[1] } })) ||
+    m(/^my-profile\/(.+)$/,    r => ({ name:'candViewCand', params:{ id: r[1] } })) ||
+    null
+  );
+}
+
 // ════════════════════════════════════════════════════════════
 // OFFER DETAIL (full-screen offer card, used from bell notification)
 // ════════════════════════════════════════════════════════════
@@ -11938,7 +11987,33 @@ function AppInner({ inviteToken, offerParam }) {
   const th = makeTheme({ ...t, aiMode, groupTagsByCategory });
   const { user, profile } = useContext(AuthCtx);
   const data           = useContext(DataCtx);
-  const [stack, setStack] = React.useState([{ name:'onboarding', params:{} }]);
+  const [stack, setStack] = React.useState(() => {
+    // Don't derive from hash if we're handling ?invite= or ?offer= — those routing effects take over
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('invite') || sp.get('offer')) return [{ name:'onboarding', params:{} }];
+    const fromHash = parseHash(window.location.hash);
+    return fromHash ? [fromHash] : [{ name:'onboarding', params:{} }];
+  });
+  const stackRef = React.useRef(stack);
+  stackRef.current = stack;
+
+  // Sync URL → stack when user hits browser back/forward
+  React.useEffect(() => {
+    // Stamp initial history entry so popstate always has a stack to restore
+    if (!window.history.state?.stack) {
+      window.history.replaceState({ stack }, '', window.location.href);
+    }
+    const onPop = (e) => {
+      if (e.state?.stack) {
+        setStack(e.state.stack);
+      } else {
+        const s = parseHash(window.location.hash);
+        if (s) setStack([s]);
+      }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []); // eslint-disable-line
   const cur  = stack[stack.length - 1];
   const [showModeModal, setShowModeModal] = React.useState(false);
   const modeModalShownRef = React.useRef(false);
@@ -12014,29 +12089,27 @@ function AppInner({ inviteToken, offerParam }) {
   React.useEffect(() => {
     if (!profile) return;
     if (inviteToken && stack.length === 1 && stack[0].name !== 'inviteLanding' && stack[0].name !== 'candSelfFill') {
-      setStack([{ name: 'inviteLanding', params: { token: inviteToken } }]);
+      navigate([{ name: 'inviteLanding', params: { token: inviteToken } }], true);
       return;
     }
-    // Deep link: #cand/CANDIDATE_ID sent via WhatsApp to shadchan
-    const hash = window.location.hash;
-    if (hash.startsWith('#cand/') && stack.length === 1 && stack[0].name !== 'candidate') {
-      const candId = hash.slice('#cand/'.length);
+    // Deep link: #cand/CANDIDATE_ID (legacy hash format) sent via WhatsApp to shadchan
+    const rawHash = window.location.hash;
+    if (rawHash.startsWith('#cand/') && stack.length === 1 && stack[0].name !== 'candidate') {
+      const candId = rawHash.slice('#cand/'.length);
       if (candId) {
-        setStack([{ name: 'home', params: {} }, { name: 'candidate', params: { id: candId, viewOnly: true } }]);
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        navigate([{ name: 'home', params: {} }, { name: 'candidate', params: { id: candId, viewOnly: true } }], true);
         return;
       }
     }
     // Deep link: ?offer=OFFER_ID sent via WhatsApp mm-to-mm
     if (offerParam && stack.length === 1 && stack[0].name !== 'offerDetail') {
-      setStack([{ name: 'offers', params: {} }, { name: 'offerDetail', params: { id: offerParam } }]);
-      window.history.replaceState(null, '', window.location.pathname);
+      navigate([{ name: 'offers', params: {} }, { name: 'offerDetail', params: { id: offerParam } }], true);
       return;
     }
     // Skip onboarding if already registered (profileComplete, or is a matchmaker/admin regardless)
     const alreadyIn = profile.profileComplete || profile.isAdmin || profile.role === 'matchmaker';
     if (alreadyIn && stack.length === 1 && stack[0].name === 'onboarding') {
-      setStack([{ name: 'home', params: {} }]);
+      navigate([{ name: 'home', params: {} }], true);
     }
   }, [profile]);
 
@@ -12065,12 +12138,33 @@ function AppInner({ inviteToken, offerParam }) {
     window.AI_PAIRS    = [];
   }, [data.candidates, data.offers, data.matchmakers]);
 
-  const go = React.useCallback((name, params={}) => {
-    if (name === 'back')  { setStack(s => s.length > 1 ? s.slice(0,-1) : s); return; }
-    if (name === 'tab')   { setStack([{ name: TAB_TO_ROUTE[params.tab]||'home', params:{} }]); return; }
-    if (NAV_ROUTES.includes(name)) setStack([{ name, params }]);
-    else setStack(s => [...s, { name, params }]);
+  const navigate = React.useCallback((newStack, replace = false) => {
+    setStack(newStack);
+    stackRef.current = newStack;
+    const top = newStack[newStack.length - 1];
+    const hash = screenToHash(top.name, top.params);
+    // Transient screens (onboarding, register, inviteLanding) have no hash — clear it
+    const url = hash || (window.location.pathname + window.location.search);
+    if (replace) window.history.replaceState({ stack: newStack }, '', url);
+    else         window.history.pushState   ({ stack: newStack }, '', url);
   }, []);
+
+  const go = React.useCallback((name, params={}) => {
+    if (name === 'back') {
+      if (stackRef.current.length > 1) window.history.back();
+      else setStack(s => s); // no-op at root
+      return;
+    }
+    if (name === 'tab') {
+      const sName = TAB_TO_ROUTE[params.tab] || 'home';
+      navigate([{ name: sName, params: {} }]);
+      return;
+    }
+    const newStack = NAV_ROUTES.includes(name)
+      ? [{ name, params }]
+      : [...stackRef.current, { name, params }];
+    navigate(newStack);
+  }, [navigate]);
 
   const showNav  = NAV_ROUTES.includes(cur.name);
   const activeTab = ROUTE_TO_TAB[cur.name] || 'home';
@@ -12131,7 +12225,7 @@ function AppInner({ inviteToken, offerParam }) {
           {showModeModal && (
             <ModeChoiceModal th={th} profile={profile}
               onPickMm={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); }}
-              onPickCand={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); setStack([{ name:'candidateMode', params:{} }]); }}
+              onPickCand={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); navigate([{ name:'candidateMode', params:{} }], true); }}
             />
           )}
 
