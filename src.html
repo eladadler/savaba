@@ -2331,7 +2331,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
   );
 }
 
-function LoginScreen({ th, inviteToken }) {
+function LoginScreen({ th, inviteToken, loginOnly }) {
   const [mode, setMode]   = useState('choose'); // choose | email
   const [email, setEmail] = useState('');
   const [pass,  setPass]  = useState('');
@@ -2379,7 +2379,7 @@ function LoginScreen({ th, inviteToken }) {
         <Logo size={72} color={th.primary} flaw={th.cream} />
         <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.ink, marginTop: 14 }}>סבבה והכל</div>
         <div style={{ fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.55), marginTop: 4 }}>
-          {inviteToken ? 'קיבלת הזמנה — התחבר/י להמשיך' : 'פלטפורמת השידוכים לשדכנים'}
+          {inviteToken ? 'קיבלת הזמנה — התחבר/י להמשיך' : loginOnly ? 'לצפייה בכרטיסיה, יש להתחבר תחילה' : 'פלטפורמת השידוכים לשדכנים'}
         </div>
         {inviteToken && (
           <div style={{ marginTop: 12, background: alpha(th.primary, 0.08), border: `1.5px solid ${alpha(th.primary, 0.2)}`, borderRadius: th.rSm, padding: '10px 14px', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.7) }}>
@@ -2403,7 +2403,7 @@ function LoginScreen({ th, inviteToken }) {
       {mode === 'email' && (
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, animation: 'sabaUp .3s ease' }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-            {[['כניסה', false], ['הרשמה', true]].map(([lbl, n]) => (
+            {(loginOnly ? [['כניסה', false]] : [['כניסה', false], ['הרשמה', true]]).map(([lbl, n]) => (
               <button key={lbl} onClick={() => setIsNew(n)} style={{ flex: 1, padding: 10, borderRadius: th.r, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: isNew === n ? th.ink : alpha(th.ink, 0.08), color: isNew === n ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
             ))}
           </div>
@@ -10560,6 +10560,8 @@ function OfferDetail({ th, go, params }) {
   const myCand    = iAmA ? candA : candB;
   const theirCand = iAmA ? candB : candA;
   const theirMm   = iAmA ? mmB : mmA;
+  const theirMmTitle = theirMm?.gender ? (isFemGender(theirMm.gender) ? 'שדכנית' : 'שדכן') : 'שדכן/ית';
+  const genderMm = (str, title) => title === 'שדכן/ית' ? str : str.replace(/שדכן\/ית/g, title);
 
   const aCandApp   = !!(o.aCandApproved || o.candAApprovedByMm || o.candAStatus === 'אישר');
   const bCandApp   = !!(o.bCandApproved || o.candBStatus === 'אישר');
@@ -10613,7 +10615,7 @@ function OfferDetail({ th, go, params }) {
       ]
     : [
         waCandLink(myCand, theirCand) && { href: waCandLink(myCand, theirCand), avatar: myCand, label: `שלח/י כרטיסיה של ${theirCand.name} ל:`, name: myCand.name },
-        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + oid }))}`, avatar: theirMm, label: 'שדכן/ית הצד השני', name: theirMm.name, isMm: true } : null; })(),
+        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + oid }))}`, avatar: theirMm, label: theirMmTitle + ' הצד השני', name: theirMm.name, isMm: true } : null; })(),
       ].filter(Boolean);
 
   const sendMsg = async () => {
@@ -10766,7 +10768,6 @@ function OfferDetail({ th, go, params }) {
     const iAmMaleMm        = !isMyCandFemale;
     const gTheirMm = theirMm?.gender;
     const gMe      = profile?.gender;
-    const theirMmTitle = gTheirMm ? (isFemGender(gTheirMm) ? 'שדכנית' : 'שדכן') : 'שדכן/ית';
     const theirMmVerb  = gTheirMm ? (isFemGender(gTheirMm) ? 'מסרה'    : 'מסר')   : 'מסר/ה';
     const myVerb       = gMe      ? (isFemGender(gMe)      ? 'שלחי'     : 'שלח')   : 'שלח/י';
     const waToMaleCandHref = bothApp ? (() => {
@@ -10991,7 +10992,7 @@ function OfferDetail({ th, go, params }) {
           {chatBlock && <div style={{ marginBottom:12 }}>{chatBlock}</div>}
           {!iAmBothMm && waRow(waTheirMmHref,
             inlineEditMode ? t('offer_bothapp_wa_mm_title') : fillWa(txCtx, 'offer_bothapp_wa_mm_title', { שם: theirMm.name.split(' ')[0] }),
-            t('offer_bothapp_wa_mm_sub'), true)}
+            genderMm(t('offer_bothapp_wa_mm_sub'), theirMmTitle), true)}
 
           {/* Marriage button */}
           <div style={{ background:th.card, borderRadius:th.r, padding:14, marginTop:14, marginBottom:14, boxShadow:`0 3px 12px ${alpha(th.ink,0.06)}` }}>
@@ -11093,7 +11094,7 @@ function OfferDetail({ th, go, params }) {
             <div style={{ height:1, background:alpha(th.ink,0.12), margin:'14px 0' }} />
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
               <Icon name="chat" size={14} style={{ color:alpha(th.ink,0.45) }} />
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{inlineEditMode ? t('offer_chat_header') : fillWa(txCtx, 'offer_chat_header', { שם: theirCand.name.split(' ')[0] })}</span>
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{inlineEditMode ? t('offer_chat_header') : genderMm(fillWa(txCtx, 'offer_chat_header', { שם: theirCand.name.split(' ')[0] }), theirMmTitle)}</span>
             </div>
             <div style={{ maxHeight:220, overflowY:'auto', display:'flex', flexDirection:'column', gap:6, marginBottom:10 }}>
               {allMsgs.length === 0
@@ -11127,8 +11128,8 @@ function OfferDetail({ th, go, params }) {
               </button>
             </div>
             {waRow(waTheirMmHref,
-              inlineEditMode ? t('offer_wa_mm_title') : fillWa(txCtx, 'offer_wa_mm_title', { שם: theirCand.name.split(' ')[0] }),
-              inlineEditMode ? t('offer_wa_mm_sub')   : fillWa(txCtx, 'offer_wa_mm_sub',   { שם: theirMm.name }), true)}
+              inlineEditMode ? t('offer_wa_mm_title') : genderMm(fillWa(txCtx, 'offer_wa_mm_title', { שם: theirCand.name.split(' ')[0] }), theirMmTitle),
+              inlineEditMode ? t('offer_wa_mm_sub')   : genderMm(fillWa(txCtx, 'offer_wa_mm_sub',   { שם: theirMm.name }), theirMmTitle), true)}
           </div>
 
           {/* Decline button */}
@@ -11237,7 +11238,7 @@ function OfferDetail({ th, go, params }) {
                     target="_blank" rel="noreferrer" style={{ ...waRowStyle }}>
                     <Avatar grad={theirMm.grad} name={theirMm.name} size={30} photo={theirMm.photoURL} />
                     <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>התכתב/י עם השדכן/ית</div>
+                      <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{'התכתב/י עם ה' + theirMmTitle}</div>
                       <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{theirMm.name}</div>
                     </div>
                     <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
@@ -12337,7 +12338,8 @@ function App() {
     const clean = raw.split(/https?:\/\//)[0];
     return clean || null;
   });
-  const [offerParam] = React.useState(() => new URLSearchParams(window.location.search).get('offer') || null);
+  const [offerParam]  = React.useState(() => new URLSearchParams(window.location.search).get('offer') || null);
+  const [loginOnly]   = React.useState(() => window.location.hash.startsWith('#cand/'));
 
   if (user === undefined) {
     return (
@@ -12355,7 +12357,7 @@ function App() {
         <div style={{ width:'100%', maxWidth:430, background:th.cream, height:'100%' }}>
           {inviteToken
             ? <CandidateInviteRegister th={th} inviteToken={inviteToken} />
-            : <LoginScreen th={th} inviteToken={inviteToken} />}
+            : <LoginScreen th={th} inviteToken={inviteToken} loginOnly={loginOnly} />}
         </div>
       </div>
     );
