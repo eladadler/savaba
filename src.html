@@ -50,6 +50,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
 <script>
+if (location.protocol === 'http:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+  location.replace('https://' + location.host + location.pathname + location.search + location.hash);
+}
 // ── REPLACE WITH YOUR FIREBASE CONFIG ──────────────────────
 const firebaseConfig = {
   apiKey:            "AIzaSyBkHWCZhg56GW-kJ4VmlmC4zUAhHFLDGn8",
@@ -3961,20 +3964,31 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   }, [voiceBlob]);
 
   const startVoiceRecording = async () => {
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      alert('ההקלטה דורשת חיבור מאובטח.\nפתח/י את האתר דרך: https://www.sababa-and-all.com');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       voiceChunksRef.current = [];
-      const mr = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       mr.ondataavailable = e => { if (e.data.size > 0) voiceChunksRef.current.push(e.data); };
       mr.onstop = () => {
-        const blob = new Blob(voiceChunksRef.current, { type: mr.mimeType || 'audio/webm' });
+        const blob = new Blob(voiceChunksRef.current, { type: mr.mimeType || 'audio/mp4' });
         setVoiceBlob(blob);
         stream.getTracks().forEach(t => t.stop());
       };
       mr.start();
       setVoiceRec(mr);
       setVoiceRecording(true);
-    } catch { alert('לא ניתן לגשת למיקרופון'); }
+    } catch (e) {
+      if (e?.name === 'NotAllowedError') {
+        alert('ההרשאה למיקרופון נדחתה.\nעבור/י להגדרות → Safari → מיקרופון ואפשר/י גישה.');
+      } else {
+        alert('לא ניתן לגשת למיקרופון');
+      }
+    }
   };
 
   const stopVoiceRecording = () => {
