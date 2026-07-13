@@ -1950,19 +1950,25 @@ function MultiChips({ value = [], onChange, options, th, tone }) {
     </div>
   );
 }
+const CAT_EMOJI = { work: '💼', leisure: '🎨', social: '✨', religious: '🕍', family: '🏡', other: '🗂️' };
+
 // Same as MultiChips but options are grouped into categories with a sub-header per group
 function CategorizedMultiChips({ value = [], onChange, categories, th, tone }) {
   const toggle = (o) => onChange?.(value.includes(o) ? value.filter(x => x !== o) : [...value, o]);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {(categories || []).map(cat => (
-        <div key={cat.id || cat.label}>
-          <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{cat.label}</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {(cat.tags || []).map(o => <Chip key={o} label={o} active={value.includes(o)} onClick={() => toggle(o)} th={th} tone={tone} />)}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {(categories || []).map(cat => {
+        const hasEmoji = /\p{Emoji}/u.test(cat.label);
+        const emoji = !hasEmoji && CAT_EMOJI[cat.id] ? CAT_EMOJI[cat.id] + ' ' : '';
+        return (
+          <div key={cat.id || cat.label}>
+            <div style={{ fontFamily: th.display, fontSize: 15, fontWeight: 800, color: th.ink, marginBottom: 10, paddingBottom: 6, borderBottom: `2px solid ${alpha(th.primary, 0.18)}` }}>{emoji}{cat.label}</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {(cat.tags || []).map(o => <Chip key={o} label={o} active={value.includes(o)} onClick={() => toggle(o)} th={th} tone={tone} />)}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
