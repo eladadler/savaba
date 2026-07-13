@@ -1268,7 +1268,7 @@ function useAuthState() {
 }
 
 // ── Data hook (live Firestore listeners) ─────────────────────
-function compressPhoto(file, maxPx = 1200, quality = 0.82) {
+function compressPhoto(file, maxPx = 900, quality = 0.82) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -6148,8 +6148,8 @@ function Candidates({ th, go, params }) {
 
         {/* grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {list.map(c => (
-            <CandCard key={c.id} c={c} th={th} myUid={myUid}
+          {list.map((c, i) => (
+            <CandCard key={c.id} c={c} th={th} myUid={myUid} index={i}
               onClick={() => linkMode ? null : go('candidate', { id: c.id })}
               linkMode={linkMode}
               photoStyle={cardStyle}
@@ -6226,14 +6226,16 @@ function Candidates({ th, go, params }) {
   );
 }
 
-function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoStyle }) {
+function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoStyle, index = 99 }) {
   const isSquare = photoStyle !== 'compact';
   const { t } = useTexts();
+  const imgLoading     = index < 4 ? 'eager' : 'lazy';
+  const imgPriority    = index < 2 ? 'high'  : 'auto';
   return (
     <button onClick={onClick} style={{ all: 'unset', cursor: linkMode ? 'default' : 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: `0 6px 18px ${alpha(th.ink, 0.07)}`, display: 'flex', flexDirection: 'column' }}>
       <div style={{ position: 'relative', ...(isSquare ? { aspectRatio: '1' } : { height: 116 }), background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {c.photos && c.photos[0]
-          ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: isSquare ? 'center 20%' : 'center' }} />
+          ? <img src={c.photos[0]} alt="" loading={imgLoading} fetchpriority={imgPriority} decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: isSquare ? 'center 20%' : 'center' }} />
           : <span style={{ fontFamily: th.display, fontSize: isSquare ? 56 : 44, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>}
         <div style={{ position: 'absolute', top: 8, right: 8 }}>
           {(() => {
@@ -9562,8 +9564,8 @@ function CandBrowse({ th, go, me }) {
           </button>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-          {list.map(c => (
-            <CandCard key={c.id} c={c} th={th} myUid={null}
+          {list.map((c, i) => (
+            <CandCard key={c.id} c={c} th={th} myUid={null} index={i}
               onClick={() => go('candViewCand', { id: c.id, meId: me.id })} />
           ))}
         </div>
