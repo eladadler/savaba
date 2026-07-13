@@ -1250,7 +1250,7 @@ function useAuthState() {
             role: 'matchmaker',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           };
-          await ref.set(p);
+          ref.set(p); // fire-and-forget — onSnapshot will sync; don't await to unblock UI immediately
           setProfile({ uid: u.uid, ...p, isAdmin: isFirst });
         } else {
           setProfile({ uid: u.uid, ...snap.data() });
@@ -12344,6 +12344,16 @@ function ModeChoiceModal({ th, profile, onPickMm, onPickCand }) {
 
 function App() {
   const { user, profile } = useAuthState();
+  const [profileStuckMs, setProfileStuckMs] = React.useState(0);
+  React.useEffect(() => {
+    if (user && !profile) {
+      const t0 = Date.now();
+      const iv = setInterval(() => setProfileStuckMs(Date.now() - t0), 1000);
+      return () => clearInterval(iv);
+    }
+    setProfileStuckMs(0);
+  }, [user, profile]);
+
   // impersonate must come before useFirebaseData so we can pass the effective uid
   const [impersonate, setImpersonate] = React.useState(null);
   const startImpersonate = React.useCallback((uid, prof, type) =>
@@ -12385,10 +12395,17 @@ function App() {
 
   // user is authenticated but profile hasn't loaded from Firestore yet — show spinner
   if (!profile) {
+    const stuck = profileStuckMs > 7000;
     return (
       <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
-        <div style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
+        <div style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, gap:20 }}>
           <Logo size={60} color={th.primary} flaw={th.cream} />
+          {stuck && (
+            <div style={{ textAlign:'center', padding:'0 32px' }}>
+              <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.55), marginBottom:14 }}>הטעינה לוקחת יותר מהצפוי…</div>
+              <button onClick={() => window.location.reload()} style={{ padding:'10px 24px', borderRadius:th.r, border:'none', background:th.primary, color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:14, cursor:'pointer' }}>רענן דף</button>
+            </div>
+          )}
         </div>
       </div>
     );
