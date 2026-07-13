@@ -10,10 +10,10 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <!-- Open Graph / WhatsApp preview -->
 <meta property="og:type"        content="website" />
-<meta property="og:url"         content="https://eladadler.github.io/savaba/" />
+<meta property="og:url"         content="https://www.sababa-and-all.com/" />
 <meta property="og:title"       content="סבבה והכל — מערכת שידוכים" />
 <meta property="og:description" content="שידוכים על בסיס אמון ואנשים אמיתיים." />
-<meta property="og:image"       content="https://eladadler.github.io/savaba/og-image.svg" />
+<meta property="og:image"       content="https://www.sababa-and-all.com/og-image.svg" />
 <meta property="og:image:width"  content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card"       content="summary_large_image" />
@@ -1490,7 +1490,7 @@ async function saveOutcomeLearning(offer, outcome, candidates) {
 }
 
 // ── INVITATION SYSTEM ──────────────────────────────────────────
-const INVITE_BASE_URL = 'https://eladadler.github.io/savaba/';
+const INVITE_BASE_URL = 'https://www.sababa-and-all.com/';
 const inviteURL = (token) => `${INVITE_BASE_URL}?invite=${token}`;
 
 async function createInvitation(mmId, mmName, flow, recipientName, mmPhone, mmGender) {
@@ -8771,7 +8771,7 @@ function Chat({ th, go, params }) {
   // WhatsApp link
   const waPhone = theirMm.phone ? String(theirMm.phone).replace(/\D/g,'').replace(/^0/,'972') : '';
   const waUrl = waPhone
-    ? `https://wa.me/${waPhone}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + o.id }))}`
+    ? `https://wa.me/${waPhone}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: INVITE_BASE_URL + '?offer=' + o.id }))}`
     : `https://wa.me/`;
 
   return (
@@ -10604,7 +10604,7 @@ function OfferDetail({ th, go, params }) {
   const waCandLink = (from, to) => {
     const ph = waPhone(from);
     if (!ph) return null;
-    const msg = fillWa(txCtx, 'wa_cand_offer', { שם: from.name, שם_שני: to.name, קישור: `https://eladadler.github.io/savaba/#cand/${to.id}` });
+    const msg = fillWa(txCtx, 'wa_cand_offer', { שם: from.name, שם_שני: to.name, קישור: `${INVITE_BASE_URL}#cand/${to.id}` });
     return `https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
   };
   // Self-match: two cand→cand links. Regular: one cand link + one mm link.
@@ -10615,7 +10615,7 @@ function OfferDetail({ th, go, params }) {
       ]
     : [
         waCandLink(myCand, theirCand) && { href: waCandLink(myCand, theirCand), avatar: myCand, label: `שלח/י כרטיסיה של ${theirCand.name} ל:`, name: myCand.name },
-        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + oid }))}`, avatar: theirMm, label: theirMmTitle + ' הצד השני', name: theirMm.name, isMm: true } : null; })(),
+        (() => { const ph = waPhone(theirMm); return ph ? { href: `https://wa.me/${ph}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: INVITE_BASE_URL + '?offer=' + oid }))}`, avatar: theirMm, label: theirMmTitle + ' הצד השני', name: theirMm.name, isMm: true } : null; })(),
       ].filter(Boolean);
 
   const sendMsg = async () => {
@@ -10759,7 +10759,7 @@ function OfferDetail({ th, go, params }) {
     const myCandNewOther = approvalCols[0].newOtherApp;
     const waCandHref   = waCandLink(myCand, theirCand);
     const waTheirMmHref = waPhone(theirMm)
-      ? `https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: 'https://eladadler.github.io/savaba/?offer=' + oid }))}`
+      ? `https://wa.me/${waPhone(theirMm)}?text=${encodeURIComponent(fillWa(txCtx, 'wa_mm_contact', { שם: theirMm.name.split(' ')[0], שם_א: myCand.name, שם_ב: theirCand.name, קישור: INVITE_BASE_URL + '?offer=' + oid }))}`
       : null;
 
     const isMyCandFemale   = isFemGender(myCand.gender);
