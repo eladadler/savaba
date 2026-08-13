@@ -1011,6 +1011,7 @@ function makeTheme(t) {
     showMmNote: t.showMmNote !== false,
     aiMode: t.aiMode || 'top5',
     groupTagsByCategory: t.groupTagsByCategory !== false,
+    showTextEditBtn: t.showTextEditBtn !== false,
     offerDetailLayout: t.offerDetailLayout || 'new',
     cmNewMatch:    t.cmNewMatch    || 'on',
     cmAddCand:     t.cmAddCand     || 'on',
@@ -12235,7 +12236,7 @@ function AppInner({ inviteToken, offerParam }) {
           {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
-          {isAdmin && !data.loading && screenKeys.length > 0 && !editMode && !inlineEditMode && (
+          {isAdmin && th.showTextEditBtn && !data.loading && screenKeys.length > 0 && !editMode && !inlineEditMode && (
             <button onClick={() => { if (editMethod === 'inline') { setInlineDrafts({}); setInlineEditMode(true); } else setEditMode(true); }}
               style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 16, zIndex: 40, border:'none', borderRadius:999, padding:'8px 14px', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:12.5, background:th.card, color:alpha(th.ink,0.6), display:'flex', alignItems:'center', gap:6, boxShadow:`0 2px 14px ${alpha(th.ink,0.13)}` }}>
               <Icon name="pencil" size={14} />
@@ -12290,6 +12291,8 @@ function AppInner({ inviteToken, offerParam }) {
         <TweakSection label="פריסה" />
         <TweakRadio label="עיגול פינות" value={t.radius} options={['חד','רך','מעוגל']} onChange={v => setProdTweak('radius',v)} />
         <TweakRadio label="צפיפות" value={t.density} options={['קומפקטי','רגיל','מרווח']} onChange={v => setProdTweak('density',v)} />
+        <TweakSection label="מנהל" />
+        <TweakToggle label="כפתור עריכת טקסטים" value={t.showTextEditBtn !== false} onChange={v => setProdTweak('showTextEditBtn', v)} />
       </TweaksPanel>
       </>
     </TextsCtx.Provider>
