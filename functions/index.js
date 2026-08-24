@@ -1,7 +1,9 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getMessaging } = require("firebase-admin/messaging");
 
 const TWILIO_AUTH_TOKEN  = defineSecret("TWILIO_AUTH_TOKEN");
 const TWILIO_ACCOUNT_SID = defineSecret("TWILIO_ACCOUNT_SID");
@@ -45,6 +47,54 @@ exports.verifyCode = onCall(
     } catch (e) {
       if (e instanceof HttpsError) throw e;
       throw new HttpsError("internal", e.message);
+    }
+  }
+);
+
+exports.notifyOnNewOffer = onDocumentCreated(
+  { document: "offers/{offerId}", region: "us-central1" },
+  async (event) => {
+    const offer = event.data.data();
+    const { bMm, aMm, aId, bId } = offer;
+    if (!bMm || !aMm || bMm === aMm) return; // same matchmaker on both sides — skip
+
+    const db = getFirestore();
+
+    const [recipientSnap, senderSnap, candASnap, candBSnap] = await Promise.all([
+      db.collection("users").doc(bMm).get(),
+      db.collection("users").doc(aMm).get(),
+      aId ? db.collection("candidates").doc(aId).get() : Promise.resolve(null),
+      bId ? db.collection("candidates").doc(bId).get() : Promise.resolve(null),
+    ]);
+
+    const tokens = recipientSnap.data()?.fcmTokens || [];
+    if (!tokens.length) return;
+
+    const senderName = senderSnap.data()?.displayName || "שדכן/ית";
+    const candAName  = candASnap?.data()?.name || "";
+    const candBName  = candBSnap?.data()?.name || "";
+
+    const body = candAName && candBName
+      ? `${senderName} הציע/ה שידוך בין ${candAName} ל${candBName}`
+      : `${senderName} שלח/ה לך הצעת שידוך חדשה`;
+
+    const response = await getMessaging().sendEachForMulticast({
+      tokens,
+      notification: { title: "💌 הצעת שידוך חדשה", body },
+      webpush: {
+        notification: { icon: "https://www.sababa-and-all.com/favicon.svg", dir: "rtl", lang: "he", requireInteraction: true },
+        fcmOptions: { link: "https://www.sababa-and-all.com/#match" },
+      },
+    });
+
+    // Remove stale tokens
+    const stale = response.responses
+      .map((r, i) => (!r.success ? tokens[i] : null))
+      .filter(Boolean);
+    if (stale.length) {
+      await db.collection("users").doc(bMm).update({
+        fcmTokens: FieldValue.arrayRemove(...stale),
+      });
     }
   }
 );
