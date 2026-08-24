@@ -12007,6 +12007,17 @@ function AppSettings({ th, go, profile }) {
             </button>
           </Group>
         )}
+        {profile?.isAdmin && (
+          <Group>
+            <Row icon="bell" label="🧪 שלח התראת בדיקה" tone={th.gold} last onClick={async () => {
+              try {
+                const fn = functions.httpsCallable('createTestOffer');
+                await fn({});
+                alert('ההצעה נוצרה — ההתראה בדרך!');
+              } catch(e) { alert('שגיאה: ' + e.message); }
+            }} />
+          </Group>
+        )}
         <Group>
           <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); }} />
         </Group>
