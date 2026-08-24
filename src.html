@@ -11893,6 +11893,19 @@ function AppSettings({ th, go, profile }) {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [saving, setSaving] = useState(false);
+  const [notifPerm, setNotifPerm] = useState(() =>
+    ('Notification' in window) ? Notification.permission : 'unsupported'
+  );
+  const handleNotifToggle = async () => {
+    if (notifPerm === 'denied') {
+      alert('ההתראות חסומות. כנס/י להגדרות הטלפון → סבבה והכל → התראות → אפשר/י.');
+      return;
+    }
+    if (notifPerm === 'granted') return;
+    if (notifPerm === 'unsupported') return;
+    await initFCM(user.uid);
+    setNotifPerm(Notification.permission);
+  };
 
   const openEdit = () => {
     setEditName(profile?.displayName || '');
@@ -11974,6 +11987,26 @@ function AppSettings({ th, go, profile }) {
             <span style={{ color:alpha(th.ink,0.3) }}><Icon name="chevL" size={18} /></span>
           </a>
         </Group>
+        {'Notification' in window && (
+          <Group>
+            <button onClick={handleNotifToggle} style={{ all:'unset', cursor: notifPerm === 'granted' ? 'default' : 'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:13, padding:'13px 14px' }}>
+              <div style={{ width:34, height:34, borderRadius:10, background:alpha(notifPerm === 'granted' ? th.success : notifPerm === 'denied' ? th.error : th.primary, 0.1), color: notifPerm === 'granted' ? th.success : notifPerm === 'denied' ? th.error : th.primary, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon name="bell" size={19} />
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.body, fontWeight:600, fontSize:15, color:th.ink }}>
+                  {notifPerm === 'granted' ? 'התראות פעילות' : notifPerm === 'denied' ? 'התראות חסומות' : 'הפעלת התראות'}
+                </div>
+                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), marginTop:1 }}>
+                  {notifPerm === 'granted' ? 'תקבל/י עדכון כשמגיעה הצעה חדשה' : notifPerm === 'denied' ? 'לחץ/י לפתיחת הוראות שחרור' : 'קבל/י עדכון כשמגיעה הצעת שידוך'}
+                </div>
+              </div>
+              {notifPerm === 'granted'
+                ? <span style={{ fontSize:18 }}>✓</span>
+                : notifPerm !== 'denied' && <span style={{ color:alpha(th.ink,0.3) }}><Icon name="chevL" size={18} /></span>}
+            </button>
+          </Group>
+        )}
         <Group>
           <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); }} />
         </Group>
