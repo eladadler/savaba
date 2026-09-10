@@ -5109,6 +5109,12 @@ const SCREEN_TEXTS = {
 
 // Gender helper — handles both 'f' (mock data) and 'אשה' (CandidateForm)
 const isFemGender = g => g === 'f' || g === 'אשה';
+const RELIGIOSITY_F = { 'חרדי':'חרדית', 'חרדי לשעבר':'חרדית לשעבר', 'דתי לאומי':'דתייה לאומית', 'דתי':'דתייה', 'דתי קל':'דתייה קלה', 'דתי לשעבר':'דתייה לשעבר', 'מסורתי':'מסורתית', 'מסורתי קל':'מסורתית קלה', 'חילוני':'חילונית' };
+const FAMILY_M = { 'רווק/ה':'רווק', 'גרוש/ה':'גרוש', 'אלמן/ה':'אלמן' };
+const FAMILY_F = { 'רווק/ה':'רווקה', 'גרוש/ה':'גרושה', 'אלמן/ה':'אלמנה' };
+const gHe  = (gender, m, f) => isFemGender(gender) ? f : m;
+const gRelig  = (val, gender) => isFemGender(gender) ? (RELIGIOSITY_F[val] || val) : val;
+const gFamily = (val, gender) => ((isFemGender(gender) ? FAMILY_F : FAMILY_M)[val] || val);
 
 // Fills a WA template: replaces {key} placeholders with actual values
 const fillWa = (texts, key, vars) => {
@@ -7538,9 +7544,9 @@ function infoPairs(c) {
     ['גיל', c.age],
     ['גובה', c.height ? `${c.height} ס"מ` : '—'],
     ['אזור', c.region],
-    ['מצב משפחתי', c.family || '—'],
-    ['ילדים', c.kids > 0 ? (c.kids === 1 ? 'ילד/ה אחד/ת' : `${c.kids} ילדים`) : 'ללא ילדים'],
-    ['קרבה לדת', c.religiosity],
+    ['מצב משפחתי', c.family ? gFamily(c.family, c.gender) : '—'],
+    ['ילדים', c.kids > 0 ? (c.kids === 1 ? gHe(c.gender, 'ילד אחד', 'ילדה אחת') : `${c.kids} ילדים`) : 'ללא ילדים'],
+    ['קרבה לדת', gRelig(c.religiosity, c.gender)],
   ];
 }
 
@@ -7629,15 +7635,15 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete,
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 170, background: `linear-gradient(to top, ${alpha(th.ink, 0.74)}, transparent)`, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 50, right: 20, left: 20, color: '#fff', pointerEvents: 'none' }}>
           <div style={{ marginBottom: 10, display:'flex', gap:6, flexWrap:'wrap' }}>
-            <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.7)} soft={false}>{c.available ? 'פנוי/ה להצעות' : 'תפוס/ה'}</Tag>
+            {!c.available && <Tag th={th} tone={alpha(th.ink, 0.7)} soft={false}>{gHe(c.gender, 'תפוס', 'תפוסה')}</Tag>}
             {c.hidden && <Tag th={th} tone={th.gold} soft={false}><Icon name="eye" size={12} style={{ marginLeft:4 }} /> מוסתר משדכנים</Tag>}
           </div>
           <div style={{ fontFamily: th.display, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{c.name}, {c.age}</div>
-          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.92, marginTop: 4 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
+          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.92, marginTop: 4 }}>{c.region} · {gRelig(c.religiosity, c.gender)}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
           {(c.family || c.kids > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8 }}>
-              {c.family && <span style={{ background:'rgba(255,255,255,0.18)', backdropFilter:'blur(6px)', borderRadius:999, padding:'3px 10px', fontFamily:th.body, fontSize:13, fontWeight:600 }}>{c.family}</span>}
-              {c.kids > 0 && <span style={{ background:'rgba(255,255,255,0.18)', backdropFilter:'blur(6px)', borderRadius:999, padding:'3px 10px', fontFamily:th.body, fontSize:13, fontWeight:600 }}>{c.kids === 1 ? 'ילד/ה אחד/ת' : `${c.kids} ילדים`}</span>}
+              {c.family && <span style={{ background:'rgba(255,255,255,0.18)', backdropFilter:'blur(6px)', borderRadius:999, padding:'3px 10px', fontFamily:th.body, fontSize:13, fontWeight:600 }}>{gFamily(c.family, c.gender)}</span>}
+              {c.kids > 0 && <span style={{ background:'rgba(255,255,255,0.18)', backdropFilter:'blur(6px)', borderRadius:999, padding:'3px 10px', fontFamily:th.body, fontSize:13, fontWeight:600 }}>{c.kids === 1 ? gHe(c.gender, 'ילד אחד', 'ילדה אחת') : `${c.kids} ילדים`}</span>}
             </div>
           )}
         </div>
@@ -7677,9 +7683,9 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, sho
       <PhotoGallery c={c} th={th} height={440} showArrows={showArrows} showDots={showDots} onIdxChange={onIdxChange}>
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${alpha(th.ink, 0.82)} 6%, transparent 55%)`, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 26, right: 24, left: 24, color: '#fff', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: th.display, fontSize: 13, letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age}{c.height ? ` · ${c.height} ס"מ` : ''} · {c.available ? 'פנוי/ה' : 'תפוס/ה'}{c.family ? ` · ${c.family}` : ''}{c.kids > 0 ? ` · ${c.kids === 1 ? 'ילד/ה אחד/ת' : `${c.kids} ילדים`}` : ''}</div>
+          <div style={{ fontFamily: th.display, fontSize: 13, letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age}{c.height ? ` · ${c.height} ס"מ` : ''}{!c.available ? ` · ${gHe(c.gender, 'תפוס', 'תפוסה')}` : ''}{c.family ? ` · ${gFamily(c.family, c.gender)}` : ''}{c.kids > 0 ? ` · ${c.kids === 1 ? gHe(c.gender, 'ילד אחד', 'ילדה אחת') : `${c.kids} ילדים`}` : ''}</div>
           <div style={{ fontFamily: th.display, fontSize: 52, fontWeight: 800, lineHeight: 0.95 }}>{c.name}</div>
-          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.85, marginTop: 8 }}>{c.religiosity}</div>
+          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.85, marginTop: 8 }}>{gRelig(c.religiosity, c.gender)}</div>
         </div>
         {c.voiceNote && <VoiceNotePlayer url={c.voiceNote} th={th} fab />}
       </PhotoGallery>
@@ -7755,10 +7761,12 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       <div style={{ textAlign: 'center', paddingTop: 104, paddingBottom: 6 }}>
         <AvatarGallery c={c} th={th} size={120} />
         <div style={{ fontFamily: th.display, fontSize: 30, fontWeight: 800, color: th.ink, marginTop: 18 }}>{c.name}, {c.age}</div>
-        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5), marginTop: 3 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
-        <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
-          <Tag th={th} tone={c.available ? th.success : alpha(th.ink, 0.6)}>{c.available ? 'פנוי/ה להצעות' : 'תפוס/ה'}</Tag>
-        </div>
+        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5), marginTop: 3 }}>{c.region} · {gRelig(c.religiosity, c.gender)}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
+        {!c.available && (
+          <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
+            <Tag th={th} tone={alpha(th.ink, 0.6)}>{gHe(c.gender, 'תפוס', 'תפוסה')}</Tag>
+          </div>
+        )}
       </div>
 
       {/* sabaBut — quiet highlight */}
