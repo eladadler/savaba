@@ -5777,15 +5777,17 @@ function Home({ th, go }) {
           </div>
         )}
 
-        {/* STATS */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-          {stats.map((st, k) => (
-            <button key={k} onClick={st.to} style={{ all:'unset', flex: 1, cursor:'pointer', background: th.card, borderRadius: th.r, padding: '14px 8px', textAlign: 'center', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
-              <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.primary }}>{st.n}</div>
-              <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
-            </button>
-          ))}
-        </div>
+        {/* STATS — hidden until the matchmaker has at least one candidate */}
+        {mine.length > 0 && (
+          <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+            {stats.map((st, k) => (
+              <button key={k} onClick={st.to} style={{ all:'unset', flex: 1, cursor:'pointer', background: th.card, borderRadius: th.r, padding: '14px 8px', textAlign: 'center', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
+                <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.primary }}>{st.n}</div>
+                <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* CANDIDATES preview — tabbed */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -10550,7 +10552,8 @@ function screenToHash(name, params = {}) {
 
 function parseHash(hash) {
   const h = (hash || '').replace(/^#\/?/, '');
-  if (!h || h === 'home')    return { name:'home', params:{} };
+  if (!h)                    return null;
+  if (h === 'home')          return { name:'home', params:{} };
   if (h === 'candidates')    return { name:'cands', params:{} };
   if (h === 'offers')        return { name:'offers', params:{} };
   if (h === 'ai')            return { name:'ai', params:{} };
