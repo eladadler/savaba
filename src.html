@@ -2077,7 +2077,7 @@ function galleryGrad(c, i) {
   return AV_GRADS[idx];
 }
 
-function PhotoGallery({ c, th, height = 360, radius = 0, children }) {
+function PhotoGallery({ c, th, height = 360, radius = 0, children, showArrows = true, showDots = true, onIdxChange }) {
   const [idx, setIdx] = useStateUI(0);
   const trackRef = React.useRef(null);
   const idxRef  = React.useRef(0);
@@ -2088,6 +2088,7 @@ function PhotoGallery({ c, th, height = 360, radius = 0, children }) {
     const clamped = Math.max(0, Math.min(n - 1, i));
     idxRef.current = clamped;
     setIdx(clamped);
+    if (onIdxChange) onIdxChange(clamped, n);
     const el = trackRef.current;
     if (el) el.scrollTo({ left: clamped * el.offsetWidth, behavior: 'smooth' });
   };
@@ -2096,7 +2097,7 @@ function PhotoGallery({ c, th, height = 360, radius = 0, children }) {
     const el = trackRef.current;
     if (!el) return;
     const newIdx = Math.round(el.scrollLeft / el.offsetWidth);
-    if (newIdx !== idxRef.current) { idxRef.current = newIdx; setIdx(newIdx); }
+    if (newIdx !== idxRef.current) { idxRef.current = newIdx; setIdx(newIdx); if (onIdxChange) onIdxChange(newIdx, n); }
   };
 
   return (
@@ -2127,7 +2128,7 @@ function PhotoGallery({ c, th, height = 360, radius = 0, children }) {
       {children}
 
       {/* arrows */}
-      {n > 1 && (
+      {showArrows && n > 1 && (
         <>
           {idx > 0 && <button onClick={() => goTo(idx - 1)} style={galleryArrow(th, 'right')}><Icon name="chevR" size={20} /></button>}
           {idx < n - 1 && <button onClick={() => goTo(idx + 1)} style={galleryArrow(th, 'left')}><Icon name="chevL" size={20} /></button>}
@@ -2135,7 +2136,7 @@ function PhotoGallery({ c, th, height = 360, radius = 0, children }) {
       )}
 
       {/* dots + counter */}
-      {n > 1 && (
+      {showDots && n > 1 && (
         <div style={{ position: 'absolute', top: 58, left: '50%', transform: 'translateX(-50%)', zIndex: 6, display: 'flex', alignItems: 'center', gap: 6, background: alpha(th.ink, 0.32), backdropFilter: 'blur(6px)', borderRadius: 999, padding: '5px 9px' }}>
           {Array.from({ length: n }).map((_, i) => (
             <span key={i} onClick={() => goTo(i)} style={{ width: i === idx ? 16 : 6, height: 6, borderRadius: 99, background: i === idx ? '#fff' : 'rgba(255,255,255,0.5)', transition: 'all .25s', cursor: 'pointer' }} />
@@ -7272,6 +7273,7 @@ function CandidateDetail({ th, go, params }) {
   const [showDiscrete, setShowDiscrete] = useSb(false);
   const [dotsOpen, setDotsOpen] = useSb(false);
   const [delStep, setDelStep] = useSb(null); // null | 'mine' | 'all' | 'cancel-rep'
+  const [photoIdx, setPhotoIdx] = useSb(0);
   const [localAvailable, setLocalAvailable] = useSb(c?.available ?? true);
   const [localHidden, setLocalHidden] = useSb(c?.hidden ?? false);
   const { user } = React.useContext(AuthCtx);
@@ -7303,18 +7305,32 @@ function CandidateDetail({ th, go, params }) {
   );
 
   const canSeeDiscrete = isPrimary; // discrete details: primary matchmaker only
+  const photoN = Math.max((c?.photos?.length || 0), (c?.photoCount || 1));
+  const onPhotoSlide = (i) => setPhotoIdx(i);
+  const isPhotoVariant = variant !== 'מינימלי';
+  const overlayColor = isPhotoVariant ? '#fff' : th.ink;
+  const overlayBg = isPhotoVariant ? 'linear-gradient(to bottom, rgba(0,0,0,0.38), transparent)' : 'transparent';
 
   const body =
-    variant === 'מגזין' ? <MagBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} />
+    variant === 'מגזין' ? <MagBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} showArrows={false} showDots={false} onIdxChange={onPhotoSlide} />
     : variant === 'מינימלי' ? <MinBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} />
-    : <ClassicBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} />;
+    : <ClassicBody c={cView} th={th} showDiscrete={showDiscrete} setShowDiscrete={setShowDiscrete} go={go} mm={mm} canSeeDiscrete={canSeeDiscrete} showArrows={false} showDots={false} onIdxChange={onPhotoSlide} />;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, position: 'relative' }}>
-      {/* floating back / dots over content */}
-      <div style={{ position: 'absolute', top: 50, right: 16, left: 16, zIndex: 20, display: 'flex', justifyContent: 'space-between', pointerEvents: 'none' }}>
-        <button onClick={() => go('back')} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="back" size={20} /></button>
-        <button onClick={() => setDotsOpen(true)} style={{ pointerEvents: 'auto', width: 40, height: 40, borderRadius: '50%', border: 'none', background: alpha('#ffffff', 0.85), backdropFilter: 'blur(8px)', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}><Icon name="dots" size={20} /></button>
+      {/* top gradient bar: ··· | dots | › */}
+      <div style={{ position:'absolute', top:0, right:0, left:0, height:52, zIndex:20, background:overlayBg, display:'flex', alignItems:'center', paddingInline:4, pointerEvents:'none' }}>
+        <button onClick={() => setDotsOpen(true)} style={{ pointerEvents:'auto', background:'none', border:'none', color:overlayColor, cursor:'pointer', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <Icon name="dots" size={22} />
+        </button>
+        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
+          {isPhotoVariant && photoN > 1 && Array.from({ length: photoN }).map((_, i) => (
+            <span key={i} style={{ width: i === photoIdx ? 16 : 5, height: 5, borderRadius: 99, background: i === photoIdx ? '#fff' : 'rgba(255,255,255,0.55)', transition: 'all .25s' }} />
+          ))}
+        </div>
+        <button onClick={() => go('back')} style={{ pointerEvents:'auto', background:'none', border:'none', color:overlayColor, cursor:'pointer', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <Icon name="chevR" size={22} />
+        </button>
       </div>
       <Sheet open={dotsOpen} onClose={() => { setDotsOpen(false); setDelStep(null); }} th={th} title={c.name}>
         {delStep ? (
@@ -7591,7 +7607,7 @@ function MmNoteCard({ c, mm, th }) {
   );
 }
 
-function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
+function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, showArrows = true, showDots = true, onIdxChange }) {
   const { t } = useTexts();
   const { lists } = useContext(DataCtx);
   const interestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
@@ -7608,7 +7624,7 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
   return (
     <div>
       {/* hero gallery */}
-      <PhotoGallery c={c} th={th} height={360}>
+      <PhotoGallery c={c} th={th} height={360} showArrows={showArrows} showDots={showDots} onIdxChange={onIdxChange}>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 170, background: `linear-gradient(to top, ${alpha(th.ink, 0.74)}, transparent)`, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 50, right: 20, left: 20, color: '#fff', pointerEvents: 'none' }}>
           <div style={{ marginBottom: 10, display:'flex', gap:6, flexWrap:'wrap' }}>
@@ -7647,7 +7663,7 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete 
 }
 
 // ── VARIANT 2 — מגזין (editorial) ──────────────────────────────
-function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
+function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, showArrows = true, showDots = true, onIdxChange }) {
   const { t } = useTexts();
   const { lists } = useContext(DataCtx);
   const interestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
@@ -7657,7 +7673,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   return (
     <div>
       {/* full-bleed gallery */}
-      <PhotoGallery c={c} th={th} height={440}>
+      <PhotoGallery c={c} th={th} height={440} showArrows={showArrows} showDots={showDots} onIdxChange={onIdxChange}>
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${alpha(th.ink, 0.82)} 6%, transparent 55%)`, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 26, right: 24, left: 24, color: '#fff', pointerEvents: 'none' }}>
           <div style={{ fontFamily: th.display, fontSize: 13, letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age}{c.height ? ` · ${c.height} ס"מ` : ''} · {c.available ? 'פנוי/ה' : 'תפוס/ה'}{c.family ? ` · ${c.family}` : ''}{c.kids > 0 ? ` · ${c.kids === 1 ? 'ילד/ה אחד/ת' : `${c.kids} ילדים`}` : ''}</div>
