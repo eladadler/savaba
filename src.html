@@ -1822,7 +1822,7 @@ function BottomNav({ active, onNav, th, badges = {} }) {
                 }} />
               )}
             </div>
-            <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: 11 }}>{tb.label}</span>
+            <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: 12.5 }}>{tb.label}</span>
           </button>
         );
       })}
@@ -5756,7 +5756,7 @@ function Home({ th, go }) {
             {stats.map((st, k) => (
               <button key={k} onClick={st.to} style={{ all:'unset', flex: 1, cursor:'pointer', background: th.card, borderRadius: th.r, padding: '14px 8px', textAlign: 'center', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
                 <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.primary }}>{st.n}</div>
-                <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
+                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
               </button>
             ))}
           </div>
@@ -6032,15 +6032,15 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
                 <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14, color:th.ink }}>
                   {inv.recipientName || <span style={{ color:alpha(th.ink,0.35) }}>ללא שם</span>}
                 </div>
-                <div style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.45) }}>נשלחה הזמנה ב-{dateStr}</div>
+                <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.45) }}>נשלחה הזמנה ב-{dateStr}</div>
               </div>
               <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
-                <div style={{ background:alpha(statusColor,0.12), color:statusColor, borderRadius:999, padding:'4px 11px', fontFamily:th.display, fontWeight:700, fontSize:12 }}>
+                <div style={{ background:alpha(statusColor,0.12), color:statusColor, borderRadius:999, padding:'4px 11px', fontFamily:th.display, fontWeight:700, fontSize:12.5 }}>
                   {statusLabel}
                 </div>
-                {canFill    && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.primary }}>{t('inv_action_fill')}</div>}
-                {canReview  && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.primary }}>{t('inv_action_review')}</div>}
-                {isApproved && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:11, color:th.success }}>{t('inv_action_view')}</div>}
+                {canFill    && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:12.5, color:th.primary }}>{t('inv_action_fill')}</div>}
+                {canReview  && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:12.5, color:th.primary }}>{t('inv_action_review')}</div>}
+                {isApproved && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:12.5, color:th.success }}>{t('inv_action_view')}</div>}
               </div>
             </div>
           </div>
@@ -6292,7 +6292,7 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
         <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ${t('cands_height_unit')}` : ''}</div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 9px' }}>
           <Logo size={15} color={th.primary} flaw={th.cream} />
-          <span style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
+          <span style={{ fontFamily: th.body, fontSize: 13, fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
         </div>
       </div>
       {linkMode && (
@@ -7462,7 +7462,7 @@ function CandidateDetail({ th, go, params }) {
           return (
             <div style={{ padding: '0 16px 28px', background: th.cream }}>
               <div style={{ background: th.card, borderRadius: th.r, padding: 16, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 10 }}>ה{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {c.name}</div>
+                <div style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 10 }}>ה{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {c.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                   <Avatar grad={mm.grad} name={mm.name} size={44} />
                   <div>
@@ -7638,10 +7638,10 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete,
         <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={c.sabaBut} size="l" /></div>
         {th.showMmNote && <MmNoteCard c={c} mm={mm} th={th} />}
 
-        <Section label={t('card_oneline_label')} icon="user">
-          <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p>
+        <Section label={isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')} icon="spark">
+          {c.oneLine ? <p style={{ margin: '0 0 10px', fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p> : null}
+          <InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} />
         </Section>
-        <Section label={isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')} icon="spark"><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Section>
         <Section label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')} icon="heart">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
           {c.partner?.length > 0 && <div style={{ marginTop: 12 }}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></div>}
@@ -7682,15 +7682,13 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, sho
         </div>
         <Rule />
         {th.showMmNote && c.mmNote && <><MmNoteCard c={c} mm={mm} th={th} /><Rule /></>}
-        <Label>{t('card_oneline_label')}</Label>
-        <p style={{ margin: 0, fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p>
-        <Rule />
         <Label>{isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')}</Label>
+        {c.oneLine ? <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p> : null}
         {th.groupTagsByCategory ? (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {groupSelectedByCategory(c.interests, interestCategories).map((g, gi) => (
               <div key={g.label || `_o${gi}`}>
-                {g.label && <div style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:alpha(th.gold,0.85), letterSpacing:1, marginBottom:4 }}>{g.label}</div>}
+                {g.label && <div style={{ fontFamily:th.body, fontSize:12.5, fontWeight:700, color:alpha(th.gold,0.85), letterSpacing:1, marginBottom:4 }}>{g.label}</div>}
                 <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
                   {g.tags.map((it, i) => <span key={it}>{it}{i < g.tags.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
                 </div>
@@ -7754,7 +7752,7 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', background: alpha(th.primary, 0.07), borderRadius: th.r, padding: '14px 16px', margin: '18px 0 4px' }}>
         <Logo size={22} color={th.primary} flaw={th.cream} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: th.body, fontSize: 11, color: th.primary, fontWeight: 700 }}>סבבה והכל, אבל…</div>
+          <div style={{ fontFamily: th.body, fontSize: 12.5, color: th.primary, fontWeight: 700 }}>סבבה והכל, אבל…</div>
           <div style={{ fontFamily: th.display, fontSize: 16, color: th.ink, lineHeight: 1.25 }}>{c.sabaBut}</div>
         </div>
       </div>
@@ -7762,9 +7760,10 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       {c.voiceNote && <div style={{ marginTop:12 }}><VoiceNotePlayer url={c.voiceNote} th={th} /></div>}
       {th.showMmNote && c.mmNote && <div style={{ marginTop:12 }}><MmNoteCard c={c} mm={mm} th={th} /></div>}
 
-      <Block label={t('card_oneline_label')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
-      <Hr />
-      <Block label={isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')}><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Block>
+      <Block label={isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')}>
+        {c.oneLine ? <p style={{ margin: '0 0 10px', fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p> : null}
+        <InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} />
+      </Block>
       <Hr />
       <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p>
@@ -8145,7 +8144,7 @@ function MatchFlow({ th, go, params }) {
                               {c.sabaBut && (
                                 <div style={{ display:'flex', gap:5, alignItems:'flex-start', background:alpha(th.ink,0.04), borderRadius:th.rSm, padding:'6px 8px' }}>
                                   <Logo size={13} color={th.primary} flaw={th.cream} />
-                                  <span style={{ fontFamily:th.body, fontSize:11, fontWeight:600, color:th.ink, lineHeight:1.25, WebkitLineClamp:2, display:'-webkit-box', WebkitBoxOrient:'vertical', overflow:'hidden' }}>{c.sabaBut}</span>
+                                  <span style={{ fontFamily:th.body, fontSize:12.5, fontWeight:600, color:th.ink, lineHeight:1.25, WebkitLineClamp:2, display:'-webkit-box', WebkitBoxOrient:'vertical', overflow:'hidden' }}>{c.sabaBut}</span>
                                 </div>
                               )}
                             </div>
@@ -8233,11 +8232,11 @@ function MatchFlow({ th, go, params }) {
                       </div>
                       <div style={{ padding: '9px 11px 11px' }}>
                         <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{c.name}, {c.age}</div>
-                        <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.5), marginBottom: c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
+                        <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
                         {c.sabaBut && (
                           <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '6px 8px' }}>
                             <Logo size={13} color={th.primary} flaw={th.cream} />
-                            <span style={{ fontFamily: th.body, fontSize: 11, fontWeight: 600, color: th.ink, lineHeight: 1.25, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.sabaBut}</span>
+                            <span style={{ fontFamily: th.body, fontSize: 12.5, fontWeight: 600, color: th.ink, lineHeight: 1.25, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.sabaBut}</span>
                           </div>
                         )}
                       </div>
@@ -8483,12 +8482,12 @@ function MatchFlow({ th, go, params }) {
                   const mm = window.findMm(previewCand.mmId);
                   return (
                     <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginTop: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                      <div style={{ fontFamily: th.body, fontSize: 11.5, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_mm_label')}</div>
+                      <div style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_mm_label')}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                         <Avatar grad={mm.grad} name={mm.name} size={38} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{mm.name}</div>
-                          <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.45) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {previewCand.name}</div>
+                          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.45) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {previewCand.name}</div>
                         </div>
                       </div>
                     </div>
@@ -8700,9 +8699,9 @@ function Offers({ th, go, params }) {
               {/* Status badge row */}
               {(needsResp && !bothApp && !finalFail || finalFail || chatUnread[o.id]) && (
                 <div style={{ display:'flex', gap:5, alignItems:'center', flexWrap:'wrap', marginBottom:8 }}>
-                  {needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 9px', whiteSpace:'nowrap' }}>{t('offers_badge_waiting')}</span>}
-                  {finalFail && <span style={{ fontFamily:th.body, fontSize:11, fontWeight:700, color:th.error, background:alpha(th.error,0.1), borderRadius:99, padding:'3px 9px' }}>{t('offers_badge_declined')}</span>}
-                  {chatUnread[o.id] && <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11, color:'#3B82F6', background:'rgba(59,130,246,0.1)', borderRadius:999, padding:'3px 9px', whiteSpace:'nowrap' }}>{t('offers_chat_badge')}</span>}
+                  {needsResp && !bothApp && !finalFail && <span style={{ fontFamily:th.body, fontSize:12.5, fontWeight:700, color:th.primary, background:alpha(th.primary,0.1), borderRadius:99, padding:'3px 9px', whiteSpace:'nowrap' }}>{t('offers_badge_waiting')}</span>}
+                  {finalFail && <span style={{ fontFamily:th.body, fontSize:12.5, fontWeight:700, color:th.error, background:alpha(th.error,0.1), borderRadius:99, padding:'3px 9px' }}>{t('offers_badge_declined')}</span>}
+                  {chatUnread[o.id] && <span style={{ fontFamily:th.body, fontWeight:700, fontSize:12.5, color:'#3B82F6', background:'rgba(59,130,246,0.1)', borderRadius:999, padding:'3px 9px', whiteSpace:'nowrap' }}>{t('offers_chat_badge')}</span>}
                 </div>
               )}
               {/* Photo header */}
@@ -8726,16 +8725,16 @@ function Offers({ th, go, params }) {
                 const statusChip = (cand, approved) => approved
                   ? <div style={{ display:'flex', alignItems:'center', gap:3, padding:'2px 7px', borderRadius:99, background:alpha(th.success,0.1), border:`1px solid ${alpha(th.success,0.22)}` }}>
                       <Icon name="check" size={9} style={{ color:th.success }} />
-                      <span style={{ fontFamily:th.body, fontWeight:700, fontSize:10, color:th.success }}>{isFemGender(cand.gender) ? 'אישרה' : 'אישר'}</span>
+                      <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11.5, color:th.success }}>{isFemGender(cand.gender) ? 'אישרה' : 'אישר'}</span>
                     </div>
                   : <div style={{ display:'flex', alignItems:'center', gap:3, padding:'2px 7px', borderRadius:99, background:alpha(th.ink,0.05), border:`1px solid ${alpha(th.ink,0.08)}` }}>
                       <Icon name="clock" size={9} style={{ color:alpha(th.ink,0.32) }} />
-                      <span style={{ fontFamily:th.body, fontWeight:700, fontSize:10, color:alpha(th.ink,0.32) }}>טרם {isFemGender(cand.gender) ? 'אישרה' : 'אישר'}</span>
+                      <span style={{ fontFamily:th.body, fontWeight:700, fontSize:11.5, color:alpha(th.ink,0.32) }}>טרם {isFemGender(cand.gender) ? 'אישרה' : 'אישר'}</span>
                     </div>;
                 const candCol = (cand, approved, isMine, maskSide) => (
                   <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4, position:'relative', zIndex:1 }}>
                     {!isEngaged && <div style={{ position:'absolute', top:0, bottom:0, [maskSide]:0, width:'calc((100% - 72px) / 2)', background:th.card, zIndex:-1 }} />}
-                    <span style={{ fontFamily:th.body, fontWeight:700, fontSize:10.5, color:isMine ? th.primary : alpha(th.ink,0.45), whiteSpace:'nowrap' }}>
+                    <span style={{ fontFamily:th.body, fontWeight:700, fontSize:12, color:isMine ? th.primary : alpha(th.ink,0.45), whiteSpace:'nowrap' }}>
                       {isMine ? (isFemGender(cand.gender) ? 'המועמדת שלי' : 'המועמד שלי') : (isFemGender(cand.gender) ? 'המועמדת השניה' : 'המועמד השני')}
                     </span>
                     <div style={{ width:72, height:72, borderRadius:'50%', overflow:'hidden', border:`2px solid ${isMine ? th.primary : alpha(th.ink,0.2)}`, background:`linear-gradient(135deg,${cand.grad?.[0]||th.primary},${cand.grad?.[1]||th.gold})`, flexShrink:0 }}>
@@ -8758,7 +8757,7 @@ function Offers({ th, go, params }) {
               {/* MM row */}
               <div style={{ display:'flex', justifyContent:'flex-start', alignItems:'center', gap:6, paddingTop:8, borderTop:`1px solid ${alpha(th.ink,0.06)}` }}>
                 <Avatar grad={theirMm.grad} name={theirMm.name} size={22} photo={theirMm.photoURL} />
-                <span style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.5) }}>
+                <span style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5) }}>
                   {theirMm.gender ? (isFemGender(theirMm.gender) ? 'השדכנית' : 'השדכן') : 'השדכן/ית'} : {theirMm.name}
                 </span>
               </div>
@@ -8929,7 +8928,7 @@ function Chat({ th, go, params }) {
           return (
             <div key={i} style={{ alignSelf: mine ? 'flex-start' : 'flex-end', maxWidth: '78%' }}>
               <div style={{ background: mine ? th.primary : th.card, color: mine ? '#fff' : th.ink, borderRadius: 18, borderBottomRightRadius: mine ? 18 : 4, borderBottomLeftRadius: mine ? 4 : 18, padding: '9px 13px', fontFamily: th.body, fontSize: 14.5, lineHeight: 1.4, boxShadow: `0 2px 8px ${alpha(th.ink, 0.06)}` }}>{m.text}</div>
-              <div style={{ fontFamily: th.body, fontSize: 10.5, color: alpha(th.ink, 0.4), marginTop: 3, textAlign: mine ? 'right' : 'left' }}>{m.t}</div>
+              <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.4), marginTop: 3, textAlign: mine ? 'right' : 'left' }}>{m.t}</div>
             </div>
           );
         })}
@@ -10970,7 +10969,7 @@ function OfferDetail({ th, go, params }) {
         <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{title}</div>
-          {sub && <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.5) }}>{sub}</div>}
+          {sub && <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5) }}>{sub}</div>}
         </div>
         <Icon name="chevL" size={13} style={{ color:alpha(th.ink,0.22), flexShrink:0 }} />
       </a>
@@ -10980,7 +10979,7 @@ function OfferDetail({ th, go, params }) {
         <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13, color:th.ink }}>{title}</div>
-          {sub && <div style={{ fontFamily:th.body, fontSize:11.5, color:alpha(th.ink,0.5) }}>{sub}</div>}
+          {sub && <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5) }}>{sub}</div>}
         </div>
         <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.35), flexShrink:0 }}>אין טלפון</span>
       </div>
@@ -11375,7 +11374,7 @@ function OfferDetail({ th, go, params }) {
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.ink,0.03), border:`1px solid ${alpha(th.ink,0.08)}` }}>
                       <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
+                        <div style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
                         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:alpha(th.ink,0.5) }}>{w.name}</div>
                       </div>
                       <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4), flexShrink:0 }}>לא זמין/ה בווצאפ</span>
@@ -11384,7 +11383,7 @@ function OfferDetail({ th, go, params }) {
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, background:alpha(th.ink,0.03), border:`1px solid ${alpha(th.ink,0.08)}`, opacity:0.55 }}>
                       <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
+                        <div style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
                         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{w.name}</div>
                       </div>
                       <span style={{ fontFamily:th.body, fontSize:11, color:alpha(th.ink,0.4), flexShrink:0 }}>אין טלפון</span>
@@ -11394,7 +11393,7 @@ function OfferDetail({ th, go, params }) {
                       style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:th.rSm, textDecoration:'none', background: w.isMm ? alpha(th.ink,0.03) : '#25D36610', border: `1px solid ${w.isMm ? alpha(th.ink,0.1) : '#25D36628'}` }}>
                       <Avatar grad={w.avatar.grad} name={w.avatar.name || w.name} size={30} photo={w.avatar.photos?.[0] || w.avatar.photoURL} />
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
+                        <div style={{ fontFamily:th.body, fontSize:12, fontWeight:700, color:alpha(th.ink,0.45) }}>{w.label}</div>
                         <div style={{ fontFamily:th.display, fontWeight:800, fontSize:13.5, color:th.ink }}>{w.name}</div>
                       </div>
                       <Icon name="whatsapp" size={22} style={{ color:'#25D366', flexShrink:0 }} />
@@ -12035,7 +12034,7 @@ function AppSettings({ th, go, profile }) {
             </div>
             <div style={{ flex:1 }}>
               <div style={{ fontFamily:th.body, fontWeight:600, fontSize:15, color:th.ink }}>חסום קשר בווצאפ</div>
-              <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), marginTop:1 }}>
+              <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45), marginTop:1 }}>
                 {profile.noWhatsapp ? 'אחרים לא יוכלו לפנות אליך דרך ווצאפ' : 'אפשר לאחרים לפנות אליך בווצאפ'}
               </div>
             </div>
@@ -12055,7 +12054,7 @@ function AppSettings({ th, go, profile }) {
                 <div style={{ fontFamily:th.body, fontWeight:600, fontSize:15, color:th.ink }}>
                   {notifPerm === 'granted' ? 'התראות פעילות' : notifPerm === 'denied' ? 'התראות חסומות' : 'הפעלת התראות'}
                 </div>
-                <div style={{ fontFamily:th.body, fontSize:12, color:alpha(th.ink,0.45), marginTop:1 }}>
+                <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.45), marginTop:1 }}>
                   {notifPerm === 'granted' ? 'תקבל/י עדכון כשמגיעה הצעה חדשה' : notifPerm === 'denied' ? 'לחץ/י לפתיחת הוראות שחרור' : 'קבל/י עדכון כשמגיעה הצעת שידוך'}
                 </div>
               </div>
