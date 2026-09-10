@@ -12045,7 +12045,7 @@ function AppSettings({ th, go, profile }) {
           </Group>
         )}
         <Group>
-          <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); }} />
+          <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); window.location.hash = ''; }} />
         </Group>
         <div style={{ textAlign:'center', marginTop:8 }}>
           <Logo size={28} color={alpha(th.ink,0.25)} flaw={th.cream} />
@@ -12246,8 +12246,14 @@ function AppInner({ inviteToken, offerParam }) {
       navigate([{ name: 'offers', params: {} }, { name: 'offerDetail', params: { id: offerParam } }], true);
       return;
     }
-    // Skip onboarding if already registered (profileComplete, or is a matchmaker/admin regardless)
-    const alreadyIn = profile.profileComplete || profile.isAdmin || profile.role === 'matchmaker';
+    // New matchmaker who hasn't completed registration — redirect to register regardless of current screen
+    const transientScreens = ['onboarding', 'register', 'inviteLanding', 'candSelfFill'];
+    if (!profile.profileComplete && !profile.isAdmin && profile.role === 'matchmaker' && !transientScreens.includes(stack[stack.length - 1].name)) {
+      navigate([{ name: 'register', params: {} }], true);
+      return;
+    }
+    // Skip onboarding if already registered (profileComplete, or is an admin)
+    const alreadyIn = profile.profileComplete || profile.isAdmin;
     if (alreadyIn && stack.length === 1 && stack[0].name === 'onboarding') {
       navigate([{ name: 'home', params: {} }], true);
     }
