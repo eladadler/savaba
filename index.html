@@ -33,8 +33,8 @@
   html, body { margin: 0; padding: 0; height: 100%; background: #2a2630; }
   body { font-family: "Assistant", sans-serif; overflow: hidden; }
   #root { height: 100%; }
-  /* iOS Safari: keep container inside visible viewport, above browser toolbar */
-  .app-shell { height: 100svh; }
+  /* iOS Safari: fixed+inset:0 fills the full viewport; no explicit height needed */
+  .app-shell { }
   button { font-family: inherit; }
   input, textarea, select { font-family: inherit; }
   ::-webkit-scrollbar { width: 0; height: 0; }
