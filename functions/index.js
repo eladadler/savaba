@@ -13,6 +13,19 @@ const TWILIO_SECRETS = [TWILIO_AUTH_TOKEN, TWILIO_ACCOUNT_SID, TWILIO_VERIFY_SID
 
 initializeApp();
 
+exports.createTestOffer = onCall({ cors: true, region: "us-central1" }, async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Login required");
+  const db = getFirestore();
+  const ref = await db.collection("offers").add({
+    aId: "seed_c_daniel", aMm: "seed_mm_rivka",
+    bId: "seed_c_shira",  bMm: request.auth.uid,
+    status: "נשלחה", unread: 1, isTest: true,
+    note: "שניהם דתיים-לאומיים, אוהבים טבע ונסיעות. נראה לי שיש קליק!",
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  return { id: ref.id };
+});
+
 exports.sendVerificationCode = onCall(
   { cors: true, region: "us-central1", secrets: TWILIO_SECRETS },
   async (request) => {
@@ -50,19 +63,6 @@ exports.verifyCode = onCall(
     }
   }
 );
-
-exports.createTestOffer = onCall({ cors: true, region: "us-central1" }, async (request) => {
-  if (!request.auth) throw new HttpsError("unauthenticated", "Login required");
-  const db = getFirestore();
-  const ref = await db.collection("offers").add({
-    aId: "seed_c_daniel", aMm: "seed_mm_rivka",
-    bId: "seed_c_shira",  bMm: request.auth.uid,
-    status: "נשלחה", unread: 1, isTest: true,
-    note: "שניהם דתיים-לאומיים, אוהבים טבע ונסיעות. נראה לי שיש קליק!",
-    createdAt: FieldValue.serverTimestamp(),
-  });
-  return { id: ref.id };
-});
 
 exports.notifyOnNewOffer = onDocumentCreated(
   { document: "offers/{offerId}", region: "us-central1" },
