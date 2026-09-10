@@ -7320,17 +7320,17 @@ function CandidateDetail({ th, go, params }) {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, position: 'relative' }}>
       {/* top gradient bar: ··· | dots | › */}
-      <div style={{ position:'absolute', top:0, right:0, left:0, height:52, zIndex:20, background:overlayBg, display:'flex', alignItems:'center', paddingInline:4, pointerEvents:'none' }}>
-        <button onClick={() => setDotsOpen(true)} style={{ pointerEvents:'auto', background:'none', border:'none', color:overlayColor, cursor:'pointer', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <Icon name="dots" size={22} />
+      <div style={{ position:'absolute', top:0, right:0, left:0, height:52, zIndex:20, background:overlayBg, display:'flex', alignItems:'center', direction:'ltr', paddingInline:6, pointerEvents:'none' }}>
+        <button onClick={() => setDotsOpen(true)} style={{ pointerEvents:'auto', border:'none', color:overlayColor, cursor:'pointer', width:36, height:36, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', background: isPhotoVariant ? 'rgba(0,0,0,0.28)' : alpha(th.ink, 0.07), backdropFilter: isPhotoVariant ? 'blur(6px)' : 'none' }}>
+          <Icon name="dots" size={19} />
         </button>
         <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5 }}>
           {isPhotoVariant && photoN > 1 && Array.from({ length: photoN }).map((_, i) => (
             <span key={i} style={{ width: i === photoIdx ? 16 : 5, height: 5, borderRadius: 99, background: i === photoIdx ? '#fff' : 'rgba(255,255,255,0.55)', transition: 'all .25s' }} />
           ))}
         </div>
-        <button onClick={() => go('back')} style={{ pointerEvents:'auto', background:'none', border:'none', color:overlayColor, cursor:'pointer', width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <Icon name="chevR" size={22} />
+        <button onClick={() => go('back')} style={{ pointerEvents:'auto', border:'none', color:overlayColor, cursor:'pointer', width:36, height:36, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', background: isPhotoVariant ? 'rgba(0,0,0,0.28)' : alpha(th.ink, 0.07), backdropFilter: isPhotoVariant ? 'blur(6px)' : 'none' }}>
+          <Icon name="chevR" size={19} />
         </button>
       </div>
       <Sheet open={dotsOpen} onClose={() => { setDotsOpen(false); setDelStep(null); }} th={th} title={c.name}>
