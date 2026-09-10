@@ -1704,9 +1704,9 @@ function Chip({ label, active, onClick, th, icon, tone }) {
   const c = tone || th.primary;
   return (
     <button onClick={onClick} style={{
-      border: active ? `1.5px solid ${c}` : `1.5px solid ${alpha(th.ink, 0.12)}`,
-      background: active ? alpha(c, 0.12) : th.card,
-      color: active ? c : alpha(th.ink, 0.72),
+      border: active ? '1.5px solid transparent' : `1.5px solid ${alpha(th.ink, 0.12)}`,
+      background: active ? alpha(c, 0.15) : th.card,
+      color: active ? alpha(th.ink, 0.82) : alpha(th.ink, 0.72),
       borderRadius: 999, padding: '7px 14px', cursor: onClick ? 'pointer' : 'default',
       fontFamily: th.body, fontWeight: 600, fontSize: 13.5, whiteSpace: 'nowrap',
       display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'all .15s',
@@ -4379,7 +4379,8 @@ const TEXT_KEYS = {
   cands_search:        'מועמדים — placeholder חיפוש',
   cands_add_btn:       'מועמדים — כפתור הוספה',
   cand_match_btn:      'כרטיסיית מועמד — כפתור CTA',
-  card_oneline_label:      'כרטיסיית מועמד — כותרת: במשפט אחד',
+  card_oneline_label_f:    'כרטיסיית מועמד — כותרת: קצת עליה (נקבה)',
+  card_oneline_label_m:    'כרטיסיית מועמד — כותרת: קצת עליו (זכר)',
   card_seeking_label_f:    'כרטיסיית מועמד — כותרת: מחפשת (נקבה)',
   card_seeking_label_m:    'כרטיסיית מועמד — כותרת: מחפש (זכר)',
   card_interests_label:    'כרטיסיית מועמד — כותרת: תחומי עניין',
@@ -4752,7 +4753,8 @@ const DEFAULT_TEXTS = {
   cands_search:       'חיפוש מועמד…',
   cands_add_btn:      'הוסף',
   cand_match_btn:     'שדך/י את',
-  card_oneline_label:      'במשפט אחד',
+  card_oneline_label_f:    'קצת עליה',
+  card_oneline_label_m:    'קצת עליו',
   card_seeking_label_f:    'מחפשת',
   card_seeking_label_m:    'מחפש',
   card_interests_label:    'תחומי עניין',
@@ -5081,7 +5083,7 @@ const SCREEN_TEXTS = {
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_linkmode_title','cands_linkmode_body','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
   filtersSheet:  ['filters_title','filters_gender_label','filters_gender_f','filters_gender_m','filters_btn_clear','filters_btn_apply'],
-  candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
+  candidate:     ['cand_match_btn', 'card_oneline_label_f', 'card_oneline_label_m', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label', 'card_partner_label', 'card_details_label'],
   ai:            ['ai_info_text','ai_no_mine_title','ai_no_mine_sub','ai_no_mine_btn','ai_title','ai_sub','ai_entry_title','ai_entry_no_pairs','ai_entry_pairs_found','ai_entry_run_btn','ai_loading_title','ai_loading_sub','ai_analysis_label','ai_create_btn','ai_load_more_btn'],
   inviteLanding: ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','invite_land_error','invite_land_accepted_title','invite_land_section_after','invite_land_btn_accept','invite_land_btn_self_fill'],
   candSelfFill:  ['invite_app_desc','invite_name_title','invite_what_next_mm','invite_what_next_self','invite_welcome_greeting','invite_btn_register','invite_btn_wrong','invite_wrong_hint','invite_mm_invites_m','invite_mm_invites_f','selfform_step_basic','selfform_step_photos','selfform_step_about','selfform_step_interests','selfform_mm_can_fill','selfform_header_title','selfform_label_phone','selfform_label_birthdate','selfform_label_height','selfform_label_gender','selfform_label_region','selfform_label_religion','selfform_label_family','selfform_label_kids','selfform_kids_count_suffix','selfform_photos_hint','selfform_photos_required','selfform_photos_count','selfform_photos_upload_title','selfform_photos_upload_body','selfform_photos_btn','selfform_photos_primary','selfform_photos_set_primary','selfform_photos_add_more','selfform_photos_tap_hint','selfform_saba_label','selfform_saba_desc','selfform_saba_example','selfform_label_oneline','selfform_label_seeking','selfform_label_interests','selfform_label_partner','selfform_btn_back','selfform_btn_next','selfform_btn_submit','cand_done_title','cand_done_body','cand_done_wa_btn','cand_done_nudge_title','cand_done_nudge_body'],
@@ -7655,14 +7657,14 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete,
         <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={c.sabaBut} size="l" /></div>
         {th.showMmNote && <MmNoteCard c={c} mm={mm} th={th} />}
 
-        <Section label={t('card_oneline_label')} icon="user">
+        <Section label={isFemGender(c.gender) ? t('card_oneline_label_f') : t('card_oneline_label_m')} icon="user">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p>
         </Section>
         <Section label={t('card_interests_label')} icon="spark"><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Section>
         <Section label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')} icon="heart">
           <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
+          {c.partner?.length > 0 && <div style={{ marginTop: 12 }}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></div>}
         </Section>
-        <Section label={t('card_partner_label')} icon="check"><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></Section>
         {canSeeDiscrete && <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>}
       </div>
     </div>
@@ -7699,7 +7701,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, sho
         </div>
         <Rule />
         {th.showMmNote && c.mmNote && <><MmNoteCard c={c} mm={mm} th={th} /><Rule /></>}
-        <Label>{t('card_oneline_label')}</Label>
+        <Label>{isFemGender(c.gender) ? t('card_oneline_label_f') : t('card_oneline_label_m')}</Label>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p>
         <Rule />
         <Label>{t('card_interests_label')}</Label>
@@ -7722,9 +7724,7 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, sho
         <Rule />
         <Label>{isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}</Label>
         <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
-        <Rule />
-        <Label>{t('card_partner_label')}</Label>
-        <InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} />
+        {c.partner?.length > 0 && <div style={{ marginTop: 14 }}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></div>}
         <Rule />
         <Label>{t('card_details_label')}</Label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
@@ -7781,13 +7781,14 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       {c.voiceNote && <div style={{ marginTop:12 }}><VoiceNotePlayer url={c.voiceNote} th={th} /></div>}
       {th.showMmNote && c.mmNote && <div style={{ marginTop:12 }}><MmNoteCard c={c} mm={mm} th={th} /></div>}
 
-      <Block label={t('card_oneline_label')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
+      <Block label={isFemGender(c.gender) ? t('card_oneline_label_f') : t('card_oneline_label_m')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p></Block>
       <Hr />
       <Block label={t('card_interests_label')}><InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} /></Block>
       <Hr />
-      <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}><p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p></Block>
-      <Hr />
-      <Block label={t('card_partner_label')}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></Block>
+      <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}>
+        <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p>
+        {c.partner?.length > 0 && <div style={{ marginTop: 12 }}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></div>}
+      </Block>
       <Hr />
       <Block label={t('card_details_label')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
