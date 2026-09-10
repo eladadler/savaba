@@ -7281,6 +7281,7 @@ function CandidateDetail({ th, go, params }) {
   const { t } = useTexts();
   useEd(() => { setLocalAvailable(c?.available ?? true); }, [c?.available]);
   useEd(() => { setLocalHidden(c?.hidden ?? false); }, [c?.hidden]);
+  if (!c) return null;
   const myUid = user?.uid;
   const viewOnly = !!params?.viewOnly;
   const variant = th.cardVariant;
