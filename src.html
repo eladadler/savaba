@@ -1053,7 +1053,7 @@ function makeTheme(t) {
     cmAddCand:     t.cmAddCand     || 'on',
     cmApproveCand: t.cmApproveCand || 'on',
     cmApproveOffer:t.cmApproveOffer || 'on',
-    fontScale: t.fontScale ?? 1,
+    fontScale: t.fontScale ?? 1.15,
   };
 }
 
@@ -10545,7 +10545,7 @@ Object.assign(window, { Toggle, CandidateMode, Settings });
 // ════════════════════════════════════════════════════════════
 const TWEAK_DEFAULTS = {
   "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
-  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new", "fontScale": 1,
+  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new", "fontScale": 1.15,
   "cmNewMatch": "on", "cmAddCand": "on", "cmApproveCand": "on", "cmApproveOffer": "on"
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
@@ -12190,7 +12190,7 @@ function AppInner({ inviteToken, offerParam }) {
     setTweak(edits);
     await db.collection('config').doc('settings').set(edits, { merge: true });
   };
-  _fontScale = t.fontScale ?? 1;
+  _fontScale = t.fontScale ?? 1.15;
   const th = makeTheme({ ...t, aiMode, groupTagsByCategory });
   const { user, profile } = useContext(AuthCtx);
   const data           = useContext(DataCtx);
