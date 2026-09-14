@@ -1701,16 +1701,28 @@ function Avatar({ grad = ['#FFD7B5', '#E8547A'], name = '', size = 56, ring, sty
 // ── The signature tag: "סבבה והכל, אבל…" ───────────────────────
 function SabaBadge({ text, th, size = 'm' }) {
   const big = size === 'l';
+  const iconSz = big ? 26 : 19;
   return (
     <div style={{
       display: 'inline-flex', alignItems: 'flex-start', gap: 8,
-      background: th.ink, color: th.cream,
+      background: `linear-gradient(90deg, ${th.ink} 0%, ${th.primary} 100%)`,
+      color: th.cream,
       borderRadius: big ? th.rLg : th.r,
       padding: big ? '14px 16px' : '9px 13px',
       maxWidth: '100%', position: 'relative',
       boxShadow: `0 6px 18px ${alpha(th.ink, 0.22)}`,
     }}>
-      <Logo size={big ? 26 : 19} color={th.primary} flaw={th.cream} />
+      <svg width={iconSz} height={iconSz} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: big ? 2 : 1 }}>
+        <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.28 2 8.5C2 5.42 4.42 3 7.5 3C9.24 3 10.91 3.81 12 5.08C13.09 3.81 14.76 3 16.5 3C19.58 3 22 5.42 22 8.5C22 12.28 18.6 15.36 13.45 20.03L12 21.35Z" fill="rgba(255,255,255,0.95)"/>
+        <path d="M7.5 10.9 C8 9.8,9 9.8,9.5 10.9" stroke={th.primary} strokeWidth="1.4" strokeLinecap="round"/>
+        <path d="M14.5 10.9 C15 9.8,16 9.8,16.5 10.9" stroke={th.primary} strokeWidth="1.4" strokeLinecap="round"/>
+        <ellipse cx="6.5" cy="13" rx="1.4" ry="0.8" fill={th.primary} fillOpacity="0.3"/>
+        <ellipse cx="17.5" cy="13" rx="1.4" ry="0.8" fill={th.primary} fillOpacity="0.3"/>
+        <path d="M8.5 13.5 L15.5 13.5 Q12 17.3 8.5 13.5Z" fill={th.primary} fillOpacity="0.9"/>
+        <line x1="10.5" y1="13.5" x2="10.2" y2="16" stroke="rgba(255,255,255,0.9)" strokeWidth="0.9" strokeLinecap="round"/>
+        <line x1="12" y1="13.5" x2="12" y2="16.8" stroke="rgba(255,255,255,0.9)" strokeWidth="0.9" strokeLinecap="round"/>
+        <line x1="13.5" y1="13.5" x2="13.8" y2="16" stroke="rgba(255,255,255,0.9)" strokeWidth="0.9" strokeLinecap="round"/>
+      </svg>
       <div style={{ lineHeight: 1.25, minWidth: 0 }}>
         <div style={{ fontFamily: th.display, fontSize: big ? 13 : 11, color: th.gold, letterSpacing: 0.3, marginBottom: 1 }}>
           סבבה והכל, אבל…
