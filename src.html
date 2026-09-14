@@ -3818,14 +3818,15 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
               {/* ── DRAFT NAV STYLE ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>📋 גישה לטיוטות מועמדים</div>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>📋 ניהול Unlisted</div>
                 <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
-                  כיצד מגיעים לרשימת הטיוטות במסך מועמדים
+                  כיצד מגיעים לרשימת ה-Unlisted במסך מועמדים
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { value: 'card', label: 'כרטיסיית כניסה', note: 'כרטיסיה מיוחדת בראש הרשימה (סגנון ספוטיפיי)' },
-                    { value: 'tab',  label: 'טאב אייקון',     note: 'אייקון ייעודי לצד "שלי" ו"כולם"' },
+                    { value: 'card',    label: 'כרטיסיית כניסה', note: 'כרטיסיה מיוחדת בראש הרשימה (סגנון ספוטיפיי)' },
+                    { value: 'tab',     label: 'טאב אייקון',     note: 'אייקון ייעודי לצד "שלי" ו"כולם"' },
+                    { value: 'bigcard', label: 'כרטיסיה גדולה',  note: 'כרטיסיה בגודל מועמד עם גרפיקה — בתוך הגריד' },
                   ].map(opt => (
                     <div key={opt.value} onClick={() => setTweak && setTweak('draftNavStyle', opt.value)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: th.rSm, cursor: 'pointer',
@@ -6138,7 +6139,7 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
 // ════════════════════════════════════════════════════════════
 // DRAFT CANDIDATE SHEET (add / edit)
 // ════════════════════════════════════════════════════════════
-function DraftSheet({ open, th, draft, onSave, onDelete, onClose }) {
+function DraftSheet({ open, th, draft, onSave, onDelete, onClose, profile }) {
   const { uploadPhoto } = useContext(DataCtx);
   const [name, setName] = useSb(draft?.name || '');
   const [notes, setNotes] = useSb(draft?.notes || '');
@@ -6146,8 +6147,10 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose }) {
   const [photoUrl, setPhotoUrl] = useSb(draft?.photos?.[0] || '');
   const [uploading, setUploading] = useSb(false);
   const [confirmDel, setConfirmDel] = useSb(false);
+  const [inviteOpen, setInviteOpen] = useSb(false);
+  const [inviteSent, setInviteSent] = useSb(false);
   React.useEffect(() => {
-    if (open) { setName(draft?.name || ''); setNotes(draft?.notes || ''); setPhotoUrl(draft?.photos?.[0] || ''); setConfirmDel(false); }
+    if (open) { setName(draft?.name || ''); setNotes(draft?.notes || ''); setPhotoUrl(draft?.photos?.[0] || ''); setConfirmDel(false); setInviteOpen(false); setInviteSent(false); }
   }, [open, draft?.id]);
   if (!open) return null;
   const isEdit = !!draft?.id;
@@ -6167,11 +6170,12 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose }) {
     setUploading(false);
   };
   return (
+    <>
     <div onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       style={{ position:'fixed', inset:0, zIndex:900, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.45)', backdropFilter:'blur(4px)' }}>
       <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'24px 20px 44px', width:'100%', maxWidth:480, boxShadow:`0 -12px 48px ${alpha(th.ink,0.18)}`, animation:'sabaUp .28s cubic-bezier(.2,.9,.3,1)' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(17), color:th.ink }}>{isEdit ? 'עריכת טיוטה' : 'טיוטה חדשה'}</div>
+          <div style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(17), color:th.ink }}>{isEdit ? 'עריכת Unlisted' : 'Unlisted חדש'}</div>
           <button onClick={onClose} style={{ border:'none', background:'none', cursor:'pointer', color:alpha(th.ink,0.45), padding:4 }}><Icon name="x" size={22} /></button>
         </div>
         {/* Photo */}
@@ -6199,20 +6203,54 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose }) {
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="גיל, אופי, הערות… כל מה שרוצים לזכור" rows={4} style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, fontFamily:th.body, fontSize:fs(14), background:th.cream, outline:'none', color:th.ink, resize:'vertical', lineHeight:1.5 }} />
         </div>
         <button onClick={handleSave} disabled={!name.trim() || saving} style={{ width:'100%', padding:'13px 0', borderRadius:999, border:'none', background: name.trim() ? th.primary : alpha(th.ink,0.12), color: name.trim() ? '#fff' : alpha(th.ink,0.35), fontFamily:th.display, fontWeight:800, fontSize:fs(15), cursor: name.trim() ? 'pointer' : 'default', marginBottom:12, boxShadow: name.trim() ? `0 6px 18px ${alpha(th.primary,0.35)}` : 'none' }}>
-          {saving ? 'שומר...' : (isEdit ? 'שמור שינויים' : 'צור טיוטה')}
+          {saving ? 'שומר...' : (isEdit ? 'שמור שינויים' : 'הוסף ל-Unlisted')}
         </button>
+        {isEdit && !confirmDel && (
+          <button onClick={() => setInviteOpen(true)}
+            style={{ width:'100%', padding:'12px 0', border:`1.5px solid ${alpha(th.primary,0.35)}`, borderRadius:999, background:'transparent', color:th.primary, fontFamily:th.display, fontWeight:800, fontSize:fs(14), cursor:'pointer', marginBottom:10, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+            <Icon name="link" size={16} /> הזמן להרשמה מלאה
+          </button>
+        )}
+        {isEdit && inviteSent && !confirmDel && (
+          <div style={{ background:alpha(th.gold,0.1), border:`1.5px solid ${alpha(th.gold,0.35)}`, borderRadius:th.rSm, padding:'12px 14px', marginBottom:10 }}>
+            <div style={{ fontFamily:th.display, fontWeight:700, fontSize:fs(13), color:th.ink, marginBottom:4 }}>הצטרף למערכת?</div>
+            <div style={{ fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.6), marginBottom:10, lineHeight:1.4 }}>אם המועמד פתח כרטיס רשמי, ניתן להסיר אותו מה-Unlisted</div>
+            <button onClick={() => { onDelete(); onClose(); }} style={{ width:'100%', padding:'9px 0', border:'none', borderRadius:999, background:alpha(th.gold,0.22), color:th.ink, fontFamily:th.display, fontWeight:800, fontSize:fs(13), cursor:'pointer' }}>
+              הסר מ-Unlisted
+            </button>
+          </div>
+        )}
         {isEdit && (
           confirmDel ? (
             <div style={{ display:'flex', gap:10 }}>
-              <button onClick={() => { onDelete(); onClose(); }} style={{ flex:1, padding:'11px 0', border:'none', borderRadius:999, background:'#E8547A', color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:fs(14), cursor:'pointer' }}>כן, מחק</button>
+              <button onClick={() => { onDelete(); onClose(); }} style={{ flex:1, padding:'11px 0', border:'none', borderRadius:999, background:'#E8547A', color:'#fff', fontFamily:th.display, fontWeight:800, fontSize:fs(14), cursor:'pointer' }}>כן, הסר</button>
               <button onClick={() => setConfirmDel(false)} style={{ flex:1, padding:'11px 0', border:`1.5px solid ${alpha(th.ink,0.15)}`, borderRadius:999, background:'transparent', color:alpha(th.ink,0.6), fontFamily:th.display, fontWeight:800, fontSize:fs(14), cursor:'pointer' }}>ביטול</button>
             </div>
           ) : (
-            <button onClick={() => setConfirmDel(true)} style={{ width:'100%', padding:'10px 0', border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontSize:fs(13), color:alpha(th.ink,0.4), textDecoration:'underline' }}>מחק טיוטה</button>
+            <button onClick={() => setConfirmDel(true)} style={{ width:'100%', padding:'10px 0', border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontSize:fs(13), color:alpha(th.ink,0.4), textDecoration:'underline' }}>הסר מ-Unlisted</button>
           )
         )}
       </div>
     </div>
+    {inviteOpen && (() => {
+      const parts = (draft?.name || '').trim().split(/\s+/);
+      const pFirst = parts[0] || '';
+      const pLast = parts.slice(1).join(' ') || '';
+      return (
+        <InviteFlow
+          open={inviteOpen}
+          onClose={() => { setInviteOpen(false); setInviteSent(true); }}
+          th={th}
+          mmId={profile?.uid}
+          mmName={profile?.displayName}
+          mmPhone={profile?.phone}
+          mmGender={profile?.gender}
+          prefillFirst={pFirst}
+          prefillLast={pLast}
+        />
+      );
+    })()}
+  </>
   );
 }
 
@@ -6321,7 +6359,7 @@ function Candidates({ th, go, params }) {
           ))}
           {/* Tab mode — draft icon tab */}
           {th.draftNavStyle === 'tab' && (
-            <button onClick={() => setScope(scope === 'drafts' ? 'mine' : 'drafts')} title="טיוטות"
+            <button onClick={() => setScope(scope === 'drafts' ? 'mine' : 'drafts')} title="Unlisted"
               style={{ flexShrink:0, width:44, padding:'9px 0', borderRadius:999, border:'none', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:fs(14), display:'flex', alignItems:'center', justifyContent:'center', position:'relative',
                 background: scope === 'drafts' ? th.primary : th.card,
                 color: scope === 'drafts' ? '#fff' : alpha(th.ink,0.55),
@@ -6342,9 +6380,9 @@ function Candidates({ th, go, params }) {
               <Icon name="list" size={20} style={{ color:th.primary }} />
             </div>
             <div style={{ flex:1, textAlign:'right' }}>
-              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14), color:th.primary }}>טיוטות</div>
+              <div style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14), color:th.primary }}>Unlisted</div>
               <div style={{ fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.5), marginTop:1 }}>
-                {draftCandidates.length > 0 ? `${draftCandidates.length} מועמדים ממתינים` : 'הוסף מועמדים בלי טפסים'}
+                {draftCandidates.length > 0 ? `${draftCandidates.length} ממתינים להרשמה` : 'מועמדים שטרם נרשמו'}
               </div>
             </div>
             <Icon name="chevL" size={18} style={{ color:alpha(th.primary,0.5), flexShrink:0 }} />
@@ -6382,12 +6420,12 @@ function Candidates({ th, go, params }) {
             <button onClick={() => setDraftSheetDraft({})}
               style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:10, width:'100%', boxSizing:'border-box', border:`1.5px dashed ${alpha(th.primary,0.4)}`, borderRadius:th.r, padding:'11px 14px', marginBottom:14, color:th.primary }}>
               <Icon name="plus" size={18} style={{ flexShrink:0 }} />
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14) }}>טיוטה חדשה</span>
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14) }}>הוסף ל-Unlisted</span>
             </button>
             {draftCandidates.length === 0 && (
               <div style={{ textAlign:'center', padding:'40px 20px', color:alpha(th.ink,0.4) }}>
                 <Icon name="list" size={38} />
-                <div style={{ fontFamily:th.body, marginTop:10, fontSize:fs(14) }}>עדיין אין טיוטות — לחץ ״+״ להוסיף</div>
+                <div style={{ fontFamily:th.body, marginTop:10, fontSize:fs(14) }}>עדיין אין Unlisted — לחץ ״+״ להוסיף</div>
               </div>
             )}
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -6410,6 +6448,34 @@ function Candidates({ th, go, params }) {
           <>
             {/* regular grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {/* bigcard Unlisted entry — same cell size as a regular candidate card */}
+              {th.draftNavStyle === 'bigcard' && scope === 'mine' && (
+                <button onClick={() => setScope('drafts')} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 6px 18px ${alpha(th.ink,0.07)}`, display:'flex', flexDirection:'column' }}>
+                  <div style={{ position:'relative', aspectRatio:'1', background:`linear-gradient(135deg, ${th.primary} 0%, ${th.gold} 100%)`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+                    <div style={{ position:'absolute', width:110, height:110, borderRadius:'50%', background:'rgba(255,255,255,0.1)', top:-28, left:-28 }} />
+                    <div style={{ position:'absolute', width:70, height:70, borderRadius:'50%', background:'rgba(255,255,255,0.08)', bottom:-12, right:8 }} />
+                    <div style={{ position:'absolute', width:38, height:38, borderRadius:'50%', background:'rgba(255,255,255,0.13)', top:18, right:22 }} />
+                    <div style={{ position:'relative', zIndex:1, textAlign:'center' }}>
+                      <div style={{ fontSize:30, lineHeight:1, marginBottom:6, filter:'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}>✦</div>
+                      <div style={{ fontFamily:th.display, fontWeight:900, fontSize:fs(20), color:'#fff', letterSpacing:'-0.5px', textShadow:'0 2px 8px rgba(0,0,0,0.2)' }}>Unlisted</div>
+                    </div>
+                    {draftCandidates.length > 0 && (
+                      <div style={{ position:'absolute', top:8, right:8, background:'rgba(255,255,255,0.95)', color:th.primary, borderRadius:999, padding:'2px 8px', fontSize:fs(11), fontWeight:800, fontFamily:th.display }}>
+                        {draftCandidates.length}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding:'10px 12px 12px', flex:1 }}>
+                    <div style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(15), color:th.ink, marginBottom:2 }}>Unlisted</div>
+                    <div style={{ fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.5), marginBottom:7 }}>
+                      {draftCandidates.length > 0 ? `${draftCandidates.length} ממתינים` : 'רשימה פרטית'}
+                    </div>
+                    <div style={{ background:alpha(th.primary,0.06), borderRadius:th.rSm, padding:'6px 8px', fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.65), lineHeight:1.3 }}>
+                      מועמדים שטרם נרשמו לאפליקציה
+                    </div>
+                  </div>
+                </button>
+              )}
               {list.map((c, i) => (
                 <CandCard key={c.id} c={c} th={th} myUid={myUid} index={i}
                   onClick={() => linkMode ? null : go('candidate', { id: c.id })}
@@ -6474,6 +6540,7 @@ function Candidates({ th, go, params }) {
         }}
         onDelete={() => deleteDraftCandidate(draftSheetDraft?.id)}
         onClose={() => setDraftSheetDraft(null)}
+        profile={profile}
       />
       <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} th={th} filters={filters} setFilters={setFilters} />
       <AddSheet open={addOpen} onClose={() => setAddOpen(false)} th={th} go={go} />
@@ -6602,19 +6669,23 @@ function FilterSheet({ open, onClose, th, filters, setFilters }) {
 // ════════════════════════════════════════════════════════════
 // INVITE FLOW — matchmaker creates invitation link
 // ════════════════════════════════════════════════════════════
-function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
+function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender, prefillFirst='', prefillLast='' }) {
   const { texts: txCtx } = useContext(TextsCtx);
   const { t } = useTexts();
   const [step, setStep]         = useState(1); // 1=name, 2=link
-  const [recipFirst, setFirst]  = useState('');
-  const [recipLast,  setLast]   = useState('');
+  const [recipFirst, setFirst]  = useState(prefillFirst);
+  const [recipLast,  setLast]   = useState(prefillLast);
   const [token, setToken]       = useState('');
   const [creating, setCreating] = useState(false);
   const [copied,   setCopied]   = useState(false);
   const [genError, setGenError] = useState('');
 
+  React.useEffect(() => {
+    if (open) { setStep(1); setFirst(prefillFirst); setLast(prefillLast); setToken(''); setCopied(false); setGenError(''); }
+  }, [open]);
+
   const recipientName = `${recipFirst.trim()} ${recipLast.trim()}`.trim();
-  const reset = () => { setStep(1); setFirst(''); setLast(''); setToken(''); setCopied(false); setGenError(''); };
+  const reset = () => { setStep(1); setFirst(prefillFirst); setLast(prefillLast); setToken(''); setCopied(false); setGenError(''); };
 
   const generate = async () => {
     setCreating(true); setGenError('');
