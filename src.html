@@ -1195,6 +1195,7 @@ function Icon({ name, size = 24, stroke = 2, style, fill = 'none' }) {
     stop: <rect x="5" y="5" width="14" height="14" rx="2" fill={fill}/>,
     headphones: <><path d="M3 12a9 9 0 0 1 18 0"/><rect x="2" y="12" width="4" height="7" rx="2"/><rect x="18" y="12" width="4" height="7" rx="2"/></>,
     clock: <><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 3"/></>,
+    list: <><path d="M9 6h10M9 12h10M9 18h10"/><circle cx="5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="5" cy="18" r="1.2" fill="currentColor" stroke="none"/></>,
   };
   return <svg {...p}>{paths[name] || null}</svg>;
 }
@@ -5892,7 +5893,7 @@ function Home({ th, go }) {
             <div style={{ fontFamily:th.display, fontWeight:800, fontSize:16, color:th.ink, lineHeight:1.2 }}>{t('home_ai_title')}</div>
             <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.6), marginTop:4 }}>{t('home_ai_sub')}</div>
           </div>
-          <Icon name="chevron-left" size={20} style={{ color:th.gold, flexShrink:0 }} />
+          <Icon name="chevL" size={20} style={{ color:th.gold, flexShrink:0 }} />
         </button>
       </div>
 
@@ -6325,7 +6326,7 @@ function Candidates({ th, go, params }) {
                 background: scope === 'drafts' ? th.primary : th.card,
                 color: scope === 'drafts' ? '#fff' : alpha(th.ink,0.55),
                 boxShadow: scope === 'drafts' ? `0 4px 14px ${alpha(th.primary,0.4)}` : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>
-              <Icon name="bookmark" size={17} />
+              <Icon name="list" size={17} />
               {draftCandidates.length > 0 && scope !== 'drafts' && (
                 <span style={{ position:'absolute', top:-3, right:-3, background:th.primary, color:'#fff', borderRadius:'50%', minWidth:16, height:16, fontSize:10, fontWeight:800, display:'flex', alignItems:'center', justifyContent:'center', padding:'0 3px' }}>{draftCandidates.length}</span>
               )}
@@ -6338,7 +6339,7 @@ function Candidates({ th, go, params }) {
           <button onClick={() => setScope('drafts')}
             style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:12, width:'100%', boxSizing:'border-box', background:th.card, border: scope === 'drafts' ? `1.5px solid ${th.primary}` : `1.5px dashed ${alpha(th.primary,0.5)}`, borderRadius:th.r, padding:'10px 14px', marginBottom:14, boxShadow:`0 2px 8px ${alpha(th.ink,0.06)}` }}>
             <div style={{ width:40, height:40, borderRadius:10, background:alpha(th.primary,0.1), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-              <Icon name="notebook" size={20} style={{ color:th.primary }} />
+              <Icon name="list" size={20} style={{ color:th.primary }} />
             </div>
             <div style={{ flex:1, textAlign:'right' }}>
               <div style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14), color:th.primary }}>טיוטות</div>
@@ -6346,7 +6347,7 @@ function Candidates({ th, go, params }) {
                 {draftCandidates.length > 0 ? `${draftCandidates.length} מועמדים ממתינים` : 'הוסף מועמדים בלי טפסים'}
               </div>
             </div>
-            <Icon name="chevron-left" size={18} style={{ color:alpha(th.primary,0.5), flexShrink:0 }} />
+            <Icon name="chevL" size={18} style={{ color:alpha(th.primary,0.5), flexShrink:0 }} />
           </button>
         )}
 
@@ -6375,7 +6376,7 @@ function Candidates({ th, go, params }) {
             {/* back button for card mode */}
             {th.draftNavStyle === 'card' && (
               <button onClick={() => setScope('mine')} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontFamily:th.body, fontSize:fs(13), color:alpha(th.ink,0.55), marginBottom:14 }}>
-                <Icon name="chevron-right" size={16} /> חזרה למועמדים
+                <Icon name="chevR" size={16} /> חזרה למועמדים
               </button>
             )}
             <button onClick={() => setDraftSheetDraft({})}
@@ -6385,7 +6386,7 @@ function Candidates({ th, go, params }) {
             </button>
             {draftCandidates.length === 0 && (
               <div style={{ textAlign:'center', padding:'40px 20px', color:alpha(th.ink,0.4) }}>
-                <Icon name="notebook" size={38} />
+                <Icon name="list" size={38} />
                 <div style={{ fontFamily:th.body, marginTop:10, fontSize:fs(14) }}>עדיין אין טיוטות — לחץ ״+״ להוסיף</div>
               </div>
             )}
@@ -6400,7 +6401,7 @@ function Candidates({ th, go, params }) {
                     <div style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(15), color:th.ink }}>{d.name}</div>
                     {d.notes && <div style={{ fontFamily:th.body, fontSize:fs(12.5), color:alpha(th.ink,0.5), marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:200 }}>{d.notes}</div>}
                   </div>
-                  <Icon name="chevron-left" size={16} style={{ color:alpha(th.ink,0.3), flexShrink:0 }} />
+                  <Icon name="chevL" size={16} style={{ color:alpha(th.ink,0.3), flexShrink:0 }} />
                 </button>
               ))}
             </div>
