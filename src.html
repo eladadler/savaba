@@ -7241,6 +7241,14 @@ function CandidateSelfFill({ th, go, params }) {
           </>
         )}
 
+        {isLast && (
+          <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:16, padding:'10px 14px', background:alpha(th.primary,0.06), borderRadius:th.rSm }}>
+            <Icon name="lock" size={15} style={{ color:alpha(th.primary,0.7), flexShrink:0 }} />
+            <span style={{ fontFamily:th.body, fontSize:fs(12.5), color:alpha(th.ink,0.65), lineHeight:1.45 }}>
+              הפרטים שמולאו ישמרו ב-Sababa ויהיו גלויים לשדכן/ית שלך בלבד.
+            </span>
+          </div>
+        )}
         <div style={{ display:'flex', gap:8, marginTop:20 }}>
           {step > 0
             ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s-1)}>{t('selfform_btn_back')}</Btn>
@@ -12130,6 +12138,12 @@ function TermsBody({ th }) {
       <P>מסירת מידע היא וולונטרית אך אי מסירתו עלולה למנוע או להגביל שימוש בשירות.</P>
       <P>האפליקציה נוקטת באמצעי אבטחה סבירים אך אינה יכולה להבטיח הגנה מוחלטת מפני פריצות.</P>
       <P>פרטים עשויים להיות מועברים לצדדים שלישיים במקרים שנדרשים על פי דין או לצרכי תפעול האפליקציה.</P>
+      <P>פרטי מועמד הנמצאים ברשימת Unlisted (לא רשומים) שמורים אצל השדכן/ית בלבד ואינם גלויים למשתמשים אחרים.</P>
+
+      <P style={{ fontWeight:700, color:th.ink, marginTop:12 }}>עוגיות ואחסון מקומי</P>
+      <P>האפליקציה משתמשת אך ורק בעוגיות ואמצעי אחסון חיוניים (Strictly Necessary) לצורך תפעולה: אימות זהות (Firebase Auth) ושמירת העדפות תצוגה בדפדפן המשתמש.</P>
+      <P>אין שימוש בעוגיות ניתוח נתונים (Analytics), מעקב פרסומי, או כל Cookie של צד שלישי שאינו חיוני לתפעול השירות.</P>
+      <P>לאור האמור, לא נדרשת הסכמה מפורשת לעוגיות מעבר להסכמה לתקנון זה. המשך השימוש באפליקציה מהווה הסכמה לאחסון חיוני זה.</P>
 
       <H>4. שימוש באפליקציה</H>
       <P>מטרת האפליקציה היא יצירת היכרויות בלבד, וכל שימוש אחר אסור.</P>
