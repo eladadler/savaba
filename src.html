@@ -1055,8 +1055,40 @@ function makeTheme(t) {
     cmApproveOffer:t.cmApproveOffer || 'on',
     fontScale: t.fontScale ?? 1.15,
     draftNavStyle: t.draftNavStyle || 'card',
+    onbPalette: t.onbPalette || 'orchid',
   };
 }
+
+// ─── Onboarding palettes (from the three brand logo treatments) ──────────────
+const ONB_PALETTES = {
+  orchid: {
+    label: 'סחלב', note: 'גרדיאנט סגול→מג׳נטה, טקסט קרם',
+    bg: 'radial-gradient(125% 95% at 86% 6%, #F0357E 0%, #A81C63 34%, #5A1148 64%, #2C0A33 100%)',
+    title: '#FBF6EC', body: 'rgba(251,246,236,0.70)',
+    accent: '#FF6BA8', dotOff: 'rgba(251,246,236,0.26)',
+    surface: 'rgba(255,255,255,0.10)', line: 'rgba(255,255,255,0.22)',
+    btnBg: '#FBF6EC', btnFg: '#4A0E37',
+    ring: '#FBF6EC', gem: '#FF74AE', halo: '#4A1145', dark: true,
+  },
+  night: {
+    label: 'לילה', note: 'גרדיאנט נייבי→סגול→מג׳נטה',
+    bg: 'radial-gradient(118% 88% at 91% 4%, #E0468F 0%, #7C1F5E 17%, #3B1B5E 38%, #1B1A4D 68%, #0E0E2A 100%)',
+    title: '#FBF6EC', body: 'rgba(248,213,228,0.74)',
+    accent: '#FF7FB4', dotOff: 'rgba(248,213,228,0.26)',
+    surface: 'rgba(255,255,255,0.09)', line: 'rgba(255,255,255,0.20)',
+    btnBg: '#FBF6EC', btnFg: '#20183F',
+    ring: '#FBF6EC', gem: '#FF74AE', halo: '#2A1B4E', dark: true,
+  },
+  cream: {
+    label: 'קרם', note: 'רקע קרם בהיר, ורוד + נייבי',
+    bg: 'linear-gradient(165deg, #FEFBF6 0%, #FDF4EA 60%, #FBE9E0 100%)',
+    title: '#1E2444', body: 'rgba(30,36,68,0.60)',
+    accent: '#E63E6D', dotOff: 'rgba(30,36,68,0.16)',
+    surface: '#FFFFFF', line: 'rgba(30,36,68,0.10)',
+    btnBg: '#E63E6D', btnFg: '#FFFFFF',
+    ring: '#E63E6D', gem: '#F2769C', halo: '#FEFBF6', dark: false,
+  },
+};
 
 // Global font-scale helper — updated before each render in AppInner
 let _fontScale = 1;
@@ -1211,8 +1243,19 @@ function Logo({ size = 40, color = 'currentColor', flaw = '#fff' }) {
   );
 }
 
+// Diamond-ring mark — used on the "סבבה והכל, אבל…" badge and in onboarding
+function Ring({ size = 40, color = '#fff', gem }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="33.5" r="9.8" stroke={color} strokeWidth="6.6" />
+      <path d="M17 10h13l4 6.5L28.5 23 24 18.5 19.5 23 14 16.5z" fill={gem || color} />
+      <path d="M11.5 3l3 4.5M24.9 1.9l-1.3 5.2M36.5 4l-3.4 4.4" stroke={gem || color} strokeWidth="3.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 Object.assign(window, {
-  PALETTE, FONT_PAIRS, RADIUS, DENSITY, makeTheme, tint, alpha, Icon, Logo,
+  PALETTE, FONT_PAIRS, RADIUS, DENSITY, makeTheme, tint, alpha, Icon, Logo, Ring,
 });
 
 // ════════════════════════════════════════════════════════════
@@ -1712,11 +1755,7 @@ function SabaBadge({ text, th, size = 'm' }) {
       maxWidth: '100%', position: 'relative',
       boxShadow: `0 6px 18px ${alpha(th.ink, 0.22)}`,
     }}>
-      <svg width={iconSz} height={iconSz} viewBox="0 0 48 48" fill="none" style={{ flexShrink: 0, marginTop: big ? 1 : 0 }}>
-        <circle cx="24" cy="33.5" r="9.8" stroke={th.cream} strokeWidth="6.6" />
-        <path d="M17 10h13l4 6.5L28.5 23 24 18.5 19.5 23 14 16.5z" fill={th.cream} />
-        <path d="M11.5 3l3 4.5M24.9 1.9l-1.3 5.2M36.5 4l-3.4 4.4" stroke={th.cream} strokeWidth="3.2" strokeLinecap="round" />
-      </svg>
+      <div style={{ flexShrink: 0, marginTop: big ? 1 : 0, lineHeight: 0 }}><Ring size={iconSz} color={th.cream} /></div>
       <div style={{ lineHeight: 1.25, minWidth: 0 }}>
         <div style={{ fontFamily: th.display, fontSize: big ? 13 : 11, color: th.gold, letterSpacing: 0.3, marginBottom: 1 }}>
           סבבה והכל, אבל…
@@ -3850,6 +3889,40 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                 </div>
               </div>
 
+              {/* ── ONBOARDING PALETTE ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>✦ פלטת אונבורדינג</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
+                  ערכת הצבעים של 7 שקפי הפתיחה
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {Object.entries(ONB_PALETTES).map(([key, pal]) => (
+                    <div key={key} onClick={() => setTweak && setTweak('onbPalette', key)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: th.rSm, cursor: 'pointer',
+                        border: `2px solid ${th.onbPalette === key ? th.primary : alpha(th.ink, 0.12)}`,
+                        background: th.onbPalette === key ? alpha(th.primary, 0.06) : th.cream }}>
+                      <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+                        border: `2.5px solid ${th.onbPalette === key ? th.primary : alpha(th.ink, 0.3)}`,
+                        background: th.onbPalette === key ? th.primary : 'transparent' }} />
+                      <div style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0, background: pal.bg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${alpha(th.ink, 0.1)}` }}>
+                        <Ring size={22} color={pal.ring} gem={pal.gem} />
+                      </div>
+                      <div>
+                        <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: fs(13.5), color: th.ink }}>{pal.label}</div>
+                        <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.5) }}>{pal.note}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => go && go('onboarding')}
+                  style={{ marginTop: 12, width: '100%', border: `1.5px dashed ${alpha(th.primary, 0.45)}`, background: 'none',
+                    borderRadius: th.rSm, padding: '10px 0', cursor: 'pointer', color: th.primary,
+                    fontFamily: th.display, fontWeight: 800, fontSize: fs(13) }}>
+                  צפה באונבורדינג
+                </button>
+              </div>
+
               {/* ── BIRTH DATE BACKFILL ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
                 <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>📅 השלמת תאריכי לידה</div>
@@ -4423,6 +4496,17 @@ const TEXT_KEYS = {
   onb_slide2_body:  'אונבורדינג — גוף שקף 2',
   onb_slide3_title: 'אונבורדינג — כותרת שקף 3',
   onb_slide3_body:  'אונבורדינג — גוף שקף 3',
+  onb_slide4_title: 'אונבורדינג — כותרת שקף 4',
+  onb_slide4_body:  'אונבורדינג — גוף שקף 4',
+  onb_slide5_title: 'אונבורדינג — כותרת שקף 5',
+  onb_slide5_body:  'אונבורדינג — גוף שקף 5',
+  onb_slide6_title: 'אונבורדינג — כותרת שקף 6',
+  onb_slide6_body:  'אונבורדינג — גוף שקף 6',
+  onb_slide7_title: 'אונבורדינג — כותרת שקף 7',
+  onb_slide7_body:  'אונבורדינג — גוף שקף 7',
+  onb_skip:         'אונבורדינג — כפתור דילוג',
+  onb_next:         'אונבורדינג — כפתור הבא',
+  onb_start:        'אונבורדינג — כפתור סיום',
   home_greeting:       'בית — ברכה',
   home_waiting_title:  'בית — כותרת "מה מחכה"',
   home_stat_cands:     'בית — כרטיסיית מועמדים פעילים',
@@ -4791,12 +4875,23 @@ const TEXT_KEYS = {
   form_label_partner:               'שדה: חשוב בפרטנר',
 };
 const DEFAULT_TEXTS = {
-  onb_slide1_title: 'סבבה והכל אבל...',
-  onb_slide1_body:  'איזה כיף להכניס קצת הומור לכל הכבדות!',
+  onb_slide1_title: 'סבבה והכל, אבל…',
+  onb_slide1_body:  'לכל אחד יש את ה"אבל" שלו. אצלנו זה לא נסתר — זה בדיוק מה שהופך התאמה לאמיתית.',
   onb_slide2_title: 'הרשימה שלך, תמיד לפנייך',
-  onb_slide2_body:  'כל הרווקים והרווקות שלך במקום אחד — מסודר, חי ונושם.',
-  onb_slide3_title: 'AI מציע, את/ה מחליט/ה',
-  onb_slide3_body:  'אפשר לשדך לבד, אפשר להיעזר ברובוט, העיקר שנזכה במצוות!',
+  onb_slide2_body:  'כל הרווקים והרווקות במקום אחד — מי פנוי, מי בתהליך, ומי מחכה לתשומת לב.',
+  onb_slide3_title: 'כרטיס שמספר את הסיפור',
+  onb_slide3_body:  'תחביבים, סגנון, מה מחפשים — וגם מה שבאמת מייחד אותם. לא רק גיל ועיר.',
+  onb_slide4_title: 'AI מציע, את/ה מחליט/ה',
+  onb_slide4_body:  'המערכת קוראת את כל הרשימה ומציעה התאמות שאולי פספסתם, עם הסבר למה. ההחלטה תמיד שלכם.',
+  onb_slide5_title: 'מהצעה ועד למזל טוב',
+  onb_slide5_body:  'פותחים הצעה, מעדכנים סטטוס, ורואים בכל רגע איפה כל שידוך עומד.',
+  onb_slide6_title: 'שדכנים עובדים יחד',
+  onb_slide6_body:  'שתפו מועמדים עם שדכנים אחרים — וכל אחד מהם מרחיב לכם את מעגל ההתאמות.',
+  onb_slide7_title: 'הפרטיות שלהם, באחריותכם',
+  onb_slide7_body:  'מועמדים ב-Unlisted גלויים רק לכם, ושום פרט לא נחשף לשדכן אחר בלי אישור.',
+  onb_skip:         'דלג/י',
+  onb_next:         'הבא',
+  onb_start:        'שנתחיל?',
   home_greeting:      'מה קורה היום?',
   home_waiting_title: 'מה מחכה לך',
   home_stat_cands:    'מועמדים פעילים',
@@ -5166,7 +5261,7 @@ const DEFAULT_TEXTS = {
 };
 
 const SCREEN_TEXTS = {
-  onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body'],
+  onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body','onb_slide4_title','onb_slide4_body','onb_slide5_title','onb_slide5_body','onb_slide6_title','onb_slide6_body','onb_slide7_title','onb_slide7_body','onb_skip','onb_next','onb_start'],
   register:      ['register_title','register_sub','register_field_firstname','register_field_lastname','register_field_gender','register_field_phone','register_phone_hint','register_btn_next','register_photo_title','register_photo_why_title','register_photo_why_body','register_btn_upload','register_btn_change','register_btn_save','register_btn_skip','register_photo_hint'],
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_linkmode_title','cands_linkmode_body','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
@@ -5223,77 +5318,183 @@ const { useState: useS, useEffect: useE } = React;
 // ════════════════════════════════════════════════════════════
 function Onboarding({ th, go }) {
   const [i, setI] = useS(0);
-  const { t, texts: tx, defaults: dx } = useTexts();
+  const { t } = useTexts();
+  const p = ONB_PALETTES[th.onbPalette] || ONB_PALETTES.orchid;
+
   const slides = [
-    { kind: 'friends', title: t('onb_slide1_title'), body: t('onb_slide1_body') },
+    { kind: 'brand',   title: t('onb_slide1_title'), body: t('onb_slide1_body') },
     { kind: 'list',    title: t('onb_slide2_title'), body: t('onb_slide2_body') },
-    { kind: 'ai',      title: t('onb_slide3_title'), body: t('onb_slide3_body') },
+    { kind: 'profile', title: t('onb_slide3_title'), body: t('onb_slide3_body') },
+    { kind: 'ai',      title: t('onb_slide4_title'), body: t('onb_slide4_body') },
+    { kind: 'offer',   title: t('onb_slide5_title'), body: t('onb_slide5_body') },
+    { kind: 'team',    title: t('onb_slide6_title'), body: t('onb_slide6_body') },
+    { kind: 'privacy', title: t('onb_slide7_title'), body: t('onb_slide7_body') },
   ];
   const last = i === slides.length - 1;
   const s = slides[i];
 
+  // shared scene primitives, tinted by the active palette
+  const card = (extra = {}) => ({
+    background: p.surface, border: `1px solid ${p.line}`, borderRadius: 16,
+    padding: 13, backdropFilter: p.dark ? 'blur(8px)' : 'none',
+    boxShadow: p.dark ? 'none' : '0 8px 22px rgba(30,36,68,0.08)', ...extra,
+  });
+  const bar = (w, strong) => (
+    <div style={{ height: strong ? 9 : 7, width: w, borderRadius: 6,
+      background: strong ? p.accent : p.line, opacity: strong ? 0.85 : 1 }} />
+  );
+  const chip = (label, key) => (
+    <span key={key} style={{ background: p.dark ? 'rgba(255,255,255,0.14)' : 'rgba(230,62,109,0.10)',
+      color: p.dark ? p.title : p.accent, borderRadius: 999, padding: '5px 12px',
+      fontFamily: th.body, fontWeight: 600, fontSize: fs(12), whiteSpace: 'nowrap' }}>{label}</span>
+  );
+  const bubble = (size, children, extra = {}) => (
+    <div style={{ width: size, height: size, borderRadius: '50%', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      background: p.dark ? 'rgba(255,255,255,0.13)' : 'rgba(230,62,109,0.10)',
+      color: p.accent, ...extra }}>{children}</div>
+  );
+
   const Scene = () => {
+    if (s.kind === 'brand') return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
+        <Ring size={118} color={p.ring} gem={p.gem} />
+        <div style={{ ...card({ padding: '11px 15px', display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999 }) }}>
+          <Icon name="spark" size={17} style={{ color: p.accent, flexShrink: 0 }} />
+          <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: p.title }}>הולך לישון בתשע</span>
+        </div>
+      </div>
+    );
+
     if (s.kind === 'list') return (
-      <div style={{ position: 'relative', width: 220, height: 200 }}>
+      <div style={{ position: 'relative', width: 246, height: 192 }}>
         {[2, 1, 0].map((k, idx) => (
-          <div key={k} style={{
-            position: 'absolute', top: k * 18, right: k * 14, left: k * 14,
-            background: th.card, borderRadius: th.r, padding: 14,
-            boxShadow: `0 10px 26px ${alpha(th.ink, 0.12)}`,
+          <div key={k} style={{ ...card({
+            position: 'absolute', top: k * 22, right: k * 13, left: k * 13,
             display: 'flex', alignItems: 'center', gap: 12,
-            transform: `scale(${1 - k * 0.05})`, opacity: 1 - k * 0.15,
-          }}>
-            <Avatar grad={AV_GRADS[idx * 2]} name={['ד','א','ש'][idx]} size={42} />
-            <div style={{ flex: 1 }}>
-              <div style={{ height: 9, width: '60%', background: alpha(th.ink, 0.15), borderRadius: 6, marginBottom: 7 }} />
-              <div style={{ height: 7, width: '85%', background: alpha(th.primary, 0.25), borderRadius: 6 }} />
+            transform: `scale(${1 - k * 0.04})`, opacity: 1 - k * 0.22 }) }}>
+            <Avatar grad={AV_GRADS[idx * 2]} name={['ד','א','ש'][idx]} size={40} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {bar('58%', true)}{bar('82%')}
             </div>
           </div>
         ))}
       </div>
     );
-    if (s.kind === 'friends') return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-        <Avatar grad={AV_GRADS[4]} name="נ" size={92} style={{ marginInlineEnd: -16, zIndex: 2 }} />
-        <div style={{ zIndex: 3, background: th.primary, borderRadius: '50%', width: 56, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: `0 10px 24px ${alpha(th.primary,0.4)}` }}>
-          <Icon name="heart" size={30} fill="#fff" stroke={0} />
+
+    if (s.kind === 'profile') return (
+      <div style={{ ...card({ width: 250, padding: 16 }) }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14 }}>
+          <Avatar grad={AV_GRADS[1]} name="מ" size={48} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {bar('64%', true)}{bar('44%')}
+          </div>
         </div>
-        <Avatar grad={AV_GRADS[3]} name="א" size={92} style={{ marginInlineStart: -16, zIndex: 1 }} />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start' }}>
+          {['אקדמאי/ת', 'רוחני/ת', 'אוהב/ת לצחוק', 'משפחה'].map((c, k) => chip(c, k))}
+        </div>
       </div>
     );
+
     if (s.kind === 'ai') return (
-      <div style={{ position: 'relative', color: th.gold }}>
-        <div style={{ background: alpha(th.gold, 0.14), borderRadius: 40, padding: 30 }}>
-          <Icon name="robot" size={90} stroke={1.6} />
+      <div style={{ position: 'relative', width: 248 }}>
+        <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }) }}>
+          <Avatar grad={AV_GRADS[4]} name="נ" size={36} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>{bar('70%', true)}{bar('50%')}</div>
+          <Avatar grad={AV_GRADS[3]} name="א" size={36} />
         </div>
-        <div style={{ position: 'absolute', bottom: -6, left: -6, color: th.primary, background: th.cream, borderRadius: '50%', padding: 8 }}>
-          <Icon name="rose" size={34} stroke={1.8} />
+        <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }) }}>
+          {bubble(38, <Icon name="spark" size={20} />)}
+          <div style={{ flex: 1, textAlign: 'right' }}>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: p.accent }}>התאמה 92%</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: p.body }}>ערכים וסגנון חיים דומים</div>
+          </div>
         </div>
       </div>
     );
-    return <Logo size={150} color={th.primary} flaw={th.cream} />;
+
+    if (s.kind === 'offer') return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar grad={AV_GRADS[4]} name="נ" size={78} style={{ marginInlineEnd: -14, zIndex: 2 }} />
+          <div style={{ zIndex: 3, background: p.accent, borderRadius: '50%', width: 50, height: 50,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+            boxShadow: `0 8px 22px ${alpha(p.accent, 0.45)}` }}>
+            <Icon name="heart" size={26} fill="#fff" stroke={0} />
+          </div>
+          <Avatar grad={AV_GRADS[3]} name="א" size={78} style={{ marginInlineStart: -14, zIndex: 1 }} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          {['הוצע', 'אושר', 'נפגשו'].map((step, k) => (
+            <React.Fragment key={step}>
+              {k > 0 && <div style={{ width: 20, height: 2, background: p.line }} />}
+              <span style={{ background: k < 2 ? p.accent : p.surface, color: k < 2 ? '#fff' : p.body,
+                border: `1px solid ${k < 2 ? 'transparent' : p.line}`, borderRadius: 999,
+                padding: '4px 11px', fontFamily: th.body, fontWeight: 700, fontSize: fs(11.5) }}>{step}</span>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+
+    if (s.kind === 'team') return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div style={{ display: 'flex' }}>
+          {[5, 2, 0].map((g, k) => (
+            <Avatar key={k} grad={AV_GRADS[g]} name={['ר','י','ח'][k]} size={62}
+              style={{ marginInlineStart: k ? -20 : 0, zIndex: 3 - k,
+                boxShadow: `0 0 0 3px ${p.halo}` }} />
+          ))}
+        </div>
+        <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999, padding: '9px 15px' }) }}>
+          <Icon name="link" size={16} style={{ color: p.accent }} />
+          <span style={{ fontFamily: th.body, fontWeight: 700, fontSize: fs(13), color: p.title }}>מועמד משותף</span>
+        </div>
+      </div>
+    );
+
+    // privacy
+    return (
+      <div style={{ position: 'relative', width: 230 }}>
+        <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 12, filter: 'blur(1.4px)', opacity: 0.55 }) }}>
+          <Avatar grad={AV_GRADS[2]} name="?" size={40} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>{bar('62%', true)}{bar('80%')}</div>
+        </div>
+        <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }) }}>
+          {bubble(40, <Icon name="lock" size={20} />)}
+          <div style={{ flex: 1, textAlign: 'right' }}>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: p.title }}>Unlisted</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: p.body }}>גלוי רק לך</div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
-      background: `linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.84)})`,
-      direction: 'rtl', fontFamily: th.body, position: 'relative',
+      background: p.bg, direction: 'rtl', fontFamily: th.body, position: 'relative',
     }}>
-      {/* skip */}
+      {/* brand + skip */}
       <div style={{ paddingTop: 52, paddingInline: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <Logo size={26} color={th.primary} flaw={th.cream} />
-          <span style={{ fontFamily: th.display, fontWeight: 800, color: th.ink, fontSize: fs(18) }}>סבבה והכל</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Ring size={26} color={p.ring} gem={p.gem} />
+          <span style={{ fontFamily: th.display, fontWeight: 800, color: p.title, fontSize: fs(18) }}>סבבה והכל</span>
         </div>
-        {!last && <button onClick={() => setI(slides.length - 1)} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontWeight: 700, fontSize: fs(14), cursor: 'pointer' }}>דלג/י</button>}
+        {!last && (
+          <button onClick={() => setI(slides.length - 1)} style={{ border: 'none', background: 'none',
+            color: p.body, fontFamily: th.body, fontWeight: 700, fontSize: fs(14), cursor: 'pointer' }}>
+            {t('onb_skip')}
+          </button>
+        )}
       </div>
 
-      {/* scene */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', textAlign: 'center' }}>
-        <div key={i} style={{ marginBottom: 40, animation: 'sabaPop .5s cubic-bezier(.2,.9,.3,1)', display: 'flex', justifyContent: 'center' }}><Scene /></div>
-        <h1 key={'t'+i} style={{ fontFamily: th.display, fontSize: fs(28), color: th.ink, margin: '0 0 12px', lineHeight: 1.15, animation: 'sabaUp .4s ease' }}>{s.title}</h1>
-        <p style={{ fontFamily: th.body, fontSize: fs(16.5), color: alpha(th.ink, 0.62), lineHeight: 1.5, maxWidth: 300, margin: 0, textWrap: 'pretty' }}>{s.body}</p>
+      {/* scene + copy */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', textAlign: 'center', minHeight: 0 }}>
+        <div key={i} style={{ marginBottom: 38, animation: 'sabaPop .5s cubic-bezier(.2,.9,.3,1)', display: 'flex', justifyContent: 'center' }}><Scene /></div>
+        <h1 key={'t' + i} style={{ fontFamily: th.display, fontSize: fs(27), color: p.title, margin: '0 0 12px', lineHeight: 1.18, animation: 'sabaUp .4s ease', textWrap: 'balance' }}>{s.title}</h1>
+        <p style={{ fontFamily: th.body, fontSize: fs(16), color: p.body, lineHeight: 1.5, maxWidth: 310, margin: 0, textWrap: 'pretty' }}>{s.body}</p>
       </div>
 
       {/* dots + controls */}
@@ -5302,15 +5503,20 @@ function Onboarding({ th, go }) {
           {slides.map((_, k) => (
             <div key={k} onClick={() => setI(k)} style={{
               width: k === i ? 22 : 8, height: 8, borderRadius: 99, cursor: 'pointer',
-              background: k === i ? th.primary : alpha(th.ink, 0.18), transition: 'all .3s',
+              background: k === i ? p.accent : p.dotOff, transition: 'all .3s',
             }} />
           ))}
         </div>
-        {last ? (
-          <Btn th={th} full size="l" onClick={() => go('register')}>שנתחיל?</Btn>
-        ) : (
-          <Btn th={th} full size="l" onClick={() => setI(i + 1)} icon={<span style={{ transform: 'scaleX(-1)', display: 'inline-flex' }}><Icon name="arrow" size={20} /></span>}>הבא</Btn>
-        )}
+        <button
+          onClick={() => (last ? go('register') : setI(i + 1))}
+          style={{ width: '100%', border: 'none', cursor: 'pointer', borderRadius: th.r,
+            padding: '15px 22px', background: p.btnBg, color: p.btnFg,
+            fontFamily: th.display, fontWeight: 800, fontSize: fs(17),
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: `0 10px 26px ${p.dark ? 'rgba(0,0,0,0.28)' : alpha(p.accent, 0.3)}` }}>
+          {last ? t('onb_start') : t('onb_next')}
+          {!last && <span style={{ transform: 'scaleX(-1)', display: 'inline-flex' }}><Icon name="arrow" size={20} /></span>}
+        </button>
       </div>
     </div>
   );
@@ -10846,7 +11052,7 @@ Object.assign(window, { Toggle, CandidateMode, Settings });
 // ════════════════════════════════════════════════════════════
 const TWEAK_DEFAULTS = {
   "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
-  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new", "fontScale": 1.15, "draftNavStyle": "card",
+  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new", "fontScale": 1.15, "draftNavStyle": "card", "onbPalette": "orchid",
   "cmNewMatch": "on", "cmAddCand": "on", "cmApproveCand": "on", "cmApproveOffer": "on"
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
@@ -12462,7 +12668,7 @@ function ImpersonateBanner({ th }) {
 // design Tweaks panel) and must survive a page reload, unlike the rest of
 // TWEAK_DEFAULTS which is purely for in-session design iteration.
 const PROD_TWEAK_KEYS = ['cardVariant', 'offerDetailLayout', 'primaryColor', 'fontPair', 'radius', 'density',
-  'showMmNote', 'cmNewMatch', 'cmAddCand', 'cmApproveCand', 'cmApproveOffer', 'fontScale', 'draftNavStyle'];
+  'showMmNote', 'cmNewMatch', 'cmAddCand', 'cmApproveCand', 'cmApproveOffer', 'fontScale', 'draftNavStyle', 'onbPalette'];
 
 function AppInner({ inviteToken, offerParam }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
