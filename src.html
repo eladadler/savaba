@@ -148,7 +148,7 @@ function IOSStatusBar({ dark = false, time = '9:41' }) {
       <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 1.5 }}>
         <span style={{
           fontFamily: '-apple-system, "SF Pro", system-ui', fontWeight: 590,
-          fontSize: 17, lineHeight: '22px', color: c,
+          fontSize: fs(17), lineHeight: '22px', color: c,
         }}>{time}</span>
       </div>
       <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, paddingTop: 1, paddingRight: 1 }}>
@@ -250,7 +250,7 @@ function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true }) {
       <div style={{
         padding: '0 16px',
         fontFamily: '-apple-system, system-ui',
-        fontSize: 34, fontWeight: 700, lineHeight: '41px',
+        fontSize: fs(34), fontWeight: 700, lineHeight: '41px',
         color: text, letterSpacing: 0.4,
       }}>{title}</div>
     </div>
@@ -269,7 +269,7 @@ function IOSListRow({ title, detail, icon, chevron = true, isLast = false, dark 
     <div style={{
       display: 'flex', alignItems: 'center', minHeight: 52,
       padding: '0 16px', position: 'relative',
-      fontFamily: '-apple-system, system-ui', fontSize: 17,
+      fontFamily: '-apple-system, system-ui', fontSize: fs(17),
       letterSpacing: -0.43,
     }}>
       {icon && (
@@ -302,7 +302,7 @@ function IOSList({ header, children, dark = false }) {
     <div>
       {header && (
         <div style={{
-          fontFamily: '-apple-system, system-ui', fontSize: 13,
+          fontFamily: '-apple-system, system-ui', fontSize: fs(13),
           color: hc, textTransform: 'uppercase',
           padding: '8px 36px 6px', letterSpacing: -0.08,
         }}>{header}</div>
@@ -429,7 +429,7 @@ function IOSKeyboard({ dark = false }) {
             {i > 0 && <div style={{ width: 1, height: 25, background: '#ccc', opacity: 0.3 }} />}
             <div style={{
               flex: 1, textAlign: 'center',
-              fontFamily: '-apple-system, system-ui', fontSize: 17,
+              fontFamily: '-apple-system, system-ui', fontSize: fs(17),
               color: sugg, letterSpacing: -0.43, lineHeight: '22px',
             }}>{w}</div>
           </React.Fragment>
@@ -1053,8 +1053,13 @@ function makeTheme(t) {
     cmAddCand:     t.cmAddCand     || 'on',
     cmApproveCand: t.cmApproveCand || 'on',
     cmApproveOffer:t.cmApproveOffer || 'on',
+    fontScale: t.fontScale ?? 1,
   };
 }
+
+// Global font-scale helper — updated before each render in AppInner
+let _fontScale = 1;
+const fs = n => Math.round(n * _fontScale * 10) / 10;
 
 // ─── Coachmarks ─────────────────────────────────────────────────────────────
 const CM_SEEN_KEY = 'cm_seen_v1';
@@ -1708,7 +1713,7 @@ function Chip({ label, active, onClick, th, icon, tone }) {
       background: active ? alpha(c, 0.15) : th.card,
       color: active ? alpha(th.ink, 0.82) : alpha(th.ink, 0.72),
       borderRadius: 999, padding: '7px 14px', cursor: onClick ? 'pointer' : 'default',
-      fontFamily: th.body, fontWeight: 600, fontSize: 13.5, whiteSpace: 'nowrap',
+      fontFamily: th.body, fontWeight: 600, fontSize: fs(13.5), whiteSpace: 'nowrap',
       display: 'inline-flex', alignItems: 'center', gap: 5, transition: 'all .15s',
     }}>
       {icon}{label}
@@ -1722,7 +1727,7 @@ function Tag({ children, th, tone, soft = true }) {
     <span style={{
       background: soft ? alpha(c, 0.16) : c, color: soft ? c : '#fff',
       borderRadius: 999, padding: '3px 10px', fontFamily: th.body,
-      fontWeight: 700, fontSize: 11.5, whiteSpace: 'nowrap',
+      fontWeight: 700, fontSize: fs(11.5), whiteSpace: 'nowrap',
     }}>{children}</span>
   );
 }
@@ -1778,7 +1783,7 @@ function AppHeader({ title, sub, onBack, action, th, big, bg }) {
           fontFamily: th.display, color: th.ink,
           fontSize: big ? 30 : 20, fontWeight: 800, lineHeight: 1.1,
         }}>{title}</div>
-        {sub && <div style={{ fontFamily: th.body, color: alpha(th.ink, 0.55), fontSize: 13.5, marginTop: 3 }}>{sub}</div>}
+        {sub && <div style={{ fontFamily: th.body, color: alpha(th.ink, 0.55), fontSize: fs(13.5), marginTop: 3 }}>{sub}</div>}
       </div>
       {action}
     </div>
@@ -1822,7 +1827,7 @@ function BottomNav({ active, onNav, th, badges = {} }) {
                 }} />
               )}
             </div>
-            <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: 12.5 }}>{tb.label}</span>
+            <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: fs(12.5) }}>{tb.label}</span>
           </button>
         );
       })}
@@ -1854,20 +1859,20 @@ function Sheet({ open, onClose, children, th, title, height, inlineEditKeys }) {
           <div style={{ width: 40, height: 5, borderRadius: 99, background: alpha(th.ink, 0.18) }} />
           {hasEdit && !textsCtx.inlineEditMode && (
             <button onClick={e => { e.stopPropagation(); textsCtx.startInlineEdit?.(); }}
-              style={{ position: 'absolute', left: 14, border: 'none', background: 'rgba(232,84,122,0.1)', borderRadius: 999, padding: '4px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#C0436B', fontSize: 12, fontFamily: th.display, fontWeight: 700 }}>
+              style={{ position: 'absolute', left: 14, border: 'none', background: 'rgba(232,84,122,0.1)', borderRadius: 999, padding: '4px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#C0436B', fontSize: fs(12), fontFamily: th.display, fontWeight: 700 }}>
               <Icon name="pencil" size={12} />
               עריכה
             </button>
           )}
           {hasEdit && textsCtx.inlineEditMode && (
-            <div style={{ position: 'absolute', left: 10, fontSize: 11.5, color: '#C0436B', fontFamily: th.display, fontWeight: 700, background: 'rgba(232,84,122,0.1)', borderRadius: 999, padding: '3px 9px' }}>
+            <div style={{ position: 'absolute', left: 10, fontSize: fs(11.5), color: '#C0436B', fontFamily: th.display, fontWeight: 700, background: 'rgba(232,84,122,0.1)', borderRadius: 999, padding: '3px 9px' }}>
               ✏️ מצב עריכה
             </div>
           )}
         </div>
         {title && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px 8px', flexShrink: 0 }}>
-            <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink }}>{title}</div>
+            <div style={{ fontFamily: th.display, fontSize: fs(19), fontWeight: 800, color: th.ink }}>{title}</div>
             <button onClick={onClose} style={{ border: 'none', background: alpha(th.ink, 0.06), borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: th.ink, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="x" size={18} /></button>
           </div>
         )}
@@ -1901,18 +1906,18 @@ function ScoreRing({ score, th, size = 54 }) {
 function Field({ label, required, children, th, hint, desc }) {
   return (
     <div style={{ marginBottom: th.sp(16) }}>
-      <label style={{ display: 'block', fontFamily: th.body, fontWeight: 700, fontSize: 14, color: th.ink, marginBottom: desc ? 4 : 6 }}>
+      <label style={{ display: 'block', fontFamily: th.body, fontWeight: 700, fontSize: fs(14), color: th.ink, marginBottom: desc ? 4 : 6 }}>
         {label}{required && <span style={{ color: th.primary }}> *</span>}
       </label>
-      {desc && <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), lineHeight: 1.4, marginBottom: 6 }}>{desc}</div>}
+      {desc && <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.55), lineHeight: 1.4, marginBottom: 6 }}>{desc}</div>}
       {children}
-      {hint && <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5), marginTop: 4 }}>{hint}</div>}
+      {hint && <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.5), marginTop: 4 }}>{hint}</div>}
     </div>
   );
 }
 const inputBase = (th) => ({
   width: '100%', boxSizing: 'border-box', border: `1.5px solid ${alpha(th.ink, 0.14)}`,
-  borderRadius: th.rSm, padding: '12px 14px', fontFamily: th.body, fontSize: 15,
+  borderRadius: th.rSm, padding: '12px 14px', fontFamily: th.body, fontSize: fs(15),
   color: th.ink, background: th.card, outline: 'none',
 });
 function TextInput({ value, onChange, onBlur, th, placeholder, type = 'text', min, max }) {
@@ -1972,7 +1977,7 @@ function Segmented({ value, onChange, options, th }) {
             flex: 1, padding: '11px 8px', borderRadius: th.rSm, cursor: 'pointer',
             border: on ? `1.5px solid ${th.primary}` : `1.5px solid ${alpha(th.ink, 0.14)}`,
             background: on ? alpha(th.primary, 0.1) : th.card,
-            color: on ? th.primary : alpha(th.ink, 0.6), fontFamily: th.body, fontWeight: 700, fontSize: 14,
+            color: on ? th.primary : alpha(th.ink, 0.6), fontFamily: th.body, fontWeight: 700, fontSize: fs(14),
           }}>{o}</button>
         );
       })}
@@ -1999,7 +2004,7 @@ function CategorizedMultiChips({ value = [], onChange, categories, th, tone }) {
         const emoji = !hasEmoji && CAT_EMOJI[cat.id] ? CAT_EMOJI[cat.id] + ' ' : '';
         return (
           <div key={cat.id || cat.label}>
-            <div style={{ fontFamily: th.display, fontSize: 15, fontWeight: 800, color: th.ink, marginBottom: 10, paddingBottom: 6, borderBottom: `2px solid ${alpha(th.primary, 0.18)}` }}>{emoji}{cat.label}</div>
+            <div style={{ fontFamily: th.display, fontSize: fs(15), fontWeight: 800, color: th.ink, marginBottom: 10, paddingBottom: 6, borderBottom: `2px solid ${alpha(th.primary, 0.18)}` }}>{emoji}{cat.label}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {(cat.tags || []).map(o => <Chip key={o} label={o} active={value.includes(o)} onClick={() => toggle(o)} th={th} tone={tone} />)}
             </div>
@@ -2064,7 +2069,7 @@ function PhotoSlot({ th, label = 'תמונה', size = 92, onClick }) {
       color: alpha(th.ink, 0.5),
     }}>
       <Icon name="camera" size={22} />
-      <span style={{ fontFamily: 'monospace', fontSize: 10 }}>{label}</span>
+      <span style={{ fontFamily: 'monospace', fontSize: fs(10) }}>{label}</span>
     </button>
   );
 }
@@ -2424,12 +2429,12 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.82)})`, padding: 28, direction: 'rtl' }}>
       <div style={{ marginBottom: 32, textAlign: 'center', animation: 'sabaPop .5s ease' }}>
         <Logo size={72} color={th.primary} flaw={th.cream} />
-        <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.ink, marginTop: 14 }}>סבבה והכל</div>
-        <div style={{ fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.55), marginTop: 4 }}>
+        <div style={{ fontFamily: th.display, fontSize: fs(26), fontWeight: 800, color: th.ink, marginTop: 14 }}>סבבה והכל</div>
+        <div style={{ fontFamily: th.body, fontSize: fs(15), color: alpha(th.ink, 0.55), marginTop: 4 }}>
           {inviteToken ? 'קיבלת הזמנה — התחבר/י להמשיך' : loginOnly ? 'לצפייה בכרטיסיה, יש להתחבר תחילה' : 'פלטפורמת השידוכים לשדכנים'}
         </div>
         {inviteToken && (
-          <div style={{ marginTop: 12, background: alpha(th.primary, 0.08), border: `1.5px solid ${alpha(th.primary, 0.2)}`, borderRadius: th.rSm, padding: '10px 14px', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.7) }}>
+          <div style={{ marginTop: 12, background: alpha(th.primary, 0.08), border: `1.5px solid ${alpha(th.primary, 0.2)}`, borderRadius: th.rSm, padding: '10px 14px', fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.7) }}>
             🔗 יש קישור הזמנה פעיל — לאחר הכניסה תועבר/י ישירות להזמנה
           </div>
         )}
@@ -2437,11 +2442,11 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
 
       {mode === 'choose' && (
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, animation: 'sabaUp .35s ease' }}>
-          <button onClick={googleLogin} disabled={busy} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '14px 18px', borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.18)}`, background: th.card, fontFamily: th.body, fontWeight: 700, fontSize: 15.5, color: th.ink, cursor: 'pointer' }}>
+          <button onClick={googleLogin} disabled={busy} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '14px 18px', borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.18)}`, background: th.card, fontFamily: th.body, fontWeight: 700, fontSize: fs(15.5), color: th.ink, cursor: 'pointer' }}>
             <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.4c-.5 2.8-2.1 5.1-4.4 6.7l6.9 5.4c4-3.7 6.3-9.2 6.3-16.1z"/><path fill="#FBBC05" d="M10.6 28.5A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.1.7-4.5L2.3 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.6 10.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-6.9-5.4c-2.1 1.4-4.8 2.2-8.9 2.2-6.2 0-11.5-3.5-13.4-9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
             {busy ? 'מתחבר…' : 'כניסה עם Google'}
           </button>
-          <button onClick={() => setMode('email')} style={{ width: '100%', padding: '14px 18px', borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.18)}`, background: th.card, fontFamily: th.body, fontWeight: 700, fontSize: 15.5, color: th.ink, cursor: 'pointer' }}>
+          <button onClick={() => setMode('email')} style={{ width: '100%', padding: '14px 18px', borderRadius: th.r, border: `1.5px solid ${alpha(th.ink, 0.18)}`, background: th.card, fontFamily: th.body, fontWeight: 700, fontSize: fs(15.5), color: th.ink, cursor: 'pointer' }}>
             כניסה עם אימייל וסיסמה
           </button>
         </div>
@@ -2451,14 +2456,14 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, animation: 'sabaUp .3s ease' }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
             {(loginOnly ? [['כניסה', false]] : [['כניסה', false], ['הרשמה', true]]).map(([lbl, n]) => (
-              <button key={lbl} onClick={() => setIsNew(n)} style={{ flex: 1, padding: 10, borderRadius: th.r, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: isNew === n ? th.ink : alpha(th.ink, 0.08), color: isNew === n ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
+              <button key={lbl} onClick={() => setIsNew(n)} style={{ flex: 1, padding: 10, borderRadius: th.r, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(14), background: isNew === n ? th.ink : alpha(th.ink, 0.08), color: isNew === n ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
             ))}
           </div>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="אימייל" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: 15, background: th.card, outline: 'none', color: th.ink }} />
-          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="סיסמה" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: 15, background: th.card, outline: 'none', color: th.ink }} />
-          {err && <div style={{ fontFamily: th.body, fontSize: 13, color: th.error, textAlign: 'center' }}>{err}</div>}
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="אימייל" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
+          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="סיסמה" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
+          {err && <div style={{ fontFamily: th.body, fontSize: fs(13), color: th.error, textAlign: 'center' }}>{err}</div>}
           <Btn th={th} full size="l" disabled={busy || !email || !pass} onClick={emailLogin}>{busy ? 'מתחבר…' : (isNew ? 'הרשמה' : 'כניסה')}</Btn>
-          <button onClick={() => setMode('choose')} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>חזרה</button>
+          <button onClick={() => setMode('choose')} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontSize: fs(13), cursor: 'pointer', textDecoration: 'underline' }}>חזרה</button>
         </div>
       )}
     </div>
@@ -2708,8 +2713,8 @@ function CategorizedListsEditor({ th, label, live, onSave }) {
     return (
       <button onClick={startEdit} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 10, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}`, display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>{label}</div>
-          <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{live.length} קטגוריות · {flattenCategories(live).length} תגיות</div>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>{label}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.5) }}>{live.length} קטגוריות · {flattenCategories(live).length} תגיות</div>
         </div>
         <Icon name="edit" size={17} style={{ color: alpha(th.ink, 0.4), flexShrink: 0 }} />
       </button>
@@ -2720,35 +2725,35 @@ function CategorizedListsEditor({ th, label, live, onSave }) {
     <div style={{ marginBottom: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <button onClick={() => setEditing(false)} style={{ border: 'none', background: alpha(th.ink, 0.07), borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="back" size={18} /></button>
-        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{label}</div>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: th.ink }}>{label}</div>
       </div>
       {cats.map(cat => (
         <div key={cat.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <input value={cat.label} onChange={e => renameCategory(cat.id, e.target.value)}
-              style={{ flex: 1, border: 'none', borderBottom: `1.5px solid ${alpha(th.ink,0.15)}`, padding: '4px 2px', fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink, outline: 'none', background: 'transparent' }} />
-            <button onClick={() => removeCategory(cat.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 999, padding: '4px 10px', fontFamily: th.body, fontWeight: 700, fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' }}>מחק קטגוריה</button>
+              style={{ flex: 1, border: 'none', borderBottom: `1.5px solid ${alpha(th.ink,0.15)}`, padding: '4px 2px', fontFamily: th.display, fontWeight: 800, fontSize: fs(14.5), color: th.ink, outline: 'none', background: 'transparent' }} />
+            <button onClick={() => removeCategory(cat.id)} style={{ border: 'none', background: alpha(th.error, 0.08), color: th.error, borderRadius: 999, padding: '4px 10px', fontFamily: th.body, fontWeight: 700, fontSize: fs(11), cursor: 'pointer', whiteSpace: 'nowrap' }}>מחק קטגוריה</button>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
             {cat.tags.map(tag => (
               <div key={tag} style={{ display: 'flex', alignItems: 'center', gap: 5, background: alpha(th.primary, 0.1), border: `1.5px solid ${alpha(th.primary, 0.3)}`, borderRadius: 999, padding: '6px 12px' }}>
-                <span style={{ fontFamily: th.body, fontSize: 13, color: th.ink }}>{tag}</span>
-                <button onClick={() => removeTag(cat.id, tag)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: alpha(th.ink, 0.4), lineHeight: 1, padding: 0, fontSize: 16 }}>×</button>
+                <span style={{ fontFamily: th.body, fontSize: fs(13), color: th.ink }}>{tag}</span>
+                <button onClick={() => removeTag(cat.id, tag)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: alpha(th.ink, 0.4), lineHeight: 1, padding: 0, fontSize: fs(16) }}>×</button>
               </div>
             ))}
-            {!cat.tags.length && <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.35) }}>אין תגיות בקטגוריה זו</div>}
+            {!cat.tags.length && <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.35) }}>אין תגיות בקטגוריה זו</div>}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <input value={newTagInputs[cat.id] || ''} onChange={e => setNewTagInputs(p => ({ ...p, [cat.id]: e.target.value }))}
               onKeyDown={e => e.key === 'Enter' && addTag(cat.id)} placeholder="תגית חדשה…"
-              style={{ flex: 1, border: `1.5px solid ${alpha(th.ink,0.15)}`, borderRadius: th.rSm, padding: '8px 10px', fontFamily: th.body, fontSize: 13.5, outline: 'none', background: th.cream, color: th.ink }} />
+              style={{ flex: 1, border: `1.5px solid ${alpha(th.ink,0.15)}`, borderRadius: th.rSm, padding: '8px 10px', fontFamily: th.body, fontSize: fs(13.5), outline: 'none', background: th.cream, color: th.ink }} />
             <Btn th={th} size="s" onClick={() => addTag(cat.id)}>+ הוסף</Btn>
           </div>
         </div>
       ))}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input value={newCatLabel} onChange={e => setNewCatLabel(e.target.value)} onKeyDown={e => e.key === 'Enter' && addCategory()} placeholder="שם קטגוריה חדשה…"
-          style={{ flex: 1, border: `1.5px dashed ${alpha(th.ink,0.25)}`, borderRadius: th.rSm, padding: '10px 12px', fontFamily: th.body, fontSize: 14, outline: 'none', background: th.cream, color: th.ink }} />
+          style={{ flex: 1, border: `1.5px dashed ${alpha(th.ink,0.25)}`, borderRadius: th.rSm, padding: '10px 12px', fontFamily: th.body, fontSize: fs(14), outline: 'none', background: th.cream, color: th.ink }} />
         <Btn th={th} size="s" variant="ghost" onClick={addCategory}>+ קטגוריה</Btn>
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
@@ -2774,18 +2779,18 @@ function ListsEditor({ th, listDefs, onSave }) {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <button onClick={() => setEditKey(null)} style={{ border: 'none', background: alpha(th.ink, 0.07), borderRadius: 8, width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="back" size={18} /></button>
-          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{def.label}</div>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: th.ink }}>{def.label}</div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
           {items.map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, background: alpha(th.primary, 0.1), border: `1.5px solid ${alpha(th.primary, 0.3)}`, borderRadius: 999, padding: '6px 12px' }}>
-              <span style={{ fontFamily: th.body, fontSize: 14, color: th.ink }}>{item}</span>
-              <button onClick={() => removeItem(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: alpha(th.ink, 0.4), lineHeight: 1, padding: 0, fontSize: 16 }}>×</button>
+              <span style={{ fontFamily: th.body, fontSize: fs(14), color: th.ink }}>{item}</span>
+              <button onClick={() => removeItem(i)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: alpha(th.ink, 0.4), lineHeight: 1, padding: 0, fontSize: fs(16) }}>×</button>
             </div>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          <input value={newItem} onChange={e => setNewItem(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem()} placeholder="פריט חדש…" style={{ flex: 1, border: `1.5px solid ${alpha(th.ink,0.15)}`, borderRadius: th.rSm, padding: '10px 12px', fontFamily: th.body, fontSize: 14, outline: 'none', background: th.card, color: th.ink }} />
+          <input value={newItem} onChange={e => setNewItem(e.target.value)} onKeyDown={e => e.key === 'Enter' && addItem()} placeholder="פריט חדש…" style={{ flex: 1, border: `1.5px solid ${alpha(th.ink,0.15)}`, borderRadius: th.rSm, padding: '10px 12px', fontFamily: th.body, fontSize: fs(14), outline: 'none', background: th.card, color: th.ink }} />
           <Btn th={th} size="s" onClick={addItem}>+ הוסף</Btn>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -2798,12 +2803,12 @@ function ListsEditor({ th, listDefs, onSave }) {
 
   return (
     <div>
-      <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginBottom: 14 }}>לחץ על רשימה לעריכה. שינויים משפיעים על כל הטפסים באפליקציה.</div>
+      <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.55), marginBottom: 14 }}>לחץ על רשימה לעריכה. שינויים משפיעים על כל הטפסים באפליקציה.</div>
       {listDefs.map(({ key, label, live }) => (
         <button key={key} onClick={() => startEdit(key, live)} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 10, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>{label}</div>
-            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{live.slice(0,5).join(' · ')}{live.length > 5 ? ` ועוד ${live.length - 5}` : ''}</div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>{label}</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.5) }}>{live.slice(0,5).join(' · ')}{live.length > 5 ? ` ועוד ${live.length - 5}` : ''}</div>
           </div>
           <Icon name="edit" size={17} style={{ color: alpha(th.ink, 0.4), flexShrink: 0 }} />
         </button>
@@ -2833,17 +2838,17 @@ function AdminStats({ th, hideSeed, isSeed }) {
   const StatCard = ({ label, value, sub, color, icon }) => (
     <div style={{ background: th.card, borderRadius: th.r, padding: '14px 14px 12px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, display:'flex', flexDirection:'column', gap: 3, minWidth: 0, borderTop: `3px solid ${color || th.primary}` }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5), fontWeight: 600, flex: 1 }}>{label}</div>
-        {icon && <span style={{ fontSize: 16, lineHeight: 1 }}>{icon}</span>}
+        <div style={{ fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.5), fontWeight: 600, flex: 1 }}>{label}</div>
+        {icon && <span style={{ fontSize: fs(16), lineHeight: 1 }}>{icon}</span>}
       </div>
-      <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 30, color: color || th.primary, lineHeight: 1.1 }}>{value}</div>
-      {sub && <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.45) }}>{sub}</div>}
+      <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(30), color: color || th.primary, lineHeight: 1.1 }}>{value}</div>
+      {sub && <div style={{ fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.45) }}>{sub}</div>}
     </div>
   );
 
   const SectionTitle = ({ children, icon }) => (
-    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 20, marginBottom: 10, paddingRight: 2, display:'flex', alignItems:'center', gap: 6 }}>
-      {icon && <span style={{ fontSize: 15 }}>{icon}</span>}
+    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink, marginTop: 20, marginBottom: 10, paddingRight: 2, display:'flex', alignItems:'center', gap: 6 }}>
+      {icon && <span style={{ fontSize: fs(15) }}>{icon}</span>}
       {children}
     </div>
   );
@@ -2852,7 +2857,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
     const w = pct(count, total);
     return (
       <div style={{ marginBottom: 10 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.72), marginBottom: 5 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.72), marginBottom: 5 }}>
           <span>{label}</span>
           <span style={{ fontWeight: 700, color: color || th.primary }}>{count} <span style={{ color: alpha(th.ink, 0.35), fontWeight: 400 }}>({w}%)</span></span>
         </div>
@@ -2869,18 +2874,18 @@ function AdminStats({ th, hideSeed, isSeed }) {
       <div style={{ background: th.card, borderRadius: th.r, padding: '16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
         <div style={{ display:'flex', justifyContent:'space-between', marginBottom: 12 }}>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap: 2 }}>
-            <span style={{ fontSize: 22 }}>👩</span>
-            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: th.primary }}>{females}</span>
-            <span style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>נשים · {fPct}%</span>
+            <span style={{ fontSize: fs(22) }}>👩</span>
+            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(24), color: th.primary }}>{females}</span>
+            <span style={{ fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.5) }}>נשים · {fPct}%</span>
           </div>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap: 2 }}>
-            <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.35) }}>מתוך</div>
-            <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 20, color: alpha(th.ink, 0.6) }}>{total}</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.35) }}>מתוך</div>
+            <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(20), color: alpha(th.ink, 0.6) }}>{total}</div>
           </div>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap: 2 }}>
-            <span style={{ fontSize: 22 }}>👨</span>
-            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: th.gold }}>{males}</span>
-            <span style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>גברים · {100 - fPct}%</span>
+            <span style={{ fontSize: fs(22) }}>👨</span>
+            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(24), color: th.gold }}>{males}</span>
+            <span style={{ fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.5) }}>גברים · {100 - fPct}%</span>
           </div>
         </div>
         <div style={{ height: 16, borderRadius: 99, overflow: 'hidden', display: 'flex' }}>
@@ -2904,15 +2909,15 @@ function AdminStats({ th, hideSeed, isSeed }) {
           {steps.map((s, i) => (
             <React.Fragment key={s.label}>
               <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 5 }}>
-                <span style={{ fontSize: 18 }}>{s.icon}</span>
-                <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: s.color, lineHeight: 1 }}>{s.count}</div>
-                <div style={{ fontFamily: th.body, fontSize: 11, color: alpha(th.ink, 0.5) }}>{s.label}</div>
-                <div style={{ fontFamily: th.body, fontSize: 10, color: '#fff', fontWeight: 700, background: s.color, borderRadius: 99, padding: '2px 8px' }}>
+                <span style={{ fontSize: fs(18) }}>{s.icon}</span>
+                <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(24), color: s.color, lineHeight: 1 }}>{s.count}</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.5) }}>{s.label}</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(10), color: '#fff', fontWeight: 700, background: s.color, borderRadius: 99, padding: '2px 8px' }}>
                   {total > 0 ? Math.round(s.count / total * 100) : 0}%
                 </div>
               </div>
               {i < steps.length - 1 && (
-                <div style={{ color: alpha(th.ink, 0.2), fontSize: 18, marginBottom: 20, paddingBottom: 2 }}>←</div>
+                <div style={{ color: alpha(th.ink, 0.2), fontSize: fs(18), marginBottom: 20, paddingBottom: 2 }}>←</div>
               )}
             </React.Fragment>
           ))}
@@ -2934,12 +2939,12 @@ function AdminStats({ th, hideSeed, isSeed }) {
           <div key={s.label} style={{ marginBottom: i < steps.length - 1 ? 14 : 0 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 6 }}>
               <div style={{ display:'flex', alignItems:'center', gap: 6 }}>
-                <span style={{ fontSize: 14 }}>{s.icon}</span>
-                <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.7), fontWeight: 600 }}>{s.label}</span>
+                <span style={{ fontSize: fs(14) }}>{s.icon}</span>
+                <span style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.7), fontWeight: 600 }}>{s.label}</span>
               </div>
-              <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: 20, color: s.color }}>
+              <div style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(20), color: s.color }}>
                 {s.count}
-                {i > 0 && sent > 0 && <span style={{ fontFamily: th.body, fontWeight: 400, fontSize: 11, color: alpha(th.ink, 0.4) }}> ({Math.round(s.count / sent * 100)}%)</span>}
+                {i > 0 && sent > 0 && <span style={{ fontFamily: th.body, fontWeight: 400, fontSize: fs(11), color: alpha(th.ink, 0.4) }}> ({Math.round(s.count / sent * 100)}%)</span>}
               </div>
             </div>
             <div style={{ height: 12, background: alpha(th.ink, 0.07), borderRadius: 99, overflow: 'hidden' }}>
@@ -3174,7 +3179,7 @@ function AdminStats({ th, hideSeed, isSeed }) {
       <SectionTitle icon="🧩">שדכנים ({mmCount})</SectionTitle>
       <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}`, marginBottom: 24 }}>
         {mmEntries.length === 0
-          ? <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4), textAlign:'center', padding: 8 }}>אין נתונים</div>
+          ? <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.4), textAlign:'center', padding: 8 }}>אין נתונים</div>
           : mmEntries.map(([mmId, cnt], i) => {
               const mm = matchmakers[mmId];
               const name = mm ? (mm.displayName || mm.name || mm.email || '—') : '—';
@@ -3345,7 +3350,7 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
       <AppHeader th={th} title="פאנל ניהול" onBack={() => go('back')} />
       <div style={{ display: 'flex', gap: 6, padding: '6px 18px', flexShrink: 0, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
         {tabs.map(([id, lbl]) => (
-          <button key={id} onClick={() => setTab(id)} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : alpha(th.ink, 0.07), color: tab === id ? th.cream : alpha(th.ink, 0.6), whiteSpace: 'nowrap' }}>{lbl}</button>
+          <button key={id} onClick={() => setTab(id)} style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), background: tab === id ? th.ink : alpha(th.ink, 0.07), color: tab === id ? th.cream : alpha(th.ink, 0.6), whiteSpace: 'nowrap' }}>{lbl}</button>
         ))}
       </div>
 
@@ -3403,8 +3408,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                           <Avatar grad={gradForId(c.id)} name={c.name} size={44} photo={c.photos?.[0]} />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{c.name}, {c.age}</div>
-                            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
+                            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink }}>{c.name}, {c.age}</div>
+                            <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.5) }}>{c.region} · {c.religiosity}</div>
                           </div>
                           <button onClick={() => {
                             if (!c.gender) { setGenderFix(c.id); return; }
@@ -3417,7 +3422,7 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                         </div>
                         {genderFix === c.id && (
                           <div style={{ background: alpha(th.primary, 0.07), border: `1px solid ${alpha(th.primary, 0.18)}`, borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                            <span style={{ fontFamily: th.body, fontSize: 13, color: th.ink, flex: 1 }}>מגדר חסר — בחר/י כדי להמשיך:</span>
+                            <span style={{ fontFamily: th.body, fontSize: fs(13), color: th.ink, flex: 1 }}>מגדר חסר — בחר/י כדי להמשיך:</span>
                             {['גבר', 'אשה'].map(g => (
                               <button key={g} onClick={async () => {
                                 await updateCandidate(c.id, { gender: g });
@@ -3425,9 +3430,9 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                                 const fakeUid = c.candidateUid || c.id;
                                 startImpersonate(fakeUid, { uid: fakeUid, displayName: c.name, name: c.name, gender: g }, 'candidate');
                                 go('candidateMode');
-                              }} style={{ border: 'none', background: th.primary, color: '#fff', borderRadius: 8, padding: '6px 16px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13 }}>{g}</button>
+                              }} style={{ border: 'none', background: th.primary, color: '#fff', borderRadius: 8, padding: '6px 16px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13) }}>{g}</button>
                             ))}
-                            <button onClick={() => setGenderFix(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: alpha(th.ink, 0.4), fontSize: 16, padding: '2px 6px' }}>✕</button>
+                            <button onClick={() => setGenderFix(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: alpha(th.ink, 0.4), fontSize: fs(16), padding: '2px 6px' }}>✕</button>
                           </div>
                         )}
                       </>
@@ -3528,8 +3533,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
             <div>
               <div style={{ background: alpha(th.primary, 0.06), border: `1.5px solid ${alpha(th.primary, 0.22)}`, borderRadius: th.r, padding: '12px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink, marginBottom: 2 }}>תצוגת תגיות בכרטיסיית מועמד</div>
-                  <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.55) }}>חלוקה לקטגוריות בכרטיסיה, או רשימה אחת שטוחה כמו היום</div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13.5), color: th.ink, marginBottom: 2 }}>תצוגת תגיות בכרטיסיית מועמד</div>
+                  <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.55) }}>חלוקה לקטגוריות בכרטיסיה, או רשימה אחת שטוחה כמו היום</div>
                 </div>
                 <button onClick={() => setGroupTagsByCategory && setGroupTagsByCategory(!th.groupTagsByCategory)}
                   style={{ border: 'none', borderRadius: 999, width: 46, height: 27, background: th.groupTagsByCategory ? th.primary : alpha(th.ink, 0.18), position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background .15s' }}>
@@ -3552,8 +3557,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
           <>
             <div style={{ background: alpha(th.primary, 0.06), border: `1.5px solid ${alpha(th.primary, 0.22)}`, borderRadius: th.r, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink, marginBottom: 2 }}>כפתור עריכת טקסטים באפליקציה</div>
-                <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.55) }}>הצגת כפתור "עריכת טקסטים" הצף בכל מסך — ניתן להסתיר למשתמשים שאינם צריכים אותו</div>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13.5), color: th.ink, marginBottom: 2 }}>כפתור עריכת טקסטים באפליקציה</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.55) }}>הצגת כפתור "עריכת טקסטים" הצף בכל מסך — ניתן להסתיר למשתמשים שאינם צריכים אותו</div>
               </div>
               <button onClick={() => setTweak && setTweak('showTextEditBtn', !th.showTextEditBtn)}
                 style={{ border: 'none', borderRadius: 999, width: 46, height: 27, background: th.showTextEditBtn ? th.primary : alpha(th.ink, 0.18), position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background .15s' }}>
@@ -3561,14 +3566,14 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
               </button>
             </div>
             <div style={{ background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 14, boxShadow: `0 2px 8px ${alpha(th.ink,0.05)}` }}>
-              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink, marginBottom: 10 }}>שיטת עריכת טקסטים</div>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: th.ink, marginBottom: 10 }}>שיטת עריכת טקסטים</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[['inline','✏️ Inline'],['modal','📋 מודאל']].map(([v,lbl]) => {
                   const isDisabled = v === 'modal';
                   const isActive = (editMethod||'inline') === v;
                   return (
                     <button key={v} onClick={() => !isDisabled && setEditMethod && setEditMethod(v)} disabled={isDisabled}
-                      style={{ flex: 1, padding: '9px 0', border: 'none', borderRadius: 999, cursor: isDisabled ? 'not-allowed' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13,
+                      style={{ flex: 1, padding: '9px 0', border: 'none', borderRadius: 999, cursor: isDisabled ? 'not-allowed' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13),
                         background: isActive ? th.primary : alpha(th.ink,0.08),
                         color: isActive ? '#fff' : alpha(th.ink, isDisabled ? 0.25 : 0.6),
                         opacity: isDisabled ? 0.5 : 1 }}>
@@ -3577,24 +3582,24 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                   );
                 })}
               </div>
-              <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink,0.45), marginTop: 8, lineHeight: 1.4 }}>
+              <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink,0.45), marginTop: 8, lineHeight: 1.4 }}>
                 {(editMethod||'modal') === 'inline' ? 'לחץ על כפתור "עריכת טקסטים" בכל מסך — הטקסטים ייפתחו לעריכה ישירה.' : 'לחץ על כפתור "עריכת טקסטים" בכל מסך — נפתח מודאל עם כל שדות הטקסט.'}
               </div>
             </div>
-            <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginBottom: 14 }}>עריכת טקסטים קבועים באפליקציה. לחץ על טקסט לעריכה.</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.55), marginBottom: 14 }}>עריכת טקסטים קבועים באפליקציה. לחץ על טקסט לעריכה.</div>
             {Object.entries(TEXT_KEYS).map(([key, label]) => (
               <div key={key} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 8, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
-                <div style={{ fontFamily: th.body, fontSize: 11, color: th.gold, fontWeight: 700, marginBottom: 4 }}>{label}</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(11), color: th.gold, fontWeight: 700, marginBottom: 4 }}>{label}</div>
                 {editKey === key ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <textarea value={editVal} onChange={e => setEditVal(e.target.value)} rows={2} style={{ width: '100%', borderRadius: 8, border: `1.5px solid ${alpha(th.ink,0.15)}`, padding: '8px 10px', fontFamily: th.body, fontSize: 14, resize: 'none', outline: 'none' }} />
+                    <textarea value={editVal} onChange={e => setEditVal(e.target.value)} rows={2} style={{ width: '100%', borderRadius: 8, border: `1.5px solid ${alpha(th.ink,0.15)}`, padding: '8px 10px', fontFamily: th.body, fontSize: fs(14), resize: 'none', outline: 'none' }} />
                     <div style={{ display: 'flex', gap: 8 }}>
                       <Btn th={th} size="s" onClick={async () => { await updateText(key, editVal); setEditKey(null); }}>שמור</Btn>
                       <Btn th={th} size="s" variant="ghost" onClick={() => setEditKey(null)}>ביטול</Btn>
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => { setEditKey(key); setEditVal(texts[key] || DEFAULT_TEXTS[key] || ''); }} style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', fontFamily: th.body, fontSize: 14, color: th.ink, lineHeight: 1.4 }}>
+                  <button onClick={() => { setEditKey(key); setEditVal(texts[key] || DEFAULT_TEXTS[key] || ''); }} style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', fontFamily: th.body, fontSize: fs(14), color: th.ink, lineHeight: 1.4 }}>
                     {texts[key] || DEFAULT_TEXTS[key] || <span style={{ color: alpha(th.ink, 0.35) }}>(ריק)</span>}
                   </button>
                 )}
@@ -3618,8 +3623,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
           const modeColor = { on: th.primary, dev: '#7B4B8A', off: alpha(th.ink, 0.35) };
           return (
             <div style={{ padding: '16px 18px', direction: 'rtl', overflowY: 'auto', flex: 1 }}>
-              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 4 }}>קואצ׳מארקס</div>
-              <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5), marginBottom: 20, lineHeight: 1.55 }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink, marginBottom: 4 }}>קואצ׳מארקס</div>
+              <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.5), marginBottom: 20, lineHeight: 1.55 }}>
                 <b>פעיל</b> — מוצג פעם אחת לשדכן חדש<br/>
                 <b>פיתוח</b> — מוצג בכל כניסה למסך (DEV badge סגול)<br/>
                 <b>כבוי</b> — לא מוצג כלל
@@ -3628,10 +3633,10 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                 const cur = th[key] || 'on';
                 return (
                   <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, background: alpha(th.ink, 0.03), borderRadius: 14, padding: '10px 14px' }}>
-                    <span style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: th.ink }}>{label}</span>
+                    <span style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 700, color: th.ink }}>{label}</span>
                     <div style={{ display: 'flex', gap: 4 }}>
                       {['on', 'dev', 'off'].map(mode => (
-                        <button key={mode} onClick={() => setTweak(key, mode)} style={{ padding: '5px 11px', borderRadius: 99, border: 'none', background: cur === mode ? modeColor[mode] : alpha(th.ink, 0.07), color: cur === mode ? '#fff' : alpha(th.ink, 0.5), fontFamily: th.display, fontWeight: 800, fontSize: 11, cursor: 'pointer', transition: 'all 0.15s' }}>
+                        <button key={mode} onClick={() => setTweak(key, mode)} style={{ padding: '5px 11px', borderRadius: 99, border: 'none', background: cur === mode ? modeColor[mode] : alpha(th.ink, 0.07), color: cur === mode ? '#fff' : alpha(th.ink, 0.5), fontFamily: th.display, fontWeight: 800, fontSize: fs(11), cursor: 'pointer', transition: 'all 0.15s' }}>
                           {modeLabel[mode]}
                         </button>
                       ))}
@@ -3639,7 +3644,7 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                   </div>
                 );
               })}
-              <button onClick={resetAllCoachmarks} style={{ marginTop: 8, width: '100%', padding: '11px 0', borderRadius: 99, border: `1.5px solid ${alpha(th.primary, 0.4)}`, background: alpha(th.primary, 0.07), color: th.primary, fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              <button onClick={resetAllCoachmarks} style={{ marginTop: 8, width: '100%', padding: '11px 0', borderRadius: 99, border: `1.5px solid ${alpha(th.primary, 0.4)}`, background: alpha(th.primary, 0.07), color: th.primary, fontFamily: th.display, fontWeight: 800, fontSize: fs(13), cursor: 'pointer' }}>
                 אפס מצב "נראה" לכולם — ירואו שוב
               </button>
             </div>
@@ -3672,8 +3677,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
               {/* ── STORAGE DIAGNOSTIC ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>🔍 בדיקת Firebase Storage</div>
-                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>🔍 בדיקת Firebase Storage</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
                   מנסה להעלות קובץ בדיקה קטן ל-Storage ומחזיר את השגיאה המדויקת אם יש בעיה.
                 </div>
                 <button onClick={testStorage} disabled={storageTestStatus?.msg === 'בודק…'}
@@ -3691,8 +3696,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
               {/* ── EMAIL FOR NOTIFICATIONS ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>📧 מייל לקבלת התראות</div>
-                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>📧 מייל לקבלת התראות</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
                   לאן ישלחו עדכונים על מחיקות מועמדים ופניות מהמערכת (בעתיד)
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
@@ -3709,8 +3714,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
               {/* ── AI MODE ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>✦ מסלול בינה מלאכותית</div>
-                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>✦ מסלול בינה מלאכותית</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
                   קובע איך ה-AI מנתח התאמות במסך AI
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -3727,8 +3732,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                       <div style={{ width: 18, height: 18, borderRadius: '50%', border: `2.5px solid ${aiMode === opt.value ? th.primary : alpha(th.ink, 0.3)}`,
                         background: aiMode === opt.value ? th.primary : 'transparent', flexShrink: 0 }} />
                       <div>
-                        <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: 13.5, color: th.ink }}>{opt.label}</div>
-                        <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.5) }}>{opt.note}</div>
+                        <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: fs(13.5), color: th.ink }}>{opt.label}</div>
+                        <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.5) }}>{opt.note}</div>
                       </div>
                     </div>
                   ))}
@@ -3737,8 +3742,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
               {/* ── OFFER DETAIL LAYOUT ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>✦ עיצוב מסך הצעה פנימי</div>
-                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>✦ עיצוב מסך הצעה פנימי</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
                   בחר/י את עיצוב מסך ההצעה הפנימי לכל השדכנים
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -3754,26 +3759,56 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                         border: `2.5px solid ${th.offerDetailLayout === opt.value ? th.primary : alpha(th.ink, 0.3)}`,
                         background: th.offerDetailLayout === opt.value ? th.primary : 'transparent' }} />
                       <div>
-                        <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: 13.5, color: th.ink }}>{opt.label}</div>
-                        <div style={{ fontFamily: th.body, fontSize: 11.5, color: alpha(th.ink, 0.5) }}>{opt.note}</div>
+                        <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: fs(13.5), color: th.ink }}>{opt.label}</div>
+                        <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.5) }}>{opt.note}</div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* ── FONT SCALE ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>🔡 גודל פונטים</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 14, lineHeight: 1.4 }}>
+                  הגדל או הקטן את כל הטקסטים באפליקציה ביחס לגודל המקורי
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button onClick={() => setTweak && setTweak('fontScale', Math.max(0.8, Math.round(((th.fontScale || 1) - 0.05) * 100) / 100))}
+                    style={{ width: 36, height: 36, borderRadius: '50%', border: `1.5px solid ${alpha(th.ink,0.2)}`, background: th.cream, color: th.ink, fontFamily: th.display, fontWeight: 900, fontSize: fs(18), cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}>−</button>
+                  <div style={{ flex: 1 }}>
+                    <input type="range" min="0.8" max="1.3" step="0.05"
+                      value={th.fontScale || 1}
+                      onChange={e => setTweak && setTweak('fontScale', parseFloat(e.target.value))}
+                      style={{ width: '100%', accentColor: th.primary, cursor: 'pointer' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.4), marginTop: 2 }}>
+                      <span>80%</span><span>100%</span><span>130%</span>
+                    </div>
+                  </div>
+                  <button onClick={() => setTweak && setTweak('fontScale', Math.min(1.3, Math.round(((th.fontScale || 1) + 0.05) * 100) / 100))}
+                    style={{ width: 36, height: 36, borderRadius: '50%', border: `1.5px solid ${alpha(th.ink,0.2)}`, background: th.cream, color: th.ink, fontFamily: th.display, fontWeight: 900, fontSize: fs(18), cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}>+</button>
+                </div>
+                <div style={{ textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: th.primary, marginTop: 10 }}>
+                  {Math.round((th.fontScale || 1) * 100)}%
+                  {(th.fontScale || 1) !== 1 && (
+                    <button onClick={() => setTweak && setTweak('fontScale', 1)}
+                      style={{ marginRight: 10, border: 'none', background: 'none', cursor: 'pointer', fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.4), textDecoration: 'underline' }}>איפוס</button>
+                  )}
+                </div>
+              </div>
+
               {/* ── BIRTH DATE BACKFILL ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>📅 השלמת תאריכי לידה</div>
-                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>📅 השלמת תאריכי לידה</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
                   מועמדים חדשים מזינים תאריך לידה, והגיל שמוצג מתעדכן לבד עם הזמן. מועמדים ישנים נשמרו עם גיל קבוע בלבד.
                   הפעולה הזו תיתן להם תאריך לידה משוער (לפי הגיל הנוכחי שלהם, מהיום אחורה) — כך גם הם יתחילו להתעדכן אוטומטית מעכשיו והלאה.
                 </div>
                 {candsMissingBirthDate.length === 0 ? (
-                  <div style={{ fontFamily: th.body, fontSize: 13, color: th.success, fontWeight: 700 }}>✓ לכל המועמדים יש תאריך לידה</div>
+                  <div style={{ fontFamily: th.body, fontSize: fs(13), color: th.success, fontWeight: 700 }}>✓ לכל המועמדים יש תאריך לידה</div>
                 ) : (
                   <button disabled={backfillingBirthDates} onClick={backfillBirthDates}
-                    style={{ border: 'none', borderRadius: th.rSm, padding: '9px 16px', background: th.primary, color: '#fff', cursor: backfillingBirthDates ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, opacity: backfillingBirthDates ? 0.6 : 1 }}>
+                    style={{ border: 'none', borderRadius: th.rSm, padding: '9px 16px', background: th.primary, color: '#fff', cursor: backfillingBirthDates ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), opacity: backfillingBirthDates ? 0.6 : 1 }}>
                     {backfillingBirthDates ? 'מעדכן…' : `השלם תאריך לידה משוער ל-${candsMissingBirthDate.length} מועמדים`}
                   </button>
                 )}
@@ -3782,8 +3817,8 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
               {/* ── ANTHROPIC API KEY ── */}
               <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 16, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 4 }}>✦ מפתח Anthropic API</div>
-                <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>✦ מפתח Anthropic API</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 10, lineHeight: 1.4 }}>
                   נדרש למסלולי AI (TOP-5 ולמידה). נשמר מוצפן ב-Firestore, לא גלוי בקוד.
                 </div>
                 <div style={{ display:'flex', gap:8 }}>
@@ -3830,7 +3865,7 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
               {/* ── DELETION LOG ── */}
               {deletionLog.length > 0 && (
                 <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 20, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 12 }}>🗑️ יומן מחיקות ({deletionLog.length})</div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 12 }}>🗑️ יומן מחיקות ({deletionLog.length})</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {deletionLog.map(d => (
                       <div key={d.id} style={{ borderBottom:`1px solid ${alpha(th.ink,0.07)}`, paddingBottom:8, marginBottom:0 }}>
@@ -3849,35 +3884,35 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
               )}
 
               <div style={{ background: alpha(th.error, 0.07), border: `1.5px solid ${alpha(th.error, 0.28)}`, borderRadius: th.r, padding: '14px 16px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 24, lineHeight: 1 }}>☠️</span>
+                <span style={{ fontSize: fs(24), lineHeight: 1 }}>☠️</span>
                 <div>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.error, marginBottom: 4 }}>אזור מסוכן</div>
-                  <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.65), lineHeight: 1.55 }}>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.error, marginBottom: 4 }}>אזור מסוכן</div>
+                  <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.65), lineHeight: 1.55 }}>
                     הפעולות כאן הן <strong>בלתי הפיכות לחלוטין</strong>. אין undo, אין שחזור. יש לפעול בזהירות קיצונית.
                   </div>
                 </div>
               </div>
               {WIPE_ACTIONS.map(action => (
                 <div key={action.id} style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 10, border: `1.5px solid ${confirmWipe === action.id ? th.error : alpha(th.ink, 0.08)}`, transition: 'border-color .15s' }}>
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 3 }}>{action.label}</div>
-                  <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: 12 }}>{action.desc}</div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink, marginBottom: 3 }}>{action.label}</div>
+                  <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.5), marginBottom: 12 }}>{action.desc}</div>
                   {confirmWipe !== action.id ? (
                     <button onClick={() => setConfirmWipe(action.id)}
-                      style={{ border: `1.5px solid ${th.error}`, borderRadius: th.rSm, padding: '7px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.error }}>
+                      style={{ border: `1.5px solid ${th.error}`, borderRadius: th.rSm, padding: '7px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: th.error }}>
                       מחק הכל
                     </button>
                   ) : (
                     <div style={{ background: alpha(th.error, 0.07), borderRadius: th.rSm, padding: '12px 14px' }}>
-                      <div style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: th.error, marginBottom: 10 }}>
+                      <div style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 700, color: th.error, marginBottom: 10 }}>
                         ⚠️ האם אתה בטוח לחלוטין? פעולה זו בלתי הפיכה לחלוטין.
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button disabled={wiping} onClick={() => doWipe(action)}
-                          style={{ flex: 1, border: 'none', borderRadius: th.rSm, padding: '9px 0', background: th.error, cursor: wiping ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, color: '#fff', opacity: wiping ? 0.6 : 1 }}>
+                          style={{ flex: 1, border: 'none', borderRadius: th.rSm, padding: '9px 0', background: th.error, cursor: wiping ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: '#fff', opacity: wiping ? 0.6 : 1 }}>
                           {wiping ? 'מוחק…' : 'כן, מחק הכל'}
                         </button>
                         <button disabled={wiping} onClick={() => setConfirmWipe(null)}
-                          style={{ border: `1.5px solid ${alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '9px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, color: alpha(th.ink, 0.5) }}>
+                          style={{ border: `1.5px solid ${alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '9px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: alpha(th.ink, 0.5) }}>
                           ביטול
                         </button>
                       </div>
@@ -3899,14 +3934,14 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: mmCands.length ? 10 : 0 }}>
                   <Avatar grad={gradForId(u.id)} name={u.displayName || u.email} size={40} photo={u.photoURL} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink }}>{u.displayName || u.email}</div>
-                    <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{u.email} · {mmCands.length} מועמדים</div>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink }}>{u.displayName || u.email}</div>
+                    <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.5) }}>{u.email} · {mmCands.length} מועמדים</div>
                   </div>
-                  <button onClick={() => setUserAdmin(u.id, !u.isAdmin)} style={{ border: 'none', borderRadius: 999, padding: '5px 10px', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: 11, background: u.isAdmin ? alpha(th.gold, 0.15) : alpha(th.ink, 0.07), color: u.isAdmin ? th.gold : alpha(th.ink, 0.5) }}>
+                  <button onClick={() => setUserAdmin(u.id, !u.isAdmin)} style={{ border: 'none', borderRadius: 999, padding: '5px 10px', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: fs(11), background: u.isAdmin ? alpha(th.gold, 0.15) : alpha(th.ink, 0.07), color: u.isAdmin ? th.gold : alpha(th.ink, 0.5) }}>
                     {u.isAdmin ? 'מנהל ✓' : 'מנהל'}
                   </button>
                   <button onClick={() => { startImpersonate(u.id, u, 'matchmaker'); go('home'); }}
-                    style={{ border: 'none', borderRadius: 999, padding: '5px 10px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 11, background: alpha('#7B2D00', 0.1), color: '#7B2D00' }}>
+                    style={{ border: 'none', borderRadius: 999, padding: '5px 10px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(11), background: alpha('#7B2D00', 0.1), color: '#7B2D00' }}>
                     🎭 התחזה
                   </button>
                 </div>
@@ -3938,7 +3973,7 @@ function EmptyHighlight({ isEmpty, reviewMode, th, children }) {
   return (
     <div style={{ borderRadius: th.r, border: `1.5px solid ${isEmpty ? alpha(th.primary, 0.45) : 'transparent'}`, background: isEmpty ? alpha(th.primary, 0.04) : 'transparent', padding: isEmpty ? 10 : 0, position: 'relative', transition: 'border-color 0.2s, background 0.2s, padding 0.2s' }}>
       {isEmpty && (
-        <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary, marginBottom: 6 }}>
+        <div style={{ fontFamily: th.display, fontSize: fs(11), fontWeight: 800, color: th.primary, marginBottom: 6 }}>
           כדאי למלא — יחזק את הכרטיסייה
         </div>
       )}
@@ -4080,7 +4115,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
 
   return (
     <div ref={formRef} style={{ background: alpha(th.ink, 0.03), borderRadius: th.r, padding: 16, marginBottom: 12, border: `1.5px solid ${alpha(th.ink,0.1)}` }}>
-      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 10, textAlign: 'center' }}>
+      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink, marginBottom: 10, textAlign: 'center' }}>
         {_t(STEP_TITLE_KEYS[stepName])}
       </div>
       <FormStepDots steps={steps} step={step} setStep={setStep} th={th} />
@@ -4195,7 +4230,7 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
         <div style={{ textAlign:'center', padding:'8px 0' }}>
           {reviewMode && !voiceUrl && (
             <div style={{ borderRadius: th.r, border: `1.5px solid ${alpha(th.primary, 0.45)}`, background: alpha(th.primary, 0.04), padding: '8px 12px', marginBottom: 14, textAlign: 'right' }}>
-              <div style={{ fontFamily: th.display, fontSize: 11, fontWeight: 800, color: th.primary }}>כדאי להוסיף הקלטה — מוסיפה אמינות לכרטיסייה</div>
+              <div style={{ fontFamily: th.display, fontSize: fs(11), fontWeight: 800, color: th.primary }}>כדאי להוסיף הקלטה — מוסיפה אמינות לכרטיסייה</div>
             </div>
           )}
           <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.6), lineHeight:1.6, marginBottom:20 }}>
@@ -4283,10 +4318,10 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
               </svg>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.ink, marginBottom: 3 }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: th.ink, marginBottom: 3 }}>
                 {_t('form_discrete_title')}
               </div>
-              <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), lineHeight: 1.5 }}>
+              <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.55), lineHeight: 1.5 }}>
                 {_t('form_discrete_body')}
               </div>
             </div>
@@ -5196,16 +5231,16 @@ function Onboarding({ th, go }) {
       <div style={{ paddingTop: 52, paddingInline: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
           <Logo size={26} color={th.primary} flaw={th.cream} />
-          <span style={{ fontFamily: th.display, fontWeight: 800, color: th.ink, fontSize: 18 }}>סבבה והכל</span>
+          <span style={{ fontFamily: th.display, fontWeight: 800, color: th.ink, fontSize: fs(18) }}>סבבה והכל</span>
         </div>
-        {!last && <button onClick={() => setI(slides.length - 1)} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>דלג/י</button>}
+        {!last && <button onClick={() => setI(slides.length - 1)} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontWeight: 700, fontSize: fs(14), cursor: 'pointer' }}>דלג/י</button>}
       </div>
 
       {/* scene */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', textAlign: 'center' }}>
         <div key={i} style={{ marginBottom: 40, animation: 'sabaPop .5s cubic-bezier(.2,.9,.3,1)', display: 'flex', justifyContent: 'center' }}><Scene /></div>
-        <h1 key={'t'+i} style={{ fontFamily: th.display, fontSize: 28, color: th.ink, margin: '0 0 12px', lineHeight: 1.15, animation: 'sabaUp .4s ease' }}>{s.title}</h1>
-        <p style={{ fontFamily: th.body, fontSize: 16.5, color: alpha(th.ink, 0.62), lineHeight: 1.5, maxWidth: 300, margin: 0, textWrap: 'pretty' }}>{s.body}</p>
+        <h1 key={'t'+i} style={{ fontFamily: th.display, fontSize: fs(28), color: th.ink, margin: '0 0 12px', lineHeight: 1.15, animation: 'sabaUp .4s ease' }}>{s.title}</h1>
+        <p style={{ fontFamily: th.body, fontSize: fs(16.5), color: alpha(th.ink, 0.62), lineHeight: 1.5, maxWidth: 300, margin: 0, textWrap: 'pretty' }}>{s.body}</p>
       </div>
 
       {/* dots + controls */}
@@ -5351,7 +5386,7 @@ function Register({ th, go }) {
           <TextInput th={th} type="tel" value={phone}
             onChange={v => { setPhone(v); if (phoneError) setPhoneError(''); }}
             onBlur={handlePhoneBlur} placeholder="" />
-          {phoneError && <div style={{ fontFamily: th.body, fontSize: 12, color: '#d93025', marginTop: 5 }}>{phoneError}</div>}
+          {phoneError && <div style={{ fontFamily: th.body, fontSize: fs(12), color: '#d93025', marginTop: 5 }}>{phoneError}</div>}
         </Field>
         <button onClick={() => setAgreedTerms(v => !v)} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', display:'flex', alignItems:'flex-start', gap:10, marginTop:16, marginBottom:10, width:'100%' }}>
           <div style={{ width:20, height:20, borderRadius:5, border:`1.5px solid ${agreedTerms ? th.primary : alpha(th.ink,0.3)}`, background:agreedTerms ? th.primary : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
@@ -5365,7 +5400,7 @@ function Register({ th, go }) {
           </span>
         </button>
         <div style={{ marginTop: 4 }}>
-          {otpError && step === 1 && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 8 }}>{otpError}</div>}
+          {otpError && step === 1 && <div style={{ fontFamily: th.body, fontSize: fs(13), color: '#d93025', marginBottom: 8 }}>{otpError}</div>}
           <Btn th={th} full size="l" disabled={!step1Valid || !agreedTerms || otpSending} onClick={sendOtp}>
             {otpSending ? 'שולח…' : 'שלח קוד אימות'}
           </Btn>
@@ -5382,7 +5417,7 @@ function Register({ th, go }) {
       <AppHeader th={th} title="אימות מספר טלפון" onBack={() => { setStep(1); setOtpCode(''); setOtpError(''); }} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
         <StepDots active={2} />
-        <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.7), marginBottom: 22, lineHeight: 1.6 }}>
+        <div style={{ fontFamily: th.body, fontSize: fs(14), color: alpha(th.ink, 0.7), marginBottom: 22, lineHeight: 1.6 }}>
           שלחנו קוד אימות ב-SMS למספר <strong>{phone}</strong>. הזן את הקוד להמשך.
         </div>
         <Field th={th} label="קוד אימות (6 ספרות)" required>
@@ -5390,12 +5425,12 @@ function Register({ th, go }) {
             onChange={v => { setOtpCode(v.replace(/\D/g, '').slice(0, 6)); if (otpError) setOtpError(''); }}
             placeholder="000000" />
         </Field>
-        {otpError && <div style={{ fontFamily: th.body, fontSize: 13, color: '#d93025', marginBottom: 10 }}>{otpError}</div>}
+        {otpError && <div style={{ fontFamily: th.body, fontSize: fs(13), color: '#d93025', marginBottom: 10 }}>{otpError}</div>}
         <Btn th={th} full size="l" disabled={otpCode.length !== 6 || otpSending} onClick={verifyOtp} style={{ marginTop: 4 }}>
           {otpSending ? 'מאמת…' : 'אמת קוד'}
         </Btn>
         <button onClick={sendOtp} disabled={otpSending}
-          style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: th.primary, marginTop: 16 }}>
+          style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', fontFamily: th.body, fontSize: fs(13), color: th.primary, marginTop: 16 }}>
           לא קיבלתי קוד — שלח שוב
         </button>
       </div>
@@ -5408,8 +5443,8 @@ function Register({ th, go }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px 30px' }}>
         <StepDots active={3} />
         <div style={{ background: alpha(th.gold, 0.09), border: `1px solid ${alpha(th.gold, 0.22)}`, borderRadius: th.r, padding: '13px 15px', marginBottom: 26 }}>
-          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 5 }}>{t('register_photo_why_title')}</div>
-          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.68), lineHeight: 1.55 }}>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 5 }}>{t('register_photo_why_title')}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.68), lineHeight: 1.55 }}>
             {t('register_photo_why_body')}
           </div>
         </div>
@@ -5420,13 +5455,13 @@ function Register({ th, go }) {
               ? <img src={photoURL} alt="" decoding="async" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', border: `3px solid ${th.primary}` }} />
               : <div style={{ width: 120, height: 120, borderRadius: '50%', background: alpha(th.primary, 0.08), border: `2px dashed ${alpha(th.ink, 0.2)}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   <Icon name="camera" size={32} style={{ color: alpha(th.ink, 0.38) }} />
-                  <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.45) }}>{uploading ? 'מעלה…' : t('register_btn_upload')}</span>
+                  <span style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.45) }}>{uploading ? 'מעלה…' : t('register_btn_upload')}</span>
                 </div>}
           </label>
           {photoURL && (
             <label style={{ cursor: 'pointer', marginTop: 10 }}>
               <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
-              <span style={{ fontFamily: th.body, fontSize: 13, color: th.primary }}>{t('register_btn_change')}</span>
+              <span style={{ fontFamily: th.body, fontSize: fs(13), color: th.primary }}>{t('register_btn_change')}</span>
             </label>
           )}
         </div>
@@ -5434,7 +5469,7 @@ function Register({ th, go }) {
           {saving ? 'שומר…' : photoURL ? t('register_btn_save') : t('register_btn_skip')}
         </Btn>
         {!photoURL && (
-          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), marginTop: 10 }}>
+          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.38), marginTop: 10 }}>
             {t('register_photo_hint')}
           </div>
         )}
@@ -5656,8 +5691,8 @@ function Home({ th, go }) {
       <div style={{ paddingTop: 50, paddingInline: 18, paddingBottom: 6, background: th.cream, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
         <Avatar grad={gradForId(me.uid||'me')} name={me.displayName||me.email||''} size={46} photo={me.photoURL} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שלום {(me.displayName||'').split(' ')[0]},</div>
-          <div style={{ fontFamily: th.display, fontSize: 21, fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>{mine.length === 0 ? 'ברוכים הבאים!' : t('home_greeting')}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.55) }}>שלום {(me.displayName||'').split(' ')[0]},</div>
+          <div style={{ fontFamily: th.display, fontSize: fs(21), fontWeight: 800, color: th.ink, lineHeight: 1.1 }}>{mine.length === 0 ? 'ברוכים הבאים!' : t('home_greeting')}</div>
         </div>
       </div>
 
@@ -5666,15 +5701,15 @@ function Home({ th, go }) {
         {mine.length === 0 && waiting.length > 0 && (
           <div style={{ background: th.card, borderRadius: th.rLg, padding: '16px 18px 8px', marginBottom: 18, boxShadow: `0 6px 24px ${alpha(th.ink, 0.08)}` }}>
             <div style={{ display:'flex', alignItems:'center', gap: 6, marginBottom: 12 }}>
-              <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink }}>{t('home_waiting_title')}</span>
-              <span style={{ fontSize: 17 }}>💛</span>
+              <span style={{ fontFamily: th.display, fontSize: fs(17), fontWeight: 800, color: th.ink }}>{t('home_waiting_title')}</span>
+              <span style={{ fontSize: fs(17) }}>💛</span>
             </div>
             <div style={{ height: 1, background: alpha(th.ink, 0.07), marginBottom: 4 }} />
             {waiting.map((w, k) => (
               <React.Fragment key={k}>
                 <button onClick={w.to} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap: 10, width:'100%', boxSizing:'border-box', padding:'11px 0' }}>
-                  <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: w.tone, lineHeight: 1, minWidth: 28, textAlign:'center' }}>{w.big}</span>
-                  <span style={{ flex: 1, fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.78), fontWeight: 500, textAlign:'right' }}>{w.text}</span>
+                  <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(24), color: w.tone, lineHeight: 1, minWidth: 28, textAlign:'center' }}>{w.big}</span>
+                  <span style={{ flex: 1, fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.78), fontWeight: 500, textAlign:'right' }}>{w.text}</span>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', border:`1.5px solid ${alpha(w.tone, 0.35)}`, color: w.tone, display:'flex', alignItems:'center', justifyContent:'center', flexShrink: 0 }}>
                     <Icon name={w.icon} size={15} fill={w.icon === 'heart' ? w.tone : 'none'} />
                   </div>
@@ -5704,17 +5739,17 @@ function Home({ th, go }) {
           /* ── Light / card style ── */
           <div style={{ background: th.card, borderRadius: th.rLg, padding: '16px 18px 8px', marginBottom: 18, boxShadow: `0 6px 24px ${alpha(th.ink, 0.08)}` }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-start', gap: 6, marginBottom: 12 }}>
-              <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink }}>{t('home_waiting_title')}</span>
-              <span style={{ fontSize: 17 }}>💛</span>
+              <span style={{ fontFamily: th.display, fontSize: fs(17), fontWeight: 800, color: th.ink }}>{t('home_waiting_title')}</span>
+              <span style={{ fontSize: fs(17) }}>💛</span>
             </div>
             <div style={{ height: 1, background: alpha(th.ink, 0.07), marginBottom: 4 }} />
             {waiting.length === 0 ? (
-              <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.4) }}>{t('home_waiting_empty')}</div>
+              <div style={{ padding: '14px 0 8px', textAlign: 'center', fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.4) }}>{t('home_waiting_empty')}</div>
             ) : waiting.map((w, k) => (
               <React.Fragment key={k}>
                 <button onClick={w.to} style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap: 10, width:'100%', boxSizing:'border-box', padding:'11px 0' }}>
-                  <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: 24, color: w.tone, lineHeight: 1, minWidth: 28, textAlign:'center' }}>{w.big}</span>
-                  <span style={{ flex: 1, fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.78), fontWeight: 500, textAlign:'right' }}>{w.text}</span>
+                  <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(24), color: w.tone, lineHeight: 1, minWidth: 28, textAlign:'center' }}>{w.big}</span>
+                  <span style={{ flex: 1, fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.78), fontWeight: 500, textAlign:'right' }}>{w.text}</span>
                   <div style={{ width: 32, height: 32, borderRadius: '50%', border:`1.5px solid ${alpha(w.tone, 0.35)}`, color: w.tone, display:'flex', alignItems:'center', justifyContent:'center', flexShrink: 0 }}>
                     <Icon name={w.icon} size={15} fill={w.icon === 'heart' ? w.tone : 'none'} />
                   </div>
@@ -5729,18 +5764,18 @@ function Home({ th, go }) {
           <div style={{ background: `linear-gradient(135deg, ${th.ink}, ${alpha(th.primary, 0.85)})`, borderRadius: th.rLg, padding: 18, marginBottom: 18, color: th.cream, boxShadow: `0 16px 34px ${alpha(th.ink, 0.28)}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <Logo size={22} color={th.gold} flaw={th.cream} />
-              <span style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800 }}>{t('home_waiting_title')}</span>
+              <span style={{ fontFamily: th.display, fontSize: fs(17), fontWeight: 800 }}>{t('home_waiting_title')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {waiting.length === 0
-                ? <div style={{ padding: '8px 0', textAlign:'center', fontFamily: th.body, fontSize: 13, color: 'rgba(255,255,255,0.55)' }}>✅ הכל מסודר — אין פעולות ממתינות</div>
+                ? <div style={{ padding: '8px 0', textAlign:'center', fontFamily: th.body, fontSize: fs(13), color: 'rgba(255,255,255,0.55)' }}>✅ הכל מסודר — אין פעולות ממתינות</div>
                 : waiting.map((w, k) => (
                   <button key={k} onClick={w.to} style={{ all: 'unset', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, background: alpha('#ffffff', 0.1), borderRadius: th.r, padding: '10px 12px' }}>
                     <div style={{ width: 38, height: 38, borderRadius: 11, background: w.tone, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <Icon name={w.icon} size={20} fill={w.icon === 'heart' ? '#fff' : 'none'} stroke={w.icon === 'heart' ? 0 : 2} />
                     </div>
-                    <div style={{ flex: 1, fontFamily: th.body, fontSize: 14, fontWeight: 600, lineHeight: 1.3 }}>
-                      <b style={{ fontFamily: th.display, fontSize: 17 }}>{w.big}</b>&nbsp; {w.text}
+                    <div style={{ flex: 1, fontFamily: th.body, fontSize: fs(14), fontWeight: 600, lineHeight: 1.3 }}>
+                      <b style={{ fontFamily: th.display, fontSize: fs(17) }}>{w.big}</b>&nbsp; {w.text}
                     </div>
                     <span style={{ opacity: 0.6 }}><Icon name="chevL" size={18} /></span>
                   </button>
@@ -5755,8 +5790,8 @@ function Home({ th, go }) {
           <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
             {stats.map((st, k) => (
               <button key={k} onClick={st.to} style={{ all:'unset', flex: 1, cursor:'pointer', background: th.card, borderRadius: th.r, padding: '14px 8px', textAlign: 'center', boxShadow: `0 4px 14px ${alpha(th.ink, 0.06)}` }}>
-                <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800, color: th.primary }}>{st.n}</div>
-                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
+                <div style={{ fontFamily: th.display, fontSize: fs(26), fontWeight: 800, color: th.primary }}>{st.n}</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.6), lineHeight: 1.2, marginTop: 2 }}>{st.label}</div>
               </button>
             ))}
           </div>
@@ -5791,11 +5826,11 @@ function Home({ th, go }) {
               {list.map(c => (
                 <button key={c.id} onClick={() => go('candidate', { id: c.id })} style={{ all: 'unset', cursor: 'pointer', width: 152, flexShrink: 0, borderRadius: th.r, overflow: 'hidden', position: 'relative', height: 200, boxShadow: `0 8px 24px ${alpha(th.ink, 0.15)}`, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})` }}>
                   {c.photos?.[0] && <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
-                  {!c.photos?.[0] && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontFamily: th.display, fontSize: 72, fontWeight: 800, color: 'rgba(255,255,255,0.55)' }}>{(c.name||'?').charAt(0)}</span></div>}
+                  {!c.photos?.[0] && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontFamily: th.display, fontSize: fs(72), fontWeight: 800, color: 'rgba(255,255,255,0.55)' }}>{(c.name||'?').charAt(0)}</span></div>}
                   <div style={{ position: 'absolute', top: 10, left: 10, width: 10, height: 10, borderRadius: '50%', background: c.available !== false ? th.success : alpha('#fff', 0.45), boxShadow: '0 0 0 2px rgba(255,255,255,0.7)' }} />
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.18) 70%, transparent 100%)', padding: '28px 12px 12px' }}>
-                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: '#fff', lineHeight: 1.1 }}>{c.name}{c.age ? `, ${c.age}` : ''}</div>
-                    <div style={{ fontFamily: th.body, fontSize: 12, color: 'rgba(255,255,255,0.72)', marginTop: 3 }}>{c.region}</div>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: '#fff', lineHeight: 1.1 }}>{c.name}{c.age ? `, ${c.age}` : ''}</div>
+                    <div style={{ fontFamily: th.body, fontSize: fs(12), color: 'rgba(255,255,255,0.72)', marginTop: 3 }}>{c.region}</div>
                   </div>
                 </button>
               ))}
@@ -5947,20 +5982,20 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
       {/* co-rep requests from other shadchanim */}
       {coRepReqs.length > 0 && (
         <div style={{ marginBottom: 18 }}>
-          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginBottom: 10 }}>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink, marginBottom: 10 }}>
             {t('inv_corep_section')}
           </div>
           {coRepReqs.map(req => (
             <div key={req.id} style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 10, border: `1.5px solid ${alpha(th.primary, 0.2)}`, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
-              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, marginBottom: 2 }}>
+              <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 2 }}>
                 {req.fromMmName} מבקש/ת לייצג את {req.candName}
               </div>
-              <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.55), marginBottom: 12 }}>
+              <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.55), marginBottom: 12 }}>
                 אישור יאפשר לשדכן/ית הזה/ה להציע את {req.candName} לשידוכים גם מטעמו/ה
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => approveCoRepMM(req)} style={{ flex: 1, padding: '9px 0', borderRadius: th.rSm, border: 'none', background: th.success, color: '#fff', fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>{t('inv_approve_btn')}</button>
-                <button onClick={() => declineCoRepMM(req)} style={{ flex: 1, padding: '9px 0', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.error || '#e53e3e', 0.3)}`, background: alpha(th.error || '#e53e3e', 0.08), color: th.error || '#e53e3e', fontFamily: th.display, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>{t('inv_decline_btn')}</button>
+                <button onClick={() => approveCoRepMM(req)} style={{ flex: 1, padding: '9px 0', borderRadius: th.rSm, border: 'none', background: th.success, color: '#fff', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), cursor: 'pointer' }}>{t('inv_approve_btn')}</button>
+                <button onClick={() => declineCoRepMM(req)} style={{ flex: 1, padding: '9px 0', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.error || '#e53e3e', 0.3)}`, background: alpha(th.error || '#e53e3e', 0.08), color: th.error || '#e53e3e', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), cursor: 'pointer' }}>{t('inv_decline_btn')}</button>
               </div>
             </div>
           ))}
@@ -6143,7 +6178,7 @@ function Candidates({ th, go, params }) {
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
           <div style={{ position: 'relative', flex: 1 }}>
             <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={19} /></span>
-            <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('cands_search')} style={{ width: '100%', boxSizing: 'border-box', padding: '11px 40px 11px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14.5, background: th.card, outline: 'none', color: th.ink }} />
+            <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('cands_search')} style={{ width: '100%', boxSizing: 'border-box', padding: '11px 40px 11px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: fs(14.5), background: th.card, outline: 'none', color: th.ink }} />
           </div>
           <button onClick={() => setFilterOpen(true)} style={{ position:'relative', border:'none', background: activeFilters > 0 ? alpha(th.primary, 0.1) : th.card, width:46, height:46, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', color: activeFilters > 0 ? th.primary : th.ink, cursor:'pointer', flexShrink:0, boxShadow: activeFilters > 0 ? `0 0 0 1.5px ${alpha(th.primary,0.35)}, 0 2px 8px rgba(0,0,0,0.06)` : '0 2px 8px rgba(0,0,0,0.07)' }}>
             <Icon name="filter" size={21} />
@@ -6154,7 +6189,7 @@ function Candidates({ th, go, params }) {
         {/* scope toggle */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           {[['mine', t('cands_tab_mine')], ['all', t('cands_tab_all')]].map(([id, lbl]) => (
-            <button key={id} onClick={() => { setScope(id); if (id === 'mine') setLinkMode(false); }} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 14, background: scope === id ? th.ink : th.card, color: scope === id ? th.cream : alpha(th.ink, 0.55), boxShadow: scope === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>{lbl}</button>
+            <button key={id} onClick={() => { setScope(id); if (id === 'mine') setLinkMode(false); }} style={{ flex: 1, padding: '9px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(14), background: scope === id ? th.ink : th.card, color: scope === id ? th.cream : alpha(th.ink, 0.55), boxShadow: scope === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.1)}` }}>{lbl}</button>
           ))}
         </div>
 
@@ -6225,7 +6260,7 @@ function Candidates({ th, go, params }) {
         {list.length === 0 && (
           <div style={{ textAlign: 'center', padding: '50px 20px', color: alpha(th.ink, 0.4) }}>
             <Icon name="search" size={40} />
-            <div style={{ fontFamily: th.body, marginTop: 10, fontSize: 15 }}>לא נמצאו מועמדים. נסה/י לשנות פילטרים.</div>
+            <div style={{ fontFamily: th.body, marginTop: 10, fontSize: fs(15) }}>לא נמצאו מועמדים. נסה/י לשנות פילטרים.</div>
           </div>
         )}
       </div>
@@ -6288,11 +6323,11 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
         )}
       </div>
       <div style={{ padding: '10px 12px 12px', flex: 1 }}>
-        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{c.name}, {c.age}</div>
-        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ${t('cands_height_unit')}` : ''}</div>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: th.ink }}>{c.name}, {c.age}</div>
+        <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ${t('cands_height_unit')}` : ''}</div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 9px' }}>
           <Logo size={15} color={th.primary} flaw={th.cream} />
-          <span style={{ fontFamily: th.body, fontSize: 13, fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
+          <span style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
         </div>
       </div>
       {linkMode && (
@@ -6301,7 +6336,7 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
           style={{ width: '100%', padding: '9px 0', border: 'none', cursor: requestSent ? 'default' : 'pointer',
             background: requestSent ? alpha(th.success, 0.13) : th.primary,
             color: requestSent ? th.success : '#fff',
-            fontFamily: th.display, fontWeight: 800, fontSize: 12,
+            fontFamily: th.display, fontWeight: 800, fontSize: fs(12),
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
           {requestSent
             ? <><Icon name="check" size={12} /> {t('cands_corep_sent')}</>
@@ -6400,26 +6435,26 @@ function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
       {/* ── Step 1: recipient name ── */}
       {step === 1 && (
         <>
-          <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginBottom: 16 }}>
+          <div style={{ fontFamily: th.body, fontSize: fs(14), color: alpha(th.ink, 0.6), marginBottom: 16 }}>
             {t('invite_flow_who')}<br/>
-            <span style={{ fontSize: 12, color: alpha(th.ink, 0.4) }}>{t('invite_flow_who_hint')}</span>
+            <span style={{ fontSize: fs(12), color: alpha(th.ink, 0.4) }}>{t('invite_flow_who_hint')}</span>
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>{t('invite_flow_first_label')}</div>
+              <div style={{ fontFamily: th.body, fontSize: fs(12), fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>{t('invite_flow_first_label')}</div>
               <input value={recipFirst} onChange={e => setFirst(e.target.value)} placeholder="ישראל"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: 15, background: th.card, color: th.ink, outline: 'none' }} />
+                style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, color: th.ink, outline: 'none' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>{t('invite_flow_last_label')}</div>
+              <div style={{ fontFamily: th.body, fontSize: fs(12), fontWeight: 700, color: alpha(th.ink, 0.6), marginBottom: 4 }}>{t('invite_flow_last_label')}</div>
               <input value={recipLast} onChange={e => setLast(e.target.value)} placeholder="כהן"
-                style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: 15, background: th.card, color: th.ink, outline: 'none' }} />
+                style={{ width: '100%', boxSizing: 'border-box', padding: '11px 12px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.15)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, color: th.ink, outline: 'none' }} />
             </div>
           </div>
           <Btn th={th} full disabled={!recipFirst.trim() || !recipLast.trim() || creating} onClick={generate}>
             {creating ? 'יוצר קישור…' : t('invite_flow_btn')}
           </Btn>
-          {genError && <div style={{ marginTop: 10, color: '#c00', fontSize: 13, textAlign: 'center', fontFamily: th.body }}>{genError}</div>}
+          {genError && <div style={{ marginTop: 10, color: '#c00', fontSize: fs(13), textAlign: 'center', fontFamily: th.body }}>{genError}</div>}
         </>
       )}
 
@@ -6427,9 +6462,9 @@ function InviteFlow({ open, onClose, th, mmId, mmName, mmPhone, mmGender }) {
       {step === 2 && (
         <>
           <div style={{ background: alpha(th.success, 0.1), border: `1.5px solid ${alpha(th.success, 0.25)}`, borderRadius: th.r, padding: 14, marginBottom: 16, textAlign: 'center' }}>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.success, marginBottom: 4 }}>{t('invite_flow_ready')}</div>
-            <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: 15, color: th.ink, marginBottom: 2 }}>{recipientName}</div>
-            <div style={{ fontFamily: 'monospace', fontSize: 10, color: alpha(th.ink, 0.4), wordBreak: 'break-all' }}>{inviteURL(token)}</div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.success, marginBottom: 4 }}>{t('invite_flow_ready')}</div>
+            <div style={{ fontFamily: th.display, fontWeight: 700, fontSize: fs(15), color: th.ink, marginBottom: 2 }}>{recipientName}</div>
+            <div style={{ fontFamily: 'monospace', fontSize: fs(10), color: alpha(th.ink, 0.4), wordBreak: 'break-all' }}>{inviteURL(token)}</div>
           </div>
           <Btn th={th} full onClick={copyLink} icon={<Icon name="link" size={18} />} style={{ marginBottom: 10 }}>
             {copied ? t('invite_flow_copied') : t('invite_flow_copy')}
@@ -7198,12 +7233,12 @@ function AddSheet({ open, onClose, th, go }) {
           </div>
 
           {/* title */}
-          <div style={{ textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: 22, color: th.ink, marginBottom: 8 }}>
+          <div style={{ textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: fs(22), color: th.ink, marginBottom: 8 }}>
             {t('add_sheet_title')}
           </div>
 
           {/* subtitle */}
-          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), lineHeight: 1.6, marginBottom: 22 }}>
+          <div style={{ textAlign: 'center', fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.55), lineHeight: 1.6, marginBottom: 22 }}>
             {t('add_sheet_sub1')}<br />
             {t('add_sheet_sub2')}
           </div>
@@ -7222,8 +7257,8 @@ function AddSheet({ open, onClose, th, go }) {
                 </svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{t('add_sheet_new_title')}</div>
-                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>{t('add_sheet_new_sub')}</div>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink }}>{t('add_sheet_new_title')}</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>{t('add_sheet_new_sub')}</div>
               </div>
               <Icon name="chevL" size={20} style={{ color: alpha(th.ink, 0.28), flexShrink: 0 }} />
             </button>
@@ -7240,8 +7275,8 @@ function AddSheet({ open, onClose, th, go }) {
                 </svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{t('add_sheet_rep_title')}</div>
-                <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>{t('add_sheet_rep_sub')}</div>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink }}>{t('add_sheet_rep_title')}</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.55), marginTop: 3, lineHeight: 1.3 }}>{t('add_sheet_rep_sub')}</div>
               </div>
               <Icon name="chevL" size={20} style={{ color: alpha(th.ink, 0.28), flexShrink: 0 }} />
             </button>
@@ -7282,7 +7317,7 @@ function CandidateDetail({ th, go, params }) {
 
   const footer = isMine && c.pendingApproval ? (
     <div style={{ flexShrink: 0, padding: '14px 24px 28px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, textAlign: 'center' }}>
-      <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: alpha(th.ink, 0.45) }}>יש לאשר ולפרסם את המועמד/ת לפני השידוך</span>
+      <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: alpha(th.ink, 0.45) }}>יש לאשר ולפרסם את המועמד/ת לפני השידוך</span>
     </div>
   ) : isMine ? (
     <div style={{ flexShrink: 0, padding: '12px 18px 26px', background: alpha(th.cream, 0.95), backdropFilter: 'blur(12px)', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, display: 'flex', gap: 10 }}>
@@ -7462,12 +7497,12 @@ function CandidateDetail({ th, go, params }) {
           return (
             <div style={{ padding: '0 16px 28px', background: th.cream }}>
               <div style={{ background: th.card, borderRadius: th.r, padding: 16, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                <div style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 10 }}>ה{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {c.name}</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 10 }}>ה{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {c.name}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                   <Avatar grad={mm.grad} name={mm.name} size={44} />
                   <div>
-                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{mm.name}</div>
-                    <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'}</div>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: th.ink }}>{mm.name}</div>
+                    <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'}</div>
                   </div>
                 </div>
                 <Btn th={th} full variant="soft" size="m"
@@ -7494,7 +7529,7 @@ function InterestChips({ items, th, tone, categories, grouped }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {groups.map((g, i) => (
           <div key={g.label || `_other_${i}`}>
-            {g.label && <div style={{ fontFamily: th.body, fontSize: 11, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{g.label}</div>}
+            {g.label && <div style={{ fontFamily: th.body, fontSize: fs(11), fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{g.label}</div>}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{g.tags.map(i2 => <Chip key={i2} label={i2} th={th} tone={tone} active />)}</div>
           </div>
         ))}
@@ -7508,12 +7543,12 @@ function DiscreteBox({ c, th, show, setShow, mag }) {
     <div style={{ background: mag ? 'transparent' : alpha(th.ink, 0.04), borderRadius: th.r, padding: mag ? 0 : 14, border: `1.5px dashed ${alpha(th.ink, 0.18)}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: show ? 8 : 0 }}>
         <Icon name="lock" size={17} style={{ color: th.gold }} />
-        <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.ink, flex: 1 }}>פרטים דיסקרטיים</span>
-        <button onClick={() => setShow(!show)} style={{ border: 'none', background: 'none', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, flex: 1 }}>פרטים דיסקרטיים</span>
+        <button onClick={() => setShow(!show)} style={{ border: 'none', background: 'none', color: th.primary, fontFamily: th.body, fontWeight: 700, fontSize: fs(13), cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Icon name="eye" size={16} />{show ? 'הסתר' : 'גלוי לשדכן בלבד'}
         </button>
       </div>
-      {show && <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.7), lineHeight: 1.5 }}>{c.discrete}</div>}
+      {show && <div style={{ fontFamily: th.body, fontSize: fs(14), color: alpha(th.ink, 0.7), lineHeight: 1.5 }}>{c.discrete}</div>}
     </div>
   );
 }
@@ -7586,10 +7621,10 @@ function MmNoteCard({ c, mm, th }) {
       borderRadius: th.r, padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
       <Avatar grad={mm.grad || gradForId(mm.id || mm.uid || 'x')} name={mmName} size={38} photo={mm.photoURL} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13, color: th.primary, marginBottom: 5 }}>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: th.primary, marginBottom: 5 }}>
           {mmName} ממליץ/ה:
         </div>
-        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.82), lineHeight: 1.55 }}>
+        <div style={{ fontFamily: th.body, fontSize: fs(14.5), color: alpha(th.ink, 0.82), lineHeight: 1.55 }}>
           {c.mmNote}
         </div>
       </div>
@@ -7606,7 +7641,7 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete,
     <div style={{ background: th.card, borderRadius: th.r, padding: 16, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
         {icon && <span style={{ color: th.primary }}><Icon name={icon} size={18} /></span>}
-        <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{label}</span>
+        <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink }}>{label}</span>
       </div>
       {children}
     </div>
@@ -7621,8 +7656,8 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete,
             {!c.available && <Tag th={th} tone={alpha(th.ink, 0.7)} soft={false}>{gHe(c.gender, 'תפוס', 'תפוסה')}</Tag>}
             {c.hidden && <Tag th={th} tone={th.gold} soft={false}><Icon name="eye" size={12} style={{ marginLeft:4 }} /> מוסתר משדכנים</Tag>}
           </div>
-          <div style={{ fontFamily: th.display, fontSize: 32, fontWeight: 800, lineHeight: 1 }}>{c.name}, {c.age}</div>
-          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.92, marginTop: 4 }}>{c.region} · {gRelig(c.religiosity, c.gender)}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
+          <div style={{ fontFamily: th.display, fontSize: fs(32), fontWeight: 800, lineHeight: 1 }}>{c.name}, {c.age}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(15), opacity: 0.92, marginTop: 4 }}>{c.region} · {gRelig(c.religiosity, c.gender)}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
           {(c.family || c.kids > 0) && (
             <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:8 }}>
               {c.family && <span style={{ background:'rgba(255,255,255,0.18)', backdropFilter:'blur(6px)', borderRadius:999, padding:'3px 10px', fontFamily:th.body, fontSize:13, fontWeight:600 }}>{gFamily(c.family, c.gender)}</span>}
@@ -7639,11 +7674,11 @@ function ClassicBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete,
         {th.showMmNote && <MmNoteCard c={c} mm={mm} th={th} />}
 
         <Section label={isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')} icon="spark">
-          {c.oneLine ? <p style={{ margin: '0 0 10px', fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p> : null}
+          {c.oneLine ? <p style={{ margin: '0 0 10px', fontFamily: th.body, fontSize: fs(15.5), color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.oneLine}</p> : null}
           <InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} />
         </Section>
         <Section label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')} icon="heart">
-          <p style={{ margin: 0, fontFamily: th.body, fontSize: 15.5, color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
+          <p style={{ margin: 0, fontFamily: th.body, fontSize: fs(15.5), color: alpha(th.ink, 0.78), lineHeight: 1.5 }}>{c.seesWith}</p>
           {c.partner?.length > 0 && <div style={{ marginTop: 12 }}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></div>}
         </Section>
         {canSeeDiscrete && <div style={{ marginBottom: 12 }}><DiscreteBox c={c} th={th} show={showDiscrete} setShow={setShowDiscrete} /></div>}
@@ -7659,16 +7694,16 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, sho
   const interestCategories = deriveCategories(lists.interestCategories, lists.interests,    DEFAULT_INTEREST_CATEGORIES);
   const partnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
   const Rule = () => <div style={{ height: 1.5, background: alpha(th.gold, 0.4), margin: '22px 0' }} />;
-  const Label = ({ children }) => <div style={{ fontFamily: th.display, fontSize: 12, color: th.gold, letterSpacing: 2, marginBottom: 10 }}>{children}</div>;
+  const Label = ({ children }) => <div style={{ fontFamily: th.display, fontSize: fs(12), color: th.gold, letterSpacing: 2, marginBottom: 10 }}>{children}</div>;
   return (
     <div>
       {/* full-bleed gallery */}
       <PhotoGallery c={c} th={th} height={440} showArrows={showArrows} showDots={showDots} onIdxChange={onIdxChange}>
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to top, ${alpha(th.ink, 0.82)} 6%, transparent 55%)`, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 26, right: 24, left: 24, color: '#fff', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: th.display, fontSize: 13, letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age}{c.height ? ` · ${c.height} ס"מ` : ''}{!c.available ? ` · ${gHe(c.gender, 'תפוס', 'תפוסה')}` : ''}{c.family ? ` · ${gFamily(c.family, c.gender)}` : ''}{c.kids > 0 ? ` · ${c.kids === 1 ? gHe(c.gender, 'ילד אחד', 'ילדה אחת') : `${c.kids} ילדים`}` : ''}</div>
-          <div style={{ fontFamily: th.display, fontSize: 52, fontWeight: 800, lineHeight: 0.95 }}>{c.name}</div>
-          <div style={{ fontFamily: th.body, fontSize: 15, opacity: 0.85, marginTop: 8 }}>{gRelig(c.religiosity, c.gender)}</div>
+          <div style={{ fontFamily: th.display, fontSize: fs(13), letterSpacing: 3, color: th.gold, marginBottom: 8 }}>{c.region.toUpperCase()} · {c.age}{c.height ? ` · ${c.height} ס"מ` : ''}{!c.available ? ` · ${gHe(c.gender, 'תפוס', 'תפוסה')}` : ''}{c.family ? ` · ${gFamily(c.family, c.gender)}` : ''}{c.kids > 0 ? ` · ${c.kids === 1 ? gHe(c.gender, 'ילד אחד', 'ילדה אחת') : `${c.kids} ילדים`}` : ''}</div>
+          <div style={{ fontFamily: th.display, fontSize: fs(52), fontWeight: 800, lineHeight: 0.95 }}>{c.name}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(15), opacity: 0.85, marginTop: 8 }}>{gRelig(c.religiosity, c.gender)}</div>
         </div>
         {c.voiceNote && <VoiceNotePlayer url={c.voiceNote} th={th} fab />}
       </PhotoGallery>
@@ -7676,41 +7711,41 @@ function MagBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete, sho
       <div style={{ background: th.cream, padding: '30px 24px 24px' }}>
         {/* pull quote */}
         <div style={{ position: 'relative', paddingTop: 18 }}>
-          <span style={{ position: 'absolute', top: -18, right: -6, fontFamily: th.display, fontSize: 90, color: alpha(th.primary, 0.22), lineHeight: 1 }}>״</span>
-          <div style={{ fontFamily: th.display, fontSize: 24, color: th.ink, lineHeight: 1.3, position: 'relative', textWrap: 'pretty' }}>{c.sabaBut}</div>
-          <div style={{ fontFamily: th.body, fontSize: 13.5, color: th.gold, fontWeight: 700, marginTop: 12 }}>— סבבה והכל, אבל…</div>
+          <span style={{ position: 'absolute', top: -18, right: -6, fontFamily: th.display, fontSize: fs(90), color: alpha(th.primary, 0.22), lineHeight: 1 }}>״</span>
+          <div style={{ fontFamily: th.display, fontSize: fs(24), color: th.ink, lineHeight: 1.3, position: 'relative', textWrap: 'pretty' }}>{c.sabaBut}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(13.5), color: th.gold, fontWeight: 700, marginTop: 12 }}>— סבבה והכל, אבל…</div>
         </div>
         <Rule />
         {th.showMmNote && c.mmNote && <><MmNoteCard c={c} mm={mm} th={th} /><Rule /></>}
         <Label>{isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')}</Label>
-        {c.oneLine ? <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: 18, color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p> : null}
+        {c.oneLine ? <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: fs(18), color: alpha(th.ink, 0.82), lineHeight: 1.55, fontWeight: 500 }}>{c.oneLine}</p> : null}
         {th.groupTagsByCategory ? (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {groupSelectedByCategory(c.interests, interestCategories).map((g, gi) => (
               <div key={g.label || `_o${gi}`}>
                 {g.label && <div style={{ fontFamily:th.body, fontSize:12.5, fontWeight:700, color:alpha(th.gold,0.85), letterSpacing:1, marginBottom:4 }}>{g.label}</div>}
-                <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
+                <div style={{ fontFamily: th.body, fontSize: fs(15.5), color: th.ink, lineHeight: 1.9 }}>
                   {g.tags.map((it, i) => <span key={it}>{it}{i < g.tags.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div style={{ fontFamily: th.body, fontSize: 15.5, color: th.ink, lineHeight: 1.9 }}>
+          <div style={{ fontFamily: th.body, fontSize: fs(15.5), color: th.ink, lineHeight: 1.9 }}>
             {c.interests.map((it, i) => <span key={it}>{it}{i < c.interests.length - 1 && <span style={{ color: th.gold }}> · </span>}</span>)}
           </div>
         )}
         <Rule />
         <Label>{isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}</Label>
-        <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
+        <p style={{ margin: 0, fontFamily: th.body, fontSize: fs(16), color: alpha(th.ink, 0.75), lineHeight: 1.55, fontStyle: 'italic' }}>{c.seesWith}</p>
         {c.partner?.length > 0 && <div style={{ marginTop: 14 }}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></div>}
         <Rule />
         <Label>{t('card_details_label')}</Label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
           {infoPairs(c).map(([k, v]) => (
             <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(th.ink, 0.08)}`, paddingBottom: 6 }}>
-              <span style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.5) }}>{k}</span>
-              <span style={{ fontFamily: th.display, fontSize: 14.5, color: th.ink, fontWeight: 700 }}>{v}</span>
+              <span style={{ fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.5) }}>{k}</span>
+              <span style={{ fontFamily: th.display, fontSize: fs(14.5), color: th.ink, fontWeight: 700 }}>{v}</span>
             </div>
           ))}
         </div>
@@ -7730,7 +7765,7 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
   const Hr = () => <div style={{ height: 1, background: alpha(th.ink, 0.09), margin: '0 0' }} />;
   const Block = ({ label, children }) => (
     <div style={{ padding: '20px 0' }}>
-      <div style={{ fontFamily: th.body, fontSize: 12.5, fontWeight: 700, color: alpha(th.ink, 0.4), letterSpacing: 0.5, marginBottom: 9 }}>{label}</div>
+      <div style={{ fontFamily: th.body, fontSize: fs(12.5), fontWeight: 700, color: alpha(th.ink, 0.4), letterSpacing: 0.5, marginBottom: 9 }}>{label}</div>
       {children}
     </div>
   );
@@ -7739,8 +7774,8 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       {/* centered identity */}
       <div style={{ textAlign: 'center', paddingTop: 104, paddingBottom: 6 }}>
         <AvatarGallery c={c} th={th} size={120} />
-        <div style={{ fontFamily: th.display, fontSize: 30, fontWeight: 800, color: th.ink, marginTop: 18 }}>{c.name}, {c.age}</div>
-        <div style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5), marginTop: 3 }}>{c.region} · {gRelig(c.religiosity, c.gender)}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
+        <div style={{ fontFamily: th.display, fontSize: fs(30), fontWeight: 800, color: th.ink, marginTop: 18 }}>{c.name}, {c.age}</div>
+        <div style={{ fontFamily: th.body, fontSize: fs(14.5), color: alpha(th.ink, 0.5), marginTop: 3 }}>{c.region} · {gRelig(c.religiosity, c.gender)}{c.height ? ` · ${c.height} ס"מ` : ''}</div>
         {!c.available && (
           <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center' }}>
             <Tag th={th} tone={alpha(th.ink, 0.6)}>{gHe(c.gender, 'תפוס', 'תפוסה')}</Tag>
@@ -7752,8 +7787,8 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', background: alpha(th.primary, 0.07), borderRadius: th.r, padding: '14px 16px', margin: '18px 0 4px' }}>
         <Logo size={22} color={th.primary} flaw={th.cream} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: th.body, fontSize: 12.5, color: th.primary, fontWeight: 700 }}>סבבה והכל, אבל…</div>
-          <div style={{ fontFamily: th.display, fontSize: 16, color: th.ink, lineHeight: 1.25 }}>{c.sabaBut}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: th.primary, fontWeight: 700 }}>סבבה והכל, אבל…</div>
+          <div style={{ fontFamily: th.display, fontSize: fs(16), color: th.ink, lineHeight: 1.25 }}>{c.sabaBut}</div>
         </div>
       </div>
 
@@ -7761,12 +7796,12 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
       {th.showMmNote && c.mmNote && <div style={{ marginTop:12 }}><MmNoteCard c={c} mm={mm} th={th} /></div>}
 
       <Block label={isFemGender(c.gender) ? t('card_interests_label_f') : t('card_interests_label_m')}>
-        {c.oneLine ? <p style={{ margin: '0 0 10px', fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p> : null}
+        {c.oneLine ? <p style={{ margin: '0 0 10px', fontFamily: th.body, fontSize: fs(16), color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.oneLine}</p> : null}
         <InterestChips items={c.interests} th={th} categories={interestCategories} grouped={th.groupTagsByCategory} />
       </Block>
       <Hr />
       <Block label={isFemGender(c.gender) ? t('card_seeking_label_f') : t('card_seeking_label_m')}>
-        <p style={{ margin: 0, fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p>
+        <p style={{ margin: 0, fontFamily: th.body, fontSize: fs(16), color: alpha(th.ink, 0.8), lineHeight: 1.55 }}>{c.seesWith}</p>
         {c.partner?.length > 0 && <div style={{ marginTop: 12 }}><InterestChips items={c.partner} th={th} tone={th.gold} categories={partnerCategories} grouped={th.groupTagsByCategory} /></div>}
       </Block>
       <Hr />
@@ -7774,8 +7809,8 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {infoPairs(c).map(([k, v]) => (
             <div key={k} style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.5) }}>{k}</span>
-              <span style={{ fontFamily: th.body, fontSize: 14.5, color: th.ink, fontWeight: 700 }}>{v}</span>
+              <span style={{ fontFamily: th.body, fontSize: fs(14.5), color: alpha(th.ink, 0.5) }}>{k}</span>
+              <span style={{ fontFamily: th.body, fontSize: fs(14.5), color: th.ink, fontWeight: 700 }}>{v}</span>
             </div>
           ))}
         </div>
@@ -7849,11 +7884,11 @@ function CandRow({ c, th, selected, onClick, trailing, disabled }) {
       style={{ all: 'unset', cursor: disabled ? 'default' : (onClick ? 'pointer' : 'default'), boxSizing: 'border-box', width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: 12, background: disabled ? alpha(th.ink, 0.035) : th.card, borderRadius: th.r, border: selected ? `2px solid ${th.primary}` : `2px solid transparent`, boxShadow: disabled ? 'none' : `0 4px 14px ${alpha(th.ink, 0.06)}`, marginBottom: 10, opacity: disabled ? 0.65 : 1 }}>
       <Avatar grad={c.grad} name={c.name} size={50} photo={c.photos && c.photos[0]} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15.5, color: th.ink }}>{c.name}, {c.age}</div>
-        <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.5), marginBottom: 4 }}>{c.region} · {c.religiosity} · {window.findMm(c.mmId).name.split(' ')[0]}</div>
+        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15.5), color: th.ink }}>{c.name}, {c.age}</div>
+        <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 4 }}>{c.region} · {c.religiosity} · {window.findMm(c.mmId).name.split(' ')[0]}</div>
         {disabled
-          ? <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 11, color: th.gold, background: alpha(th.gold, 0.15), borderRadius: 99, padding: '2px 8px' }}>בוצעה כבר התאמה</span>
-          : <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.7), display: 'flex', gap: 5, alignItems: 'center' }}>
+          ? <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(11), color: th.gold, background: alpha(th.gold, 0.15), borderRadius: 99, padding: '2px 8px' }}>בוצעה כבר התאמה</span>
+          : <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.7), display: 'flex', gap: 5, alignItems: 'center' }}>
               <Logo size={13} color={th.primary} flaw={th.cream} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.sabaBut}</span>
             </div>
         }
@@ -8047,8 +8082,8 @@ function MatchFlow({ th, go, params }) {
           <div style={{ zIndex: 2, background: th.success, color: '#fff', borderRadius: '50%', width: 46, height: 46, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 8px 20px ${alpha(th.success, 0.4)}` }}><Icon name="heart" size={26} fill="#fff" stroke={0} /></div>
           <Avatar grad={candB.grad} name={candB.name} size={84} photo={candB.photos && candB.photos[0]} style={{ marginInlineStart: -12 }} />
         </div>
-        <h1 style={{ fontFamily: th.display, fontSize: 28, color: th.ink, margin: '0 0 10px' }}>{isSelfMatch ? 'ההצעה נוצרה!' : 'ההצעה בדרך!'}</h1>
-        <p style={{ fontFamily: th.body, fontSize: 16, color: alpha(th.ink, 0.65), lineHeight: 1.5, maxWidth: 300, margin: '0 0 28px' }}>
+        <h1 style={{ fontFamily: th.display, fontSize: fs(28), color: th.ink, margin: '0 0 10px' }}>{isSelfMatch ? 'ההצעה נוצרה!' : 'ההצעה בדרך!'}</h1>
+        <p style={{ fontFamily: th.body, fontSize: fs(16), color: alpha(th.ink, 0.65), lineHeight: 1.5, maxWidth: 300, margin: '0 0 28px' }}>
           {isSelfMatch
             ? <>{selfCandAApproved && selfCandBApproved ? `שני הצדדים אישרו — השידוך מאושר! 🎉` : `ההצעה נשמרה. תוכל/י לעדכן את אישור המועמדים ממסך ההצעות.`}</>
             : (() => {
@@ -8074,7 +8109,7 @@ function MatchFlow({ th, go, params }) {
         {steps.map((s, i) => (
           <div key={i} style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ height: 5, borderRadius: 99, background: i <= stepIdx ? th.primary : alpha(th.ink, 0.12), marginBottom: 5, transition: 'background .3s' }} />
-            <span style={{ fontFamily: th.body, fontSize: 11, fontWeight: 700, color: i <= stepIdx ? th.primary : alpha(th.ink, 0.4) }}>{s}</span>
+            <span style={{ fontFamily: th.body, fontSize: fs(11), fontWeight: 700, color: i <= stepIdx ? th.primary : alpha(th.ink, 0.4) }}>{s}</span>
           </div>
         ))}
       </div>
@@ -8160,16 +8195,16 @@ function MatchFlow({ th, go, params }) {
             );
           })() : (
             <>
-              <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 6 }}>
+              <div style={{ fontFamily: th.display, fontSize: fs(19), fontWeight: 800, color: th.ink, marginBottom: 6 }}>
                 {inlineEditMode ? t(firstIsFemale ? 'mf_s1_title_f' : 'mf_s1_title_m') : fillWa(txCtx, firstIsFemale ? 'mf_s1_title_f' : 'mf_s1_title_m', { שם: first?.name || '' })}
               </div>
-              <p style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.6), marginTop: 0, marginBottom: 14, lineHeight: 1.4 }}>
+              <p style={{ fontFamily: th.body, fontSize: fs(14), color: alpha(th.ink, 0.6), marginTop: 0, marginBottom: 14, lineHeight: 1.4 }}>
                 {t(firstIsFemale ? 'mf_s1_sub_f' : 'mf_s1_sub_m')}
               </p>
               {first && <CandRow c={first} th={th} selected />}
               <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: alpha(firstIsMine ? th.success : th.gold, 0.12), borderRadius: th.r, padding: 12, marginTop: 4 }}>
                 <Icon name="info" size={18} style={{ color: firstIsMine ? th.success : th.gold, flexShrink: 0 }} />
-                <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72), lineHeight: 1.4 }}>
+                <span style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.72), lineHeight: 1.4 }}>
                   {firstIsMine
                     ? t(firstIsFemale ? 'mf_s1_mine_f' : 'mf_s1_mine_m')
                     : t(firstIsFemale ? 'mf_s1_other_f' : 'mf_s1_other_m')
@@ -8186,13 +8221,13 @@ function MatchFlow({ th, go, params }) {
           return (
             <>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: !firstIsMine ? 6 : 10 }}>
-                <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink }}>
+                <div style={{ fontFamily: th.display, fontSize: fs(19), fontWeight: 800, color: th.ink }}>
                   {inlineEditMode ? t(firstIsFemale ? 'mf_s2_title_f' : 'mf_s2_title_m') : fillWa(txCtx, firstIsFemale ? 'mf_s2_title_f' : 'mf_s2_title_m', { שם: first?.name || '' })}
                 </div>
                 <button onClick={() => setFilterOpen(true)}
                   style={{ position: 'relative', border: 'none', background: activeMatchFilters > 0 ? alpha(th.primary, 0.1) : th.card, width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: activeMatchFilters > 0 ? th.primary : th.ink, cursor: 'pointer', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
                   <Icon name="filter" size={19} />
-                  {activeMatchFilters > 0 && <span style={{ position: 'absolute', top: -3, left: -3, background: th.primary, color: '#fff', borderRadius: '50%', minWidth: 17, height: 17, fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{activeMatchFilters}</span>}
+                  {activeMatchFilters > 0 && <span style={{ position: 'absolute', top: -3, left: -3, background: th.primary, color: '#fff', borderRadius: '50%', minWidth: 17, height: 17, fontSize: fs(10), fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{activeMatchFilters}</span>}
                 </button>
               </div>
               {!firstIsMine && (
@@ -8204,7 +8239,7 @@ function MatchFlow({ th, go, params }) {
               <div style={{ position: 'relative', marginBottom: 12 }}>
                 <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: alpha(th.ink, 0.4) }}><Icon name="search" size={18} /></span>
                 <input value={q2} onChange={e => setQ2(e.target.value)} placeholder="חיפוש שם..."
-                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px 38px 10px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: 14, background: th.card, outline: 'none', color: th.ink }} />
+                  style={{ width: '100%', boxSizing: 'border-box', padding: '10px 38px 10px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: fs(14), background: th.card, outline: 'none', color: th.ink }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {candidates2.map(c => {
@@ -8217,7 +8252,7 @@ function MatchFlow({ th, go, params }) {
                       <div style={{ position: 'relative', aspectRatio: '1', background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                         {c.photos && c.photos[0]
                           ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
-                          : <span style={{ fontFamily: th.display, fontSize: 52, color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>
+                          : <span style={{ fontFamily: th.display, fontSize: fs(52), color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>
                         }
                         {isSelected && (
                           <div style={{ position: 'absolute', top: 8, left: 8, background: th.primary, borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 2px 8px ${alpha(th.primary,0.4)}` }}>
@@ -8226,17 +8261,17 @@ function MatchFlow({ th, go, params }) {
                         )}
                         {alreadyMatched && (
                           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.38)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <div style={{ background: 'rgba(0,0,0,0.6)', borderRadius: 99, padding: '5px 12px', fontFamily: th.display, fontWeight: 800, fontSize: 11.5, color: '#fff' }}>כבר הוצע</div>
+                            <div style={{ background: 'rgba(0,0,0,0.6)', borderRadius: 99, padding: '5px 12px', fontFamily: th.display, fontWeight: 800, fontSize: fs(11.5), color: '#fff' }}>כבר הוצע</div>
                           </div>
                         )}
                       </div>
                       <div style={{ padding: '9px 11px 11px' }}>
-                        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{c.name}, {c.age}</div>
-                        <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
+                        <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14.5), color: th.ink }}>{c.name}, {c.age}</div>
+                        <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.5), marginBottom: c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
                         {c.sabaBut && (
                           <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '6px 8px' }}>
                             <Logo size={13} color={th.primary} flaw={th.cream} />
-                            <span style={{ fontFamily: th.body, fontSize: 12.5, fontWeight: 600, color: th.ink, lineHeight: 1.25, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.sabaBut}</span>
+                            <span style={{ fontFamily: th.body, fontSize: fs(12.5), fontWeight: 600, color: th.ink, lineHeight: 1.25, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.sabaBut}</span>
                           </div>
                         )}
                       </div>
@@ -8252,49 +8287,49 @@ function MatchFlow({ th, go, params }) {
 
         {step === 3 && second && (
           <>
-            <div style={{ fontFamily: th.display, fontSize: 19, fontWeight: 800, color: th.ink, marginBottom: 14 }}>הנה ההצעה</div>
+            <div style={{ fontFamily: th.display, fontSize: fs(19), fontWeight: 800, color: th.ink, marginBottom: 14 }}>הנה ההצעה</div>
             {/* pair summary */}
             <div style={{ background: th.card, borderRadius: th.rLg, padding: 18, boxShadow: `0 8px 22px ${alpha(th.ink, 0.08)}`, marginBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 14 }}>
                 <div style={{ textAlign: 'center' }}>
                   <Avatar grad={first.grad} name={first.name} size={72} photo={first.photos && first.photos[0]} style={{ marginInline: 'auto', cursor: 'pointer' }} onClick={() => go('candidate', { id: first.id, viewOnly: true })} />
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 6 }}>{first.name}</div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink, marginTop: 6 }}>{first.name}</div>
                 </div>
                 <div style={{ color: th.primary, padding: '0 4px' }}><Icon name="heart" size={30} fill={th.primary} stroke={0} /></div>
                 <div style={{ textAlign: 'center' }}>
                   <Avatar grad={second.grad} name={second.name} size={72} photo={second.photos && second.photos[0]} style={{ marginInline: 'auto', cursor: 'pointer' }} onClick={() => go('candidate', { id: second.id, viewOnly: true })} />
-                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink, marginTop: 6 }}>{second.name}</div>
+                  <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink, marginTop: 6 }}>{second.name}</div>
                 </div>
               </div>
               <div style={{ background: alpha(th.gold, 0.12), borderRadius: th.r, padding: 13 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Icon name="spark" size={16} style={{ color: th.gold }} fill={th.gold} />
-                    <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 13.5, color: th.ink }}>ניתוח התאמה</span>
+                    <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13.5), color: th.ink }}>ניתוח התאמה</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {!isSelfMatch && aiAnalysis?.label && (() => {
                       const lc = aiAnalysis.label.includes('מאוד') ? th.success
                         : aiAnalysis.label.includes('מומלץ') ? th.primary
                         : aiAnalysis.label.includes('בירור') ? th.gold : alpha(th.ink, 0.4);
-                      return <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: 11, color: lc, background: alpha(lc, 0.12), borderRadius: 99, padding: '3px 8px', whiteSpace: 'nowrap' }}>{aiAnalysis.label}</span>;
+                      return <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(11), color: lc, background: alpha(lc, 0.12), borderRadius: 99, padding: '3px 8px', whiteSpace: 'nowrap' }}>{aiAnalysis.label}</span>;
                     })()}
                     {aiAnalysis?.score != null && (
-                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 24, color: aiAnalysis.score >= 70 ? th.success : aiAnalysis.score >= 50 ? th.gold : alpha(th.ink, 0.45), lineHeight: 1 }}>
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(24), color: aiAnalysis.score >= 70 ? th.success : aiAnalysis.score >= 50 ? th.gold : alpha(th.ink, 0.45), lineHeight: 1 }}>
                         {aiAnalysis.score}%
                       </div>
                     )}
                   </div>
                 </div>
                 {isSelfMatch ? (
-                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontFamily: th.body, fontSize: fs(14), color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>
                     {`שניהם מ${first.region === second.region ? `אותו אזור (${first.region})` : 'אזורים שונים אבל קרובים בנפש'}, חולקים תחומי עניין ומחפשים חיבור אמיתי.`}
                   </p>
                 ) : aiAnalysis?.bullets?.length > 0 ? (
                   <>
                     <ul style={{ margin: '0 0 6px', padding: '0 16px', listStyle: 'none' }}>
                       {aiAnalysis.bullets.map((b, i) => (
-                        <li key={i} style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.78), lineHeight: 1.55, display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 3 }}>
+                        <li key={i} style={{ fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.78), lineHeight: 1.55, display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 3 }}>
                           <span style={{ color: th.success, flexShrink: 0 }}>✓</span>{b}
                         </li>
                       ))}
@@ -8302,12 +8337,12 @@ function MatchFlow({ th, go, params }) {
                     {aiAnalysis.caution && aiAnalysis.caution !== 'אין' && (
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '7px 10px', background: alpha(th.gold, 0.18), borderRadius: th.rSm, marginTop: 4 }}>
                         <span style={{ flexShrink: 0 }}>⚠️</span>
-                        <span style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.72) }}>{aiAnalysis.caution}</span>
+                        <span style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.72) }}>{aiAnalysis.caution}</span>
                       </div>
                     )}
                   </>
                 ) : (
-                  <p style={{ margin: 0, fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.45), fontStyle: 'italic', lineHeight: 1.5 }}>
+                  <p style={{ margin: 0, fontFamily: th.body, fontSize: fs(14), color: alpha(th.ink, 0.45), fontStyle: 'italic', lineHeight: 1.5 }}>
                     המתן מעט כדי לקבל ניתוח התאמה של AI…
                   </p>
                 )}
@@ -8347,10 +8382,10 @@ function MatchFlow({ th, go, params }) {
 
                   {confirmModal === 'step2' && (
                     <>
-                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 17, color: th.ink, marginBottom: 6 }}>
+                      <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(17), color: th.ink, marginBottom: 6 }}>
                         {inlineEditMode ? t('mf_mm_modal_title') : fillWa(txCtx, 'mf_mm_modal_title', { שם: second.name })}
                       </div>
-                      <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.5), marginBottom: 14, lineHeight: 1.5 }}>
+                      <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.5), marginBottom: 14, lineHeight: 1.5 }}>
                         {t('mf_mm_modal_sub')}
                       </div>
                       <textarea
@@ -8359,10 +8394,10 @@ function MatchFlow({ th, go, params }) {
                         onChange={e => setMmMsg(e.target.value)}
                         placeholder={fillWa(txCtx, 'mf_mm_modal_placeholder', { שם_א: first.name, שם_ב: second.name })}
                         rows={4}
-                        style={{ width: '100%', boxSizing: 'border-box', fontFamily: th.body, fontSize: 14, color: th.ink, background: th.card, border: `1.5px solid ${mmMsg.trim() ? alpha(th.primary, 0.45) : alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '10px 12px', resize: 'none', outline: 'none', lineHeight: 1.5, direction: 'rtl', marginBottom: 6 }}
+                        style={{ width: '100%', boxSizing: 'border-box', fontFamily: th.body, fontSize: fs(14), color: th.ink, background: th.card, border: `1.5px solid ${mmMsg.trim() ? alpha(th.primary, 0.45) : alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '10px 12px', resize: 'none', outline: 'none', lineHeight: 1.5, direction: 'rtl', marginBottom: 6 }}
                       />
                       {!mmMsg.trim() && (
-                        <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.4), marginBottom: 14 }}>
+                        <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.4), marginBottom: 14 }}>
                           {t('mf_mm_modal_hint')}
                         </div>
                       )}
@@ -8445,35 +8480,35 @@ function MatchFlow({ th, go, params }) {
               <PhotoGallery c={previewCand} th={th} height={280}>
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 130, background: `linear-gradient(to top, ${alpha(th.ink, 0.76)}, transparent)`, pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: 36, right: 20, left: 20, color: '#fff', pointerEvents: 'none' }}>
-                  <div style={{ fontFamily: th.display, fontSize: 28, fontWeight: 800, lineHeight: 1 }}>{previewCand.name}, {previewCand.age}</div>
-                  <div style={{ fontFamily: th.body, fontSize: 14, opacity: 0.9, marginTop: 5 }}>{previewCand.region} · {previewCand.religiosity}</div>
+                  <div style={{ fontFamily: th.display, fontSize: fs(28), fontWeight: 800, lineHeight: 1 }}>{previewCand.name}, {previewCand.age}</div>
+                  <div style={{ fontFamily: th.body, fontSize: fs(14), opacity: 0.9, marginTop: 5 }}>{previewCand.region} · {previewCand.religiosity}</div>
                 </div>
               </PhotoGallery>
               <div style={{ padding: '16px 20px 32px' }}>
                 {previewCand.sabaBut && <div style={{ marginBottom: 14 }}><SabaBadge th={th} text={previewCand.sabaBut} size="l" /></div>}
                 {previewCand.oneLine && (
                   <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{t('match_preview_one_line')}</div>
-                    <p style={{ margin: 0, fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.oneLine}</p>
+                    <div style={{ fontFamily: th.body, fontSize: fs(12), fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{t('match_preview_one_line')}</div>
+                    <p style={{ margin: 0, fontFamily: th.body, fontSize: fs(15), color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.oneLine}</p>
                   </div>
                 )}
                 {previewCand.seesWith && (
                   <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{t('match_preview_sees_with')}</div>
-                    <p style={{ margin: 0, fontFamily: th.body, fontSize: 15, color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.seesWith}</p>
+                    <div style={{ fontFamily: th.body, fontSize: fs(12), fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 6 }}>{t('match_preview_sees_with')}</div>
+                    <p style={{ margin: 0, fontFamily: th.body, fontSize: fs(15), color: alpha(th.ink, 0.8), lineHeight: 1.5 }}>{previewCand.seesWith}</p>
                   </div>
                 )}
                 {(previewCand.interests?.length > 0) && (
                   <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginBottom: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                    <div style={{ fontFamily: th.body, fontSize: 12, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_interests')}</div>
+                    <div style={{ fontFamily: th.body, fontSize: fs(12), fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_interests')}</div>
                     <InterestChips items={previewCand.interests} th={th} />
                   </div>
                 )}
                 <div style={{ background: th.card, borderRadius: th.r, padding: '4px 14px', boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
                   {infoPairs(previewCand).map(([k, v]) => (
                     <div key={k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px solid ${alpha(th.ink, 0.07)}`, padding: '10px 0' }}>
-                      <span style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.5) }}>{k}</span>
-                      <span style={{ fontFamily: th.display, fontSize: 14, color: th.ink, fontWeight: 700 }}>{v}</span>
+                      <span style={{ fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.5) }}>{k}</span>
+                      <span style={{ fontFamily: th.display, fontSize: fs(14), color: th.ink, fontWeight: 700 }}>{v}</span>
                     </div>
                   ))}
                 </div>
@@ -8482,12 +8517,12 @@ function MatchFlow({ th, go, params }) {
                   const mm = window.findMm(previewCand.mmId);
                   return (
                     <div style={{ background: th.card, borderRadius: th.r, padding: 14, marginTop: 12, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
-                      <div style={{ fontFamily: th.body, fontSize: 13, fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_mm_label')}</div>
+                      <div style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{t('match_preview_mm_label')}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                         <Avatar grad={mm.grad} name={mm.name} size={38} />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 15, color: th.ink }}>{mm.name}</div>
-                          <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.45) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {previewCand.name}</div>
+                          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(15), color: th.ink }}>{mm.name}</div>
+                          <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.45) }}>{isFemGender(mm?.gender) ? 'שדכנית' : 'שדכן'} של {previewCand.name}</div>
                         </div>
                       </div>
                     </div>
@@ -8498,7 +8533,7 @@ function MatchFlow({ th, go, params }) {
             {/* sticky "שדך" action button */}
             <div style={{ flexShrink: 0, padding: '12px 20px 28px', background: th.cream, borderTop: `1px solid ${alpha(th.ink, 0.08)}`, boxShadow: `0 -8px 24px ${alpha(th.ink, 0.07)}` }}>
               {offerExists(first?.id, previewCand?.id) ? (
-                <div style={{ background: alpha(th.gold, 0.12), borderRadius: th.r, padding: '12px 16px', textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: 14, color: th.gold }}>
+                <div style={{ background: alpha(th.gold, 0.12), borderRadius: th.r, padding: '12px 16px', textAlign: 'center', fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.gold }}>
                   בוצעה כבר התאמה בין {first.name} ל{previewCand.name}
                 </div>
               ) : (
@@ -8628,7 +8663,7 @@ function Offers({ th, go, params }) {
       />
       <div style={{ display: 'flex', gap: 6, padding: '4px 18px 6px', flexShrink: 0 }}>
         {tabs.map(({ id, lbl, count, dot }) => (
-          <button key={id} onClick={() => { setTab(id); setSubFilter(null); if (id !== 'pending' && sortBy === 'myAction') setSortBy('newest'); }} style={{ flex: 1, padding: '8px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: 13, background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}`, position:'relative' }}>
+          <button key={id} onClick={() => { setTab(id); setSubFilter(null); if (id !== 'pending' && sortBy === 'myAction') setSortBy('newest'); }} style={{ flex: 1, padding: '8px 4px', borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), background: tab === id ? th.ink : 'transparent', color: tab === id ? th.cream : alpha(th.ink, 0.5), boxShadow: tab === id ? 'none' : `inset 0 0 0 1.5px ${alpha(th.ink,0.12)}`, position:'relative' }}>
             {lbl}
             {count > 0 && <span style={{ marginInlineStart:4, background: tab===id ? alpha('#fff',0.25) : (dot || alpha(th.ink,0.2)), color:'#fff', borderRadius:99, fontSize:11, fontWeight:800, padding:'1px 6px' }}>{count}</span>}
           </button>
@@ -8636,12 +8671,12 @@ function Offers({ th, go, params }) {
       </div>
       {/* Sort picker */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 18px 10px', flexShrink: 0 }}>
-        <span style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.38), fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>↕ {t('offers_sort_label')}</span>
+        <span style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.38), fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>↕ {t('offers_sort_label')}</span>
         <div style={{ display: 'flex', background: alpha(th.ink, 0.06), borderRadius: 999, padding: 3, gap: 2 }}>
           {[{ id: 'newest', lbl: t('offers_sort_newest') }, { id: 'oldest', lbl: t('offers_sort_oldest') }].map(({ id, lbl }) => (
             <button key={id} onClick={() => setSortBy(id)}
               style={{ border: 'none', cursor: 'pointer', borderRadius: 999, padding: '4px 11px',
-                fontFamily: th.body, fontWeight: 700, fontSize: 12,
+                fontFamily: th.body, fontWeight: 700, fontSize: fs(12),
                 background: sortBy === id ? th.cream : 'transparent',
                 color: sortBy === id ? th.primary : alpha(th.ink, 0.45),
                 boxShadow: sortBy === id ? `0 1px 4px ${alpha(th.ink, 0.12)}` : 'none',
@@ -8654,7 +8689,7 @@ function Offers({ th, go, params }) {
       {/* Active filter chip */}
       {subFilter && (
         <div style={{ padding: '0 18px 8px', flexShrink: 0 }}>
-          <button onClick={() => setSubFilter(null)} style={{ display:'inline-flex', alignItems:'center', gap:6, border:'none', background: alpha(th.primary, 0.1), borderRadius: 999, padding: '5px 12px', cursor:'pointer', fontFamily: th.body, fontSize: 12, fontWeight: 700, color: th.primary }}>
+          <button onClick={() => setSubFilter(null)} style={{ display:'inline-flex', alignItems:'center', gap:6, border:'none', background: alpha(th.primary, 0.1), borderRadius: 999, padding: '5px 12px', cursor:'pointer', fontFamily: th.body, fontSize: fs(12), fontWeight: 700, color: th.primary }}>
             <Icon name="filter" size={13} />
             {subFilterLabels[subFilter]}
             <span style={{ opacity: 0.6, fontWeight: 400 }}>✕</span>
@@ -8856,7 +8891,7 @@ function Chat({ th, go, params }) {
         <button onClick={() => go('offers')} style={{ width: 38, height: 38, borderRadius: '50%', border: 'none', background: alpha(th.ink, 0.05), color: th.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="back" size={20} /></button>
         <Avatar grad={theirMm.grad} name={theirMm.name} size={40} photo={theirMm.photoURL} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 16, color: th.ink }}>{theirMm.name}</div>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: th.ink }}>{theirMm.name}</div>
           {/* Tappable candidate names → profile */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 1 }}>
             <button onClick={() => go('candidate', { id: o.aId, viewOnly: true })}
@@ -8885,7 +8920,7 @@ function Chat({ th, go, params }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ alignSelf: 'center', background: alpha(th.gold, 0.14), borderRadius: th.r, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Icon name="heart" size={15} style={{ color: th.primary }} fill={th.primary} stroke={0} />
-          <span style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.7) }}>הצעת שידוך: {a.name} · {b.name}</span>
+          <span style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.7) }}>הצעת שידוך: {a.name} · {b.name}</span>
         </div>
 
         {/* ── Approval banner: shown to the receiver (bMm) when action is needed ── */}
@@ -8927,8 +8962,8 @@ function Chat({ th, go, params }) {
           const mine = m.from === 'me';
           return (
             <div key={i} style={{ alignSelf: mine ? 'flex-start' : 'flex-end', maxWidth: '78%' }}>
-              <div style={{ background: mine ? th.primary : th.card, color: mine ? '#fff' : th.ink, borderRadius: 18, borderBottomRightRadius: mine ? 18 : 4, borderBottomLeftRadius: mine ? 4 : 18, padding: '9px 13px', fontFamily: th.body, fontSize: 14.5, lineHeight: 1.4, boxShadow: `0 2px 8px ${alpha(th.ink, 0.06)}` }}>{m.text}</div>
-              <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.4), marginTop: 3, textAlign: mine ? 'right' : 'left' }}>{m.t}</div>
+              <div style={{ background: mine ? th.primary : th.card, color: mine ? '#fff' : th.ink, borderRadius: 18, borderBottomRightRadius: mine ? 18 : 4, borderBottomLeftRadius: mine ? 4 : 18, padding: '9px 13px', fontFamily: th.body, fontSize: fs(14.5), lineHeight: 1.4, boxShadow: `0 2px 8px ${alpha(th.ink, 0.06)}` }}>{m.text}</div>
+              <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.4), marginTop: 3, textAlign: mine ? 'right' : 'left' }}>{m.t}</div>
             </div>
           );
         })}
@@ -8965,7 +9000,7 @@ function Chat({ th, go, params }) {
 
       {/* Input bar */}
       <div style={{ flexShrink: 0, padding: '8px 14px 26px', display: 'flex', gap: 8, alignItems: 'center', background: th.card, borderTop: `1px solid ${alpha(th.ink, 0.08)}` }}>
-        <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && send(text)} placeholder="כתוב/י הודעה…" style={{ flex: 1, border: 'none', background: alpha(th.ink, 0.05), borderRadius: 999, padding: '11px 16px', fontFamily: th.body, fontSize: 14.5, outline: 'none', color: th.ink }} />
+        <input value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && send(text)} placeholder="כתוב/י הודעה…" style={{ flex: 1, border: 'none', background: alpha(th.ink, 0.05), borderRadius: 999, padding: '11px 16px', fontFamily: th.body, fontSize: fs(14.5), outline: 'none', color: th.ink }} />
         <button onClick={() => send(text)} style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: th.primary, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name="send" size={20} fill="#fff" stroke={0} /></button>
       </div>
     </div>
@@ -10266,14 +10301,14 @@ function CandidateMode({ th, go }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Avatar grad={me.grad || gradForId(me.id)} name={me.name} size={50} photo={me.photos?.[0]} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: th.display, fontSize: 20, fontWeight: 800, color: th.ink, lineHeight: 1 }}>שלום, {me.name}</div>
-            <div style={{ fontFamily: th.body, fontSize: 13, color: alpha(th.ink, 0.55), marginTop: 3 }}>מצב מועמד/ת</div>
+            <div style={{ fontFamily: th.display, fontSize: fs(20), fontWeight: 800, color: th.ink, lineHeight: 1 }}>שלום, {me.name}</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.55), marginTop: 3 }}>מצב מועמד/ת</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: alpha('#fff', 0.6), borderRadius: th.r, padding: '10px 14px', marginTop: 14 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{me.available ? t('cand_available') : t('cand_busy')}</div>
-            <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.55) }}>{me.available ? t('cand_available_sub') : t('cand_busy_sub')}</div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14.5), color: th.ink }}>{me.available ? t('cand_available') : t('cand_busy')}</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.55) }}>{me.available ? t('cand_available_sub') : t('cand_busy_sub')}</div>
           </div>
           <Toggle on={!!me.available} onChange={toggleAvailable} th={th} />
         </div>
@@ -10282,7 +10317,7 @@ function CandidateMode({ th, go }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 28px' }}>
 
         {/* OFFERS */}
-        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+        <div style={{ fontFamily: th.display, fontSize: fs(17), fontWeight: 800, color: th.ink, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
           <Icon name="heart" size={19} style={{ color: th.primary }} fill={th.primary} stroke={0} /> {t('cand_offers_title')}
           {myOffers.length > 1 && (
             <span style={{ marginRight: 'auto', display:'flex', alignItems:'center', gap:6 }}>
@@ -10301,8 +10336,8 @@ function CandidateMode({ th, go }) {
 
         {!currentOffer || !otherCand ? (
           <div style={{ background: alpha(th.ink, 0.04), borderRadius: th.r, padding: '22px 16px', textAlign: 'center', marginBottom: 22 }}>
-            <div style={{ fontFamily: th.body, fontSize: 14, color: alpha(th.ink, 0.5) }}>{t('cand_no_offer')}</div>
-            <div style={{ fontFamily: th.body, fontSize: 12.5, color: alpha(th.ink, 0.4), marginTop: 4 }}>{t('cand_no_offer_sub')}</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(14), color: alpha(th.ink, 0.5) }}>{t('cand_no_offer')}</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.4), marginTop: 4 }}>{t('cand_no_offer_sub')}</div>
           </div>
         ) : (
           <div style={{ background: th.card, borderRadius: th.rLg, overflow: 'hidden', marginBottom: 22, boxShadow: `0 10px 26px ${alpha(th.ink, 0.1)}` }}>
@@ -10317,14 +10352,14 @@ function CandidateMode({ th, go }) {
                 </div>
                 <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 90, background: `linear-gradient(to top, ${alpha(th.ink,0.7)}, transparent)`, pointerEvents: 'none' }} />
                 <div style={{ position: 'absolute', bottom: 14, right: 16, color: '#fff', pointerEvents: 'none' }}>
-                  <div style={{ fontFamily: th.display, fontSize: 26, fontWeight: 800 }}>{otherCand.name}, {otherCand.age}</div>
-                  <div style={{ fontFamily: th.body, fontSize: 13.5, opacity: 0.9 }}>{otherCand.region}{otherCand.religiosity ? ` · ${otherCand.religiosity}` : ''}</div>
+                  <div style={{ fontFamily: th.display, fontSize: fs(26), fontWeight: 800 }}>{otherCand.name}, {otherCand.age}</div>
+                  <div style={{ fontFamily: th.body, fontSize: fs(13.5), opacity: 0.9 }}>{otherCand.region}{otherCand.religiosity ? ` · ${otherCand.religiosity}` : ''}</div>
                 </div>
               </PhotoGallery>
             </div>
             <div style={{ padding: 16 }}>
               {otherCand.sabaBut && <div style={{ marginBottom: 12 }}><SabaBadge th={th} text={otherCand.sabaBut} /></div>}
-              {otherCand.oneLine && <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: 14.5, color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>{otherCand.oneLine}</p>}
+              {otherCand.oneLine && <p style={{ margin: '0 0 14px', fontFamily: th.body, fontSize: fs(14.5), color: alpha(th.ink, 0.75), lineHeight: 1.5 }}>{otherCand.oneLine}</p>}
               <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
                 {(() => {
                   const phone = otherCand.phone ? String(otherCand.phone).replace(/\D/g,'').replace(/^0/,'972') : null;
@@ -10380,7 +10415,7 @@ function CandidateMode({ th, go }) {
         {/* CO-REP REQUESTS */}
         {coRepReqs.length > 0 && (
           <>
-            <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10, display:'flex', alignItems:'center', gap:7 }}>
+            <div style={{ fontFamily: th.display, fontSize: fs(17), fontWeight: 800, color: th.ink, marginBottom: 10, display:'flex', alignItems:'center', gap:7 }}>
               🤝 בקשות ייצוג
             </div>
             {coRepReqs.map(req => (
@@ -10401,10 +10436,10 @@ function CandidateMode({ th, go }) {
         )}
 
         {/* MY MATCHMAKERS */}
-        <div style={{ fontFamily: th.display, fontSize: 17, fontWeight: 800, color: th.ink, marginBottom: 10 }}>{t('cand_mms_title')}</div>
+        <div style={{ fontFamily: th.display, fontSize: fs(17), fontWeight: 800, color: th.ink, marginBottom: 10 }}>{t('cand_mms_title')}</div>
         <div style={{ background: th.card, borderRadius: th.r, padding: 6, marginBottom: 22, boxShadow: `0 4px 14px ${alpha(th.ink, 0.05)}` }}>
           {myMms.length === 0 ? (
-            <div style={{ padding: '14px 10px', fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.45), textAlign: 'center' }}>לא נמצאו שדכנים</div>
+            <div style={{ padding: '14px 10px', fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.45), textAlign: 'center' }}>לא נמצאו שדכנים</div>
           ) : myMms.map((m, i) => {
             const isPrimaryMm = m.id === me.mmId;
             return (
@@ -10412,12 +10447,12 @@ function CandidateMode({ th, go }) {
                 <Avatar grad={m.grad || gradForId(m.uid || m.id)} name={m.displayName || m.name || '?'} size={42} photo={m.photoURL} />
                 <div style={{ flex: 1 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 14.5, color: th.ink }}>{m.displayName || m.name}</div>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14.5), color: th.ink }}>{m.displayName || m.name}</div>
                     <span style={{ fontFamily:th.body, fontSize:10.5, fontWeight:700, color: isPrimaryMm ? th.primary : alpha(th.ink,0.4), background: isPrimaryMm ? alpha(th.primary,0.1) : alpha(th.ink,0.07), borderRadius:999, padding:'2px 7px' }}>
                       {isPrimaryMm ? 'שדכן ראשי' : 'שדכן משני'}
                     </span>
                   </div>
-                  <div style={{ fontFamily: th.body, fontSize: 12, color: alpha(th.ink, 0.5) }}>{m.region || ''}</div>
+                  <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.5) }}>{m.region || ''}</div>
                 </div>
                 <div style={{ display:'flex', gap:6, alignItems:'center' }}>
                   {m.phone && !m.noWhatsapp && (
@@ -10458,7 +10493,7 @@ function Settings({ th, go }) {
   const Row = ({ icon, label, danger, last, onClick, tone }) => (
     <button onClick={onClick} style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%', display: 'flex', alignItems: 'center', gap: 13, padding: '13px 14px', borderBottom: last ? 'none' : `1px solid ${alpha(th.ink, 0.07)}` }}>
       <div style={{ width: 34, height: 34, borderRadius: 10, background: alpha(danger ? th.error : (tone || th.ink), 0.1), color: danger ? th.error : (tone || th.ink), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon name={icon} size={19} /></div>
-      <span style={{ flex: 1, fontFamily: th.body, fontWeight: 600, fontSize: 15, color: danger ? th.error : th.ink }}>{label}</span>
+      <span style={{ flex: 1, fontFamily: th.body, fontWeight: 600, fontSize: fs(15), color: danger ? th.error : th.ink }}>{label}</span>
       <span style={{ color: alpha(th.ink, 0.3) }}><Icon name="chevL" size={18} /></span>
     </button>
   );
@@ -10472,8 +10507,8 @@ function Settings({ th, go }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: th.card, borderRadius: th.rLg, padding: 16, marginBottom: 18, boxShadow: `0 6px 18px ${alpha(th.ink, 0.06)}` }}>
           <Avatar grad={me.grad} name={me.name} size={62} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: 19, color: th.ink }}>{me.name}</div>
-            <div style={{ fontFamily: th.body, fontSize: 13.5, color: alpha(th.ink, 0.55) }}>שדכנית · {me.region}</div>
+            <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(19), color: th.ink }}>{me.name}</div>
+            <div style={{ fontFamily: th.body, fontSize: fs(13.5), color: alpha(th.ink, 0.55) }}>שדכנית · {me.region}</div>
           </div>
           <Btn th={th} variant="soft" size="s" icon={<Icon name="edit" size={16} />}>עריכה</Btn>
         </div>
@@ -10496,7 +10531,7 @@ function Settings({ th, go }) {
 
         <div style={{ textAlign: 'center', marginTop: 8 }}>
           <Logo size={28} color={alpha(th.ink, 0.25)} flaw={th.cream} />
-          <div style={{ fontFamily: th.display, fontSize: 13, color: alpha(th.ink, 0.35), marginTop: 4 }}>סבבה והכל · גרסה 1.0</div>
+          <div style={{ fontFamily: th.display, fontSize: fs(13), color: alpha(th.ink, 0.35), marginTop: 4 }}>סבבה והכל · גרסה 1.0</div>
         </div>
       </div>
     </>
@@ -10510,7 +10545,7 @@ Object.assign(window, { Toggle, CandidateMode, Settings });
 // ════════════════════════════════════════════════════════════
 const TWEAK_DEFAULTS = {
   "primaryColor": "#E8547A", "fontPair": "אופי", "radius": "רך",
-  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new",
+  "density": "רגיל", "cardVariant": "קלאסי", "showMmNote": true, "aiMode": "top5", "offerDetailLayout": "new", "fontScale": 1,
   "cmNewMatch": "on", "cmAddCand": "on", "cmApproveCand": "on", "cmApproveOffer": "on"
 };
 const NAV_ROUTES   = ['home', 'cands', 'offers', 'ai', 'set'];
@@ -12105,11 +12140,11 @@ function ImpersonateBanner({ th }) {
   const label = impersonateType === 'candidate' ? 'מועמד/ת' : 'שדכן/ית';
   return (
     <div style={{ background: '#7B2D00', color: '#fff', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, zIndex: 999 }}>
-      <div style={{ fontSize: 14 }}>🎭</div>
-      <div style={{ flex: 1, fontFamily: th.display, fontWeight: 800, fontSize: 12.5 }}>
+      <div style={{ fontSize: fs(14) }}>🎭</div>
+      <div style={{ flex: 1, fontFamily: th.display, fontWeight: 800, fontSize: fs(12.5) }}>
         מדמה {label}: {profile?.displayName || profile?.name || profile?.uid}
       </div>
-      <button onClick={stopImpersonate} style={{ border: 'none', background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 999, padding: '4px 12px', fontFamily: th.display, fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
+      <button onClick={stopImpersonate} style={{ border: 'none', background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 999, padding: '4px 12px', fontFamily: th.display, fontWeight: 800, fontSize: fs(12), cursor: 'pointer' }}>
         יציאה ✕
       </button>
     </div>
@@ -12120,7 +12155,7 @@ function ImpersonateBanner({ th }) {
 // design Tweaks panel) and must survive a page reload, unlike the rest of
 // TWEAK_DEFAULTS which is purely for in-session design iteration.
 const PROD_TWEAK_KEYS = ['cardVariant', 'offerDetailLayout', 'primaryColor', 'fontPair', 'radius', 'density',
-  'showMmNote', 'cmNewMatch', 'cmAddCand', 'cmApproveCand', 'cmApproveOffer'];
+  'showMmNote', 'cmNewMatch', 'cmAddCand', 'cmApproveCand', 'cmApproveOffer', 'fontScale'];
 
 function AppInner({ inviteToken, offerParam }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
@@ -12155,6 +12190,7 @@ function AppInner({ inviteToken, offerParam }) {
     setTweak(edits);
     await db.collection('config').doc('settings').set(edits, { merge: true });
   };
+  _fontScale = t.fontScale ?? 1;
   const th = makeTheme({ ...t, aiMode, groupTagsByCategory });
   const { user, profile } = useContext(AuthCtx);
   const data           = useContext(DataCtx);
