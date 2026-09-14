@@ -6326,12 +6326,12 @@ function Candidates({ th, go, params }) {
   return (
     <>
       {scope === 'drafts' ? (
-        <div style={{ background:`linear-gradient(135deg, ${th.primary} 0%, ${th.gold} 100%)`, padding:'52px 20px 22px', flexShrink:0, position:'relative' }}>
-          <button onClick={() => setScope('mine')} style={{ position:'absolute', top:50, right:18, border:'none', background:'rgba(255,255,255,0.2)', backdropFilter:'blur(6px)', borderRadius:999, padding:'6px 14px 6px 10px', color:'#fff', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:fs(13), display:'flex', alignItems:'center', gap:5 }}>
+        <div style={{ background:`linear-gradient(135deg, ${th.primary} 0%, ${th.gold} 100%)`, padding:'60px 20px 32px', flexShrink:0, position:'relative' }}>
+          <button onClick={() => setScope('mine')} style={{ position:'absolute', top:16, right:18, border:'none', background:'rgba(255,255,255,0.2)', backdropFilter:'blur(6px)', borderRadius:999, padding:'6px 14px 6px 10px', color:'#fff', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:fs(13), display:'flex', alignItems:'center', gap:5 }}>
             <Icon name="chevR" size={14} /> חזרה
           </button>
           <div style={{ fontFamily:th.display, fontWeight:900, fontSize:fs(28), color:'#fff', letterSpacing:'-0.5px', marginBottom:6 }}>Unlisted</div>
-          <div style={{ fontFamily:th.body, fontSize:fs(13.5), color:'rgba(255,255,255,0.82)', lineHeight:1.45, maxWidth:230 }}>מועמדים שנשמרים רק אצלך — עדיין לא נרשמו ל-Sababa</div>
+          <div style={{ fontFamily:th.body, fontSize:fs(13.5), color:'rgba(255,255,255,0.82)', lineHeight:1.45, maxWidth:250 }}>מועמדים שרק אתם יכולים לראות — הם עדיין לא נרשמו לאפליקציה.</div>
           {draftCandidates.length > 0 && <div style={{ marginTop:8, fontFamily:th.display, fontWeight:800, fontSize:fs(12), color:'rgba(255,255,255,0.65)' }}>{draftCandidates.length} מועמדים</div>}
         </div>
       ) : (
@@ -6350,7 +6350,7 @@ function Candidates({ th, go, params }) {
         } />
       )}
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 90px', position: 'relative' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: scope === 'drafts' ? '22px 18px 90px' : '8px 18px 90px', position: 'relative', ...(scope === 'drafts' ? { borderTopLeftRadius: 22, borderTopRightRadius: 22, marginTop: -22, background: th.cream } : {}) }}>
         {scope !== 'drafts' && (<>
         {/* search + filter inline */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
@@ -6424,18 +6424,13 @@ function Candidates({ th, go, params }) {
         {/* DRAFT VIEW */}
         {scope === 'drafts' ? (
           <>
-            <button onClick={() => setDraftSheetDraft({})}
-              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:10, width:'100%', boxSizing:'border-box', border:`1.5px dashed ${alpha(th.primary,0.4)}`, borderRadius:th.r, padding:'11px 14px', marginBottom:14, color:th.primary }}>
-              <Icon name="plus" size={18} style={{ flexShrink:0 }} />
-              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14) }}>הוסף ל-Unlisted</span>
-            </button>
             {draftCandidates.length === 0 && (
               <div style={{ textAlign:'center', padding:'40px 20px', color:alpha(th.ink,0.4) }}>
                 <Icon name="list" size={38} />
                 <div style={{ fontFamily:th.body, marginTop:10, fontSize:fs(14) }}>עדיין אין Unlisted — לחץ ״+״ להוסיף</div>
               </div>
             )}
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom: draftCandidates.length > 0 ? 14 : 0 }}>
               {draftCandidates.map(d => (
                 <button key={d.id} onClick={() => setDraftSheetDraft(d)}
                   style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:12, background:th.card, borderRadius:th.r, padding:'12px 14px', boxShadow:`0 2px 8px ${alpha(th.ink,0.07)}` }}>
@@ -6450,6 +6445,11 @@ function Candidates({ th, go, params }) {
                 </button>
               ))}
             </div>
+            <button onClick={() => setDraftSheetDraft({})}
+              style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', gap:10, width:'100%', boxSizing:'border-box', border:`1.5px dashed ${alpha(th.primary,0.4)}`, borderRadius:th.r, padding:'11px 14px', marginTop:4, color:th.primary }}>
+              <Icon name="plus" size={18} style={{ flexShrink:0 }} />
+              <span style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14) }}>הוסף ל-Unlisted</span>
+            </button>
           </>
         ) : (
           <>
