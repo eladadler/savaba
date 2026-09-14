@@ -1767,6 +1767,43 @@ const TAG_ICON_PATHS = {
   binoculars: <><rect x="2.5" y="9.1" width="6.5" height="11.4" rx="3.2"/><rect x="15" y="9.1" width="6.5" height="11.4" rx="3.2"/><path d="M9 13.2h6M5.8 9.1V5.6a1.5 1.5 0 0 1 3 0v3.5M15.2 9.1V5.6a1.5 1.5 0 0 1 3 0v3.5"/></>,
   infinity:   <path d="M8.2 8.2a5.4 5.4 0 1 0 0 7.6l7.6-7.6a5.4 5.4 0 1 1 0 7.6L8.2 8.2Z"/>,
   cloud:      <path d="M7.1 19.4a4.6 4.6 0 0 1-.6-9.1 6 6 0 0 1 11.5.6 4.3 4.3 0 0 1-.7 8.5H7.1Z"/>,
+
+  // ── Judaism ──
+  torah:      <><path d="M7.5 5.2v13.6M16.5 5.2v13.6"/><path d="M5.3 3.4h4.4M14.3 3.4h4.4M5.3 20.6h4.4M14.3 20.6h4.4"/><path d="M9.8 6.4h4.4v11.2H9.8z"/><path d="M11.2 9.4h1.6M11.2 12h1.6M11.2 14.6h1.6"/></>,
+  shabbat:    <><path d="M8 20.5v-7M16 20.5v-7M4.8 20.5h14.4"/><path d="M8 13.5c-1.2-1.3-1.8-2.2-1.8-3.2 0-1.1.8-2.1 1.8-2.8 1 .7 1.8 1.7 1.8 2.8 0 1-.6 1.9-1.8 3.2ZM16 13.5c-1.2-1.3-1.8-2.2-1.8-3.2 0-1.1.8-2.1 1.8-2.8 1 .7 1.8 1.7 1.8 2.8 0 1-.6 1.9-1.8 3.2Z"/></>,
+  challah:    <><path d="M3.5 13.4c0-2.5 3.8-4.6 8.5-4.6s8.5 2.1 8.5 4.6-3.8 5-8.5 5-8.5-2.5-8.5-5Z"/><path d="M6.4 11.2c1 1.5 2 1.5 3 0s2-1.5 3 0 2 1.5 3 0 1.4-1 2-.6"/><path d="M6.4 14.8c1 1.5 2 1.5 3 0s2-1.5 3 0 2 1.5 3 0 1.4-1 2-.6"/></>,
+  tallit:     <><path d="M4.6 4.4h14.8V15a1.8 1.8 0 0 1-1.8 1.8H6.4A1.8 1.8 0 0 1 4.6 15V4.4Z"/><path d="M4.6 7.2h14.8M4.6 9.2h14.8"/><path d="M6.6 16.8v1.5l-1 1.1 1 1.1M10 16.8v1.7l1 1.1-1 1.1M14 16.8v1.7l-1 1.1 1 1.1M17.4 16.8v1.5l1 1.1-1 1.1"/></>,
+  tefillin:   <><rect x="7.6" y="3.4" width="8.8" height="6.2" rx="1.4"/><path d="M12 5.6v1.8"/><path d="M7.6 6.5H4.4a1.8 1.8 0 0 0-1.8 1.8v1.4M16.4 6.5h3.2a1.8 1.8 0 0 1 1.8 1.8v1.4"/><rect x="9" y="13.6" width="6" height="4.6" rx="1.2"/><path d="M9 15.9H6.2M15 15.9h2.8M12 18.2v2.3"/></>,
+  kippah:     <><path d="M3.6 15.4a8.4 8.4 0 0 1 16.8 0"/><path d="M2.5 15.4h19"/><path d="M8 15.4c0-4 1.8-7.1 4-7.1s4 3.1 4 7.1"/></>,
+  shofar:     <><path d="M2.5 15.1c0-2.9 2.2-5.1 5.1-5.1 5 0 8.1-3 11.6-3.6l2.3 4.6-3 1.5c-1 3.5-4.5 6-8.5 6-3.9 0-7.5-1-7.5-3.4Z"/><path d="M6.4 14.2h.02"/></>,
+  dreidel:    <><path d="M6.8 4.6h10.4v4.8L12 17.2 6.8 9.4V4.6Z"/><path d="M12 17.2v3.3M5.6 4.6h12.8"/><path d="M10.6 7.4v3.4M10.6 7.4h2.8v3.4"/></>,
+  sukkah:     <><path d="M3 9.6h18M4.6 9.6v10.9M19.4 9.6v10.9M2.5 20.5h19"/><path d="m4.4 9.6 2.8-4M9.2 9.6 12 5.6M14 9.6l2.8-4M18.8 9.6l1.6-2.2"/><path d="M9.6 20.5v-5.8h4.8v5.8"/></>,
+  lulav:      <><path d="M8.4 20.5V5.2"/><path d="M8.4 5.2c-.5-1.8 0-3.1 1.2-3.9-.2 1.7-.6 2.8-1.2 3.9Z"/><path d="M8.4 8.6C6.9 7.4 5.3 7.1 3.8 7.6c1.2 1.4 2.8 1.9 4.6 1ZM8.4 8.6c1.5-1.2 3.1-1.5 4.6-1-1.2 1.4-2.8 1.9-4.6 1ZM8.4 12.4c-1.5-1.2-3.1-1.5-4.6-1 1.2 1.4 2.8 1.9 4.6 1ZM8.4 12.4c1.5-1.2 3.1-1.5 4.6-1-1.2 1.4-2.8 1.9-4.6 1Z"/><ellipse cx="17.4" cy="16.6" rx="3.2" ry="3.9"/><path d="M17.4 12.7v-1.4"/></>,
+  hamsa:      <><path d="M12 20.5c-3.6 0-6.1-2.6-6.1-6.1v-3c0-.9.6-1.6 1.4-1.6s1.5.7 1.5 1.6V8.1c0-1 .6-1.7 1.5-1.7s1.5.7 1.5 1.7V6.2c0-1 .7-1.7 1.6-1.7s1.5.7 1.5 1.7v1.9c0-.9.6-1.6 1.4-1.6s1.4.7 1.4 1.6v6.3c0 3.5-2.6 6.1-6.2 6.1Z"/><circle cx="12" cy="14.2" r="1.6"/></>,
+  kotel:      <><rect x="2.5" y="8" width="19" height="12.5" rx="1"/><path d="M2.5 12.2h19M2.5 16.4h19"/><path d="M9 8v4.2M16 8v4.2M5.6 12.2v4.2M12.5 12.2v4.2M19 12.2v4.2M9 16.4v4.1M16 16.4v4.1"/></>,
+  mezuzah:    <><rect x="8.4" y="2.8" width="7.2" height="18.4" rx="2.4"/><path d="M12 8.4v4.8M10 9.4v2.8M14 9.4v2.8M10.4 15.2h3.2"/></>,
+  besamim:    <><path d="M12 2.5v2.2M9 7.6h6l-1 2h-4l-1-2Z"/><path d="m12 4.7-3 2.9M12 4.7l3 2.9"/><rect x="8.4" y="9.6" width="7.2" height="7.8" rx="1.2"/><path d="M8.4 13.5h7.2"/><path d="M10 17.4v2.2M14 17.4v2.2M8 20.5h8"/></>,
+  chanukiah:  <><path d="M12 20.5v-6.4M8 20.5h8M2.6 14.1h18.8"/><path d="M3.9 14.1v-2.4M6 14.1v-2.4M8.1 14.1v-2.4M10.2 14.1v-2.4M12 14.1v-4.2M13.8 14.1v-2.4M15.9 14.1v-2.4M18 14.1v-2.4M20.1 14.1v-2.4"/><path d="M12 8.6h.02M3.9 10.8h.02M6 10.8h.02M8.1 10.8h.02M10.2 10.8h.02M13.8 10.8h.02M15.9 10.8h.02M18 10.8h.02M20.1 10.8h.02"/></>,
+  chuppah:    <><path d="M2.5 8.1h19M4.6 8.1v12.4M19.4 8.1v12.4M2.5 20.5h19"/><path d="M2.5 8.1c1.8-2.3 4-3.5 6.2-3.5S12 5.8 12 8.1c0-2.3 1.1-3.5 3.3-3.5s4.4 1.2 6.2 3.5"/><path d="M12 17.6c-1.6-1.1-3.2-2.3-3.2-3.8 0-1.8 2.3-2.2 3.2-.9.9-1.3 3.2-.9 3.2.9 0 1.5-1.6 2.7-3.2 3.8Z"/></>,
+  bookshelf:  <><rect x="3" y="3.4" width="18" height="17.2" rx="2"/><path d="M3 12h18"/><path d="M6.2 6v4.4M8.7 6v4.4M11.2 6v4.4M6.2 13.6V18M8.7 13.6V18M11.2 13.6V18"/></>,
+  // ── further domains ──
+  coins:      <><ellipse cx="12" cy="6.4" rx="7.4" ry="2.9"/><path d="M4.6 6.4v4c0 1.6 3.3 2.9 7.4 2.9s7.4-1.3 7.4-2.9v-4"/><path d="M4.6 10.4v4c0 1.6 3.3 2.9 7.4 2.9s7.4-1.3 7.4-2.9v-4"/><path d="M4.6 14.4v3c0 1.6 3.3 2.9 7.4 2.9s7.4-1.3 7.4-2.9v-3"/></>,
+  medal:      <><circle cx="12" cy="15.4" r="5.4"/><path d="M9.6 10.4 6.6 3.4h10.8l-3 7"/><path d="m12 13.1.9 1.9 2 .3-1.4 1.4.3 2-1.8-1-1.8 1 .3-2L9.1 15.3l2-.3.9-1.9Z"/></>,
+  wheat:      <><path d="M12 20.5v-9.8M9.8 20.5h4.4"/><path d="M12 10.7c-2.1 0-3.4-1.4-3.4-3.4 2.1 0 3.4 1.4 3.4 3.4ZM12 10.7c2.1 0 3.4-1.4 3.4-3.4-2.1 0-3.4 1.4-3.4 3.4ZM12 15.4c-2.1 0-3.4-1.4-3.4-3.4 2.1 0 3.4 1.4 3.4 3.4ZM12 15.4c2.1 0 3.4-1.4 3.4-3.4-2.1 0-3.4 1.4-3.4 3.4Z"/><path d="M12 7.3c-.9-1-1.3-2.2-1.3-3.6 1.3.7 2.1 1.9 2.2 3.3"/></>,
+  tractor:    <><circle cx="6.6" cy="16.4" r="4"/><circle cx="17.6" cy="17.4" r="3"/><path d="M6.6 12.4V7.8h4.8l2.2 4.6M11.4 7.8h4.8v6.4M2.6 12.4h4M13.6 12.4h7.8"/></>,
+  atom:       <><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="9.4" ry="3.9"/><ellipse cx="12" cy="12" rx="9.4" ry="3.9" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.4" ry="3.9" transform="rotate(-60 12 12)"/></>,
+  dna:        <><path d="M7 2.5c0 5 10 6 10 11s-10 6-10 8M17 2.5c0 5-10 6-10 11s10 6 10 8"/><path d="M8.4 6h7.2M7.1 10h9.8M7.1 14h9.8M8.4 18h7.2"/></>,
+  telescope:  <><path d="m3.4 13.6 2.8-6.4 10.6 4.6-2.8 6.4L3.4 13.6Z"/><path d="m16.8 11.8 2.4-5.5 2.3 1-2.4 5.5"/><path d="M9.4 15.6 7 21M13 17.1l1.5 3.9"/></>,
+  planet:     <><circle cx="12" cy="11" r="6.4"/><path d="M5.9 13.3c-2.6 1.6-4 3.3-3.5 4.4.8 1.8 5.7 1.1 11-1.5s9-6 8.2-7.8c-.5-1-2.6-1.2-5.3-.4"/></>,
+  ball:       <><circle cx="12" cy="12" r="8.5"/><path d="m12 7.3 4 2.9-1.5 4.7H9.5L8 10.2l4-2.9Z"/><path d="M12 3.5v3.8M19.6 9.6 16 10.2M17.3 18.6l-2.8-3.7M6.7 18.6l2.8-3.7M4.4 9.6 8 10.2"/></>,
+  basketball: <><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17"/><path d="M6.1 6.1a11 11 0 0 1 0 11.8M17.9 6.1a11 11 0 0 0 0 11.8"/></>,
+  bird:       <><path d="M21.5 5.4 18.4 7.6v4.1c0 4.3-3.5 7.8-7.8 7.8H5.1a2.4 2.4 0 0 1-2.4-2.4c0-3.1 2.5-5.6 5.6-5.6h1.2c1.6 0 2.8-1.3 2.8-2.8V8.3a3.5 3.5 0 0 1 3.5-3.5h2.4l3.3.6Z"/><path d="M15.9 8.2h.02"/><path d="m7.4 19.5-1.6 1.6"/></>,
+  fish:       <><path d="M15.4 12c0 3.4-3.4 6-7 6-3.9 0-6.9-2.6-6.9-6s3-6 6.9-6c3.6 0 7 2.6 7 6Z"/><path d="m15.4 12 6.1-4v8l-6.1-4Z"/><path d="M6 10.4h.02"/></>,
+  wateringCan:<><path d="M4.6 9.6h8.8v7.9a2 2 0 0 1-2 2H6.6a2 2 0 0 1-2-2V9.6Z"/><path d="M13.4 12h3l4.1-4.6M6.1 9.6V8.1a2.5 2.5 0 0 1 5 0v1.5"/><path d="m20.5 7.4 1.4-2.4M20.5 7.4 18 6.4"/></>,
+  notebook:   <><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 7.6h14M9.2 3v18"/><path d="M12 11.4h4M12 14.8h4"/></>,
+  translate:  <><path d="M3 5.6h8.2M7.1 3.5v2.1M8.6 5.6c-.5 4-3.1 6.6-5.6 7.6M5 9.1c1 2 3 3.6 5.6 4.1"/><path d="m12.4 20.5 4.1-9.1 4.1 9.1M13.8 17.5h5.4"/></>,
+  pill:       <><path d="M10.5 3.2 3.2 10.5a5.2 5.2 0 0 0 7.3 7.3l7.3-7.3a5.2 5.2 0 0 0-7.3-7.3Z"/><path d="m6.9 6.9 7.2 7.2"/></>,
+  ticket:     <><path d="M3 7.6h18v2.9a2 2 0 0 0 0 4v2.9H3v-2.9a2 2 0 0 0 0-4V7.6Z"/><path d="M14 7.6v2M14 11v2M14 14.4v2"/></>,
 };
 
 function TagIcon({ name, size = 15, color = 'currentColor', style }) {
@@ -1876,6 +1913,76 @@ const TAG_ICON_CHOICES = {
   'שמח בחלקו': ['smile','sun','heart'],
   'שקט': ['leaf','cloud','moonStars'],
 };
+
+// Hebrew search words per icon. Tags that already point at an icon become search
+// terms for free; this table covers the rest of the library.
+const TAG_ICON_EXTRA_WORDS = {
+  briefcase:'עבודה תיק קריירה משרד', laptop:'מחשב נייד הייטק', chalkboard:'לוח כיתה הוראה מורה',
+  bulb:'נורה רעיון המצאה', bookOpen:'ספר פתוח לימוד', scroll:'מגילה גמרא הלכה',
+  gradCap:'כובע סיום אקדמיה תואר', wallet:'ארנק כסף', target:'מטרה יעד',
+  trendUp:'גרף עולה שאפתנות הצלחה', lotus:'יוגה מדיטציה לוטוס', coffee:'קפה כוס',
+  book:'ספר קריאה', dumbbell:'משקולת כושר חדר כושר', music:'מוזיקה תו נגינה',
+  chefHat:'שף בישול מטבח', bread:'לחם מאפה מחמצת', tools:'מפתח ברגים כלים תיקון',
+  paw:'כפה חיה חיות מחמד', globe:'עולם גלובוס בינלאומי', users:'אנשים חברה קבוצה',
+  puzzle:'פאזל חידה', mountain:'הר טיול טבע', plane:'מטוס טיסה חול',
+  film:'סרט קולנוע', glass:'כוס בילוי קוקטייל', compass:'מצפן הרפתקה כיוון',
+  megaphone:'רמקול פוליטיקה הצהרה', sparkleStar:'נצנוץ רוחניות קסם', palette:'פלטה אמנות ציור',
+  smile:'חיוך הומור צחוק', moonStars:'ירח לילה מיסטיקה', home:'בית משפחה',
+  chat:'שיחה בועה דיבור', feather:'נוצה שירה כתיבה', handHeart:'יד לב עזרה התנדבות',
+  shirt:'חולצה סטייל לבוש', leaf:'עלה רוגע טבע', anchor:'עוגן יציבות',
+  starDavid:'מגן דוד יהדות ישראל', candles:'נר נרות שבת', prayer:'תפילה ידיים',
+  mirror:'דמיון חפיפה שני עיגולים', shieldHeart:'מגן ערכים הגנה', flag:'דגל ישראל',
+  sun:'שמש אופטימיות יום', ear:'אוזן הקשבה', wave:'גלים זרימה ים',
+  tree:'עץ ישוב טבע', buildings:'בניינים עיר', tent:'אוהל קמפינג חוץ',
+  wifi:'רשת אינטרנט', heartPulse:'לב דופק אינטואיציה רגש',
+  heart:'לב אהבה', couple:'זוג שניים שידוך', baby:'תינוק ילד',
+  synagogue:'בית כנסת שול', menorah:'מנורה מקדש', wine:'יין קידוש גביע',
+  camera:'מצלמה צילום', bike:'אופניים רכיבה', running:'ריצה ספורט',
+  swim:'שחייה בריכה ים', chess:'שחמט אסטרטגיה', gamepad:'גיימינג משחקים קונסולה',
+  guitar:'גיטרה נגינה', piano:'פסנתר קלידים', microphone:'מיקרופון שירה פודקאסט',
+  headset:'אוזניות מוזיקה', masks:'מסכות תיאטרון משחק', brush:'מכחול ציור עיצוב',
+  flower:'פרח גינון', sprout:'נבט צמיחה גינון', cutlery:'סכום מסעדה אוכל',
+  pizza:'פיצה אוכל', iceCream:'גלידה קינוח', map:'מפה ניווט טיול',
+  car:'רכב מכונית נסיעה', sailboat:'סירה מפרשית ים', campfire:'מדורה קמפינג',
+  sunrise:'זריחה בוקר', palm:'דקל חוף ישראל', pen:'עט כתיבה',
+  calculator:'מחשבון חשבונאות', stethoscope:'רפואה רופא', gavel:'פטיש משפט עורך דין',
+  microscope:'מיקרוסקופ מדע מחקר', rocket:'רקטה סטארטאפ יזמות', chart:'גרף נתונים כלכלה',
+  code:'קוד תכנות מפתח', star:'כוכב מצוינות', crown:'כתר מלכות יוקרה',
+  fire:'אש להט תשוקה', hourglass:'שעון חול זמן סבלנות', key:'מפתח פתרון',
+  bolt:'ברק אנרגיה', scales:'מאזניים צדק הלכה משפט', umbrella:'מטריה הגנה',
+  gift:'מתנה נתינה', cake:'עוגה חגיגה יומולדת', phone:'טלפון נייד',
+  mail:'מייל דואר', couch:'ספה ביתי מנוחה', cat:'חתול חיות',
+  dog:'כלב חיות', backpack:'תרמיל טיול', trophy:'גביע ניצחון הישג',
+  binoculars:'משקפת חיפוש', infinity:'אינסוף מחויבות', cloud:'ענן שקט',
+  torah:'ספר תורה יהדות', shabbat:'נרות שבת הדלקה', challah:'חלה שבת לחם',
+  tallit:'טלית ציצית תפילה', tefillin:'תפילין', kippah:'כיפה',
+  shofar:'שופר ראש השנה', dreidel:'סביבון חנוכה', sukkah:'סוכה סוכות',
+  lulav:'לולב אתרוג סוכות', hamsa:'חמסה', kotel:'כותל ירושלים',
+  mezuzah:'מזוזה', besamim:'בשמים הבדלה', chanukiah:'חנוכיה חנוכה',
+  chuppah:'חופה חתונה נישואין', bookshelf:'ספרייה ארון ספרים תורני',
+  coins:'מטבעות כסף חיסכון', medal:'מדליה הצטיינות', wheat:'חיטה חקלאות שדה',
+  tractor:'טרקטור חקלאות מושב', atom:'אטום מדע פיזיקה', dna:'דנא ביולוגיה',
+  telescope:'טלסקופ אסטרונומיה', planet:'כוכב לכת חלל', ball:'כדורגל ספורט',
+  basketball:'כדורסל ספורט', bird:'ציפור טבע', fish:'דג ים',
+  wateringCan:'משפך גינון השקיה', notebook:'מחברת כתיבה יומן', translate:'תרגום שפות',
+  pill:'תרופה רפואה', ticket:'כרטיס הופעה אירוע',
+};
+
+// icon → every Hebrew word that should find it (tags it serves + the words above)
+const TAG_ICON_KEYWORDS = (() => {
+  const m = {};
+  Object.entries(TAG_ICON_CHOICES).forEach(([tag, opts]) =>
+    opts.forEach(k => { m[k] = (m[k] || '') + ' ' + tag; }));
+  Object.entries(TAG_ICON_EXTRA_WORDS).forEach(([k, w]) => { m[k] = (m[k] || '') + ' ' + w; });
+  Object.keys(TAG_ICON_PATHS).forEach(k => { m[k] = ((m[k] || '') + ' ' + k).toLowerCase(); });
+  return m;
+})();
+
+function searchIcons(q) {
+  const needle = (q || '').trim().toLowerCase();
+  if (!needle) return Object.keys(TAG_ICON_PATHS);
+  return Object.keys(TAG_ICON_PATHS).filter(k => (TAG_ICON_KEYWORDS[k] || '').includes(needle));
+}
 
 const TAG_ICON_DEFAULT_COLOR = '#2E2E33';
 // Resolves a tag to its icon: the admin-approved pick wins, else the first choice.
@@ -5558,7 +5665,7 @@ const { useState: useS, useEffect: useE } = React;
 // ════════════════════════════════════════════════════════════
 // ONBOARDING
 // ════════════════════════════════════════════════════════════
-function Onboarding({ th, go }) {
+function Onboarding({ th, go, profile }) {
   const [i, setI] = useS(0);
   const { t } = useTexts();
   const p = ONB_PALETTES[th.onbPalette] || ONB_PALETTES.orchid;
@@ -5750,7 +5857,7 @@ function Onboarding({ th, go }) {
           ))}
         </div>
         <button
-          onClick={() => (last ? go('register') : setI(i + 1))}
+          onClick={() => (last ? go(profile?.profileComplete ? 'home' : 'register') : setI(i + 1))}
           style={{ width: '100%', border: 'none', cursor: 'pointer', borderRadius: th.r,
             padding: '15px 22px', background: p.btnBg, color: p.btnFg,
             fontFamily: th.display, fontWeight: 800, fontSize: fs(17),
@@ -7085,7 +7192,7 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
 }
 
 // ════════════════════════════════════════════════════════════
-// TAG ICON WIZARD — admin reviews every tag icon, one at a time
+// TAG ICON WIZARD — admin approves icons one family at a time
 // ════════════════════════════════════════════════════════════
 const TAG_ICON_SWATCHES = ['#2E2E33', '#4A4A52', '#1F2547', '#3D2B2F', '#2B4034', '#E8547A'];
 
@@ -7094,134 +7201,194 @@ function TagIconWizard({ th, go, setTweak }) {
   const interestCategories = deriveCategories(lists.interestCategories, lists.interests, DEFAULT_INTEREST_CATEGORIES);
   const partnerCategories  = deriveCategories(lists.partnerCategories,  lists.partnerTraits, DEFAULT_PARTNER_CATEGORIES);
 
-  // every tag actually in use, de-duplicated, in category order
-  const tags = React.useMemo(() => {
-    const seen = new Set(); const out = [];
-    [...interestCategories, ...partnerCategories].forEach(cat => {
-      (cat.tags || []).forEach(tg => { if (!seen.has(tg)) { seen.add(tg); out.push({ tag: tg, cat: cat.label }); } });
-    });
-    return out;
+  // families: one per category, tags de-duplicated across the whole set
+  const families = React.useMemo(() => {
+    const seen = new Set();
+    return [
+      ...interestCategories.map(c => ({ ...c, src: 'תחומי עניין' })),
+      ...partnerCategories.map(c => ({ ...c, src: 'מה מחפשים' })),
+    ].map(cat => ({
+      key: `${cat.src}|${cat.label}`,
+      label: cat.label, src: cat.src,
+      tags: (cat.tags || []).filter(tg => { if (seen.has(tg)) return false; seen.add(tg); return true; }),
+    })).filter(f => f.tags.length);
   }, [interestCategories, partnerCategories]);
 
-  const [picks, setPicks] = useState(() => {
-    const base = {};
-    tags.forEach(({ tag }) => { base[tag] = tagIconFor(tag, th.tagIcons); });
-    return base;
-  });
-  const [color, setColor] = useState(th.tagIconColor);
-  const [i, setI] = useState(0);
+  const [famKey, setFamKey] = useState(null);
+  const [picks, setPicks]   = useState({});
+  const [color, setColor]   = useState(th.tagIconColor);
+  const [i, setI]           = useState(0);
   const [review, setReview] = useState(false);
+  const [query, setQuery]   = useState('');
+  const [saved, setSaved]   = useState({});   // famKey → true once written
 
-  const cur = tags[i];
-  const options = cur ? (TAG_ICON_CHOICES[cur.tag] || []) : [];
-  const pct = tags.length ? Math.round(((i + 1) / tags.length) * 100) : 0;
+  const fam = families.find(f => f.key === famKey);
 
-  const save = (on) => setTweak && setTweak({ tagIcons: picks, tagIconColor: color, tagIconsOn: on });
+  const openFamily = (f) => {
+    const base = {};
+    f.tags.forEach(tg => { base[tg] = tagIconFor(tg, th.tagIcons); });
+    setPicks(base); setI(0); setReview(false); setQuery(''); setFamKey(f.key);
+  };
+
+  // merge this family's picks into whatever is already approved — never clobber siblings
+  const saveFamily = (on) => {
+    if (setTweak) setTweak({ tagIcons: { ...(th.tagIcons || {}), ...picks }, tagIconColor: color, tagIconsOn: on });
+    setSaved(s => ({ ...s, [famKey]: true }));
+    setFamKey(null);
+  };
 
   const preview = (tag, iconKey) => (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: alpha(th.primary, 0.13),
-      border: '1.5px solid transparent', borderRadius: 999, padding: '7px 14px',
-      fontFamily: th.body, fontWeight: 600, fontSize: fs(13.5), color, whiteSpace: 'nowrap' }}>
+      borderRadius: 999, padding: '7px 14px', fontFamily: th.body, fontWeight: 600,
+      fontSize: fs(13.5), color, whiteSpace: 'nowrap' }}>
       {iconKey && <TagIcon name={iconKey} size={15} color={color} />}
       {tag}
     </span>
   );
 
-  // ── review step: every chip at once ──
-  if (review) {
-    const missing = tags.filter(({ tag }) => !picks[tag]).length;
+  // ── family picker ──
+  if (!fam) {
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
-        <AppHeader th={th} title="סקירה אחרונה" sub={`${tags.length} תגיות · ${missing} ללא אייקון`} onBack={() => setReview(false)} />
+        <AppHeader th={th} title="אייקוני תגיות" sub={`${families.length} משפחות · ${Object.keys(TAG_ICON_PATHS).length} אייקונים בספרייה`} onBack={() => go('set')} />
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 24px' }}>
-          {[...interestCategories, ...partnerCategories].map((cat, ci) => {
-            const inCat = (cat.tags || []).filter(tg => picks[tg] !== undefined);
-            if (!inCat.length) return null;
-            return (
-              <div key={cat.label + ci} style={{ marginBottom: 18 }}>
-                <div style={{ fontFamily: th.body, fontSize: fs(11.5), fontWeight: 700, color: alpha(th.ink, 0.45), marginBottom: 8 }}>{cat.label}</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-                  {inCat.map(tg => (
-                    <button key={tg} onClick={() => { setReview(false); setI(tags.findIndex(x => x.tag === tg)); }}
-                      style={{ all: 'unset', cursor: 'pointer' }}>{preview(tg, picks[tg])}</button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{ padding: '14px 18px 30px', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, background: th.card, display: 'flex', gap: 10 }}>
-          <Btn th={th} variant="ghost" onClick={() => { save(false); go('set'); }}>שמור בלי להפעיל</Btn>
-          <div style={{ flex: 1 }}><Btn th={th} full onClick={() => { save(true); go('set'); }}>אשר והפעל באפליקציה</Btn></div>
+          <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.55), lineHeight: 1.5, marginBottom: 16 }}>
+            כל משפחה נערכת ונשמרת בנפרד — אפשר לאשר אחת היום ואחרת מחר.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {families.map(f => {
+              const withIcon = f.tags.filter(tg => tagIconFor(tg, th.tagIcons)).length;
+              const done = saved[f.key];
+              return (
+                <button key={f.key} onClick={() => openFamily(f)}
+                  style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', background: th.card,
+                    borderRadius: th.r, padding: '13px 15px', display: 'flex', alignItems: 'center', gap: 12,
+                    border: `1.5px solid ${done ? alpha(th.success, 0.5) : alpha(th.ink, 0.08)}`,
+                    boxShadow: `0 2px 8px ${alpha(th.ink, 0.05)}` }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14.5), color: th.ink }}>{f.label}</div>
+                    <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.45), marginTop: 2 }}>
+                      {f.src} · {f.tags.length} תגיות · {withIcon} עם אייקון
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 3 }}>
+                    {f.tags.slice(0, 3).map(tg => {
+                      const ik = tagIconFor(tg, th.tagIcons);
+                      return ik ? <TagIcon key={tg} name={ik} size={17} color={alpha(th.ink, 0.45)} /> : null;
+                    })}
+                  </div>
+                  {done && <Icon name="check" size={17} style={{ color: th.success }} />}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 20, padding: '12px 14px', background: alpha(th.primary, 0.06), borderRadius: th.rSm,
+            fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.6), lineHeight: 1.5 }}>
+            {th.tagIconsOn ? 'האייקונים מוצגים כרגע באפליקציה.' : 'האייקונים עדיין מוסתרים — יופיעו אחרי אישור של משפחה.'}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!cur) return <div style={{ padding: 40, fontFamily: th.body, direction: 'rtl' }}>אין תגיות להצגה.</div>;
+  const tags = fam.tags;
+  const cur = tags[i];
+  const options = cur ? (TAG_ICON_CHOICES[cur] || []) : [];
+  const pct = Math.round(((i + 1) / tags.length) * 100);
+  const libKeys = searchIcons(query);
 
+  // ── family review ──
+  if (review) {
+    const missing = tags.filter(tg => !picks[tg]).length;
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
+        <AppHeader th={th} title={fam.label} sub={`${tags.length} תגיות · ${missing} ללא אייקון`} onBack={() => setReview(false)} />
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 24px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {tags.map(tg => (
+              <button key={tg} onClick={() => { setReview(false); setI(tags.indexOf(tg)); }}
+                style={{ all: 'unset', cursor: 'pointer' }}>{preview(tg, picks[tg])}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{ padding: '14px 18px 30px', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, background: th.card, display: 'flex', gap: 10 }}>
+          <Btn th={th} variant="ghost" onClick={() => saveFamily(th.tagIconsOn)}>שמור בלבד</Btn>
+          <div style={{ flex: 1 }}><Btn th={th} full onClick={() => saveFamily(true)}>שמור והצג באפליקציה</Btn></div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── per-tag step ──
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, direction: 'rtl' }}>
-      <AppHeader th={th} title="אייקוני תגיות" sub={`${i + 1} מתוך ${tags.length} · ${cur.cat || ''}`} onBack={() => go('set')} />
-
-      {/* progress */}
+      <AppHeader th={th} title={fam.label} sub={`${i + 1} מתוך ${tags.length}`} onBack={() => setFamKey(null)} />
       <div style={{ height: 4, background: alpha(th.ink, 0.08), flexShrink: 0 }}>
         <div style={{ height: '100%', width: `${pct}%`, background: th.primary, transition: 'width .25s' }} />
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '22px 18px 20px' }}>
-        {/* live preview */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-          {preview(cur.tag, picks[cur.tag])}
-        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>{preview(cur, picks[cur])}</div>
 
-        {/* icon options */}
         <div style={{ fontFamily: th.body, fontSize: fs(12.5), fontWeight: 700, color: alpha(th.ink, 0.5), marginBottom: 10 }}>
-          {options.length > 1 ? `בחר/י אייקון (${options.length} אפשרויות)` : 'האייקון המוצע'}
+          {options.length ? (options.length > 1 ? `הצעות (${options.length})` : 'ההצעה שלי') : 'אין הצעה לתגית הזו — חפש/י בספרייה למטה'}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))', gap: 10, marginBottom: 22 }}>
-          {options.map(opt => {
-            const on = picks[cur.tag] === opt;
-            return (
-              <button key={opt} onClick={() => setPicks(p => ({ ...p, [cur.tag]: opt }))}
-                style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
-                  alignItems: 'center', justifyContent: 'center', gap: 8, padding: '18px 8px', borderRadius: th.r,
-                  border: `2px solid ${on ? th.primary : alpha(th.ink, 0.12)}`,
-                  background: on ? alpha(th.primary, 0.06) : th.card }}>
-                <TagIcon name={opt} size={30} color={color} />
-                <span style={{ fontFamily: th.body, fontSize: fs(10.5), color: alpha(th.ink, 0.4) }}>{opt}</span>
-              </button>
-            );
-          })}
-          <button onClick={() => setPicks(p => ({ ...p, [cur.tag]: '' }))}
-            style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
-              alignItems: 'center', justifyContent: 'center', gap: 8, padding: '18px 8px', borderRadius: th.r,
-              border: `2px dashed ${!picks[cur.tag] ? th.primary : alpha(th.ink, 0.18)}`,
-              background: !picks[cur.tag] ? alpha(th.primary, 0.06) : 'transparent' }}>
-            <Icon name="x" size={26} style={{ color: alpha(th.ink, 0.35) }} />
-            <span style={{ fontFamily: th.body, fontSize: fs(10.5), color: alpha(th.ink, 0.4) }}>ללא</span>
-          </button>
-        </div>
-
-        {/* full icon library — for when none of the suggestions fit */}
-        <details style={{ marginBottom: 20 }}>
-          <summary style={{ cursor: 'pointer', fontFamily: th.body, fontSize: fs(12.5), fontWeight: 700, color: th.primary }}>
-            כל הספרייה ({Object.keys(TAG_ICON_PATHS).length} אייקונים)
-          </summary>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(54px, 1fr))', gap: 7, marginTop: 12 }}>
-            {Object.keys(TAG_ICON_PATHS).map(k => (
-              <button key={k} onClick={() => setPicks(p => ({ ...p, [cur.tag]: k }))} title={k}
-                style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', padding: 12, borderRadius: th.rSm,
-                  border: `1.5px solid ${picks[cur.tag] === k ? th.primary : alpha(th.ink, 0.1)}`,
-                  background: picks[cur.tag] === k ? alpha(th.primary, 0.08) : th.card }}>
-                <TagIcon name={k} size={22} color={color} />
-              </button>
-            ))}
+        {(options.length > 0 || true) && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(88px, 1fr))', gap: 10, marginBottom: 22 }}>
+            {options.map(opt => {
+              const on = picks[cur] === opt;
+              return (
+                <button key={opt} onClick={() => setPicks(p => ({ ...p, [cur]: opt }))}
+                  style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center', gap: 8, padding: '18px 8px', borderRadius: th.r,
+                    border: `2px solid ${on ? th.primary : alpha(th.ink, 0.12)}`,
+                    background: on ? alpha(th.primary, 0.06) : th.card }}>
+                  <TagIcon name={opt} size={30} color={color} />
+                  <span style={{ fontFamily: th.body, fontSize: fs(10.5), color: alpha(th.ink, 0.4) }}>{opt}</span>
+                </button>
+              );
+            })}
+            {picks[cur] && !options.includes(picks[cur]) && (
+              <div style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 8, padding: '18px 8px', borderRadius: th.r,
+                border: `2px solid ${th.primary}`, background: alpha(th.primary, 0.06) }}>
+                <TagIcon name={picks[cur]} size={30} color={color} />
+                <span style={{ fontFamily: th.body, fontSize: fs(10.5), color: alpha(th.ink, 0.4) }}>{picks[cur]}</span>
+              </div>
+            )}
+            <button onClick={() => setPicks(p => ({ ...p, [cur]: '' }))}
+              style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 8, padding: '18px 8px', borderRadius: th.r,
+                border: `2px dashed ${!picks[cur] ? th.primary : alpha(th.ink, 0.18)}`,
+                background: !picks[cur] ? alpha(th.primary, 0.06) : 'transparent' }}>
+              <Icon name="x" size={26} style={{ color: alpha(th.ink, 0.35) }} />
+              <span style={{ fontFamily: th.body, fontSize: fs(10.5), color: alpha(th.ink, 0.4) }}>ללא</span>
+            </button>
           </div>
-        </details>
+        )}
 
-        {/* colour */}
+        {/* searchable library */}
+        <div style={{ fontFamily: th.body, fontSize: fs(12.5), fontWeight: 700, color: alpha(th.ink, 0.5), marginBottom: 8 }}>
+          חיפוש בספרייה
+        </div>
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="נסו: שבת, ספורט, כסף, מוזיקה…"
+          style={{ width: '100%', boxSizing: 'border-box', border: `1.5px solid ${alpha(th.ink, 0.14)}`, borderRadius: th.rSm,
+            padding: '10px 13px', fontFamily: th.body, fontSize: fs(13.5), color: th.ink, background: th.card, outline: 'none' }} />
+        <div style={{ fontFamily: th.body, fontSize: fs(11), color: alpha(th.ink, 0.38), margin: '6px 0 10px' }}>
+          {libKeys.length} מתוך {Object.keys(TAG_ICON_PATHS).length}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(54px, 1fr))', gap: 7, marginBottom: 22 }}>
+          {libKeys.map(k => (
+            <button key={k} onClick={() => setPicks(p => ({ ...p, [cur]: k }))} title={k}
+              style={{ all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', padding: 12, borderRadius: th.rSm,
+                border: `1.5px solid ${picks[cur] === k ? th.primary : alpha(th.ink, 0.1)}`,
+                background: picks[cur] === k ? alpha(th.primary, 0.08) : th.card }}>
+              <TagIcon name={k} size={22} color={color} />
+            </button>
+          ))}
+        </div>
+
         <div style={{ fontFamily: th.body, fontSize: fs(12.5), fontWeight: 700, color: alpha(th.ink, 0.5), marginBottom: 10 }}>צבע אייקון וטקסט</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
           {TAG_ICON_SWATCHES.map(sw => (
@@ -7237,23 +7404,18 @@ function TagIconWizard({ th, go, setTweak }) {
         </div>
       </div>
 
-      {/* nav */}
       <div style={{ padding: '12px 18px 30px', borderTop: `1px solid ${alpha(th.ink, 0.08)}`, background: th.card, display: 'flex', gap: 10, alignItems: 'center' }}>
         <button onClick={() => setI(Math.max(0, i - 1))} disabled={i === 0}
           style={{ border: 'none', background: 'none', cursor: i === 0 ? 'default' : 'pointer', padding: '12px 6px',
-            fontFamily: th.body, fontWeight: 700, fontSize: fs(14), color: alpha(th.ink, i === 0 ? 0.2 : 0.55) }}>
-          הקודם
-        </button>
+            fontFamily: th.body, fontWeight: 700, fontSize: fs(14), color: alpha(th.ink, i === 0 ? 0.2 : 0.55) }}>הקודם</button>
         <div style={{ flex: 1 }}>
-          <Btn th={th} full onClick={() => (i === tags.length - 1 ? setReview(true) : setI(i + 1))}>
-            {i === tags.length - 1 ? 'לסקירה אחרונה' : 'אשר והמשך'}
+          <Btn th={th} full onClick={() => { setQuery(''); i === tags.length - 1 ? setReview(true) : setI(i + 1); }}>
+            {i === tags.length - 1 ? 'לסיכום המשפחה' : 'אשר והמשך'}
           </Btn>
         </div>
         <button onClick={() => setReview(true)}
           style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '12px 6px',
-            fontFamily: th.body, fontWeight: 700, fontSize: fs(14), color: th.primary }}>
-          דלג לסוף
-        </button>
+            fontFamily: th.body, fontWeight: 700, fontSize: fs(14), color: th.primary }}>לסיכום</button>
       </div>
     </div>
   );
@@ -12849,7 +13011,7 @@ function TermsScreen({ th, go }) {
 function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
   const p = cur.params;
   switch (cur.name) {
-    case 'onboarding':  return <Onboarding th={th} go={go} />;
+    case 'onboarding':  return <Onboarding th={th} go={go} profile={profile} />;
     case 'register':    return <Register th={th} go={go} />;
     case 'home':        return <Home th={th} go={go} />;
     case 'cands':       return <Candidates key={p?.linkMode ? 'cands-link' : 'cands'} th={th} go={go} params={p} />;
@@ -13256,8 +13418,8 @@ function AppInner({ inviteToken, offerParam }) {
       navigate([{ name: 'register', params: {} }], true);
       return;
     }
-    // Skip onboarding if already registered (profileComplete, or is an admin)
-    const alreadyIn = profile.profileComplete || profile.isAdmin;
+    // Admins always walk the onboarding (dev aid — drop the !isAdmin when the flow settles)
+    const alreadyIn = profile.profileComplete && !profile.isAdmin;
     if (alreadyIn && stack.length === 1 && stack[0].name === 'onboarding') {
       navigate([{ name: 'home', params: {} }], true);
     }
@@ -13364,7 +13526,10 @@ function AppInner({ inviteToken, offerParam }) {
           {/* Admin floating edit-mode button */}
           {isAdmin && th.showTextEditBtn && !data.loading && screenKeys.length > 0 && !editMode && !inlineEditMode && (
             <button onClick={() => { if (editMethod === 'inline') { setInlineDrafts({}); setInlineEditMode(true); } else setEditMode(true); }}
-              style={{ position:'absolute', bottom: showNav ? 78 : 18, left: 16, zIndex: 40, border:'none', borderRadius:999, padding:'8px 14px', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:12.5, background:th.card, color:alpha(th.ink,0.6), display:'flex', alignItems:'center', gap:6, boxShadow:`0 2px 14px ${alpha(th.ink,0.13)}` }}>
+              style={{ position:'absolute', left: 16, zIndex: 40,
+                // onboarding owns the bottom of the screen with its own CTA — sit under its header instead
+                ...(cur.name === 'onboarding' ? { top: 96 } : { bottom: showNav ? 78 : 18 }),
+                border:'none', borderRadius:999, padding:'8px 14px', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:12.5, background:th.card, color:alpha(th.ink,0.6), display:'flex', alignItems:'center', gap:6, boxShadow:`0 2px 14px ${alpha(th.ink,0.13)}` }}>
               <Icon name="pencil" size={14} />
               עריכת טקסטים
             </button>
