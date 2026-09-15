@@ -2358,6 +2358,9 @@ function AppHeader({ title, sub, onBack, action, th, big, bg }) {
 }
 
 // ── Bottom navigation ──────────────────────────────────────────
+// Height the floating nav occupies — screens that show it pad their scroll area by this
+const NAV_SPACE = 104;
+
 function BottomNav({ active, onNav, th, badges = {} }) {
   const tabs = [
     { id: 'home',  label: 'בית',     icon: 'home' },
@@ -2367,10 +2370,12 @@ function BottomNav({ active, onNav, th, badges = {} }) {
     { id: 'set',   label: 'הגדרות',  icon: 'gear' },
   ];
   return (
-    // Transparent outer strip reserves the flex space; the bar itself floats inside
-    // it with margin on every side, so the screen behind shows through the gaps.
+    // Overlays the screen rather than sitting beside it in the column, so content
+    // scrolls under the glass. Screens reserve NAV_SPACE at the bottom for it.
+    // pointerEvents splits so the transparent margins don't swallow taps.
     <div style={{
-      flexShrink: 0, paddingInline: 12, paddingTop: 4,
+      position: 'absolute', insetInline: 0, bottom: 0, zIndex: 60, pointerEvents: 'none',
+      paddingInline: 12, paddingTop: 4,
       paddingBottom: 'max(18px, env(safe-area-inset-bottom))',
     }}>
       <div style={{
@@ -2380,7 +2385,7 @@ function BottomNav({ active, onNav, th, badges = {} }) {
         border: `1px solid ${th.navGlassEdge}`,
         borderRadius: 32,
         boxShadow: `0 8px 26px ${alpha(th.ink, 0.13)}`,
-        padding: 5,
+        padding: 5, pointerEvents: 'auto',
         display: 'flex', justifyContent: 'space-around',
       }}>
         {tabs.map(tb => {
@@ -6617,7 +6622,7 @@ function Home({ th, go, approvalPopupCand }) {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px 0', paddingBottom: NAV_SPACE }}>
         {/* WAITING banner — always shown when there are items, even with no candidates yet */}
         {mine.length === 0 && waiting.length > 0 && (
           <div style={{ background: th.card, borderRadius: th.rLg, padding: '16px 18px 8px', marginBottom: 18, boxShadow: `0 6px 24px ${alpha(th.ink, 0.08)}` }}>
@@ -7193,7 +7198,7 @@ function Candidates({ th, go, params }) {
         } />
       )}
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: scope === 'drafts' ? '22px 18px 90px' : '8px 18px 90px', position: 'relative', ...(scope === 'drafts' ? { borderTopLeftRadius: 22, borderTopRightRadius: 22, marginTop: -22, background: th.cream } : {}) }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: scope === 'drafts' ? '22px 18px 0' : '8px 18px 0', paddingBottom: NAV_SPACE, position: 'relative', ...(scope === 'drafts' ? { borderTopLeftRadius: 22, borderTopRightRadius: 22, marginTop: -22, background: th.cream } : {}) }}>
         {scope !== 'drafts' && (<>
         {/* search + filter inline */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
@@ -10066,7 +10071,7 @@ function Offers({ th, go, params }) {
           </button>
         </div>
       )}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 18px 0', paddingBottom: NAV_SPACE }}>
         {list.length === 0 && (
           <div style={{ textAlign:'center', padding:'40px 20px', fontFamily:th.body, color:alpha(th.ink,0.4) }}>
             {subFilter ? t('offers_empty_filter') : emptyMsg[tab]}
@@ -10654,7 +10659,7 @@ function AIRecs({ th, go }) {
   return (
     <>
       <AppHeader th={th} title={t('ai_title')} sub={t('ai_sub')} action={<div style={{ color: th.gold }}><Icon name="spark" size={26} fill={th.gold} /></div>} />
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 24px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '10px 18px 0', paddingBottom: NAV_SPACE }}>
 
         {/* ── No published candidates ── */}
         {myPublishedCands.length === 0 && (
@@ -13388,7 +13393,7 @@ function AppSettings({ th, go, profile }) {
   return (
     <>
       <AppHeader th={th} title="הגדרות" big />
-      <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 24px' }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'8px 18px 0', paddingBottom: NAV_SPACE }}>
         <button onClick={openEdit} style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, background:th.card, borderRadius:th.rLg, padding:16, marginBottom:18, boxShadow:`0 6px 18px ${alpha(th.ink,0.06)}` }}>
           <Avatar grad={gradForId(profile?.uid||'me')} name={profile?.displayName||profile?.email||'?'} size={62} photo={profile?.photoURL} />
           <div style={{ flex:1 }}>
