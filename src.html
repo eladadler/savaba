@@ -6203,12 +6203,9 @@ function Onboarding({ th, go, profile }) {
       height: '100%', display: 'flex', flexDirection: 'column',
       background: p.bg, direction: 'rtl', fontFamily: th.body, position: 'relative',
     }}>
-      {/* brand + skip */}
-      <div style={{ paddingTop: 52, paddingInline: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Ring size={26} color={p.ring} gem={p.gem} />
-          <span style={{ fontFamily: th.display, fontWeight: 800, color: p.title, fontSize: fs(18) }}>סבבה והכל</span>
-        </div>
+      {/* skip — the brand lock-up lived here too, but it only repeated the logo
+          that the first slide already shows full-size, so it was dropped. */}
+      <div style={{ paddingTop: 52, paddingInline: 20, minHeight: 26, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         {!last && (
           <button onClick={() => setI(slides.length - 1)} style={{ border: 'none', background: 'none',
             color: p.body, fontFamily: th.body, fontWeight: 700, fontSize: fs(14), cursor: 'pointer' }}>
