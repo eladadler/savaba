@@ -19,7 +19,14 @@ const afterScript = afterOpen.slice(closeIdx + CLOSE_TAG.length);
 
 console.log(`Compiling ${Math.round(jsxCode.length / 1024)}KB of JSX...`);
 
-const result = babel.transformSync(jsxCode, {
+// Stamp the logo with its own content hash — it keeps its filename across edits,
+// so without this a replaced logo stays cached in browsers that already have one.
+const logoV = fs.existsSync('logo.png')
+  ? crypto.createHash('md5').update(fs.readFileSync('logo.png')).digest('hex').slice(0, 10)
+  : '0';
+const stampedJsx = jsxCode.split('__LOGO_V__').join(logoV);
+
+const result = babel.transformSync(stampedJsx, {
   presets: [
     ['@babel/preset-react', { runtime: 'classic' }],
   ],

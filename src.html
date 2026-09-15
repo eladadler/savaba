@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@400;500;700;800;900&family=Rubik:wght@400;500;700;800&family=Secular+One&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@400;500;700;800;900&family=Rubik:wght@400;500;700;800&family=Secular+One&family=Fredoka:wght@500;600;700&family=Gveret+Levin&display=swap" rel="stylesheet" />
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; background: #2a2630; }
@@ -5805,7 +5805,7 @@ const SABA_TICKER = [
 
 // The logo artwork lives at /logo.png. Until it is added, fall back to the wordmark
 // so the first slide never shows a broken image.
-const LOGO_SRC = 'logo.png';
+const LOGO_SRC = 'logo.png?v=__LOGO_V__';
 
 function BrandMark({ th, p }) {
   const [failed, setFailed] = useS(false);
@@ -5891,8 +5891,12 @@ function Onboarding({ th, go, profile }) {
     if (s.kind === 'brand') return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26 }}>
         <BrandMark th={th} p={p} />
-        {/* …אבל — a new one every two seconds */}
-        <SabaTicker th={th} p={p} boxStyle={card({ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999 })} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: -8 }}>
+          <span style={{ fontFamily: "'Gveret Levin', 'Segoe Script', cursive", fontSize: fs(38),
+            color: p.accent, lineHeight: 1, transform: 'rotate(-4deg)' }}>אבל…</span>
+          {/* a new one every two seconds */}
+          <SabaTicker th={th} p={p} boxStyle={card({ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999 })} />
+        </div>
       </div>
     );
 
