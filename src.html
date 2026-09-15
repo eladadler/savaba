@@ -6275,7 +6275,7 @@ function Register({ th, go }) {
 // ════════════════════════════════════════════════════════════
 // MATCHMAKER HOME
 // ════════════════════════════════════════════════════════════
-function Home({ th, go }) {
+function Home({ th, go, approvalPopupCand }) {
   const { profile } = useContext(AuthCtx);
   const { candidates, offers, notifications, markNotificationRead, deleteNotification } = useContext(DataCtx);
   const { t, texts: tx, defaults: dx } = useTexts();
@@ -6299,21 +6299,6 @@ function Home({ th, go }) {
     if (filters.hasChildren === 'עם ילדים' && (c.kids || 0) < filters.childrenMin) return false;
     return true;
   });
-
-  // Pending-approval popup
-  const pendingApprovalCands = React.useMemo(() =>
-    candidates.filter(c => c.mmId === myUid && c.pendingApproval === true),
-    [candidates, myUid]);
-  const [dismissedApprovals, setDismissedApprovals] = useS(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('dismissedApprovals') || '[]')); } catch { return new Set(); }
-  });
-  const dismissApproval = id => setDismissedApprovals(prev => {
-    const next = new Set(prev);
-    next.add(id);
-    try { localStorage.setItem('dismissedApprovals', JSON.stringify([...next])); } catch {}
-    return next;
-  });
-  const approvalPopupCand = pendingApprovalCands.find(c => !dismissedApprovals.has(c.id)) || null;
 
   // light panel is the default; admin can revert to dark by setting waitingPanelLight='false'
   const [lightPanel, setLightPanel] = React.useState(() => localStorage.getItem('waitingPanelLight') !== 'false');
@@ -6644,39 +6629,6 @@ function Home({ th, go }) {
           <Icon name="chevL" size={20} style={{ color:th.gold, flexShrink:0 }} />
         </button>
       </div>
-
-      {/* ── Pending-approval popup ─────────────────────────────── */}
-      {approvalPopupCand && (
-        <div onClick={e => { if (e.target === e.currentTarget) dismissApproval(approvalPopupCand.id); }}
-          style={{ position:'fixed', inset:0, zIndex:900, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.52)', backdropFilter:'blur(4px)' }}>
-          <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'28px 24px 44px', width:'100%', maxWidth:480, boxShadow:`0 -12px 48px ${alpha(th.ink,0.22)}`, animation:'sabaUp .3s cubic-bezier(.2,.9,.3,1)' }}>
-            {/* Photo */}
-            <div style={{ textAlign:'center', marginBottom:16 }}>
-              {approvalPopupCand.photos?.[0]
-                ? <img src={approvalPopupCand.photos[0]} alt="" style={{ width:100, height:100, borderRadius:'50%', objectFit:'cover', objectPosition:'center 20%', border:`3.5px solid ${th.primary}`, boxShadow:`0 6px 24px ${alpha(th.primary,0.35)}` }} />
-                : <Avatar grad={approvalPopupCand.grad} name={approvalPopupCand.name} size={100} />
-              }
-            </div>
-            {/* Info */}
-            <div style={{ textAlign:'center', marginBottom:22 }}>
-              <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:th.ink, marginBottom:5 }}>
-                {fillWa(textsCtx, 'cand_approval_popup_title', { שם: approvalPopupCand.name, סיים_ה: isFemGender(approvalPopupCand.gender) ? 'סיימה' : 'סיים' })}
-              </div>
-              <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.5) }}>
-                {[approvalPopupCand.age && `גיל ${approvalPopupCand.age}`, approvalPopupCand.region].filter(Boolean).join(' · ')}
-              </div>
-              <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.68), marginTop:10, lineHeight:1.5 }}>
-                {t('cand_approval_popup_sub')}
-              </div>
-            </div>
-            {/* Buttons */}
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              <Btn th={th} full size="l" onClick={() => go('editCand', { id: approvalPopupCand.id })}>{t('cand_approval_popup_btn')}</Btn>
-              <Btn th={th} full size="l" variant="ghost" onClick={() => dismissApproval(approvalPopupCand.id)}>{t('cand_approval_popup_dismiss')}</Btn>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Coachmark A: Create new match ── */}
       <CoachmarkOverlay
@@ -13199,7 +13151,7 @@ function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
   switch (cur.name) {
     case 'onboarding':  return <Onboarding th={th} go={go} profile={profile} />;
     case 'register':    return <Register th={th} go={go} />;
-    case 'home':        return <Home th={th} go={go} />;
+    case 'home':        return <Home th={th} go={go} approvalPopupCand={opts.approvalPopupCand} />;
     case 'cands':       return <Candidates key={p?.linkMode ? 'cands-link' : 'cands'} th={th} go={go} params={p} />;
     case 'candidate':   return <CandidateDetail th={th} go={go} params={p} />;
     case 'matchFlow':   return <MatchFlow th={th} go={go} params={p} />;
@@ -13515,6 +13467,23 @@ function AppInner({ inviteToken, offerParam }) {
   const [showModeModal, setShowModeModal] = React.useState(false);
   const modeModalShownRef = React.useRef(false);
 
+  // Self-registered candidates awaiting review — lifted out of Home so the popup
+  // is a top-level overlay (like ModeChoiceModal below) and fires on any screen,
+  // onboarding included, instead of only once Home happens to be mounted.
+  const pendingApprovalCands = React.useMemo(() =>
+    (data.candidates || []).filter(c => c.mmId === profile?.uid && c.pendingApproval === true),
+    [data.candidates, profile?.uid]);
+  const [dismissedApprovals, setDismissedApprovals] = React.useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('dismissedApprovals') || '[]')); } catch { return new Set(); }
+  });
+  const dismissApproval = React.useCallback(id => setDismissedApprovals(prev => {
+    const next = new Set(prev);
+    next.add(id);
+    try { localStorage.setItem('dismissedApprovals', JSON.stringify([...next])); } catch {}
+    return next;
+  }), []);
+  const approvalPopupCand = pendingApprovalCands.find(c => !dismissedApprovals.has(c.id)) || null;
+
   // ── Edit mode (admin only) ──────────────────────────────────
   const [editMode, setEditMode]     = React.useState(false);
   const [drafts, setDrafts]         = React.useState({});
@@ -13609,15 +13578,20 @@ function AppInner({ inviteToken, offerParam }) {
       navigate([{ name: 'register', params: {} }], true);
       return;
     }
-    const alreadyIn = profile.profileComplete;
+    // Admins always walk the onboarding (dev aid, explicitly wanted back on) — the
+    // mode-choice modal and approval popup no longer depend on reaching Home, so
+    // this no longer blocks them.
+    const alreadyIn = profile.profileComplete && !profile.isAdmin;
     if (alreadyIn && stack.length === 1 && stack[0].name === 'onboarding') {
       navigate([{ name: 'home', params: {} }], true);
     }
   }, [profile]);
 
-  // Show mode-choice modal once per session for dual-role users (matchmaker + candidate)
+  // Show mode-choice modal once per session for dual-role users (matchmaker + candidate).
+  // Admins are exempt from the profileComplete check — an admin account never forced
+  // through Register may legitimately never have that flag set.
   React.useEffect(() => {
-    if (!profile?.profileComplete) return;
+    if (!profile?.profileComplete && !profile?.isAdmin) return;
     if (!user?.uid) return;
     if (modeModalShownRef.current) return;
     if (sessionStorage.getItem('modeChosen')) return;
@@ -13710,7 +13684,7 @@ function AppInner({ inviteToken, offerParam }) {
           )}
           {(data.loading || !tweaksLoaded)
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Splash th={th} /></div>
-            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak: setProdTweak, setGroupTagsByCategory })}
+            : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak: setProdTweak, setGroupTagsByCategory, approvalPopupCand })}
           {showNav && !data.loading && tweaksLoaded && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
@@ -13732,6 +13706,13 @@ function AppInner({ inviteToken, offerParam }) {
               onPickMm={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); }}
               onPickCand={() => { setShowModeModal(false); sessionStorage.setItem('modeChosen','1'); navigate([{ name:'candidateMode', params:{} }], true); }}
             />
+          )}
+
+          {/* New self-registered candidate awaiting review — top-level like the modal above, so it shows on any screen */}
+          {approvalPopupCand && (
+            <ApprovalPopup th={th} cand={approvalPopupCand}
+              onApprove={() => go('editCand', { id: approvalPopupCand.id })}
+              onDismiss={() => dismissApproval(approvalPopupCand.id)} />
           )}
 
           {/* Edit mode Sheet */}
@@ -13775,6 +13756,44 @@ function AppInner({ inviteToken, offerParam }) {
       </TweaksPanel>
       </>
     </TextsCtx.Provider>
+  );
+}
+
+// Top-level overlay (moved out of Home — see AppInner) so a newly self-registered
+// candidate surfaces on whatever screen the matchmaker happens to be on.
+function ApprovalPopup({ th, cand, onApprove, onDismiss }) {
+  const { t } = useTexts();
+  const textsCtx = React.useContext(TextsCtx);
+  return (
+    <div onClick={e => { if (e.target === e.currentTarget) onDismiss(); }}
+      style={{ position:'fixed', inset:0, zIndex:900, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.52)', backdropFilter:'blur(4px)' }}>
+      <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'28px 24px 44px', width:'100%', maxWidth:480, boxShadow:`0 -12px 48px ${alpha(th.ink,0.22)}`, animation:'sabaUp .3s cubic-bezier(.2,.9,.3,1)' }}>
+        {/* Photo */}
+        <div style={{ textAlign:'center', marginBottom:16 }}>
+          {cand.photos?.[0]
+            ? <img src={cand.photos[0]} alt="" style={{ width:100, height:100, borderRadius:'50%', objectFit:'cover', objectPosition:'center 20%', border:`3.5px solid ${th.primary}`, boxShadow:`0 6px 24px ${alpha(th.primary,0.35)}` }} />
+            : <Avatar grad={cand.grad} name={cand.name} size={100} />
+          }
+        </div>
+        {/* Info */}
+        <div style={{ textAlign:'center', marginBottom:22 }}>
+          <div style={{ fontFamily:th.display, fontWeight:900, fontSize:22, color:th.ink, marginBottom:5 }}>
+            {fillWa(textsCtx, 'cand_approval_popup_title', { שם: cand.name, סיים_ה: isFemGender(cand.gender) ? 'סיימה' : 'סיים' })}
+          </div>
+          <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.5) }}>
+            {[cand.age && `גיל ${cand.age}`, cand.region].filter(Boolean).join(' · ')}
+          </div>
+          <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.68), marginTop:10, lineHeight:1.5 }}>
+            {t('cand_approval_popup_sub')}
+          </div>
+        </div>
+        {/* Buttons */}
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          <Btn th={th} full size="l" onClick={onApprove}>{t('cand_approval_popup_btn')}</Btn>
+          <Btn th={th} full size="l" variant="ghost" onClick={onDismiss}>{t('cand_approval_popup_dismiss')}</Btn>
+        </div>
+      </div>
+    </div>
   );
 }
 
