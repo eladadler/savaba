@@ -6751,9 +6751,9 @@ function Home({ th, go, approvalPopupCand }) {
           const photoScale = th.homeDesign === 'v2' ? (th.homeV2PhotoScale || 150) / 100 : 1;
           return (
             <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4, margin: '0 -18px', paddingInline: 18 }}>
-              {list.map(c => (
+              {list.map((c, ci) => (
                 <button key={c.id} onClick={() => go('candidate', { id: c.id })} style={{ all: 'unset', cursor: 'pointer', width: 152 * photoScale, flexShrink: 0, borderRadius: th.r, overflow: 'hidden', position: 'relative', height: 200 * photoScale, boxShadow: `0 8px 24px ${alpha(th.ink, 0.15)}`, background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})` }}>
-                  {c.photos?.[0] && <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  {c.photos?.[0] && <img src={c.photos[0]} alt="" loading={ci < 4 ? 'eager' : 'lazy'} fetchpriority={ci < 2 ? 'high' : 'auto'} decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
                   {!c.photos?.[0] && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontFamily: th.display, fontSize: fs(72), fontWeight: 800, color: 'rgba(255,255,255,0.55)' }}>{(c.name||'?').charAt(0)}</span></div>}
                   <div style={{ position: 'absolute', top: 10, left: 10, width: 10, height: 10, borderRadius: '50%', background: c.available !== false ? th.success : alpha('#fff', 0.45), boxShadow: '0 0 0 2px rgba(255,255,255,0.7)' }} />
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.18) 70%, transparent 100%)', padding: '28px 12px 12px' }}>
@@ -8719,7 +8719,9 @@ function CandidateDetail({ th, go, params }) {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: th.cream, position: 'relative' }}>
       {/* top gradient bar: ··· | dots | › */}
-      <div style={{ position:'absolute', top:0, right:0, left:0, height:52, zIndex:20, background:overlayBg, display:'flex', alignItems:'center', direction:'ltr', paddingInline:6, pointerEvents:'none' }}>
+      {/* paddingTop keeps the buttons clear of the notch/status bar — at top:0 with a
+          fixed height they ended up underneath it and unreachable on real devices */}
+      <div style={{ position:'absolute', top:0, right:0, left:0, minHeight:52, zIndex:20, background:overlayBg, display:'flex', alignItems:'center', direction:'ltr', paddingInline:6, paddingTop:'max(10px, env(safe-area-inset-top))', paddingBottom:10, pointerEvents:'none' }}>
         <button onClick={() => setDotsOpen(true)} style={{ pointerEvents:'auto', border:'none', color:overlayColor, cursor:'pointer', width:36, height:36, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', background: isPhotoVariant ? 'rgba(0,0,0,0.28)' : alpha(th.ink, 0.07), backdropFilter: isPhotoVariant ? 'blur(6px)' : 'none' }}>
           <Icon name="dots" size={19} />
         </button>
@@ -9539,12 +9541,12 @@ function MatchFlow({ th, go, params }) {
                         {spotlight ? t('match_step1_with_spotlight') : t('match_step1_no_spotlight')}
                       </div>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                        {filtered1.map(c => (
+                        {filtered1.map((c, ci) => (
                           <button key={c.id} onClick={() => pickCand(c)}
                             style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.08)}`, display:'flex', flexDirection:'column' }}>
                             <div style={{ position:'relative', aspectRatio:'1', background:`linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                               {c.photos?.[0]
-                                ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 20%' }} />
+                                ? <img src={c.photos[0]} alt="" loading={ci < 6 ? 'eager' : 'lazy'} fetchpriority={ci < 2 ? 'high' : 'auto'} decoding="async" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center 20%' }} />
                                 : <span style={{ fontFamily:th.display, fontSize:52, color:'rgba(255,255,255,0.9)', fontWeight:800 }}>{c.name.charAt(0)}</span>
                               }
                             </div>
@@ -9617,7 +9619,7 @@ function MatchFlow({ th, go, params }) {
                   style={{ width: '100%', boxSizing: 'border-box', padding: '10px 38px 10px 14px', borderRadius: 999, border: `1.5px solid ${alpha(th.ink, 0.12)}`, fontFamily: th.body, fontSize: fs(14), background: th.card, outline: 'none', color: th.ink }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                {candidates2.map(c => {
+                {candidates2.map((c, ci) => {
                   const alreadyMatched = offerExists(first?.id, c.id);
                   const isSelected = second?.id === c.id;
                   return (
@@ -9626,7 +9628,7 @@ function MatchFlow({ th, go, params }) {
                       style={{ all: 'unset', cursor: alreadyMatched ? 'default' : 'pointer', boxSizing: 'border-box', background: th.card, borderRadius: th.r, overflow: 'hidden', boxShadow: isSelected ? `0 0 0 2.5px ${th.primary}, 0 6px 20px ${alpha(th.primary, 0.22)}` : `0 4px 14px ${alpha(th.ink, 0.08)}`, display: 'flex', flexDirection: 'column', opacity: alreadyMatched ? 0.5 : 1, transition: 'box-shadow 0.15s' }}>
                       <div style={{ position: 'relative', aspectRatio: '1', background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                         {c.photos && c.photos[0]
-                          ? <img src={c.photos[0]} alt="" loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
+                          ? <img src={c.photos[0]} alt="" loading={ci < 6 ? 'eager' : 'lazy'} fetchpriority={ci < 2 ? 'high' : 'auto'} decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }} />
                           : <span style={{ fontFamily: th.display, fontSize: fs(52), color: 'rgba(255,255,255,0.9)', fontWeight: 800 }}>{c.name.charAt(0)}</span>
                         }
                         {isSelected && (
