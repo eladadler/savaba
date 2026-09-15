@@ -1,4 +1,4 @@
-const CACHE = 'sababa-v2';
+const CACHE = 'sababa-v3';
 
 // Static assets to cache on install
 const PRECACHE = [
@@ -7,6 +7,11 @@ const PRECACHE = [
   '/app.js',
   '/manifest.json',
   '/favicon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable-192.png',
+  '/icon-maskable-512.png',
+  '/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', e => {
