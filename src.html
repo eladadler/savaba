@@ -2269,10 +2269,10 @@ function Avatar({ grad = ['#FFD7B5', '#E8547A'], name = '', size = 56, ring, sty
 // ── The signature tag: "סבבה והכל, אבל…" ───────────────────────
 function SabaBadge({ text, th, size = 'm' }) {
   const big = size === 'l';
-  const iconSz = big ? 26 : 19;
+  const iconH = big ? 34 : 25;
   return (
     <div style={{
-      display: 'inline-flex', alignItems: 'flex-start', gap: 8,
+      display: 'inline-flex', alignItems: 'center', gap: 8,
       background: `linear-gradient(90deg, ${th.ink} 0%, ${th.primary} 100%)`,
       color: th.cream,
       borderRadius: big ? th.rLg : th.r,
@@ -2280,7 +2280,9 @@ function SabaBadge({ text, th, size = 'm' }) {
       maxWidth: '100%', position: 'relative',
       boxShadow: `0 6px 18px ${alpha(th.ink, 0.22)}`,
     }}>
-      <div style={{ flexShrink: 0, marginTop: big ? 1 : 0, lineHeight: 0 }}><Ring size={iconSz} color={th.cream} /></div>
+      <div style={{ flexShrink: 0, lineHeight: 0 }}>
+        <img src={LOGO_WHITE_SRC} alt="" style={{ height: iconH, width: 'auto', display: 'block' }} />
+      </div>
       <div style={{ lineHeight: 1.25, minWidth: 0 }}>
         <div style={{ fontFamily: th.display, fontSize: big ? 13 : 11, color: th.gold, letterSpacing: 0.3, marginBottom: 1 }}>
           סבבה והכל, אבל…
@@ -5983,6 +5985,7 @@ const SABA_TICKER = [
 // so the first slide never shows a broken image.
 const LOGO_SRC = 'logo.png?v=__LOGO_V__';
 const LOGO3_SRC = 'logo3.png?v=__LOGO3_V__';
+const LOGO_WHITE_SRC = 'logo-white.png?v=__LOGO_WHITE_V__';
 
 // Full-screen loading gate (auth/profile/tweaks resolving) — the ring mark on cream,
 // falling back to the heart if the file is ever missing.

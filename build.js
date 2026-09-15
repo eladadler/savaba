@@ -21,7 +21,7 @@ console.log(`Compiling ${Math.round(jsxCode.length / 1024)}KB of JSX...`);
 
 // Stamp image assets with their own content hash — they keep their filename across
 // edits, so without this a replaced file stays cached in browsers that already have it.
-const ASSET_STAMPS = { __LOGO_V__: 'logo.png', __LOGO3_V__: 'logo3.png' };
+const ASSET_STAMPS = { __LOGO_V__: 'logo.png', __LOGO3_V__: 'logo3.png', __LOGO_WHITE_V__: 'logo-white.png' };
 let stampedJsx = jsxCode;
 for (const [placeholder, file] of Object.entries(ASSET_STAMPS)) {
   const v = fs.existsSync(file)
