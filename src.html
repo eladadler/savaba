@@ -2968,7 +2968,7 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.82)})`, padding: 28, direction: 'rtl' }}>
       <div style={{ marginBottom: 32, textAlign: 'center', animation: 'sabaPop .5s ease' }}>
-        <Logo size={72} color={th.primary} flaw={th.cream} />
+        <Splash th={th} size={92} />
         <div style={{ fontFamily: th.display, fontSize: fs(26), fontWeight: 800, color: th.ink, marginTop: 14 }}>סבבה והכל</div>
         <div style={{ fontFamily: th.body, fontSize: fs(15), color: alpha(th.ink, 0.55), marginTop: 4 }}>
           {inviteToken ? 'קיבלת הזמנה — התחבר/י להמשיך' : loginOnly ? 'לצפייה בכרטיסיה, יש להתחבר תחילה' : 'פלטפורמת השידוכים לשדכנים'}
