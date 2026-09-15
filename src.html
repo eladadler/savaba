@@ -5809,12 +5809,13 @@ const LOGO_SRC = 'logo.png';
 
 function BrandMark({ th, p }) {
   const [failed, setFailed] = useS(false);
-  // the artwork carries its own cream ground, so give it a matching plate on every palette
-  const plate = {
-    background: '#FEF9F2', borderRadius: 24, padding: '14px 18px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: p.dark ? '0 14px 38px rgba(0,0,0,0.3)' : '0 10px 30px rgba(30,36,68,0.08)',
-  };
+  // The artwork is transparent and its "והכל" is near-black navy, which would vanish
+  // on the dark palettes — so those get a light plate and the light one gets none.
+  const plate = p.dark
+    ? { background: '#FEF9F2', borderRadius: 24, padding: '16px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 14px 38px rgba(0,0,0,0.32)' }
+    : { display: 'flex', alignItems: 'center', justifyContent: 'center' };
   if (failed) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -5827,7 +5828,7 @@ function BrandMark({ th, p }) {
   return (
     <div style={plate}>
       <img src={LOGO_SRC} alt="סבבה והכל" onError={() => setFailed(true)}
-        style={{ width: 236, maxWidth: '68vw', height: 'auto', display: 'block' }} />
+        style={{ width: p.dark ? 232 : 258, maxWidth: '72vw', height: 'auto', display: 'block' }} />
     </div>
   );
 }
