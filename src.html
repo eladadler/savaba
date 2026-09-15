@@ -2362,37 +2362,48 @@ function BottomNav({ active, onNav, th, badges = {} }) {
     { id: 'set',   label: 'הגדרות',  icon: 'gear' },
   ];
   return (
+    // Transparent outer strip reserves the flex space; the bar itself floats inside
+    // it with margin on every side, so the screen behind shows through the gaps.
     <div style={{
-      flexShrink: 0, background: alpha(th.card, 0.92),
-      backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-      borderTop: `1px solid ${alpha(th.ink, 0.08)}`,
-      paddingTop: 8, paddingBottom: 'max(26px, env(safe-area-inset-bottom))', paddingInline: 6,
-      display: 'flex', justifyContent: 'space-around',
+      flexShrink: 0, paddingInline: 12, paddingTop: 4,
+      paddingBottom: 'max(18px, env(safe-area-inset-bottom))',
     }}>
-      {tabs.map(tb => {
-        const on = active === tb.id;
-        const badge = badges[tb.id] || 0;
-        return (
-          <button key={tb.id} onClick={() => onNav(tb.id)} style={{
-            border: 'none', background: 'none', cursor: 'pointer', flex: 1,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-            color: on ? th.primary : alpha(th.ink, 0.42), padding: '2px 0',
-          }}>
-            <div style={{ position: 'relative' }}>
-              <Icon name={tb.icon} size={25} stroke={on ? 2.4 : 2}
-                fill={on && (tb.icon === 'heart' || tb.icon === 'spark') ? th.primary : 'none'} />
-              {badge > 0 && (
-                <span style={{
-                  position: 'absolute', top: -2, left: -2,
-                  width: 9, height: 9, borderRadius: '50%',
-                  background: th.primary, boxShadow: `0 0 0 2px ${th.cream}`,
-                }} />
-              )}
-            </div>
-            <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: fs(12.5) }}>{tb.label}</span>
-          </button>
-        );
-      })}
+      <div style={{
+        background: alpha(th.card, 0.86),
+        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+        border: `1px solid ${alpha(th.ink, 0.06)}`,
+        borderRadius: 24,
+        boxShadow: `0 10px 30px ${alpha(th.ink, 0.16)}, 0 1px 3px ${alpha(th.ink, 0.06)}`,
+        padding: 7,
+        display: 'flex', justifyContent: 'space-around',
+      }}>
+        {tabs.map(tb => {
+          const on = active === tb.id;
+          const badge = badges[tb.id] || 0;
+          return (
+            <button key={tb.id} onClick={() => onNav(tb.id)} style={{
+              border: 'none', cursor: 'pointer', flex: 1,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+              color: on ? th.primary : alpha(th.ink, 0.42), padding: '7px 0',
+              borderRadius: 17, background: on ? alpha(th.primary, 0.12) : 'transparent',
+              transition: 'background .15s ease',
+            }}>
+              <div style={{ position: 'relative' }}>
+                <Icon name={tb.icon} size={24} stroke={on ? 2.4 : 2}
+                  fill={on && (tb.icon === 'heart' || tb.icon === 'spark') ? th.primary : 'none'} />
+                {badge > 0 && (
+                  <span style={{
+                    position: 'absolute', top: -2, left: -2,
+                    width: 9, height: 9, borderRadius: '50%',
+                    background: th.primary, boxShadow: `0 0 0 2px ${th.cream}`,
+                  }} />
+                )}
+              </div>
+              <span style={{ fontFamily: th.body, fontWeight: on ? 800 : 600, fontSize: fs(12) }}>{tb.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
