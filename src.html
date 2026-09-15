@@ -6027,7 +6027,10 @@ function Onboarding({ th, go, profile }) {
       {/* scene + copy */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', textAlign: 'center', minHeight: 0 }}>
         <div key={i} style={{ marginBottom: 38, animation: 'sabaPop .5s cubic-bezier(.2,.9,.3,1)', display: 'flex', justifyContent: 'center' }}><Scene /></div>
-        <h1 key={'t' + i} style={{ fontFamily: th.display, fontSize: fs(27), color: p.title, margin: '0 0 12px', lineHeight: 1.18, animation: 'sabaUp .4s ease', textWrap: 'balance' }}>{s.title}</h1>
+        {/* the logo and the handwritten "אבל" already carry the phrase on slide one */}
+        {s.kind !== 'brand' && (
+          <h1 key={'t' + i} style={{ fontFamily: th.display, fontSize: fs(27), color: p.title, margin: '0 0 12px', lineHeight: 1.18, animation: 'sabaUp .4s ease', textWrap: 'balance' }}>{s.title}</h1>
+        )}
         <p style={{ fontFamily: th.body, fontSize: fs(16), color: p.body, lineHeight: 1.5, maxWidth: 310, margin: 0, textWrap: 'pretty' }}>{s.body}</p>
       </div>
 
