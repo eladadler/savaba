@@ -41,7 +41,6 @@
   @keyframes sabaFade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes sabaUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes sabaPop { 0% { opacity: 0; transform: scale(0.8); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
-  @keyframes sabaWordIn { 0% { opacity: 0; transform: translateY(16px) scale(0.94); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes sabaChatBeat { 0%,100%{box-shadow:0 0 0 0 rgba(232,84,122,0.5),0 2px 8px rgba(232,84,122,0.3)} 55%{box-shadow:0 0 0 7px rgba(232,84,122,0),0 2px 8px rgba(232,84,122,0.3)} }
   @keyframes sabaHeartBeat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.32)} 28%{transform:scale(1)} 42%{transform:scale(1.16)} 56%{transform:scale(1)} }
   @keyframes sabaGoldPulse { 0%,100%{box-shadow:0 4px 14px rgba(212,168,84,0.15)} 50%{box-shadow:0 6px 28px rgba(212,168,84,0.4), 0 0 0 4px rgba(212,168,84,0.12)} }
@@ -5804,6 +5803,35 @@ const SABA_TICKER = [
   'אלוף/ת החניה — לטענתו/ה',
 ];
 
+// The logo artwork lives at /logo.png. Until it is added, fall back to the wordmark
+// so the first slide never shows a broken image.
+const LOGO_SRC = 'logo.png';
+
+function BrandMark({ th, p }) {
+  const [failed, setFailed] = useS(false);
+  // the artwork carries its own cream ground, so give it a matching plate on every palette
+  const plate = {
+    background: '#FDF8F0', borderRadius: 26, padding: '18px 22px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: p.dark ? '0 14px 38px rgba(0,0,0,0.3)' : '0 10px 30px rgba(30,36,68,0.08)',
+  };
+  if (failed) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Ring size={62} color={p.accent} gem={p.gem} />
+        <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(50), color: p.accent, letterSpacing: '-1px', lineHeight: 1 }}>בבה</span>
+      </div>
+      <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(34), color: p.title, letterSpacing: '-0.5px', lineHeight: 1 }}>והכל</span>
+    </div>
+  );
+  return (
+    <div style={plate}>
+      <img src={LOGO_SRC} alt="סבבה והכל" onError={() => setFailed(true)}
+        style={{ width: 210, maxWidth: '62vw', height: 'auto', display: 'block' }} />
+    </div>
+  );
+}
+
 function SabaTicker({ th, p, boxStyle }) {
   const [ex, setEx] = useS(0);
   React.useEffect(() => {
@@ -5861,15 +5889,7 @@ function Onboarding({ th, go, profile }) {
   const Scene = () => {
     if (s.kind === 'brand') return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26 }}>
-        {/* the wordmark, drawn in two beats: "סבבה" lands, then "והכל" */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 2, animation: 'sabaWordIn .55s cubic-bezier(.2,.9,.3,1) both' }}>
-            <Ring size={62} color={p.accent} gem={p.gem} />
-            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(50), color: p.accent, letterSpacing: '-1px', lineHeight: 1 }}>בבה</span>
-          </div>
-          <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(34), color: p.title, letterSpacing: '-0.5px', lineHeight: 1,
-            animation: 'sabaWordIn .55s cubic-bezier(.2,.9,.3,1) .5s both' }}>והכל</span>
-        </div>
+        <BrandMark th={th} p={p} />
         {/* …אבל — a new one every two seconds */}
         <SabaTicker th={th} p={p} boxStyle={card({ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999 })} />
       </div>
