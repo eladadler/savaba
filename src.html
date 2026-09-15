@@ -13609,8 +13609,7 @@ function AppInner({ inviteToken, offerParam }) {
       navigate([{ name: 'register', params: {} }], true);
       return;
     }
-    // Admins always walk the onboarding (dev aid — drop the !isAdmin when the flow settles)
-    const alreadyIn = profile.profileComplete && !profile.isAdmin;
+    const alreadyIn = profile.profileComplete;
     if (alreadyIn && stack.length === 1 && stack[0].name === 'onboarding') {
       navigate([{ name: 'home', params: {} }], true);
     }
