@@ -13448,6 +13448,10 @@ function AppInner({ inviteToken, offerParam }) {
   const [t, setTweak]  = useTweaks(TWEAK_DEFAULTS);
   const [aiMode, setAiModeState] = React.useState('top5');
   const [groupTagsByCategory, setGroupTagsState] = React.useState(true);
+  // Tweaks start out as hardcoded local defaults (e.g. onbPalette: 'orchid') and only
+  // become the admin's saved choice once this Firestore read resolves — without this
+  // flag the first frame renders the default and visibly flicks to the real value.
+  const [tweaksLoaded, setTweaksLoaded] = React.useState(false);
   React.useEffect(() => {
     db.collection('config').doc('settings').get()
       .then(d => {
@@ -13458,7 +13462,8 @@ function AppInner({ inviteToken, offerParam }) {
         PROD_TWEAK_KEYS.forEach(k => { if (d.data()[k] !== undefined) loadedTweaks[k] = d.data()[k]; });
         if (Object.keys(loadedTweaks).length) setTweak(loadedTweaks);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setTweaksLoaded(true));
   }, []);
   const setAiMode = async (val) => {
     setAiModeState(val);
@@ -13706,10 +13711,10 @@ function AppInner({ inviteToken, offerParam }) {
               </button>
             </div>
           )}
-          {data.loading
+          {(data.loading || !tweaksLoaded)
             ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
             : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak: setProdTweak, setGroupTagsByCategory })}
-          {showNav && !data.loading && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
+          {showNav && !data.loading && tweaksLoaded && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
           {/* Admin floating edit-mode button */}
           {isAdmin && th.showTextEditBtn && !data.loading && screenKeys.length > 0 && !editMode && !inlineEditMode && (
