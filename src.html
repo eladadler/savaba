@@ -5991,7 +5991,7 @@ function Splash({ th, size = 84 }) {
   if (failed) return <Ring size={Math.round(size * 0.62)} color={th.primary} />;
   return (
     <img src={LOGO3_SRC} alt="" onError={() => setFailed(true)}
-      style={{ width: size, height: 'auto', display: 'block' }} />
+      style={{ width: size, height: 'auto', display: 'block', marginInline: 'auto' }} />
   );
 }
 
