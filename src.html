@@ -2172,6 +2172,15 @@ function tagIconFor(tag, approved) {
   const c = TAG_ICON_CHOICES[tag];
   return c ? c[0] : null;
 }
+// Is this label one of the tag pills (vs. a filter/status chip that must stay untouched)?
+// TAG_ICON_CHOICES only covers the tags shipped in the defaults — the live catalogue in
+// config/lists is admin-editable and much larger, so anything the admin has reviewed in
+// the wizard counts too. Without this the wizard's picks for custom tags were saved but
+// never rendered.
+function isKnownTag(tag, approved) {
+  if (typeof tag !== 'string') return false;
+  return !!TAG_ICON_CHOICES[tag] || !!(approved && approved[tag] !== undefined);
+}
 
 function flattenCategories(categories) {
   return (categories || []).flatMap(c => c.tags || []);
@@ -2298,7 +2307,7 @@ function SabaBadge({ text, th, size = 'm' }) {
 // ── Chip / pill ────────────────────────────────────────────────
 function Chip({ label, active, onClick, th, icon, tone }) {
   const c = tone || th.primary;
-  const isTag = typeof label === 'string' && !!TAG_ICON_CHOICES[label];
+  const isTag = isKnownTag(label, th.tagIcons);
   const tagIcon = (!icon && th.tagIconsOn && isTag) ? tagIconFor(label, th.tagIcons) : null;
   const tagTint = (th.tagIconsOn && isTag) ? th.tagIconColor : null;
   return (
