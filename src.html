@@ -5891,7 +5891,7 @@ const LOGO3_SRC = 'logo3.png?v=__LOGO3_V__';
 // falling back to the heart if the file is ever missing.
 function Splash({ th, size = 84 }) {
   const [failed, setFailed] = useS(false);
-  if (failed) return <Ring size={Math.round(size * 0.62)} color={th.primary} gem={th.cream} />;
+  if (failed) return <Ring size={Math.round(size * 0.62)} color={th.primary} />;
   return (
     <img src={LOGO3_SRC} alt="" onError={() => setFailed(true)}
       style={{ width: size, height: 'auto', display: 'block' }} />
@@ -7387,7 +7387,7 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
         <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: th.ink }}>{c.name}, {c.age}</div>
         <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ${t('cands_height_unit')}` : ''}</div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 9px' }}>
-          <Ring size={15} color={th.primary} gem={th.cream} />
+          <Ring size={15} color={th.primary} />
           <span style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
         </div>
       </div>
@@ -9090,7 +9090,7 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
 
       {/* sabaBut — quiet highlight */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', background: alpha(th.primary, 0.07), borderRadius: th.r, padding: '14px 16px', margin: '18px 0 4px' }}>
-        <Ring size={22} color={th.primary} gem={th.cream} />
+        <Ring size={22} color={th.primary} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: th.primary, fontWeight: 700 }}>סבבה והכל, אבל…</div>
           <div style={{ fontFamily: th.display, fontSize: fs(16), color: th.ink, lineHeight: 1.25 }}>{c.sabaBut}</div>
@@ -9194,7 +9194,7 @@ function CandRow({ c, th, selected, onClick, trailing, disabled }) {
         {disabled
           ? <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(11), color: th.gold, background: alpha(th.gold, 0.15), borderRadius: 99, padding: '2px 8px' }}>בוצעה כבר התאמה</span>
           : <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.7), display: 'flex', gap: 5, alignItems: 'center' }}>
-              <Ring size={13} color={th.primary} gem={th.cream} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.sabaBut}</span>
+              <Ring size={13} color={th.primary} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.sabaBut}</span>
             </div>
         }
       </div>
@@ -9483,7 +9483,7 @@ function MatchFlow({ th, go, params }) {
                               <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), marginBottom:c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
                               {c.sabaBut && (
                                 <div style={{ display:'flex', gap:5, alignItems:'flex-start', background:alpha(th.ink,0.04), borderRadius:th.rSm, padding:'6px 8px' }}>
-                                  <Ring size={13} color={th.primary} gem={th.cream} />
+                                  <Ring size={13} color={th.primary} />
                                   <span style={{ fontFamily:th.body, fontSize:12.5, fontWeight:600, color:th.ink, lineHeight:1.25, WebkitLineClamp:2, display:'-webkit-box', WebkitBoxOrient:'vertical', overflow:'hidden' }}>{c.sabaBut}</span>
                                 </div>
                               )}
@@ -9575,7 +9575,7 @@ function MatchFlow({ th, go, params }) {
                         <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.5), marginBottom: c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
                         {c.sabaBut && (
                           <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '6px 8px' }}>
-                            <Ring size={13} color={th.primary} gem={th.cream} />
+                            <Ring size={13} color={th.primary} />
                             <span style={{ fontFamily: th.body, fontSize: fs(12.5), fontWeight: 600, color: th.ink, lineHeight: 1.25, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.sabaBut}</span>
                           </div>
                         )}
@@ -11835,7 +11835,7 @@ function Settings({ th, go }) {
         </Group>
 
         <div style={{ textAlign: 'center', marginTop: 8 }}>
-          <Ring size={28} color={alpha(th.ink, 0.25)} gem={th.cream} />
+          <Ring size={28} color={alpha(th.ink, 0.25)} />
           <div style={{ fontFamily: th.display, fontSize: fs(13), color: alpha(th.ink, 0.35), marginTop: 4 }}>סבבה והכל · גרסה 1.0</div>
         </div>
       </div>
@@ -13430,7 +13430,7 @@ function AppSettings({ th, go, profile }) {
           <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); window.location.hash = ''; }} />
         </Group>
         <div style={{ textAlign:'center', marginTop:8 }}>
-          <Ring size={28} color={alpha(th.ink,0.25)} gem={th.cream} />
+          <Ring size={28} color={alpha(th.ink,0.25)} />
           <div style={{ fontFamily:th.display, fontSize:13, color:alpha(th.ink,0.35), marginTop:4 }}>סבבה והכל · גרסה 1.0</div>
         </div>
       </div>
