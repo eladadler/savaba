@@ -5811,7 +5811,7 @@ function BrandMark({ th, p }) {
   const [failed, setFailed] = useS(false);
   // the artwork carries its own cream ground, so give it a matching plate on every palette
   const plate = {
-    background: '#FDF8F0', borderRadius: 26, padding: '18px 22px',
+    background: '#FEF9F2', borderRadius: 24, padding: '14px 18px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: p.dark ? '0 14px 38px rgba(0,0,0,0.3)' : '0 10px 30px rgba(30,36,68,0.08)',
   };
@@ -5827,7 +5827,7 @@ function BrandMark({ th, p }) {
   return (
     <div style={plate}>
       <img src={LOGO_SRC} alt="סבבה והכל" onError={() => setFailed(true)}
-        style={{ width: 210, maxWidth: '62vw', height: 'auto', display: 'block' }} />
+        style={{ width: 236, maxWidth: '68vw', height: 'auto', display: 'block' }} />
     </div>
   );
 }
