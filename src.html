@@ -1071,7 +1071,7 @@ const ONB_PALETTES = {
     accent: '#FF6BA8', dotOff: 'rgba(251,246,236,0.26)',
     surface: 'rgba(255,255,255,0.10)', line: 'rgba(255,255,255,0.22)',
     btnBg: '#FBF6EC', btnFg: '#4A0E37',
-    ring: '#FBF6EC', gem: '#FF74AE', halo: '#4A1145', dark: true,
+    ring: '#FBF6EC', gem: '#FF74AE', dark: true,
   },
   night: {
     label: 'לילה', note: 'גרדיאנט נייבי→סגול→מג׳נטה',
@@ -1080,7 +1080,7 @@ const ONB_PALETTES = {
     accent: '#FF7FB4', dotOff: 'rgba(248,213,228,0.26)',
     surface: 'rgba(255,255,255,0.09)', line: 'rgba(255,255,255,0.20)',
     btnBg: '#FBF6EC', btnFg: '#20183F',
-    ring: '#FBF6EC', gem: '#FF74AE', halo: '#2A1B4E', dark: true,
+    ring: '#FBF6EC', gem: '#FF74AE', dark: true,
   },
   cream: {
     label: 'קרם', note: 'רקע קרם בהיר, ורוד + נייבי',
@@ -1089,7 +1089,7 @@ const ONB_PALETTES = {
     accent: '#E63E6D', dotOff: 'rgba(30,36,68,0.16)',
     surface: '#FFFFFF', line: 'rgba(30,36,68,0.10)',
     btnBg: '#E63E6D', btnFg: '#FFFFFF',
-    ring: '#E63E6D', gem: '#F2769C', halo: '#FEFBF6', dark: false,
+    ring: '#E63E6D', gem: '#F2769C', dark: false,
   },
 };
 
@@ -4196,13 +4196,15 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
           const WIPE_ACTIONS = [
             { id: 'offers',       label: 'מחק את כל ההצעות',   desc: 'מוחק את כל ההצעות במערכת ללא יוצא מן הכלל.',          col: 'offers',      skipAdmin: false },
             { id: 'candidates',   label: 'מחק את כל המועמדים', desc: 'מוחק את כל המועמדים ותמונותיהם מהמערכת.',              col: 'candidates',  skipAdmin: false },
-            { id: 'matchmakers',  label: 'מחק את כל השדכנים',  desc: 'מוחק את כל השדכנים — למעט חשבון האדמין שלך.',         col: 'matchmakers', skipAdmin: true  },
+            { id: 'matchmakers',  label: 'מחק את כל השדכנים',  desc: 'מוחק את כל השדכנים — מנהלי המערכת לא נמחקים.',         col: 'users',       skipAdmin: true  },
           ];
           const doWipe = async (action) => {
             setWiping(true);
             try {
               const snap = await db.collection(action.col).get();
-              const toDelete = action.skipAdmin ? snap.docs.filter(d => d.id !== profile?.uid) : snap.docs;
+              // skipAdmin protects every admin account, not just the one running this — the
+              // matchmakers collection is actually `users`, shared with admin accounts.
+              const toDelete = action.skipAdmin ? snap.docs.filter(d => !d.data()?.isAdmin) : snap.docs;
               for (let i = 0; i < toDelete.length; i += 500) {
                 const batch = db.batch();
                 toDelete.slice(i, i + 500).forEach(d => batch.delete(d.ref));
@@ -5737,7 +5739,7 @@ const DEFAULT_TEXTS = {
 };
 
 const SCREEN_TEXTS = {
-  onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body','onb_slide4_title','onb_slide4_body','onb_slide5_title','onb_slide5_body','onb_slide6_title','onb_slide6_body','onb_slide7_title','onb_slide7_body','onb_skip','onb_next','onb_start'],
+  onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body','onb_slide4_title','onb_slide4_body','onb_slide5_title','onb_slide5_body','onb_slide7_title','onb_slide7_body','onb_skip','onb_next','onb_start'],
   register:      ['register_title','register_sub','register_field_firstname','register_field_lastname','register_field_gender','register_field_phone','register_phone_hint','register_btn_next','register_photo_title','register_photo_why_title','register_photo_why_body','register_btn_upload','register_btn_change','register_btn_save','register_btn_skip','register_photo_hint'],
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_linkmode_title','cands_linkmode_body','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
@@ -5806,6 +5808,18 @@ const SABA_TICKER = [
 // The logo artwork lives at /logo.png. Until it is added, fall back to the wordmark
 // so the first slide never shows a broken image.
 const LOGO_SRC = 'logo.png?v=__LOGO_V__';
+const LOGO3_SRC = 'logo3.png?v=__LOGO3_V__';
+
+// Full-screen loading gate (auth/profile/tweaks resolving) — the ring mark on cream,
+// falling back to the heart if the file is ever missing.
+function Splash({ th, size = 84 }) {
+  const [failed, setFailed] = useS(false);
+  if (failed) return <Logo size={Math.round(size * 0.7)} color={th.primary} flaw={th.cream} />;
+  return (
+    <img src={LOGO3_SRC} alt="" onError={() => setFailed(true)}
+      style={{ width: size, height: 'auto', display: 'block' }} />
+  );
+}
 
 function BrandMark({ th, p }) {
   const [failed, setFailed] = useS(false);
@@ -5859,7 +5873,6 @@ function Onboarding({ th, go, profile }) {
     { kind: 'profile', title: t('onb_slide3_title'), body: t('onb_slide3_body') },
     { kind: 'ai',      title: t('onb_slide4_title'), body: t('onb_slide4_body') },
     { kind: 'offer',   title: t('onb_slide5_title'), body: t('onb_slide5_body') },
-    { kind: 'team',    title: t('onb_slide6_title'), body: t('onb_slide6_body') },
     { kind: 'privacy', title: t('onb_slide7_title'), body: t('onb_slide7_body') },
   ];
   const last = i === slides.length - 1;
@@ -5971,21 +5984,6 @@ function Onboarding({ th, go, profile }) {
       </div>
     );
 
-    if (s.kind === 'team') return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-        <div style={{ display: 'flex' }}>
-          {[5, 2, 0].map((g, k) => (
-            <Avatar key={k} grad={AV_GRADS[g]} name={['ר','י','ח'][k]} size={62}
-              style={{ marginInlineStart: k ? -20 : 0, zIndex: 3 - k,
-                boxShadow: `0 0 0 3px ${p.halo}` }} />
-          ))}
-        </div>
-        <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999, padding: '9px 15px' }) }}>
-          <Icon name="link" size={16} style={{ color: p.accent }} />
-          <span style={{ fontFamily: th.body, fontWeight: 700, fontSize: fs(13), color: p.title }}>מועמד משותף</span>
-        </div>
-      </div>
-    );
 
     // privacy
     return (
@@ -13712,7 +13710,7 @@ function AppInner({ inviteToken, offerParam }) {
             </div>
           )}
           {(data.loading || !tweaksLoaded)
-            ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Logo size={60} color={th.primary} flaw={th.cream} /></div>
+            ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}><Splash th={th} /></div>
             : renderScreen(cur, th, go, profile, aiMode, setAiMode, { editMethod, setEditMethod: saveEditMethod, setTweak: setProdTweak, setGroupTagsByCategory })}
           {showNav && !data.loading && tweaksLoaded && <BottomNav active={activeTab} onNav={(tab) => go('tab',{tab})} th={th} badges={{ match: matchBadge, cands: candsBadge }} />}
 
@@ -13868,7 +13866,7 @@ function App() {
     return (
       <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
-          <Logo size={60} color={th.primary} flaw={th.cream} />
+          <Splash th={th} />
         </div>
       </div>
     );
@@ -13892,7 +13890,7 @@ function App() {
     return (
       <div style={{ position:'fixed', inset:0, background:'#1e1a23', display:'flex', justifyContent:'center' }}>
         <div style={{ width:'100%', maxWidth:430, height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, gap:20 }}>
-          <Logo size={60} color={th.primary} flaw={th.cream} />
+          <Splash th={th} />
           {stuck && (
             <div style={{ textAlign:'center', padding:'0 32px' }}>
               <div style={{ fontFamily:th.body, fontSize:14, color:alpha(th.ink,0.55), marginBottom:14 }}>הטעינה לוקחת יותר מהצפוי…</div>
