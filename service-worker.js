@@ -1,4 +1,4 @@
-const CACHE = 'sababa-v1';
+const CACHE = 'sababa-v2';
 
 // Static assets to cache on install
 const PRECACHE = [

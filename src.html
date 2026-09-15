@@ -2808,7 +2808,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
 
       {/* Brand + invite info */}
       <div style={{ textAlign:'center', marginBottom:28, animation:'sabaPop .5s ease' }}>
-        <Logo size={60} color={th.primary} flaw={th.cream} />
+        <Splash th={th} size={80} />
         <div style={{ fontFamily:th.display, fontSize:26, fontWeight:800, color:th.ink, marginTop:12 }}>סבבה והכל</div>
         <div style={{ fontFamily:th.body, fontSize:13.5, color:alpha(th.ink,0.55), marginTop:4, lineHeight:1.5 }}>
           {t('invite_app_desc')}
@@ -5814,7 +5814,7 @@ const LOGO3_SRC = 'logo3.png?v=__LOGO3_V__';
 // falling back to the heart if the file is ever missing.
 function Splash({ th, size = 84 }) {
   const [failed, setFailed] = useS(false);
-  if (failed) return <Logo size={Math.round(size * 0.7)} color={th.primary} flaw={th.cream} />;
+  if (failed) return <Ring size={Math.round(size * 0.62)} color={th.primary} gem={th.cream} />;
   return (
     <img src={LOGO3_SRC} alt="" onError={() => setFailed(true)}
       style={{ width: size, height: 'auto', display: 'block' }} />
@@ -6542,7 +6542,7 @@ function Home({ th, go, approvalPopupCand }) {
           /* ── Dark / gradient style ── */
           <div style={{ background: `linear-gradient(135deg, ${th.ink}, ${alpha(th.primary, 0.85)})`, borderRadius: th.rLg, padding: 18, marginBottom: 18, color: th.cream, boxShadow: `0 16px 34px ${alpha(th.ink, 0.28)}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <Logo size={22} color={th.gold} flaw={th.cream} />
+              <Ring size={22} color={th.gold} gem={th.cream} />
               <span style={{ fontFamily: th.display, fontSize: fs(17), fontWeight: 800 }}>{t('home_waiting_title')}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -7308,7 +7308,7 @@ function CandCard({ c, th, myUid, onClick, linkMode, onLink, requestSent, photoS
         <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(16), color: th.ink }}>{c.name}, {c.age}</div>
         <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 8 }}>{c.region} · {c.religiosity}{c.height ? ` · ${c.height} ${t('cands_height_unit')}` : ''}</div>
         <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '7px 9px' }}>
-          <Logo size={15} color={th.primary} flaw={th.cream} />
+          <Ring size={15} color={th.primary} gem={th.cream} />
           <span style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 600, color: th.ink, lineHeight: 1.25, textWrap: 'pretty' }}>{c.sabaBut}</span>
         </div>
       </div>
@@ -7758,7 +7758,7 @@ function InvitationLanding({ th, go, token }) {
 
   if (loading) return (
     <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
-      <Logo size={50} color={th.primary} flaw={th.cream} />
+      <Splash th={th} size={64} />
     </div>
   );
 
@@ -7776,7 +7776,7 @@ function InvitationLanding({ th, go, token }) {
   return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', background:`linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.84)})`, direction:'rtl' }}>
       <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 28px', textAlign:'center' }}>
-        <Logo size={56} color={th.primary} flaw={th.cream} style={{ marginBottom:20 }} />
+        <Splash th={th} size={76} />
         <div style={{ fontFamily:th.display, fontSize:13, fontWeight:700, color:th.primary, letterSpacing:1.5, marginBottom:6 }}>הוזמנת להצטרף</div>
         <h1 style={{ fontFamily:th.display, fontSize:30, fontWeight:800, color:th.ink, margin:'0 0 6px', lineHeight:1.2 }}>סבבה והכל</h1>
         <div style={{ fontFamily:th.body, fontSize:16, color:alpha(th.ink,0.65), marginBottom:28 }}>
@@ -8211,7 +8211,7 @@ function EditCandidateScreen({ th, go, params }) {
   const c = candidates.find(x => x.id === params?.id);
   if (!c) return (
     <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
-      <Logo size={40} color={th.primary} flaw={th.cream} />
+      <Splash th={th} size={52} />
     </div>
   );
   return (
@@ -9011,7 +9011,7 @@ function MinBody({ c, th, showDiscrete, setShowDiscrete, mm, canSeeDiscrete }) {
 
       {/* sabaBut — quiet highlight */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', background: alpha(th.primary, 0.07), borderRadius: th.r, padding: '14px 16px', margin: '18px 0 4px' }}>
-        <Logo size={22} color={th.primary} flaw={th.cream} />
+        <Ring size={22} color={th.primary} gem={th.cream} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: th.primary, fontWeight: 700 }}>סבבה והכל, אבל…</div>
           <div style={{ fontFamily: th.display, fontSize: fs(16), color: th.ink, lineHeight: 1.25 }}>{c.sabaBut}</div>
@@ -9115,7 +9115,7 @@ function CandRow({ c, th, selected, onClick, trailing, disabled }) {
         {disabled
           ? <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(11), color: th.gold, background: alpha(th.gold, 0.15), borderRadius: 99, padding: '2px 8px' }}>בוצעה כבר התאמה</span>
           : <div style={{ fontFamily: th.body, fontSize: fs(12), color: alpha(th.ink, 0.7), display: 'flex', gap: 5, alignItems: 'center' }}>
-              <Logo size={13} color={th.primary} flaw={th.cream} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.sabaBut}</span>
+              <Ring size={13} color={th.primary} gem={th.cream} /><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.sabaBut}</span>
             </div>
         }
       </div>
@@ -9404,7 +9404,7 @@ function MatchFlow({ th, go, params }) {
                               <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), marginBottom:c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
                               {c.sabaBut && (
                                 <div style={{ display:'flex', gap:5, alignItems:'flex-start', background:alpha(th.ink,0.04), borderRadius:th.rSm, padding:'6px 8px' }}>
-                                  <Logo size={13} color={th.primary} flaw={th.cream} />
+                                  <Ring size={13} color={th.primary} gem={th.cream} />
                                   <span style={{ fontFamily:th.body, fontSize:12.5, fontWeight:600, color:th.ink, lineHeight:1.25, WebkitLineClamp:2, display:'-webkit-box', WebkitBoxOrient:'vertical', overflow:'hidden' }}>{c.sabaBut}</span>
                                 </div>
                               )}
@@ -9496,7 +9496,7 @@ function MatchFlow({ th, go, params }) {
                         <div style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.5), marginBottom: c.sabaBut ? 6 : 0 }}>{c.region} · {c.religiosity}</div>
                         {c.sabaBut && (
                           <div style={{ display: 'flex', gap: 5, alignItems: 'flex-start', background: alpha(th.ink, 0.04), borderRadius: th.rSm, padding: '6px 8px' }}>
-                            <Logo size={13} color={th.primary} flaw={th.cream} />
+                            <Ring size={13} color={th.primary} gem={th.cream} />
                             <span style={{ fontFamily: th.body, fontSize: fs(12.5), fontWeight: 600, color: th.ink, lineHeight: 1.25, WebkitLineClamp: 2, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{c.sabaBut}</span>
                           </div>
                         )}
@@ -11756,7 +11756,7 @@ function Settings({ th, go }) {
         </Group>
 
         <div style={{ textAlign: 'center', marginTop: 8 }}>
-          <Logo size={28} color={alpha(th.ink, 0.25)} flaw={th.cream} />
+          <Ring size={28} color={alpha(th.ink, 0.25)} gem={th.cream} />
           <div style={{ fontFamily: th.display, fontSize: fs(13), color: alpha(th.ink, 0.35), marginTop: 4 }}>סבבה והכל · גרסה 1.0</div>
         </div>
       </div>
@@ -13350,7 +13350,7 @@ function AppSettings({ th, go, profile }) {
           <Row icon="arrow" label="יציאה מהמערכת" danger last onClick={() => { auth.signOut(); window.location.hash = ''; }} />
         </Group>
         <div style={{ textAlign:'center', marginTop:8 }}>
-          <Logo size={28} color={alpha(th.ink,0.25)} flaw={th.cream} />
+          <Ring size={28} color={alpha(th.ink,0.25)} gem={th.cream} />
           <div style={{ fontFamily:th.display, fontSize:13, color:alpha(th.ink,0.35), marginTop:4 }}>סבבה והכל · גרסה 1.0</div>
         </div>
       </div>
