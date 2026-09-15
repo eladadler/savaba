@@ -41,6 +41,7 @@
   @keyframes sabaFade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes sabaUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes sabaPop { 0% { opacity: 0; transform: scale(0.8); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+  @keyframes sabaWordIn { 0% { opacity: 0; transform: translateY(16px) scale(0.94); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
   @keyframes sabaChatBeat { 0%,100%{box-shadow:0 0 0 0 rgba(232,84,122,0.5),0 2px 8px rgba(232,84,122,0.3)} 55%{box-shadow:0 0 0 7px rgba(232,84,122,0),0 2px 8px rgba(232,84,122,0.3)} }
   @keyframes sabaHeartBeat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.32)} 28%{transform:scale(1)} 42%{transform:scale(1.16)} 56%{transform:scale(1)} }
   @keyframes sabaGoldPulse { 0%,100%{box-shadow:0 4px 14px rgba(212,168,84,0.15)} 50%{box-shadow:0 6px 28px rgba(212,168,84,0.4), 0 0 0 4px rgba(212,168,84,0.12)} }
@@ -1804,6 +1805,112 @@ const TAG_ICON_PATHS = {
   translate:  <><path d="M3 5.6h8.2M7.1 3.5v2.1M8.6 5.6c-.5 4-3.1 6.6-5.6 7.6M5 9.1c1 2 3 3.6 5.6 4.1"/><path d="m12.4 20.5 4.1-9.1 4.1 9.1M13.8 17.5h5.4"/></>,
   pill:       <><path d="M10.5 3.2 3.2 10.5a5.2 5.2 0 0 0 7.3 7.3l7.3-7.3a5.2 5.2 0 0 0-7.3-7.3Z"/><path d="m6.9 6.9 7.2 7.2"/></>,
   ticket:     <><path d="M3 7.6h18v2.9a2 2 0 0 0 0 4v2.9H3v-2.9a2 2 0 0 0 0-4V7.6Z"/><path d="M14 7.6v2M14 11v2M14 14.4v2"/></>,
+
+  // ── Judaism, second pass ──
+  apple:       <><path d="M12 8.4c-1.4-1.1-3-1.6-4.5-1.1C5.3 8 4 10.4 4 13.2c0 4 2.8 7.3 5.4 7.3 1 0 1.7-.4 2.6-.4s1.6.4 2.6.4c2.6 0 5.4-3.3 5.4-7.3 0-2.8-1.3-5.2-3.5-5.9-1.5-.5-3.1 0-4.5 1.1Z"/><path d="M12 8.4V5.6c0-1.4 1.2-2.6 3-2.8.2 1.8-1.2 2.8-3 2.8Z"/></>,
+  honey:       <><path d="M7 8.6h10v10.4a1.6 1.6 0 0 1-1.6 1.6H8.6A1.6 1.6 0 0 1 7 19V8.6Z"/><path d="M5.8 8.6h12.4M9.4 8.6V6.2h5.2v2.4"/><path d="M9.6 12.6h4.8M9.6 15.8h4.8"/></>,
+  pomegranate: <><circle cx="12" cy="13.6" r="7"/><path d="M12 6.6V4.2M12 4.2 9.8 2.6M12 4.2l2.2-1.6"/><path d="M9.4 12h.02M14.6 12h.02M12 15.2h.02M10.2 16.6h.02M13.8 16.6h.02"/></>,
+  matzah:      <><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="2"/><path d="M7.2 7.4h.02M11 7.4h.02M14.8 7.4h.02M17.6 7.4h.02M7.2 11.2h.02M11 11.2h.02M14.8 11.2h.02M17.6 11.2h.02M7.2 15h.02M11 15h.02M14.8 15h.02M17.6 15h.02M7.2 18h.02M11 18h.02M14.8 18h.02M17.6 18h.02"/></>,
+  sederPlate:  <><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="2.9"/><path d="M12 3.6v5.5M12 14.9v5.5M3.6 12h5.5M14.9 12h5.5"/><path d="m6.1 6.1 2.9 2.9M17.9 6.1 15 9M6.1 17.9 9 15M17.9 17.9 15 15"/></>,
+  tzedakah:    <><rect x="4" y="8.4" width="16" height="12.1" rx="2"/><path d="M9.4 11.9h5.2"/><path d="M12 5.4v3M10 6.7l2-1.3 2 1.3"/><circle cx="12" cy="16.4" r="2.2"/></>,
+  shtender:    <><path d="M5.4 8.4 12 5.9l6.6 2.5-6.6 2.5-6.6-2.5Z"/><path d="M12 10.9v8.6M8.4 19.5h7.2M9 11.4v2.4M15 11.4v2.4"/></>,
+  nerTamid:    <><path d="M12 3.5v2.9M8.6 6.4h6.8l-1 2.5h-4.8l-1-2.5Z"/><path d="M12 8.9v3.4"/><path d="M12 12.3c-1.6 1.6-2.4 2.9-2.4 4.3 0 1.9 1.1 3.4 2.4 3.9 1.3-.5 2.4-2 2.4-3.9 0-1.4-.8-2.7-2.4-4.3Z"/></>,
+  aronKodesh:  <><path d="M4.6 20.5V8.6a7.4 7.4 0 0 1 14.8 0v11.9"/><path d="M2.5 20.5h19M12 8v12.5"/><path d="M8.2 12.6h.02M15.8 12.6h.02"/><path d="M12 5.4 13.2 7.4h-2.4L12 5.4Z"/></>,
+  havdalah:    <><path d="M12 20.5v-8.9M8.6 20.5h6.8"/><path d="M12 11.6c-1.2-1.3-1.8-2.2-1.8-3.2 0-1.1.8-2.1 1.8-2.8 1 .7 1.8 1.7 1.8 2.8 0 1-.6 1.9-1.8 3.2Z"/><path d="M10.4 12.4c.9 1.4 2.3 1.4 3.2 0M10.4 15.2c.9 1.4 2.3 1.4 3.2 0M10.4 18c.9 1.4 2.3 1.4 3.2 0"/></>,
+  shtreimel:   <><ellipse cx="12" cy="12.4" rx="9" ry="4"/><path d="M7.6 10c0-2.3 2-4.1 4.4-4.1s4.4 1.8 4.4 4.1"/><path d="M4 12.4c.8 1.1 1.6 1.1 2.4 0M8.2 14c.8 1.1 1.6 1.1 2.4 0M13.4 14c.8 1.1 1.6 1.1 2.4 0M17.6 12.4c.8 1.1 1.6 1.1 2.4 0"/></>,
+  grapes:      <><path d="M12 7V3.6c1-1 2.1-1.4 3.6-1.2"/><circle cx="9" cy="10" r="2.1"/><circle cx="15" cy="10" r="2.1"/><circle cx="12" cy="13.4" r="2.1"/><circle cx="7" cy="14" r="2.1"/><circle cx="17" cy="14" r="2.1"/><circle cx="12" cy="17.8" r="2.1"/></>,
+  olive:       <><ellipse cx="9.4" cy="14.2" rx="3.6" ry="4.6"/><ellipse cx="15.6" cy="11.6" rx="3.2" ry="4.2"/><path d="M9.4 9.6V6.6M15.6 7.4V5.2"/><path d="M9.4 6.6c-1.4-.6-2.4-1.8-2.6-3.2 1.6.2 2.6 1.4 2.6 3.2Z"/></>,
+  dove:        <><path d="M20.8 6.2c-1.7.1-2.9.9-3.5 2.3l-1 2.4c-.5 1.2-1.6 2-3 2H10a5.6 5.6 0 0 0-5.5 5.5h7c4 0 7.2-3.3 7.2-7.3v-2l2.1-2.9Z"/><path d="M15.7 8.2h.02"/><path d="M9.4 14.6c-1.6-1-2.9-1-4.2-.3"/></>,
+  // ── food ──
+  watermelon:  <><path d="M2.8 6.6a10.4 10.4 0 0 0 18.4 0"/><path d="M5.2 6.6a8 8 0 0 0 13.6 0"/><path d="M9.4 9.4h.02M12 11.6h.02M14.6 9.4h.02M11 7.6h.02M13 7.6h.02"/></>,
+  mikveh:      <><path d="M2.6 20.5h18.8"/><path d="M3.6 20.5v-3.4h4.2v-3.4H12v-3.4h4.2V6.9h4.2"/><path d="M3.6 13.7c1.4-1.3 2.5-1.3 3.6 0s2.3 1.3 3.6 0"/><path d="M3.6 16.8c1.4-1.3 2.5-1.3 3.6 0"/></>,
+  cheese:      <><path d="M3 11.6 12.4 6 21 11.6v5.8a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 17.4v-5.8Z"/><path d="M3 11.6h18"/><circle cx="8" cy="15" r="1.3"/><circle cx="14.5" cy="14.4" r="1.6"/></>,
+  egg:         <><path d="M12 3.5c3.6 0 6.5 5.4 6.5 9.7A6.5 6.5 0 0 1 5.5 13.2C5.5 8.9 8.4 3.5 12 3.5Z"/><path d="M9 14.4a3 3 0 0 0 3 2.4"/></>,
+  salad:       <><path d="M3.4 11.6h17.2c0 4.9-3.9 8.9-8.6 8.9s-8.6-4-8.6-8.9Z"/><path d="M2.5 20.5h19"/><path d="M8.4 11.6c-1.2-1.6-1-3.4.4-4.6 1 1.3 1.1 3 .4 4.6M14 11.6c.6-2 2.2-3.2 4.2-3-.3 1.7-1.8 2.9-3.4 3M11 11.6c-.5-2.4.6-4.5 2.8-5.4.4 2.4-.6 4.5-2.4 5.4"/></>,
+  grill:       <><path d="M4.4 8.4h15.2a7.6 7.6 0 0 1-15.2 0Z"/><path d="M8 15.4 5.6 20.5M16 15.4l2.4 5.1M12 15.6v4.9"/><path d="M8.6 5.4c0-1.1 1-1.4 1-2.4M12 5.4c0-1.1 1-1.4 1-2.4M15.4 5.4c0-1.1 1-1.4 1-2.4"/></>,
+  tea:         <><path d="M5 9h11v5.6a4.4 4.4 0 0 1-4.4 4.4H9.4A4.4 4.4 0 0 1 5 14.6V9Z"/><path d="M16 10.8h1.6a2.4 2.4 0 0 1 0 4.8H16"/><path d="M3.4 20.5h14.2"/><path d="M10.5 6.4c0-1.2 1.2-1.6 1.2-2.8"/></>,
+  chocolate:   <><rect x="4.4" y="3.6" width="15.2" height="16.8" rx="1.6"/><path d="M4.4 9.2h15.2M4.4 14.8h15.2M9.4 3.6v16.8M14.6 3.6v16.8"/></>,
+  cupcake:     <><path d="M6 11.6h12l-1.4 7.4a1.6 1.6 0 0 1-1.6 1.3H9a1.6 1.6 0 0 1-1.6-1.3L6 11.6Z"/><path d="M5.4 11.6c0-2.5 2-4.2 4.4-4.2.4-1.6 1.6-2.6 3-2.6 1.6 0 2.9 1.2 3.1 2.8 1.6.4 2.7 1.9 2.7 4"/></>,
+  // ── nature and weather ──
+  moon:        <path d="M19.4 14.8A7.6 7.6 0 0 1 9.4 4.8a7.6 7.6 0 1 0 10 10Z"/>,
+  rain:        <><path d="M7.2 15.4a4.4 4.4 0 0 1-.6-8.7 5.8 5.8 0 0 1 11.1.6 4.1 4.1 0 0 1-.7 8.1H7.2Z"/><path d="M8.6 18.2 7.6 20.6M12 18.2l-1 2.4M15.4 18.2l-1 2.4"/></>,
+  snow:        <><path d="M12 2.6v18.8M4 7.2l16 9.6M20 7.2 4 16.8"/><path d="M9.6 4.8 12 7.2l2.4-2.4M9.6 19.2 12 16.8l2.4 2.4"/></>,
+  rainbow:     <><path d="M2.6 19.4a9.4 9.4 0 0 1 18.8 0"/><path d="M6 19.4a6 6 0 0 1 12 0"/><path d="M9.4 19.4a2.6 2.6 0 0 1 5.2 0"/></>,
+  wind:        <><path d="M3.4 8.6h9.2a2.6 2.6 0 1 0-2.6-2.6M3.4 12.6h13a2.6 2.6 0 1 1-2.6 2.6M3.4 16.6h6.2a2.4 2.4 0 1 1-2.4 2.4"/></>,
+  forest:      <><path d="M8 20.5v-3M8 3.6 3.6 10.4h8.8L8 3.6Z"/><path d="M8 8.4 5 13.4h6L8 8.4Z"/><path d="M16.4 20.5v-4M16.4 8.4l-3.4 5.2h6.8l-3.4-5.2Z"/><path d="M16.4 12l-2.4 3.8h4.8L16.4 12Z"/></>,
+  cactus:      <><path d="M12 20.5V6.4a2.4 2.4 0 0 1 4.8 0"/><path d="M12 12.4H8.6a2.6 2.6 0 0 1-2.6-2.6V7.4M16.8 6.4v3.2a2.6 2.6 0 0 1-2.6 2.6"/><path d="M8.6 20.5h6.8"/></>,
+  sunflower:   <><circle cx="12" cy="9.4" r="2.8"/><path d="M12 3.4v3.2M12 12.2v3.2M6 9.4h3.2M14.8 9.4H18"/><path d="m7.8 5.2 2.2 2.2M14 11.4l2.2 2.2M7.8 13.6 10 11.4M14 7.4l2.2-2.2"/><path d="M12 15.4v5.1M12 18.4c1.8 0 3-1.2 3.2-2.8"/></>,
+  mushroom:    <><path d="M3.6 11.6a8.4 8.4 0 0 1 16.8 0H3.6Z"/><path d="M9.4 11.6v6.2a2.6 2.6 0 0 0 5.2 0v-6.2"/><path d="M8 8h.02M12 6.8h.02M16 8h.02"/></>,
+  butterfly:   <><path d="M12 6.6v11.4"/><path d="M12 8.4C10.4 5.6 7.6 4.4 5.4 5.6 3 6.9 3 10.4 5 12.4c-1.6 1.6-1.4 4 .4 5 1.9 1.1 4.6-.2 6.6-2.9M12 8.4c1.6-2.8 4.4-4 6.6-2.8 2.4 1.3 2.4 4.8.4 6.8 1.6 1.6 1.4 4-.4 5-1.9 1.1-4.6-.2-6.6-2.9"/><path d="M12 6.6 10.4 4M12 6.6 13.6 4"/></>,
+  bee:         <><ellipse cx="12" cy="14.4" rx="4.4" ry="5.6"/><path d="M7.7 12.6h8.6M7.7 16.2h8.6"/><path d="M12 8.8V7M10.6 5.4 12 7l1.4-1.6"/><path d="M8 10.4C5.6 8.8 3.6 9 3.4 10.8c-.2 1.7 1.6 2.9 4 2.4M16 10.4c2.4-1.6 4.4-1.4 4.6.4.2 1.7-1.6 2.9-4 2.4"/></>,
+  droplet:     <path d="M12 3.4c3.4 4 5.4 6.8 5.4 9.4A5.4 5.4 0 0 1 6.6 12.8c0-2.6 2-5.4 5.4-9.4Z"/>,
+  beachUmbrella:<><path d="M12 12.4v8.1M9.4 20.5h5.2"/><path d="M2.8 12.4a9.2 9.2 0 0 1 18.4 0H2.8Z"/><path d="M12 12.4c0-5.4 1.6-9.2 3.6-9.2M12 12.4c0-5.4-1.6-9.2-3.6-9.2"/></>,
+  // ── sport and movement ──
+  hikingBoot:  <><path d="M4.4 9.6h4l1.6 2.4h5.2c2.8 0 5 2.2 5 5v2.5H4.4V9.6Z"/><path d="M4.4 14.4h15.8M6.6 9.6V5.4a1.6 1.6 0 0 1 3.2 0v4.2"/><path d="M8 17.4h1.6M12 17.4h1.6M16 17.4h1.6"/></>,
+  surf:        <><path d="M12 2.6c3.4 3.6 5.4 8.2 5.4 12.4 0 2.6-2.4 4.6-5.4 4.6s-5.4-2-5.4-4.6c0-4.2 2-8.8 5.4-12.4Z"/><path d="M12 5.6v12.4"/></>,
+  ski:         <><path d="M4 18.6 17.4 4.4M6.6 21.2 20 6.8"/><circle cx="16.6" cy="5" r="1.6"/><path d="M9.4 12.6 14 17.4M12.6 9.4l4.6 4.8"/></>,
+  skate:       <><path d="M3.6 10.4h16.8c0 2-1.6 3.4-3.6 3.4H7.2c-2 0-3.6-1.4-3.6-3.4Z"/><circle cx="7.6" cy="17.4" r="2.4"/><circle cx="16.4" cy="17.4" r="2.4"/><path d="M7.6 13.8v1.2M16.4 13.8v1.2"/></>,
+  climbing:    <><circle cx="14.4" cy="4.8" r="2.1"/><path d="M6.4 20.5 9 15.4l-2.4-3.2 2.4-4 3.4-1.2 3 2.8 3.2 1"/><path d="m12.4 13.4 2.2 3 1.4 4.1M8.6 8.6 5 9.8"/><path d="M20.4 3.4v17"/></>,
+  martial:     <><circle cx="9.4" cy="5" r="2.1"/><path d="m5 20.5 2.6-5.6-2-3.4 1.8-3.6h3.2l2.6 3.4 5.8-1.6"/><path d="m11.4 12.4 2.4 3.4.8 4.7"/></>,
+  tennis:      <><ellipse cx="9" cy="9" rx="5.4" ry="6.4" transform="rotate(-45 9 9)"/><path d="m12.8 12.8 6 6M18 18.4l2.4 2.4"/><path d="M5.4 5.4c2.4 2.4 5 5 7.2 7.2"/><path d="M4.6 9.2 9.2 4.6"/></>,
+  pingPong:    <><ellipse cx="9.6" cy="9.4" rx="6" ry="6.6" transform="rotate(-40 9.6 9.4)"/><path d="m13 13.4 4.6 6.6"/><circle cx="18.4" cy="7.4" r="2.1"/></>,
+  volleyball:  <><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5c-2.6 4-3.2 8-1.6 12.4M20.4 13.4c-4.4-1.8-8.4-1.2-11.8 2M4.4 14.8c1.6-4.4 4.4-7.2 8.8-8.6"/></>,
+  golf:        <><path d="M11 3.4v13M11 3.4l6.6 3.2L11 9.8"/><ellipse cx="14" cy="19.4" rx="6.4" ry="2"/><circle cx="11" cy="17.6" r="1.6"/></>,
+  jumpRope:    <><circle cx="12" cy="6.4" r="2.6"/><path d="M12 9v6.4M8.6 12h6.8M9.4 20.5l2.6-5.1 2.6 5.1"/><path d="M5 9c-1.6 3.2-1 7.4 1.6 9.6M19 9c1.6 3.2 1 7.4-1.6 9.6"/></>,
+  // ── arts ──
+  violin:      <><path d="m19.4 3.4-3.2 3.2"/><path d="M15.4 7.4 12 10.8"/><path d="M11.4 11.4a3.6 3.6 0 0 0-5 5 3.8 3.8 0 1 0 5-5Z"/><path d="M8 14.4 6 12.4M10.4 16.8l-2-2"/></>,
+  drum:        <><ellipse cx="12" cy="9.4" rx="7.6" ry="3"/><path d="M4.4 9.4v5.2c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3V9.4"/><path d="m5.6 11.6 5.2 2.6M18.4 11.6 13.2 14.2"/><path d="m17.4 20.5-2-4.4M20.6 18.5l-3-2.8"/></>,
+  sax:         <><path d="M9.4 3.4v7.2c0 4 2.4 6.6 5.2 6.6 2.2 0 3.8-1.6 3.8-3.6 0-1.7-1.2-2.8-2.6-2.8-1.2 0-2 .8-2 1.8"/><path d="M7 3.4h4.8"/><path d="M11.4 9h.02M11.8 12.4h.02M13 15.4h.02"/><path d="m14.6 17.2-.6 3.3h4l-.8-3.7"/></>,
+  ballet:      <><circle cx="12" cy="4.6" r="2.1"/><path d="M12 6.8v6.2"/><path d="M12 13 6.4 9.4M12 13l5.6-3.6"/><path d="m12 13-3.4 7.5M12 13l3.4 7.5"/></>,
+  sculpture:   <><path d="M9 20.5h6M12 20.5v-4.6"/><path d="M8.4 15.9h7.2l-1.4-4.4c1.2-.8 2-2.2 2-3.8a4.2 4.2 0 0 0-8.4 0c0 1.6.8 3 2 3.8l-1.4 4.4Z"/><path d="M10.6 7.6h.02M13.4 7.6h.02"/></>,
+  museum:      <><path d="M3 9.4 12 4l9 5.4"/><path d="M5.4 9.4v9M9.4 9.4v9M14.6 9.4v9M18.6 9.4v9"/><path d="M2.6 18.4h18.8M2.6 20.5h18.8"/></>,
+  calligraphy: <><path d="M17.4 3.6a2.6 2.6 0 0 1 3 3L9.6 17.4l-4.4 1.4 1.4-4.4L17.4 3.6Z"/><path d="m15.4 5.6 3 3"/><path d="M3.4 20.5c3.4-1.6 6.6-1.6 10 0"/></>,
+  easel:       <><path d="M12 15.4v5.1M7.4 20.5 12 15.4l4.6 5.1"/><rect x="4.4" y="3.6" width="15.2" height="11.8" rx="1.4"/><path d="m7.6 12.4 3-3.8 2.2 2.6 1.8-2 3.4 3.2"/></>,
+  vinyl:       <><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="0.6"/><path d="M12 3.5a8.5 8.5 0 0 1 6 2.5"/></>,
+  // ── tech and work ──
+  server:      <><rect x="3.4" y="4" width="17.2" height="6" rx="1.6"/><rect x="3.4" y="14" width="17.2" height="6" rx="1.6"/><path d="M7 7h.02M7 17h.02"/><path d="M11 7h5M11 17h5"/></>,
+  database:    <><ellipse cx="12" cy="6" rx="7.6" ry="3"/><path d="M4.4 6v12c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3V6"/><path d="M4.4 12c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3"/></>,
+  bug:         <><rect x="7.6" y="7.4" width="8.8" height="11.2" rx="4.4"/><path d="M7.6 11.4H4M20 11.4h-3.6M7.6 15.4H4.4M19.6 15.4h-3.2"/><path d="m9 7.4-1.6-2.8M15 7.4l1.6-2.8"/><path d="M12 11.4v5"/></>,
+  terminal:    <><rect x="2.6" y="4.4" width="18.8" height="15.2" rx="2"/><path d="m6.6 9.4 2.8 2.6-2.8 2.6M12.4 15h5"/></>,
+  presentation:<><rect x="2.6" y="3.6" width="18.8" height="12.4" rx="1.8"/><path d="M12 16v4.5M8.6 20.5h6.8"/><path d="M7 12.4V9M11 12.4V6.6M15 12.4v-4.6"/></>,
+  meeting:     <><circle cx="12" cy="12" r="3"/><circle cx="12" cy="4.6" r="2"/><circle cx="12" cy="19.4" r="2"/><circle cx="4.6" cy="12" r="2"/><circle cx="19.4" cy="12" r="2"/><path d="M12 6.6V9M12 15v2.4M6.6 12H9M15 12h2.4"/></>,
+  contract:    <><path d="M5.4 3.6h9.2l4 4v12.9H5.4V3.6Z"/><path d="M14.4 3.6v4.2h4.2"/><path d="M8.4 11.4h7.2M8.4 14.4h4.6"/><path d="M8.4 17.6c1.6-1.2 2.6-1.2 4 0s2.4 1 3.2-.4"/></>,
+  network:     <><circle cx="12" cy="5" r="2.4"/><circle cx="5" cy="18" r="2.4"/><circle cx="19" cy="18" r="2.4"/><path d="m10.6 7 -4.2 8.8M13.4 7l4.2 8.8M7.4 18h9.2"/></>,
+  // ── travel ──
+  train:       <><rect x="5" y="3.6" width="14" height="13" rx="3"/><path d="M5 10h14"/><path d="M8.4 13.4h.02M15.6 13.4h.02"/><path d="m7.6 16.6-2.4 3.9M16.4 16.6l2.4 3.9M9 20.5h6"/></>,
+  bus:         <><rect x="3.4" y="3.6" width="17.2" height="13.4" rx="2.4"/><path d="M3.4 10.6h17.2"/><path d="M7 13.8h.02M17 13.8h.02"/><circle cx="7.4" cy="18.6" r="1.9"/><circle cx="16.6" cy="18.6" r="1.9"/></>,
+  motorcycle:  <><circle cx="5.4" cy="16.6" r="3.9"/><circle cx="18.6" cy="16.6" r="3.9"/><path d="M5.4 16.6h4.2l4.4-6.2h-3M18.6 16.6l-3-6.2M12 6.4h3l1.6 4"/><path d="M8.4 10.4h4"/></>,
+  balloon:     <><path d="M12 14.6c-3.9 0-7-3.4-7-7a7 7 0 0 1 14 0c0 3.6-3.1 7-7 7Z"/><path d="M12 2.6c-2 2.4-3 5-3 7.4M12 2.6c2 2.4 3 5 3 7.4"/><path d="m9.6 14.4 1.2 2.6M14.4 14.4l-1.2 2.6"/><rect x="9.8" y="17" width="4.4" height="3.6" rx="1"/></>,
+  passport:    <><rect x="4.6" y="2.6" width="14.8" height="18.8" rx="2"/><circle cx="12" cy="10" r="3.4"/><path d="M8.6 10h6.8M12 6.6c1.7 2 1.7 4.8 0 6.8-1.7-2-1.7-4.8 0-6.8Z"/><path d="M9.4 17h5.2"/></>,
+  luggage:     <><rect x="4.4" y="7.4" width="15.2" height="13" rx="2.4"/><path d="M9 7.4V4.6a1.6 1.6 0 0 1 1.6-1.6h2.8A1.6 1.6 0 0 1 15 4.6v2.8"/><path d="M9.4 11.4v5M14.6 11.4v5"/></>,
+  hotel:       <><path d="M3.6 20.5V4.6h16.8v15.9M2.6 20.5h18.8"/><path d="M7.4 8.4h2M14.6 8.4h2M7.4 12.4h2M14.6 12.4h2"/><path d="M10 20.5v-4.1h4v4.1"/></>,
+  landmark:    <><path d="M12 3.4 3.6 8.4h16.8L12 3.4Z"/><path d="M5.6 8.4v9.2M9.4 8.4v9.2M14.6 8.4v9.2M18.4 8.4v9.2"/><path d="M3.6 17.6h16.8M2.6 20.5h18.8"/></>,
+  // ── people and character ──
+  handshake:   <><path d="m2.6 11.6 4.2-4.2 4.4 3.1 2.6-1.7 3.2 2.8"/><path d="m21.4 11.6-4.2-4.2-3.6 2.4"/><path d="M6.8 7.4 4.2 4.8M17.2 7.4l2.6-2.6"/><path d="m9.2 13 2.6 2.4M7.2 14.8l2.4 2.2M14 10.8l3.4 3.2c.8.7.8 2 0 2.7-.8.7-2 .7-2.8 0"/><path d="M11.8 15.4c.8.7.8 2 0 2.7-.8.7-2 .7-2.8 0"/></>,
+  hug:         <><circle cx="8" cy="6.4" r="2.6"/><circle cx="16" cy="6.4" r="2.6"/><path d="M3.4 20.5c0-3 2-5.2 4.6-5.2 1.4 0 2.6.6 3.4 1.6M20.6 20.5c0-3-2-5.2-4.6-5.2-1.4 0-2.6.6-3.4 1.6"/><path d="M5.4 11.4c2.4 2.4 5.4 3.6 6.6 3.6s4.2-1.2 6.6-3.6"/></>,
+  thumbUp:     <><path d="M7.4 10.4 11 3.6c1.5 0 2.6 1.2 2.6 2.6v3.2h4.8a2 2 0 0 1 2 2.4l-1.4 6.4a2 2 0 0 1-2 1.6H7.4V10.4Z"/><rect x="3" y="10.4" width="4.4" height="9.4" rx="1.4"/></>,
+  clap:        <><path d="M9.6 12.4 7 9.8a1.8 1.8 0 0 1 2.6-2.6l2.6 2.6"/><path d="m12.2 9.8-3.4-3.4a1.8 1.8 0 0 1 2.6-2.6l4.8 4.8"/><path d="M16.2 8.6c1.6 1.6 2.4 3.6 2.4 5.4 0 3.4-2.6 6.4-6 6.4-2.6 0-4.4-1.2-6-2.8L3.4 14.4a1.8 1.8 0 0 1 2.6-2.6l2.4 2.4"/><path d="M19.4 4.4 21 2.8M21.4 8.4h2M17.4 2.6l.4-2"/></>,
+  family:      <><circle cx="6.6" cy="6.4" r="2.4"/><circle cx="17.4" cy="6.4" r="2.4"/><circle cx="12" cy="12.6" r="2"/><path d="M2.6 17.6c0-2.8 1.8-4.8 4-4.8s4 2 4 4.8M13.4 17.6c0-2.8 1.8-4.8 4-4.8s4 2 4 4.8"/><path d="M9 20.5c0-1.9 1.3-3.2 3-3.2s3 1.3 3 3.2"/></>,
+  grandparent: <><circle cx="12" cy="6" r="3"/><path d="M6.4 20.5c0-3.6 2.5-6.2 5.6-6.2s5.6 2.6 5.6 6.2"/><path d="M8.4 5.4c1-1 2.2-1.5 3.6-1.5s2.6.5 3.6 1.5"/><path d="M19 11.4v9.1M17 13.4h4"/></>,
+  wink:        <><circle cx="12" cy="12" r="8.5"/><path d="M8.4 14a4.4 4.4 0 0 0 7.2 0"/><path d="M8.4 9.6h1.6M14 9.4h.02"/></>,
+  magnet:      <><path d="M5.4 3.6h4.2v9.2a2.4 2.4 0 0 0 4.8 0V3.6h4.2v9.2a7 7 0 0 1-13.2 0V3.6Z"/><path d="M5.4 8.4h4.2M14.4 8.4h4.2"/></>,
+  bridge:      <><path d="M2.6 16.4c4.6 0 4.6-8 9.4-8s4.8 8 9.4 8"/><path d="M2.6 20.5h18.8M6.6 16.4v4.1M12 8.4v12.1M17.4 16.4v4.1"/></>,
+  northStar:   <><path d="M12 2.6c.8 4.6 2.2 6 6.8 6.8-4.6.8-6 2.2-6.8 6.8-.8-4.6-2.2-6-6.8-6.8 4.6-.8 6-2.2 6.8-6.8Z"/><path d="M18.4 15.4c.4 2 1 2.6 3 3-2 .4-2.6 1-3 3-.4-2-1-2.6-3-3 2-.4 2.6-1 3-3Z"/></>,
+  yinYang:     <><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a4.25 4.25 0 0 1 0 8.5 4.25 4.25 0 0 0 0 8.5"/><path d="M12 7.2h.02M12 16.8h.02"/></>,
+  // ── home and everyday ──
+  calendar:    <><rect x="3.4" y="5" width="17.2" height="15.4" rx="2.2"/><path d="M3.4 9.6h17.2M8 2.8v4M16 2.8v4"/><path d="M8 13.4h.02M12 13.4h.02M16 13.4h.02M8 16.8h.02M12 16.8h.02"/></>,
+  alarm:       <><circle cx="12" cy="13.4" r="7.1"/><path d="M12 9.6v3.8l2.6 1.8"/><path d="M4.4 5.4 7.6 3M19.6 5.4 16.4 3"/><path d="m6.4 19.4-1.6 1.8M17.6 19.4l1.6 1.8"/></>,
+  cart:        <><circle cx="9.4" cy="19.4" r="1.6"/><circle cx="17.4" cy="19.4" r="1.6"/><path d="M2.6 3.6h2.8l2.8 11.8h11.2l2-8.6H6.4"/></>,
+  recycle:     <><path d="m8.6 5.4 2.2-3.6a1.4 1.4 0 0 1 2.4 0l2 3.4"/><path d="m18.2 9.4 2 3.4a1.4 1.4 0 0 1-1.2 2.2h-4"/><path d="M9 15H4.8a1.4 1.4 0 0 1-1.2-2.2l2-3.4"/><path d="m6.6 11.4-1 3.6 3.6 1M17.4 11.4l1-3.6-3.6-1M12 21.4l2.6-2.6-2.6-2.6"/></>,
+  sewing:      <><path d="m19.2 4.4-8.6 8.6"/><circle cx="20.4" cy="3.6" r="1.3"/><path d="M10.6 13C8 15.6 5.4 15.2 4 16.6c-1.4 1.4-1 3.6.8 4.2 1.7.6 3.4-.4 3.4-2.2 0-1.6-1.4-2.4-2.8-2"/></>,
+  knitting:    <><path d="m4.6 19.4 9-9M7.4 4.6l9 9"/><circle cx="3.4" cy="20.6" r="1.2"/><circle cx="6.2" cy="3.4" r="1.2"/><circle cx="17.4" cy="16.6" r="4"/><path d="M14.4 14c1.6 1 3.4 2.8 4.4 4.4M19.8 14.6c-1.2 1-2.8 2.6-3.8 4.2"/></>,
+  broom:       <><path d="M19.4 3.6 11 12"/><path d="M11.4 11.6 6 17c-1.4 1.4-1.4 2.4-1 3.4h9.2c.6-1.4.8-3 .4-4.4l-.6-2.4-2.6-2Z"/><path d="M8.4 20.4 10 15.6M11.4 20.4l.8-4.4"/></>,
+  lamp:        <><path d="M6.4 11.4 12 3.6l5.6 7.8H6.4Z"/><path d="M12 11.4v5.2M9 20.5h6M12 16.6a2 2 0 0 0-2 2v1.9h4v-1.9a2 2 0 0 0-2-2Z"/></>,
+  plantPot:    <><path d="M6 12.4h12l-1.2 7.2a1.4 1.4 0 0 1-1.4 1.2H8.6a1.4 1.4 0 0 1-1.4-1.2L6 12.4Z"/><path d="M12 12.4V7"/><path d="M12 9.4C10.6 8 8.8 7.4 7 7.6c.4 1.8 2 3 4 2.6ZM12 8.6c1-1.8 2.6-2.8 4.6-2.8-.2 2-1.8 3.4-3.8 3.4Z"/></>,
+  glasses:     <><circle cx="6" cy="14" r="3.6"/><circle cx="18" cy="14" r="3.6"/><path d="M9.6 14c.8-1 1.6-1.4 2.4-1.4s1.6.4 2.4 1.4"/><path d="M2.4 12.4c0-2.8 1.2-4.8 3-5.8M21.6 12.4c0-2.8-1.2-4.8-3-5.8"/></>,
+  bell:        <><path d="M6.4 16.4V11a5.6 5.6 0 0 1 11.2 0v5.4l1.6 2.2H4.8l1.6-2.2Z"/><path d="M12 5.4V3.4M10 21c.4.6 1.1 1 2 1s1.6-.4 2-1"/></>,
+  bookmark:    <path d="M6.4 3.6h11.2v17.3L12 16.6l-5.6 4.3V3.6Z"/>,
+  label:       <><path d="M3.6 10.2V5a1.4 1.4 0 0 1 1.4-1.4h5.2a2 2 0 0 1 1.4.6l8 8a2 2 0 0 1 0 2.8l-5.2 5.2a2 2 0 0 1-2.8 0l-8-8a2 2 0 0 1-.6-1.4Z"/><path d="M7.6 7.6h.02"/></>,
 };
 
 function TagIcon({ name, size = 15, color = 'currentColor', style }) {
@@ -1958,6 +2065,27 @@ const TAG_ICON_EXTRA_WORDS = {
   tallit:'טלית ציצית תפילה', tefillin:'תפילין', kippah:'כיפה',
   shofar:'שופר ראש השנה', dreidel:'סביבון חנוכה', sukkah:'סוכה סוכות',
   lulav:'לולב אתרוג סוכות', hamsa:'חמסה', kotel:'כותל ירושלים',
+  mikveh:'מקווה טהרה', apple:'תפוח דבש ראש השנה', honey:'דבש צנצנת', pomegranate:'רימון',
+  matzah:'מצה פסח', sederPlate:'קערת ליל הסדר פסח', tzedakah:'צדקה קופה נתינה', shtender:'שטנדר לימוד',
+  nerTamid:'נר תמיד', aronKodesh:'ארון קודש', havdalah:'הבדלה נר', shtreimel:'שטריימל כובע',
+  grapes:'ענבים גפן', olive:'זית', dove:'יונה שלום', watermelon:'אבטיח קיץ', cheese:'גבינה',
+  egg:'ביצה', salad:'סלט ירקות', grill:'מנגל על האש', tea:'תה', chocolate:'שוקולד', cupcake:'קאפקייק',
+  moon:'ירח לילה', rain:'גשם חורף', snow:'שלג', rainbow:'קשת', wind:'רוח', forest:'יער עצים',
+  cactus:'קקטוס מדבר', sunflower:'חמנייה', mushroom:'פטריה', butterfly:'פרפר', bee:'דבורה',
+  droplet:'טיפה מים', beachUmbrella:'חוף ים שמשייה', hikingBoot:'נעלי הליכה טרק', surf:'גלישה גלשן',
+  ski:'סקי חורף', skate:'סקייטבורד', climbing:'טיפוס', martial:'אומנויות לחימה קרב מגע',
+  tennis:'טניס', pingPong:'פינג פונג', volleyball:'כדורעף', golf:'גולף', jumpRope:'קפיצה בחבל',
+  violin:'כינור', drum:'תופים', sax:'סקסופון', ballet:'בלט מחול ריקוד', sculpture:'פיסול',
+  museum:'מוזיאון', calligraphy:'קליגרפיה כתיבה', easel:'כן ציור', vinyl:'תקליט',
+  server:'שרת', database:'מסד נתונים', bug:'באג תקלה', terminal:'טרמינל קוד', presentation:'מצגת',
+  meeting:'פגישה צוות', contract:'חוזה מסמך', network:'רשת קשרים', train:'רכבת', bus:'אוטובוס',
+  motorcycle:'אופנוע', balloon:'כדור פורח', passport:'דרכון', luggage:'מזוודה', hotel:'מלון',
+  landmark:'אתר מורשת', handshake:'לחיצת יד הסכם', hug:'חיבוק', thumbUp:'אגודל אהבתי',
+  clap:'מחיאות כפיים', family:'משפחה הורים ילדים', grandparent:'סבא סבתא', wink:'קריצה',
+  magnet:'מגנט משיכה', bridge:'גשר חיבור', northStar:'כוכב צפון כיוון', yinYang:'איזון ין יאנג',
+  calendar:'לוח שנה תאריך', alarm:'שעון מעורר', cart:'עגלה קניות', recycle:'מיחזור',
+  sewing:'תפירה מחט', knitting:'סריגה', broom:'מטאטא ניקיון', lamp:'מנורה', plantPot:'עציץ גינון',
+  glasses:'משקפיים', bell:'פעמון התראה', bookmark:'סימנייה', label:'תווית תגית',
   mezuzah:'מזוזה', besamim:'בשמים הבדלה', chanukiah:'חנוכיה חנוכה',
   chuppah:'חופה חתונה נישואין', bookshelf:'ספרייה ארון ספרים תורני',
   coins:'מטבעות כסף חיסכון', medal:'מדליה הצטיינות', wheat:'חיטה חקלאות שדה',
@@ -5665,6 +5793,32 @@ const { useState: useS, useEffect: useE } = React;
 // ════════════════════════════════════════════════════════════
 // ONBOARDING
 // ════════════════════════════════════════════════════════════
+const SABA_TICKER = [
+  'הולך לישון בתשע',
+  'מדבר/ת עם הצמחים',
+  'מקפל/ת כביסה לפי צבעים',
+  'זוכר/ת כל דיאלוג מסדרות',
+  'בודק/ת תחזית חמש פעמים ביום',
+  'אוכל/ת פיצה עם סכין ומזלג',
+  'שר/ה בדואט עם הרדיו',
+  'אלוף/ת החניה — לטענתו/ה',
+];
+
+function SabaTicker({ th, p, boxStyle }) {
+  const [ex, setEx] = useS(0);
+  React.useEffect(() => {
+    const id = setInterval(() => setEx(e => (e + 1) % SABA_TICKER.length), 2000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div style={boxStyle}>
+      <Icon name="spark" size={17} style={{ color: p.accent, flexShrink: 0 }} />
+      <span key={ex} style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: p.title,
+        animation: 'sabaFade .45s ease both', whiteSpace: 'nowrap' }}>{SABA_TICKER[ex]}</span>
+    </div>
+  );
+}
+
 function Onboarding({ th, go, profile }) {
   const [i, setI] = useS(0);
   const { t } = useTexts();
@@ -5706,12 +5860,18 @@ function Onboarding({ th, go, profile }) {
 
   const Scene = () => {
     if (s.kind === 'brand') return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
-        <Ring size={118} color={p.ring} gem={p.gem} />
-        <div style={{ ...card({ padding: '11px 15px', display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999 }) }}>
-          <Icon name="spark" size={17} style={{ color: p.accent, flexShrink: 0 }} />
-          <span style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: p.title }}>הולך לישון בתשע</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26 }}>
+        {/* the wordmark, drawn in two beats: "סבבה" lands, then "והכל" */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, animation: 'sabaWordIn .55s cubic-bezier(.2,.9,.3,1) both' }}>
+            <Ring size={62} color={p.accent} gem={p.gem} />
+            <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(50), color: p.accent, letterSpacing: '-1px', lineHeight: 1 }}>בבה</span>
+          </div>
+          <span style={{ fontFamily: th.display, fontWeight: 900, fontSize: fs(34), color: p.title, letterSpacing: '-0.5px', lineHeight: 1,
+            animation: 'sabaWordIn .55s cubic-bezier(.2,.9,.3,1) .5s both' }}>והכל</span>
         </div>
+        {/* …אבל — a new one every two seconds */}
+        <SabaTicker th={th} p={p} boxStyle={card({ padding: '11px 16px', display: 'flex', alignItems: 'center', gap: 9, borderRadius: 999 })} />
       </div>
     );
 
