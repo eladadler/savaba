@@ -404,7 +404,7 @@ const{useState:useS,useEffect:useE}=React;// ═══════════�
 // ════════════════════════════════════════════════════════════
 const SABA_TICKER=['הולך לישון בתשע','מדבר/ת עם הצמחים','מקפל/ת כביסה לפי צבעים','זוכר/ת כל דיאלוג מסדרות','בודק/ת תחזית חמש פעמים ביום','אוכל/ת פיצה עם סכין ומזלג','שר/ה בדואט עם הרדיו','אלוף/ת החניה — לטענתו/ה'];// The logo artwork lives at /logo.png. Until it is added, fall back to the wordmark
 // so the first slide never shows a broken image.
-const LOGO_SRC='logo.png?v=aca6a4ff0f';const LOGO3_SRC='logo3.png?v=749067d7b9';// Full-screen loading gate (auth/profile/tweaks resolving) — the ring mark on cream,
+const LOGO_SRC='logo.png?v=aca6a4ff0f';const LOGO3_SRC='logo3.png?v=acabeebdc4';// Full-screen loading gate (auth/profile/tweaks resolving) — the ring mark on cream,
 // falling back to the heart if the file is ever missing.
 function Splash({th,size=84}){const[failed,setFailed]=useS(false);if(failed)return/*#__PURE__*/React.createElement(Logo,{size:Math.round(size*0.7),color:th.primary,flaw:th.cream});return/*#__PURE__*/React.createElement("img",{src:LOGO3_SRC,alt:"",onError:()=>setFailed(true),style:{width:size,height:'auto',display:'block'}});}function BrandMark({th,p}){const[failed,setFailed]=useS(false);// The artwork is transparent and its "והכל" is near-black navy, which would vanish
 // on the dark palettes — so those get a light plate and the light one gets none.
