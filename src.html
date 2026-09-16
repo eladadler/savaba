@@ -13955,7 +13955,13 @@ function AppInner({ inviteToken, offerParam }) {
           {/* New self-registered candidate awaiting review — top-level like the modal above, so it shows on any screen */}
           {approvalPopupCand && (
             <ApprovalPopup th={th} cand={approvalPopupCand}
-              onApprove={() => go('editCand', { id: approvalPopupCand.id })}
+              // approvalPopupCand is computed straight from pendingApprovalCands, with no
+              // regard for `cur` (the current screen) — so navigating to editCand alone
+              // doesn't make it go away: the candidate is still pendingApproval, the popup
+              // recomputes truthy, and it just re-renders on top of the freshly-opened edit
+              // screen. From the tap it looked like the button did nothing. Dismissing here
+              // (same bookkeeping as the "סגור" button) lets the edit screen actually show.
+              onApprove={() => { dismissApproval(approvalPopupCand.id); go('editCand', { id: approvalPopupCand.id }); }}
               onDismiss={() => dismissApproval(approvalPopupCand.id)} />
           )}
 
