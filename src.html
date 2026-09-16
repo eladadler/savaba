@@ -7043,9 +7043,18 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
 // ════════════════════════════════════════════════════════════
 // DRAFT CANDIDATE SHEET (add / edit)
 // ════════════════════════════════════════════════════════════
+// Best-effort split of a legacy single-field name into first/last, for drafts
+// saved before this sheet asked for them separately.
+function splitLegacyName(name) {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  return { firstName: parts[0] || '', lastName: parts.slice(1).join(' ') };
+}
+
 function DraftSheet({ open, th, draft, onSave, onDelete, onClose, profile }) {
   const { uploadPhoto } = useContext(DataCtx);
-  const [name, setName] = useSb(draft?.name || '');
+  const legacy = React.useMemo(() => splitLegacyName(draft?.name), [draft?.id]);
+  const [firstName, setFirstName] = useSb(draft?.firstName || legacy.firstName || '');
+  const [lastName,  setLastName]  = useSb(draft?.lastName  || legacy.lastName  || '');
   const [notes, setNotes] = useSb(draft?.notes || '');
   const [saving, setSaving] = useSb(false);
   const [photoUrl, setPhotoUrl] = useSb(draft?.photos?.[0] || '');
@@ -7054,14 +7063,21 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose, profile }) {
   const [inviteOpen, setInviteOpen] = useSb(false);
   const [inviteSent, setInviteSent] = useSb(false);
   React.useEffect(() => {
-    if (open) { setName(draft?.name || ''); setNotes(draft?.notes || ''); setPhotoUrl(draft?.photos?.[0] || ''); setConfirmDel(false); setInviteOpen(false); setInviteSent(false); }
+    if (open) {
+      const lg = splitLegacyName(draft?.name);
+      setFirstName(draft?.firstName || lg.firstName || '');
+      setLastName(draft?.lastName || lg.lastName || '');
+      setNotes(draft?.notes || ''); setPhotoUrl(draft?.photos?.[0] || '');
+      setConfirmDel(false); setInviteOpen(false); setInviteSent(false);
+    }
   }, [open, draft?.id]);
   if (!open) return null;
   const isEdit = !!draft?.id;
+  const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
   const handleSave = async () => {
-    if (!name.trim()) return;
+    if (!fullName) return;
     setSaving(true);
-    await onSave({ name: name.trim(), notes, photos: photoUrl ? [photoUrl] : [] });
+    await onSave({ name: fullName, firstName: firstName.trim(), lastName: lastName.trim(), notes, photos: photoUrl ? [photoUrl] : [] });
     setSaving(false);
     onClose();
   };
@@ -7096,17 +7112,24 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose, profile }) {
             <div style={{ fontFamily:th.body, fontSize:fs(12.5), color:alpha(th.ink,0.45) }}>תמונה תוכל להוסיף לאחר השמירה</div>
           )}
         </div>
-        {/* Name */}
-        <div style={{ marginBottom:14 }}>
-          <div style={{ fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.55), marginBottom:5 }}>שם *</div>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="שם המועמד/ת" style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, fontFamily:th.body, fontSize:fs(15), background:th.cream, outline:'none', color:th.ink }} />
+        {/* Name — split first/last, same as the full registration flow, so an
+            invite generated from this draft never needs to guess the split. */}
+        <div style={{ display:'flex', gap:10, marginBottom:14 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.55), marginBottom:5 }}>שם פרטי *</div>
+            <input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="שם פרטי" style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, fontFamily:th.body, fontSize:fs(15), background:th.cream, outline:'none', color:th.ink }} />
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.55), marginBottom:5 }}>שם משפחה</div>
+            <input value={lastName} onChange={e => setLastName(e.target.value)} placeholder="שם משפחה" style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, fontFamily:th.body, fontSize:fs(15), background:th.cream, outline:'none', color:th.ink }} />
+          </div>
         </div>
         {/* Notes */}
         <div style={{ marginBottom:20 }}>
           <div style={{ fontFamily:th.body, fontSize:fs(12), color:alpha(th.ink,0.55), marginBottom:5 }}>פרטים חופשיים</div>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="גיל, אופי, הערות… כל מה שרוצים לזכור" rows={4} style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', borderRadius:th.rSm, border:`1.5px solid ${alpha(th.ink,0.15)}`, fontFamily:th.body, fontSize:fs(14), background:th.cream, outline:'none', color:th.ink, resize:'vertical', lineHeight:1.5 }} />
         </div>
-        <button onClick={handleSave} disabled={!name.trim() || saving} style={{ width:'100%', padding:'13px 0', borderRadius:999, border:'none', background: name.trim() ? th.primary : alpha(th.ink,0.12), color: name.trim() ? '#fff' : alpha(th.ink,0.35), fontFamily:th.display, fontWeight:800, fontSize:fs(15), cursor: name.trim() ? 'pointer' : 'default', marginBottom:12, boxShadow: name.trim() ? `0 6px 18px ${alpha(th.primary,0.35)}` : 'none' }}>
+        <button onClick={handleSave} disabled={!fullName || saving} style={{ width:'100%', padding:'13px 0', borderRadius:999, border:'none', background: fullName ? th.primary : alpha(th.ink,0.12), color: fullName ? '#fff' : alpha(th.ink,0.35), fontFamily:th.display, fontWeight:800, fontSize:fs(15), cursor: fullName ? 'pointer' : 'default', marginBottom:12, boxShadow: fullName ? `0 6px 18px ${alpha(th.primary,0.35)}` : 'none' }}>
           {saving ? 'שומר...' : (isEdit ? 'שמור שינויים' : 'הוסף ל-Unlisted')}
         </button>
         {isEdit && !confirmDel && (
@@ -7136,24 +7159,19 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose, profile }) {
         )}
       </div>
     </div>
-    {inviteOpen && (() => {
-      const parts = (draft?.name || '').trim().split(/\s+/);
-      const pFirst = parts[0] || '';
-      const pLast = parts.slice(1).join(' ') || '';
-      return (
-        <InviteFlow
-          open={inviteOpen}
-          onClose={() => { setInviteOpen(false); setInviteSent(true); }}
-          th={th}
-          mmId={profile?.uid}
-          mmName={profile?.displayName}
-          mmPhone={profile?.phone}
-          mmGender={profile?.gender}
-          prefillFirst={pFirst}
-          prefillLast={pLast}
-        />
-      );
-    })()}
+    {inviteOpen && (
+      <InviteFlow
+        open={inviteOpen}
+        onClose={() => { setInviteOpen(false); setInviteSent(true); }}
+        th={th}
+        mmId={profile?.uid}
+        mmName={profile?.displayName}
+        mmPhone={profile?.phone}
+        mmGender={profile?.gender}
+        prefillFirst={firstName.trim()}
+        prefillLast={lastName.trim()}
+      />
+    )}
   </>
   );
 }
