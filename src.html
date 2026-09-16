@@ -5273,6 +5273,8 @@ const TEXT_KEYS = {
   home_waiting_empty:          'בית — פאנל: ריק (הכל מסודר)',
   home_empty_mine:        'בית — קרוסלה שלי: ריק',
   home_empty_others:      'בית — קרוסלה אחרים: ריק',
+  home_launch_title:      'בית — כרטיס פתיחה: מילה גדולה',
+  home_launch_sub:        'בית — כרטיס פתיחה: שורה קטנה',
   mode_modal_greeting_m:  'בית — מודאל בחירת מצב: כותרת גבר',
   mode_modal_greeting_f:  'בית — מודאל בחירת מצב: כותרת אשה',
   mode_modal_body_m:      'בית — מודאל בחירת מצב: גוף גבר',
@@ -5671,6 +5673,8 @@ const DEFAULT_TEXTS = {
   home_waiting_empty:          '✅ הכל מסודר — אין פעולות ממתינות',
   home_empty_mine:        'עדיין לא הוספת מועמדים',
   home_empty_others:      'אין מועמדים של שדכנים אחרים עדיין',
+  home_launch_title:      'ספתח!',
+  home_launch_sub:        'בואו להיות הראשונים!',
   mode_modal_greeting_m:  'ברוך השב!',
   mode_modal_greeting_f:  'ברוכה השבה!',
   mode_modal_body_m:      'אתה רשום גם כשדכן וגם כמועמד.\nכמי תרצה להיכנס עכשיו?',
@@ -6017,7 +6021,7 @@ const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body','onb_slide4_title','onb_slide4_body','onb_slide5_title','onb_slide5_body','onb_slide7_title','onb_slide7_body','onb_skip','onb_next','onb_start'],
   onboardingCand: ['onb_cand_slide1_title','onb_cand_slide1_body','onb_cand_slide2_title','onb_cand_slide2_body','onb_cand_slide3_title','onb_cand_slide3_body','onb_cand_slide4_title','onb_cand_slide4_body','onb_cand_slide5_title','onb_cand_slide5_body','onb_cand_slide6_title','onb_cand_slide6_body','onb_skip','onb_next','onb_start'],
   register:      ['register_title','register_sub','register_field_firstname','register_field_lastname','register_field_gender','register_field_phone','register_phone_hint','register_btn_next','register_photo_title','register_photo_why_title','register_photo_why_body','register_btn_upload','register_btn_change','register_btn_save','register_btn_skip','register_photo_hint'],
-  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
+  home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','home_launch_title','home_launch_sub','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_linkmode_title','cands_linkmode_body','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
   filtersSheet:  ['filters_title','filters_gender_label','filters_gender_f','filters_gender_m','filters_btn_clear','filters_btn_apply'],
   candidate:     ['cand_match_btn', 'card_oneline_label', 'card_seeking_label_f', 'card_seeking_label_m', 'card_interests_label_f', 'card_interests_label_m', 'card_partner_label', 'card_details_label'],
@@ -6908,13 +6912,44 @@ function Home({ th, go, approvalPopupCand }) {
         </div>
         {(() => {
           const list = applyFilters(candTab === 'mine' ? mine : others);
-          if (list.length === 0) return (
-            <div style={{ textAlign:'center', padding:'24px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.4) }}>
-              {candTab === 'mine' ? t('home_empty_mine') : t('home_empty_others')}
-            </div>
-          );
           // design v2 trades the stat cards above for bigger photos here
           const photoScale = th.homeDesign === 'v2' ? (th.homeV2PhotoScale || 150) / 100 : 1;
+          if (list.length === 0) {
+            // Launch day: nobody anywhere has a candidate yet, so the carousel would just
+            // read as broken-empty. Checked against the raw lists rather than the filtered
+            // one, so an active filter that happens to hide everything can't masquerade as
+            // "we just opened". Goes away on its own the moment a first candidate exists.
+            const isLaunch = candTab === 'others' && mine.length === 0 && others.length === 0;
+            if (isLaunch) return (
+              <div style={{ display: 'flex', gap: 12, paddingBottom: 4, margin: '0 -18px', paddingInline: 18 }}>
+                <div style={{
+                  width: 152 * photoScale, height: 200 * photoScale, flexShrink: 0,
+                  borderRadius: th.r, overflow: 'hidden', position: 'relative', boxSizing: 'border-box',
+                  background: `linear-gradient(150deg, ${th.primary} 0%, ${th.gold} 100%)`,
+                  boxShadow: `0 8px 24px ${alpha(th.primary, 0.32)}`,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: 8, padding: '14px 12px', textAlign: 'center',
+                  animation: 'sabaPop .55s cubic-bezier(.2,.9,.3,1)',
+                }}>
+                  {/* soft light blooms, same trick the Unlisted cover card uses */}
+                  <div style={{ position: 'absolute', top: -30, right: -24, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
+                  <div style={{ position: 'absolute', bottom: -38, left: -28, width: 116, height: 116, borderRadius: '50%', background: 'rgba(255,255,255,0.12)' }} />
+                  <Icon name="spark" size={22 * photoScale} fill="rgba(255,255,255,0.95)" stroke={0} style={{ color: '#fff', position: 'relative', zIndex: 1 }} />
+                  <div style={{ position: 'relative', zIndex: 1, fontFamily: th.display, fontWeight: 900, fontSize: fs(30 * photoScale), color: '#fff', lineHeight: 1, letterSpacing: '-0.5px', textShadow: '0 2px 10px rgba(0,0,0,0.18)' }}>
+                    {t('home_launch_title')}
+                  </div>
+                  <div style={{ position: 'relative', zIndex: 1, fontFamily: th.body, fontWeight: 700, fontSize: fs(12.5), color: 'rgba(255,255,255,0.92)', lineHeight: 1.35, textWrap: 'balance' }}>
+                    {t('home_launch_sub')}
+                  </div>
+                </div>
+              </div>
+            );
+            return (
+              <div style={{ textAlign:'center', padding:'24px 0', fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.4) }}>
+                {candTab === 'mine' ? t('home_empty_mine') : t('home_empty_others')}
+              </div>
+            );
+          }
           return (
             <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4, margin: '0 -18px', paddingInline: 18 }}>
               {list.map((c, ci) => (
