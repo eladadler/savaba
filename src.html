@@ -7091,6 +7091,12 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose, profile }) {
   };
   return (
     <>
+    {/* Unmounted (not just covered) while the invite flow is open — its own overlay
+        sits at zIndex:900, fixed, and would otherwise permanently occlude InviteFlow's
+        Sheet, which renders at zIndex:100. Sheet is absolute, not fixed, so it can't
+        simply out-rank this one; keeping both on screen was hiding the invite modal
+        behind this sheet with no visible transition. */}
+    {!inviteOpen && (
     <div onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       style={{ position:'fixed', inset:0, zIndex:900, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.45)', backdropFilter:'blur(4px)' }}>
       <div style={{ background:th.card, borderTopLeftRadius:th.rLg, borderTopRightRadius:th.rLg, padding:'24px 20px 44px', width:'100%', maxWidth:480, boxShadow:`0 -12px 48px ${alpha(th.ink,0.18)}`, animation:'sabaUp .28s cubic-bezier(.2,.9,.3,1)' }}>
@@ -7159,6 +7165,7 @@ function DraftSheet({ open, th, draft, onSave, onDelete, onClose, profile }) {
         )}
       </div>
     </div>
+    )}
     {inviteOpen && (
       <InviteFlow
         open={inviteOpen}
