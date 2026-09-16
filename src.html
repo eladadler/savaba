@@ -1353,19 +1353,29 @@ function useAuthState() {
       try {
         const snap = await ref.get();
         if (!snap.exists) {
+          // Someone authenticating mid candidate-invite flow (CandidateInviteRegister,
+          // reached via ?invite=TOKEN) is a candidate, not a matchmaker — their real
+          // identity record is the candidates doc created right after this (linked via
+          // candidateUid), not this users doc. onAuthStateChanged fires for every sign-in
+          // though, with no idea which flow triggered it, so without this check every
+          // self-registering candidate silently got a stray role:'matchmaker' users doc
+          // and showed up in the admin שדכנים list.
+          const isCandidateSignup = !!new URLSearchParams(window.location.search).get('invite');
           // first user → admin (if listing fails due to permissions, default to non-admin
-          // rather than letting the whole signup hang)
+          // rather than letting the whole signup hang). Never true for a candidate signup.
           let isFirst = false;
-          try {
-            const allSnap = await db.collection('users').get();
-            isFirst = allSnap.empty;
-          } catch (e) { isFirst = false; }
+          if (!isCandidateSignup) {
+            try {
+              const allSnap = await db.collection('users').get();
+              isFirst = allSnap.empty;
+            } catch (e) { isFirst = false; }
+          }
           const p = {
             email: u.email,
             displayName: u.displayName || '',
             photoURL: u.photoURL || '',
             isAdmin: isFirst,
-            role: 'matchmaker',
+            role: isCandidateSignup ? 'candidate' : 'matchmaker',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           };
           ref.set(p); // fire-and-forget — onSnapshot will sync; don't await to unblock UI immediately
@@ -3878,7 +3888,12 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   // (manually-added real candidates also lack candidateUid until they register)
   const isSeed    = (id) => typeof id === 'string' && id.startsWith('seed_');
   const visibleCands   = hideSeed ? candidates.filter(c => !isSeed(c.id)) : candidates;
-  const visibleMms     = hideSeed ? Object.fromEntries(Object.entries(matchmakers).filter(([id]) => !isSeedMm(id))) : matchmakers;
+  // role:'candidate' users docs are a bootstrap artifact of someone authenticating mid
+  // invite flow (see useAuthState) — never a real matchmaker, so they never belong in
+  // this list regardless of hideSeed. Filtered here too (not just at the source) so any
+  // already-written stray docs stop showing without needing a data migration.
+  const realMms        = Object.fromEntries(Object.entries(matchmakers).filter(([, m]) => m.role !== 'candidate'));
+  const visibleMms     = hideSeed ? Object.fromEntries(Object.entries(realMms).filter(([id]) => !isSeedMm(id))) : realMms;
   const myCands        = visibleCands.filter(c => c.mmId === profile?.uid);
   const otherCands     = visibleCands.filter(c => c.mmId !== profile?.uid);
 
@@ -13726,7 +13741,14 @@ function AppInner({ inviteToken, offerParam }) {
     try { localStorage.setItem('dismissedApprovals', JSON.stringify([...next])); } catch {}
     return next;
   }), []);
-  const approvalPopupCand = pendingApprovalCands.find(c => !dismissedApprovals.has(c.id)) || null;
+  // Tapping "approve" only needs to keep the popup from re-covering the edit screen it
+  // just opened THIS visit — unlike an explicit "סגור" (dismissedApprovals, persisted:
+  // deliberately never nag about this candidate again), it must not survive a fresh app
+  // load. Someone who opens the edit form and leaves without saving is still pending —
+  // the popup should greet them again next time. Plain in-memory state, no localStorage.
+  const [sessionSuppressed, setSessionSuppressed] = React.useState(() => new Set());
+  const suppressForSession = React.useCallback(id => setSessionSuppressed(prev => new Set(prev).add(id)), []);
+  const approvalPopupCand = pendingApprovalCands.find(c => !dismissedApprovals.has(c.id) && !sessionSuppressed.has(c.id)) || null;
 
   // ── Edit mode (admin only) ──────────────────────────────────
   const [editMode, setEditMode]     = React.useState(false);
@@ -13961,7 +13983,7 @@ function AppInner({ inviteToken, offerParam }) {
               // recomputes truthy, and it just re-renders on top of the freshly-opened edit
               // screen. From the tap it looked like the button did nothing. Dismissing here
               // (same bookkeeping as the "סגור" button) lets the edit screen actually show.
-              onApprove={() => { dismissApproval(approvalPopupCand.id); go('editCand', { id: approvalPopupCand.id }); }}
+              onApprove={() => { suppressForSession(approvalPopupCand.id); go('editCand', { id: approvalPopupCand.id }); }}
               onDismiss={() => dismissApproval(approvalPopupCand.id)} />
           )}
 
