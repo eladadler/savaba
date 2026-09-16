@@ -6693,9 +6693,10 @@ function Home({ th, go, approvalPopupCand }) {
             const isLaunch = candTab === 'others' && mine.length === 0 && others.length === 0;
             if (isLaunch) return (
               <div style={{ display: 'flex', gap: 12, paddingBottom: 4, margin: '0 -18px', paddingInline: 18 }}>
-                <div style={{
-                  width: 152 * photoScale, height: 200 * photoScale, flexShrink: 0,
-                  borderRadius: th.r, overflow: 'hidden', position: 'relative', boxSizing: 'border-box',
+                <button onClick={() => go('cands', { autoAdd: true })} style={{
+                  all: 'unset', cursor: 'pointer',
+                  width: 152 * photoScale, height: 200 * photoScale, flexShrink: 0, boxSizing: 'border-box',
+                  borderRadius: th.r, overflow: 'hidden', position: 'relative',
                   background: `linear-gradient(150deg, ${th.primary} 0%, ${th.gold} 100%)`,
                   boxShadow: `0 8px 24px ${alpha(th.primary, 0.32)}`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -6712,7 +6713,7 @@ function Home({ th, go, approvalPopupCand }) {
                   <div style={{ position: 'relative', zIndex: 1, fontFamily: th.body, fontWeight: 700, fontSize: fs(12.5), color: 'rgba(255,255,255,0.92)', lineHeight: 1.35, textWrap: 'balance' }}>
                     {t('home_launch_sub')}
                   </div>
-                </div>
+                </button>
               </div>
             );
             return (
