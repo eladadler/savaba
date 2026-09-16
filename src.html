@@ -2838,6 +2838,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
   const [cmsTexts,  setCmsTexts] = useState({});
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [termsOpen,   setTermsOpen]   = useState(false);
+  const [resetSent,   setResetSent]   = useState(false);
 
   React.useEffect(() => {
     if (!inviteToken) return;
@@ -2891,6 +2892,18 @@ function CandidateInviteRegister({ th, inviteToken }) {
       else       cred = await auth.signInWithEmailAndPassword(email, pass);
       await afterAuth(cred);
     } catch (e) { setErr(e.message); setBusy(false); }
+  };
+
+  const resetPassword = async () => {
+    if (!email.trim()) { setErr('הזינו אימייל כדי לשחזר סיסמה'); return; }
+    setBusy(true); setErr(''); setResetSent(false);
+    try {
+      await auth.sendPasswordResetEmail(email.trim());
+      setResetSent(true);
+    } catch (e) {
+      setErr(e.code === 'auth/user-not-found' ? 'לא נמצא משתמש עם האימייל הזה' : 'שגיאה בשליחת מייל האיפוס — נסו שוב');
+    }
+    setBusy(false);
   };
 
   const inStyle = { width:'100%', padding:'13px 14px', borderRadius:8, border:`1.5px solid ${alpha(th.ink,0.18)}`, fontFamily:th.body, fontSize:15, background:th.card, outline:'none', color:th.ink, boxSizing:'border-box', direction:'rtl' };
@@ -2993,11 +3006,18 @@ function CandidateInviteRegister({ th, inviteToken }) {
               <>
                 <div style={{ display:'flex', gap:8 }}>
                   {[['הרשמה', true], ['כניסה', false]].map(([lbl, n]) => (
-                    <button key={lbl} onClick={() => setIsNew(n)} style={{ flex:1, padding:10, borderRadius:th.r, border:'none', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:14, background:isNew===n ? th.ink : alpha(th.ink,0.08), color:isNew===n ? th.cream : alpha(th.ink,0.6) }}>{lbl}</button>
+                    <button key={lbl} onClick={() => { setIsNew(n); setResetSent(false); setErr(''); }} style={{ flex:1, padding:10, borderRadius:th.r, border:'none', cursor:'pointer', fontFamily:th.display, fontWeight:800, fontSize:14, background:isNew===n ? th.ink : alpha(th.ink,0.08), color:isNew===n ? th.cream : alpha(th.ink,0.6) }}>{lbl}</button>
                   ))}
                 </div>
-                <input type="email"    value={email} onChange={e => setEmail(e.target.value)} placeholder="אימייל"  style={inStyle} />
+                <input type="email"    value={email} onChange={e => { setEmail(e.target.value); setResetSent(false); }} placeholder="אימייל"  style={inStyle} />
                 <input type="password" value={pass}  onChange={e => setPass(e.target.value)}  placeholder="סיסמה (6+ תווים)"  style={inStyle} />
+                {!isNew && (
+                  resetSent ? (
+                    <div style={{ fontFamily:th.body, fontSize:13, color:th.success, textAlign:'center' }}>✓ נשלח מייל לאיפוס סיסמה ל-{email}</div>
+                  ) : (
+                    <button onClick={resetPassword} disabled={busy} style={{ border:'none', background:'none', color:th.primary, fontFamily:th.body, fontWeight:600, fontSize:13, cursor:'pointer', textDecoration:'underline', alignSelf:'center' }}>שכחת/י סיסמה?</button>
+                  )
+                )}
                 {err && <div style={{ fontFamily:th.body, fontSize:13, color:th.error, textAlign:'center' }}>{err}</div>}
                 <Btn th={th} full size="l" disabled={busy || !email || !pass || !agreedTerms} onClick={emailAuth}>
                   {busy ? '...' : isNew ? 'הרשמה' : 'כניסה'}
@@ -3022,6 +3042,7 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
   const [isNew, setIsNew] = useState(false);
   const [err,   setErr]   = useState('');
   const [busy,  setBusy]  = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const authErrMsg = code => ({
     'auth/email-already-in-use':   'האימייל והסיסמה כבר רשומים, נסו לבצע כניסה!',
@@ -3057,6 +3078,16 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
     } catch (e) { setErr(authErrMsg(e.code)); setBusy(false); }
   };
 
+  const resetPassword = async () => {
+    if (!email.trim()) { setErr('הזינו אימייל כדי לשחזר סיסמה'); return; }
+    setBusy(true); setErr(''); setResetSent(false);
+    try {
+      await auth.sendPasswordResetEmail(email.trim());
+      setResetSent(true);
+    } catch (e) { setErr(authErrMsg(e.code)); }
+    setBusy(false);
+  };
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(170deg, ${th.cream}, ${tint(th.primary, 0.82)})`, padding: 28, direction: 'rtl' }}>
       <div style={{ marginBottom: 32, textAlign: 'center', animation: 'sabaPop .5s ease' }}>
@@ -3088,11 +3119,18 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
         <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, animation: 'sabaUp .3s ease' }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
             {(loginOnly ? [['כניסה', false]] : [['כניסה', false], ['הרשמה', true]]).map(([lbl, n]) => (
-              <button key={lbl} onClick={() => setIsNew(n)} style={{ flex: 1, padding: 10, borderRadius: th.r, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(14), background: isNew === n ? th.ink : alpha(th.ink, 0.08), color: isNew === n ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
+              <button key={lbl} onClick={() => { setIsNew(n); setResetSent(false); setErr(''); }} style={{ flex: 1, padding: 10, borderRadius: th.r, border: 'none', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(14), background: isNew === n ? th.ink : alpha(th.ink, 0.08), color: isNew === n ? th.cream : alpha(th.ink, 0.6) }}>{lbl}</button>
             ))}
           </div>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="אימייל" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
+          <input type="email" value={email} onChange={e => { setEmail(e.target.value); setResetSent(false); }} placeholder="אימייל" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
           <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="סיסמה" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
+          {!isNew && (
+            resetSent ? (
+              <div style={{ fontFamily: th.body, fontSize: fs(13), color: th.success, textAlign: 'center' }}>✓ נשלח מייל לאיפוס סיסמה ל-{email}</div>
+            ) : (
+              <button onClick={resetPassword} disabled={busy} style={{ border: 'none', background: 'none', color: th.primary, fontFamily: th.body, fontWeight: 600, fontSize: fs(13), cursor: 'pointer', textDecoration: 'underline', alignSelf: 'center' }}>שכחת/י סיסמה?</button>
+            )
+          )}
           {err && <div style={{ fontFamily: th.body, fontSize: fs(13), color: th.error, textAlign: 'center' }}>{err}</div>}
           <Btn th={th} full size="l" disabled={busy || !email || !pass} onClick={emailLogin}>{busy ? 'מתחבר…' : (isNew ? 'הרשמה' : 'כניסה')}</Btn>
           <button onClick={() => setMode('choose')} style={{ border: 'none', background: 'none', color: alpha(th.ink, 0.5), fontFamily: th.body, fontSize: fs(13), cursor: 'pointer', textDecoration: 'underline' }}>חזרה</button>
