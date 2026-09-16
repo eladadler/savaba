@@ -4631,12 +4631,23 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                     </div>
                   ))}
                 </div>
-                <button onClick={() => go && go('onboarding')}
-                  style={{ marginTop: 12, width: '100%', border: `1.5px dashed ${alpha(th.primary, 0.45)}`, background: 'none',
-                    borderRadius: th.rSm, padding: '10px 0', cursor: 'pointer', color: th.primary,
-                    fontFamily: th.display, fontWeight: 800, fontSize: fs(13) }}>
-                  צפה באונבורדינג
-                </button>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button onClick={() => go && go('onboarding')}
+                    style={{ flex: 1, border: `1.5px dashed ${alpha(th.primary, 0.45)}`, background: 'none',
+                      borderRadius: th.rSm, padding: '10px 0', cursor: 'pointer', color: th.primary,
+                      fontFamily: th.display, fontWeight: 800, fontSize: fs(13) }}>
+                    צפה — שדכן/ית
+                  </button>
+                  <button onClick={() => go && go('onboarding', { previewCandidate: true })}
+                    style={{ flex: 1, border: `1.5px dashed ${alpha(th.primary, 0.45)}`, background: 'none',
+                      borderRadius: th.rSm, padding: '10px 0', cursor: 'pointer', color: th.primary,
+                      fontFamily: th.display, fontWeight: 800, fontSize: fs(13) }}>
+                    צפה — מועמד/ת
+                  </button>
+                </div>
+                <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.45), marginTop: 8, lineHeight: 1.4 }}>
+                  בתוך התצוגה, כפתור "עריכת טקסטים" (או מצב עריכה inline) עורך את הטקסטים המתאימים לגרסה שנפתחה.
+                </div>
               </div>
 
               {/* ── BIRTH DATE BACKFILL ── */}
@@ -13551,7 +13562,7 @@ function TermsScreen({ th, go }) {
 function renderScreen(cur, th, go, profile, aiMode, setAiMode, opts = {}) {
   const p = cur.params;
   switch (cur.name) {
-    case 'onboarding':  return <Onboarding th={th} go={go} profile={profile} isCandidate={opts.isCandidateOnboarding} />;
+    case 'onboarding':  return <Onboarding th={th} go={go} profile={profile} isCandidate={opts.isCandidateOnboarding || !!p?.previewCandidate} />;
     case 'register':    return <Register th={th} go={go} />;
     case 'home':        return <Home th={th} go={go} approvalPopupCand={opts.approvalPopupCand} />;
     case 'cands':       return <Candidates key={p?.linkMode ? 'cands-link' : 'cands'} th={th} go={go} params={p} />;
@@ -13904,7 +13915,14 @@ function AppInner({ inviteToken, offerParam }) {
   const [drafts, setDrafts]         = React.useState({});
   const [savingTexts, setSavingTexts] = React.useState(false);
   const isAdmin      = profile?.isAdmin;
-  const screenKeys   = SCREEN_TEXTS[cur.name] || [];
+  // The admin's "צפה — מועמד/ת" preview button opens the same 'onboarding' screen name
+  // with a params flag rather than a separate route, so the text-editing tools (inline
+  // pencil button + the manual "עריכת טקסטים" sheet) need to switch to the candidate
+  // key group too, or they'd list/edit the matchmaker slides while the candidate ones
+  // are what's actually on screen.
+  const screenKeys   = (cur.name === 'onboarding' && cur.params?.previewCandidate)
+    ? SCREEN_TEXTS.onboardingCand
+    : (SCREEN_TEXTS[cur.name] || []);
   const setDraft     = (key, val) => setDrafts(d => ({ ...d, [key]: val }));
   const cancelEdit   = () => { setEditMode(false); setDrafts({}); };
 
