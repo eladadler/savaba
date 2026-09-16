@@ -11749,6 +11749,19 @@ function CandidateMode({ th, go }) {
             </button>
           </div>
 
+          {/* Log out */}
+          <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:14 }}>
+            <button onClick={() => { auth.signOut(); window.location.hash = ''; }}
+              style={{ all:'unset', cursor:'pointer', boxSizing:'border-box', width:'100%', display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
+              <div style={{ width:38, height:38, borderRadius:'50%', background:alpha(th.ink,0.07), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <Icon name="arrow" size={18} style={{ color:alpha(th.ink,0.6) }} />
+              </div>
+              <div style={{ flex:1 }}>
+                <div style={{ fontFamily:th.display, fontWeight:800, fontSize:14.5, color:th.ink }}>יציאה מהמערכת</div>
+              </div>
+            </button>
+          </div>
+
           {/* Delete profile */}
           <div style={{ background:th.card, borderRadius:th.r, overflow:'hidden', boxShadow:`0 4px 14px ${alpha(th.ink,0.05)}`, marginBottom:20 }}>
             <button onClick={() => { setDeleteReason(''); setDeleteNote(''); setDeleteModal('reason'); }}
