@@ -13838,8 +13838,25 @@ function AppInner({ inviteToken, offerParam }) {
       navigate([{ name: 'offers', params: {} }, { name: 'offerDetail', params: { id: offerParam } }], true);
       return;
     }
-    // New matchmaker who hasn't completed registration — redirect to register regardless of current screen
+    // A signed-in user with a linked candidate profile (candidateUid === their uid) but no
+    // completed MATCHMAKER registration is a candidate, full stop -- prioritize this over
+    // the matchmaker-registration redirect below. profile.profileComplete is only ever set
+    // by Register's (matchmaker) handleSave, so a pure candidate never has it -- without this
+    // check they fall through to the matchmaker onboarding, whose own finish button sends
+    // anyone with !profileComplete straight to 'register' (this is exactly how a candidate
+    // logging in directly, e.g. test100@gmail.com / ישראל כהן, ended up on a shadchan signup
+    // screen instead of their own candidate screens). Checking the actual candidates
+    // collection (not profile.role) also self-heals accounts whose users doc was stamped
+    // role:'matchmaker' by the pre-fix bootstrap.
     const transientScreens = ['onboarding', 'register', 'inviteLanding', 'candSelfFill'];
+    if (!profile.profileComplete && !profile.isAdmin) {
+      const myCandProfile = (data.candidates || []).find(c => c.candidateUid === user.uid);
+      if (myCandProfile && stack[stack.length - 1].name !== 'candidateMode') {
+        navigate([{ name: 'candidateMode', params: {} }], true);
+        return;
+      }
+    }
+    // New matchmaker who hasn't completed registration — redirect to register regardless of current screen
     if (!profile.profileComplete && !profile.isAdmin && profile.role === 'matchmaker' && !transientScreens.includes(stack[stack.length - 1].name)) {
       navigate([{ name: 'register', params: {} }], true);
       return;
@@ -13851,7 +13868,10 @@ function AppInner({ inviteToken, offerParam }) {
     if (alreadyIn && stack.length === 1 && stack[0].name === 'onboarding') {
       navigate([{ name: 'home', params: {} }], true);
     }
-  }, [profile]);
+    // data.candidates re-runs this once the candidates snapshot listener populates —
+    // needed for the candidate-profile check above, which can't fire correctly before
+    // myCandProfile is actually findable.
+  }, [profile, data.candidates]);
 
   // Show mode-choice modal once per session for dual-role users (matchmaker + candidate).
   // Admins are exempt from the profileComplete check — an admin account never forced

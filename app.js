@@ -686,11 +686,24 @@ const[editMethod,setEditMethod]=React.useState(()=>localStorage.getItem('textEdi
 React.useEffect(()=>{const uid=user?.uid;if(!uid)return;const CM_UID_KEY='cm_uid_v1';try{const storedUid=localStorage.getItem(CM_UID_KEY);if(storedUid!==uid){localStorage.removeItem(CM_SEEN_KEY);localStorage.setItem(CM_UID_KEY,uid);window.dispatchEvent(new Event('cm_updated'));}}catch{}db.collection('users').doc(uid).get().then(doc=>{if(!doc.exists)return;const fsSeen=doc.data()?.cmSeen;if(!Array.isArray(fsSeen)||!fsSeen.length)return;const localSet=getCmSeen();const merged=new Set([...localSet,...fsSeen]);if(merged.size>localSet.size){saveCmSeen(merged);window.dispatchEvent(new Event('cm_updated'));}}).catch(()=>{});},[user?.uid]);// Handle invite token: route to inviteLanding once profile is loaded
 React.useEffect(()=>{if(!profile)return;if(inviteToken&&stack.length===1&&stack[0].name!=='inviteLanding'&&stack[0].name!=='candSelfFill'){navigate([{name:'inviteLanding',params:{token:inviteToken}}],true);return;}// Deep link: #cand/CANDIDATE_ID (legacy hash format) sent via WhatsApp to shadchan
 const rawHash=window.location.hash;if(rawHash.startsWith('#cand/')&&stack.length===1&&stack[0].name!=='candidate'){const candId=rawHash.slice('#cand/'.length);if(candId){navigate([{name:'home',params:{}},{name:'candidate',params:{id:candId,viewOnly:true}}],true);return;}}// Deep link: ?offer=OFFER_ID sent via WhatsApp mm-to-mm
-if(offerParam&&stack.length===1&&stack[0].name!=='offerDetail'){navigate([{name:'offers',params:{}},{name:'offerDetail',params:{id:offerParam}}],true);return;}// New matchmaker who hasn't completed registration — redirect to register regardless of current screen
-const transientScreens=['onboarding','register','inviteLanding','candSelfFill'];if(!profile.profileComplete&&!profile.isAdmin&&profile.role==='matchmaker'&&!transientScreens.includes(stack[stack.length-1].name)){navigate([{name:'register',params:{}}],true);return;}// Admins always walk the onboarding (dev aid, explicitly wanted back on) — the
+if(offerParam&&stack.length===1&&stack[0].name!=='offerDetail'){navigate([{name:'offers',params:{}},{name:'offerDetail',params:{id:offerParam}}],true);return;}// A signed-in user with a linked candidate profile (candidateUid === their uid) but no
+// completed MATCHMAKER registration is a candidate, full stop -- prioritize this over
+// the matchmaker-registration redirect below. profile.profileComplete is only ever set
+// by Register's (matchmaker) handleSave, so a pure candidate never has it -- without this
+// check they fall through to the matchmaker onboarding, whose own finish button sends
+// anyone with !profileComplete straight to 'register' (this is exactly how a candidate
+// logging in directly, e.g. test100@gmail.com / ישראל כהן, ended up on a shadchan signup
+// screen instead of their own candidate screens). Checking the actual candidates
+// collection (not profile.role) also self-heals accounts whose users doc was stamped
+// role:'matchmaker' by the pre-fix bootstrap.
+const transientScreens=['onboarding','register','inviteLanding','candSelfFill'];if(!profile.profileComplete&&!profile.isAdmin){const myCandProfile=(data.candidates||[]).find(c=>c.candidateUid===user.uid);if(myCandProfile&&stack[stack.length-1].name!=='candidateMode'){navigate([{name:'candidateMode',params:{}}],true);return;}}// New matchmaker who hasn't completed registration — redirect to register regardless of current screen
+if(!profile.profileComplete&&!profile.isAdmin&&profile.role==='matchmaker'&&!transientScreens.includes(stack[stack.length-1].name)){navigate([{name:'register',params:{}}],true);return;}// Admins always walk the onboarding (dev aid, explicitly wanted back on) — the
 // mode-choice modal and approval popup no longer depend on reaching Home, so
 // this no longer blocks them.
-const alreadyIn=profile.profileComplete&&!profile.isAdmin;if(alreadyIn&&stack.length===1&&stack[0].name==='onboarding'){navigate([{name:'home',params:{}}],true);}},[profile]);// Show mode-choice modal once per session for dual-role users (matchmaker + candidate).
+const alreadyIn=profile.profileComplete&&!profile.isAdmin;if(alreadyIn&&stack.length===1&&stack[0].name==='onboarding'){navigate([{name:'home',params:{}}],true);}// data.candidates re-runs this once the candidates snapshot listener populates —
+// needed for the candidate-profile check above, which can't fire correctly before
+// myCandProfile is actually findable.
+},[profile,data.candidates]);// Show mode-choice modal once per session for dual-role users (matchmaker + candidate).
 // Admins are exempt from the profileComplete check — an admin account never forced
 // through Register may legitimately never have that flag set.
 React.useEffect(()=>{if(!profile?.profileComplete&&!profile?.isAdmin)return;if(!user?.uid)return;if(modeModalShownRef.current)return;if(sessionStorage.getItem('modeChosen'))return;if(!data.candidates?.length)return;const myCandProfile=data.candidates.find(c=>c.candidateUid===user.uid);if(myCandProfile){modeModalShownRef.current=true;setShowModeModal(true);}},[profile,data.candidates,user]);// Patch static globals so existing screens work
