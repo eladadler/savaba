@@ -5341,6 +5341,7 @@ const TEXT_KEYS = {
   wa_cand_app_link:    'ווצאפ — קישור לאפליקציית מועמדים ({שם}, {קישור})',
   wa_cand_interested:  'ווצאפ — מועמד/ת מתעניין/ת: הודעה לשדכן/ית ({שם}, {שם_שדכן}, {שם_ב}, {מעוניין_ת}, {תוכל_י}, {שדכן_ית_ב}, {שלו_שלה}, {שם_שדכן_ב}, {קישור})',
   wa_mm_both_approved: 'ווצאפ — שני הצדדים אישרו: הודעה לשדכן/ית השני/ה ({שם}, {שם_מועמד_א}, {שם_מועמד_ב})',
+  wa_cand_approved:    'ווצאפ — הכרטיסייה אושרה: הודעה למועמד/ת ({שם}, {שדכן_ית}, {פעל}, {קישור})',
   match_title:                 'שידוך חדש — כותרת מסך',
   match_preview_one_line:      'שידוך חדש — תצוגה: תווית "במשפט אחד"',
   match_preview_sees_with:     'שידוך חדש — תצוגה: תווית "רואה את עצמו/ה עם"',
@@ -5847,6 +5848,7 @@ const DEFAULT_TEXTS = {
   wa_cand_app_link:    'היי {שם}! 🎉\nיש לנו בשבילך הצעת שידוך מעניינת.\nכדאי שתיכנס/י לאפליקציה ותכיר/י את ההצעה — ומשם תוכל/י ליצור קשר עם המועמד/ת המתאים/ה לך 😊\n{קישור}',
   wa_cand_interested:  'היי {שם_שדכן},\n\nזה אני, {שם}.\nראיתי את הפרופיל של {שם_ב} ואני מאוד {מעוניין_ת} לברר התאמה.\nאשמח אם {תוכל_י} לפנות ל{שדכן_ית_ב} {שלו_שלה} ({שם_שדכן_ב}).\n\nקישור לכרטיסייה:\n{קישור}',
   wa_mm_both_approved: 'היי {שם}, בנושא ההצעה של {שם_מועמד_א} ו{שם_מועמד_ב} 🎉',
+  wa_cand_approved:    'היי {שם}! ה{שדכן_ית} שלך {פעל} להכין את הכרטיסייה שלך... ואיזה כיף! 🎉\n\nאפשר עכשיו להיכנס לאפליקציית המועמדים של *סבבה והכל* ואפילו להתרשם ממועמדים אחרים!\n\n👇\n{קישור}',
   match_title:                 'שידוך חדש',
   match_preview_one_line:      'במשפט אחד',
   match_preview_sees_with:     'רואה את עצמו/ה עם',
@@ -5964,7 +5966,7 @@ const SCREEN_TEXTS = {
     'cand_settings_delete','cand_settings_delete_sub','cand_footer',
     'cand_married_title','cand_married_body',
   ],
-  waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved'],
+  waTemplates: ['wa_cand_done','wa_invite','wa_cand_offer','wa_mm_contact','offer_bothapp_male_wa','wa_cand_app_link','wa_cand_interested','wa_mm_both_approved','wa_cand_approved'],
   matchFlow:   ['match_title','match_spotlight_label','match_step1_with_spotlight','match_step1_no_spotlight','match_hint','match_wa_btn','match_mm_btn','match_preview_one_line','match_preview_sees_with','match_preview_interests','match_preview_mm_label','match_preview_btn','match_no_mine_title','match_no_mine_sub','match_no_mine_btn','mf_step1_label','mf_step2_label','mf_step3_label','mf_s1_title_m','mf_s1_title_f','mf_s1_sub_m','mf_s1_sub_f','mf_s1_mine_m','mf_s1_mine_f','mf_s1_other_m','mf_s1_other_f','mf_s1_btn','mf_s2_title_m','mf_s2_title_f','mf_mm_modal_title','mf_mm_modal_sub','mf_mm_modal_placeholder','mf_mm_modal_hint','mf_mm_modal_btn'],
   offers:      ['offers_title','offers_active_suffix','offers_new_btn','offers_tab_pending','offers_tab_approved','offers_tab_done','offers_sort_label','offers_sort_newest','offers_sort_oldest','offers_sort_mine','offers_sort_chat','offers_empty_pending','offers_empty_approved','offers_empty_done','offers_empty_filter','offers_filter_approve','offers_filter_cand','offers_badge_engaged','offers_badge_waiting','offers_badge_approved','offers_badge_declined','offers_chip_mine','offers_chip_theirs','offers_chat_badge'],
   offerDetail: ['offer_bothapp_celebrate_title','offer_bothapp_celebrate_sub','offer_bothapp_male_title','offer_bothapp_male_body','offer_bothapp_male_wa_label','offer_bothapp_male_wa_sub','offer_bothapp_male_wa','offer_bothapp_female_title','offer_bothapp_female_body','offer_bothapp_married_prompt','offer_bothapp_married_btn','offer_pending_subtitle','offer_my_cand_header','offer_approved_label','offer_mark_approval_hint','offer_their_cand_header','offer_their_approval_q','offer_approved_chip','offer_pending_chip','offer_chat_empty','offer_note_label','offer_decline_btn','offer_decline_sub','offer_declined_banner','offer_engaged_title','offer_engaged_sub','offer_send_card_title','offer_send_card_sub','offer_chat_header','offer_wa_mm_title','offer_wa_mm_sub','offer_bothapp_wa_mm_title','offer_bothapp_wa_mm_sub','offer_their_no_update'],
@@ -8461,13 +8463,53 @@ function CandidateSelfFill({ th, go, params }) {
 // ════════════════════════════════════════════════════════════
 function EditCandidateScreen({ th, go, params }) {
   const { candidates, updateCandidate, uploadPhoto, uploadVoice, approveCandidate } = useContext(DataCtx);
+  const { profile } = useContext(AuthCtx);
   const { t, texts: tx, defaults: dx } = useTexts();
+  const textsCtx = useContext(TextsCtx);
+  // Shown right after approving a pending candidate — a nudge to let the matchmaker
+  // tell them their card is live, instead of that only happening silently.
+  const [justApproved, setJustApproved] = useState(false);
   const c = candidates.find(x => x.id === params?.id);
   if (!c) return (
     <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center', background:th.cream }}>
       <Splash th={th} size={52} />
     </div>
   );
+
+  if (justApproved) {
+    const mmIsFem = isFemGender(profile?.gender);
+    const waMsg = encodeURIComponent(fillWa(textsCtx, 'wa_cand_approved', {
+      שם: (c.name || '').split(' ')[0] || c.name,
+      שדכן_ית: mmIsFem ? 'שדכנית' : 'שדכן',
+      פעל: mmIsFem ? 'סיימה' : 'סיים',
+      קישור: INVITE_BASE_URL,
+    }));
+    const candWaPhone = c.phone ? String(c.phone).replace(/\D/g, '').replace(/^0/, '972') : '';
+    return (
+      <div style={{ height:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:th.cream, padding:'32px 28px', textAlign:'center', direction:'rtl' }}>
+        <div style={{ fontSize:52, marginBottom:12 }}>✅</div>
+        <div style={{ fontFamily:th.display, fontSize:22, fontWeight:800, color:th.ink, marginBottom:6 }}>הכרטיסייה אושרה!</div>
+        <div style={{ fontFamily:th.body, fontSize:15, color:alpha(th.ink,0.6), lineHeight:1.6, maxWidth:280, marginBottom:28 }}>
+          {c.name} כבר גלוי/ה במערכת. כדאי לספר לו/לה שהכרטיסייה מוכנה ואפשר להיכנס לאפליקציית המועמדים.
+        </div>
+        {candWaPhone ? (
+          <a href={`https://api.whatsapp.com/send?phone=${candWaPhone}&text=${waMsg}`} target="_blank" rel="noopener noreferrer"
+            style={{ display:'flex', alignItems:'center', gap:10, background:'#25D366', color:'#fff', borderRadius:14, padding:'13px 22px', fontFamily:th.display, fontWeight:800, fontSize:15, textDecoration:'none', boxShadow:`0 4px 16px rgba(37,211,102,0.35)`, marginBottom:16 }}>
+            <Icon name="whatsapp" size={20} style={{ color:'#fff' }} />
+            עדכן/י ב-WhatsApp
+          </a>
+        ) : (
+          <div style={{ fontFamily:th.body, fontSize:13, color:alpha(th.ink,0.5), marginBottom:16 }}>
+            אין מספר טלפון שמור למועמד/ת — אי אפשר לשלוח הודעה אוטומטית
+          </div>
+        )}
+        <button onClick={() => go('back')} style={{ border:'none', background:'none', cursor:'pointer', fontFamily:th.body, fontWeight:700, fontSize:14, color:alpha(th.ink,0.5), textDecoration:'underline' }}>
+          דלג/י, סיימתי
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ height:'100%', display:'flex', flexDirection:'column', background:th.cream, direction:'rtl' }}>
       <AppHeader th={th} title={c.name || 'מועמד/ת חדש/ה'} sub={c.status === 'pending_mm' ? t('editcand_status_pending_fill') : c.pendingApproval ? t('editcand_status_pending_approval') : t('editcand_status_editing')} onBack={() => go('back')} />
@@ -8523,7 +8565,7 @@ function EditCandidateScreen({ th, go, params }) {
           reviewMode={!!c.pendingApproval} showMmNote={th.showMmNote}
           onApprove={c.pendingApproval ? async (data) => {
             await updateCandidate(c.id, { ...data, pendingApproval: false });
-            go('back');
+            setJustApproved(true);
           } : undefined} />
       </div>
     </div>
@@ -13095,6 +13137,7 @@ function TextsAdmin({ th, go }) {
     wa_cand_app_link:    '{שם} · {קישור}',
     wa_cand_interested:  '{שם} · {שם_שדכן} · {שם_ב} · {מעוניין_ת} · {תוכל_י} · {שדכן_ית_ב} · {שלו_שלה} · {שם_שדכן_ב} · {קישור}',
     wa_mm_both_approved: '{שם} · {שם_מועמד_א} · {שם_מועמד_ב}',
+    wa_cand_approved:    '{שם} · {שדכן_ית} · {פעל} · {קישור}',
     match_hint:          '{שם_א} · {שם_ב}',
     match_wa_btn:        '{שם_א} · {שם_ב}',
     match_mm_btn:        '{שם_ב}',
