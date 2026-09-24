@@ -3013,7 +3013,7 @@ function CandidateInviteRegister({ th, inviteToken }) {
                   ))}
                 </div>
                 <input type="email"    value={email} onChange={e => { setEmail(e.target.value); setResetSent(false); }} placeholder="אימייל"  style={inStyle} />
-                <input type="password" value={pass}  onChange={e => setPass(e.target.value)}  placeholder="סיסמה (6+ תווים)"  style={inStyle} />
+                <input type="password" value={pass}  onChange={e => setPass(e.target.value)}  placeholder={isNew ? 'צור/י סיסמה חדשה (6+ תווים)' : 'הסיסמה שיצרת באפליקציה'}  style={inStyle} />
                 {!isNew && (
                   resetSent ? (
                     <div style={{ fontFamily:th.body, fontSize:13, color:th.success, textAlign:'center' }}>✓ נשלח מייל לאיפוס סיסמה ל-{email}</div>
@@ -3126,7 +3126,7 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
             ))}
           </div>
           <input type="email" value={email} onChange={e => { setEmail(e.target.value); setResetSent(false); }} placeholder="אימייל" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
-          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder="סיסמה" style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
+          <input type="password" value={pass} onChange={e => setPass(e.target.value)} placeholder={isNew ? 'צור/י סיסמה חדשה (6+ תווים)' : 'הסיסמה שיצרת באפליקציה'} style={{ width: '100%', padding: '13px 14px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink, 0.18)}`, fontFamily: th.body, fontSize: fs(15), background: th.card, outline: 'none', color: th.ink }} />
           {!isNew && (
             resetSent ? (
               <div style={{ fontFamily: th.body, fontSize: fs(13), color: th.success, textAlign: 'center' }}>✓ נשלח מייל לאיפוס סיסמה ל-{email}</div>
