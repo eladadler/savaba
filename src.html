@@ -3870,6 +3870,27 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
           deleteCandidate, uploadPhoto, uploadVoice, updateText, setUserAdmin, deleteUser, updateList } = useContext(DataCtx);
   const [tab, setTab]         = useState('candidates');
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null); // null | uid
+  // Manually finish a matchmaker signup that's stuck before the phone-OTP step (e.g. SMS
+  // never arrived) — skips OTP entirely and stores the phone directly for WhatsApp use.
+  const [manualCompleteId, setManualCompleteId] = useState(null); // null | uid
+  const [manualForm, setManualForm] = useState({ firstName: '', lastName: '', gender: 'זכר', phone: '' });
+  const openManualComplete = (u) => {
+    const parts = (u.displayName || '').trim().split(/\s+/).filter(Boolean);
+    setManualForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', gender: 'זכר', phone: u.phone || '' });
+    setManualCompleteId(u.id);
+  };
+  const submitManualComplete = async () => {
+    const { firstName, lastName, gender, phone } = manualForm;
+    if (!firstName.trim() || !lastName.trim() || !phone.trim()) return;
+    await db.collection('users').doc(manualCompleteId).update({
+      displayName: `${firstName.trim()} ${lastName.trim()}`,
+      gender: gender === 'נקבה' ? 'f' : 'm',
+      phone: phone.trim(),
+      phoneVerified: true,
+      profileComplete: true,
+    });
+    setManualCompleteId(null);
+  };
   const [editCand, setEditCand] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [genderFix, setGenderFix] = useState(null); // cand id awaiting gender selection before impersonation
@@ -4554,6 +4575,48 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                     </button>
                   )}
                 </div>
+                {/* Registration stuck before the phone-OTP step (e.g. SMS never arrived) —
+                    let the admin finish it manually, skipping OTP, storing the phone
+                    directly for WhatsApp use inside the app. */}
+                {!u.profileComplete && !u.isAdmin && manualCompleteId !== u.id && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, paddingTop: 10, borderTop: `1px solid ${alpha(th.ink,0.07)}`, flexWrap: 'wrap' }}>
+                    <span style={{ fontFamily: th.body, fontSize: fs(11.5), fontWeight: 700, color: th.gold, flex: 1 }}>⏳ ממתין/ה להשלמת הרשמה</span>
+                    <button onClick={() => openManualComplete(u)}
+                      style={{ border: 'none', borderRadius: 999, padding: '5px 10px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(11), background: alpha(th.primary, 0.1), color: th.primary }}>
+                      ✓ השלם ידנית
+                    </button>
+                  </div>
+                )}
+                {manualCompleteId === u.id && (
+                  <div style={{ background: alpha(th.primary, 0.05), border: `1.5px solid ${alpha(th.primary, 0.25)}`, borderRadius: th.rSm, padding: '12px 14px', marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input value={manualForm.firstName} onChange={e => setManualForm(f => ({ ...f, firstName: e.target.value }))} placeholder="שם פרטי"
+                        style={{ flex: 1, boxSizing: 'border-box', padding: '8px 10px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink,0.15)}`, fontFamily: th.body, fontSize: fs(13), background: th.cream, outline: 'none', color: th.ink }} />
+                      <input value={manualForm.lastName} onChange={e => setManualForm(f => ({ ...f, lastName: e.target.value }))} placeholder="שם משפחה"
+                        style={{ flex: 1, boxSizing: 'border-box', padding: '8px 10px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink,0.15)}`, fontFamily: th.body, fontSize: fs(13), background: th.cream, outline: 'none', color: th.ink }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {['זכר', 'נקבה'].map(g => (
+                        <button key={g} onClick={() => setManualForm(f => ({ ...f, gender: g }))}
+                          style={{ flex: 1, padding: '7px 0', border: 'none', borderRadius: th.rSm, cursor: 'pointer', fontFamily: th.display, fontWeight: 700, fontSize: fs(12), background: manualForm.gender === g ? th.primary : alpha(th.ink,0.08), color: manualForm.gender === g ? '#fff' : alpha(th.ink,0.6) }}>
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                    <input value={manualForm.phone} onChange={e => setManualForm(f => ({ ...f, phone: e.target.value }))} placeholder="טלפון (לוואטסאפ בתוך המערכת)" dir="ltr"
+                      style={{ boxSizing: 'border-box', padding: '8px 10px', borderRadius: th.rSm, border: `1.5px solid ${alpha(th.ink,0.15)}`, fontFamily: th.body, fontSize: fs(13), background: th.cream, outline: 'none', color: th.ink, textAlign: 'right' }} />
+                    <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+                      <button onClick={submitManualComplete} disabled={!manualForm.firstName.trim() || !manualForm.lastName.trim() || !manualForm.phone.trim()}
+                        style={{ flex: 1, border: 'none', borderRadius: 999, padding: '8px 0', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(12.5), background: th.primary, color: '#fff', opacity: (!manualForm.firstName.trim() || !manualForm.lastName.trim() || !manualForm.phone.trim()) ? 0.5 : 1 }}>
+                        שמור והשלם
+                      </button>
+                      <button onClick={() => setManualCompleteId(null)}
+                        style={{ border: `1.5px solid ${alpha(th.ink, 0.15)}`, borderRadius: 999, padding: '8px 14px', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(12.5), background: 'transparent', color: alpha(th.ink, 0.6) }}>
+                        ביטול
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {confirmDeleteUser === u.id && (
                   <div style={{ background: alpha(th.error, 0.06), border: `1.5px solid ${alpha(th.error, 0.3)}`, borderRadius: th.rSm, padding: '10px 12px', marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: th.body, fontSize: fs(12.5), color: th.ink, flex: 1, minWidth: 160 }}>
