@@ -3103,7 +3103,7 @@ function LoginScreen({ th, inviteToken, loginOnly }) {
         <Splash th={th} size={92} />
         <div style={{ fontFamily: th.display, fontSize: fs(26), fontWeight: 800, color: th.ink, marginTop: 14 }}>סבבה והכל</div>
         <div style={{ fontFamily: th.body, fontSize: fs(15), color: alpha(th.ink, 0.55), marginTop: 4 }}>
-          {inviteToken ? 'קיבלת הזמנה — התחבר/י להמשיך' : loginOnly ? 'לצפייה בכרטיסיה, יש להתחבר תחילה' : 'פלטפורמת השידוכים לשדכנים'}
+          {inviteToken ? 'קיבלת הזמנה — התחבר/י להמשיך' : loginOnly ? 'לצפייה בכרטיסיה, יש להתחבר תחילה' : 'חברים משדכים בכיף!'}
         </div>
         {inviteToken && (
           <div style={{ marginTop: 12, background: alpha(th.primary, 0.08), border: `1.5px solid ${alpha(th.primary, 0.2)}`, borderRadius: th.rSm, padding: '10px 14px', fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.7) }}>
