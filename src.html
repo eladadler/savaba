@@ -3891,6 +3891,27 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
     });
     setManualCompleteId(null);
   };
+  // Candidates have no WhatsApp opt-out field at all (checked: nothing in the codebase
+  // gates a candidate's WA links), so they're already open by default -- nothing to fix
+  // there. Matchmakers do have one (noWhatsapp on their users doc, toggled from their own
+  // Settings), and it already defaults to open for brand-new accounts (undefined is
+  // falsy everywhere it's checked) -- but some existing accounts may have it set true
+  // from earlier testing. This resets it for everyone at once.
+  const [waResetBusy, setWaResetBusy] = useState(false);
+  const [waResetDone, setWaResetDone] = useState(null); // null | count fixed
+  const resetWhatsappForAll = async () => {
+    setWaResetBusy(true); setWaResetDone(null);
+    try {
+      const toFix = Object.values(matchmakers).filter(u => u.noWhatsapp === true);
+      for (let i = 0; i < toFix.length; i += 500) {
+        const batch = db.batch();
+        toFix.slice(i, i + 500).forEach(u => batch.update(db.collection('users').doc(u.id), { noWhatsapp: false }));
+        await batch.commit();
+      }
+      setWaResetDone(toFix.length);
+    } catch (e) { alert('שגיאה: ' + e.message); }
+    setWaResetBusy(false);
+  };
   const [editCand, setEditCand] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [genderFix, setGenderFix] = useState(null); // cand id awaiting gender selection before impersonation
@@ -4550,7 +4571,22 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
 
         {/* ── USERS (matchmakers) ── */}
         {tab === 'users' && (() => {
-          return Object.values(visibleMms).map(u => {
+          const closedCount = Object.values(visibleMms).filter(u => u.noWhatsapp === true).length;
+          return (
+          <>
+            <div style={{ background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13.5), color: th.ink, marginBottom: 2 }}>💬 זמינות ווצאפ</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: alpha(th.ink, 0.55) }}>
+                  {waResetDone !== null ? `✓ נפתח עבור ${waResetDone} שדכנים` : closedCount > 0 ? `${closedCount} שדכנים סגורים לווצאפ כרגע` : 'כולם כבר פתוחים לווצאפ'}
+                </div>
+              </div>
+              <button onClick={resetWhatsappForAll} disabled={waResetBusy || closedCount === 0}
+                style={{ border: 'none', borderRadius: th.rSm, padding: '8px 14px', cursor: (waResetBusy || closedCount === 0) ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(12.5), background: closedCount > 0 ? th.primary : alpha(th.ink,0.1), color: closedCount > 0 ? '#fff' : alpha(th.ink,0.35), opacity: waResetBusy ? 0.6 : 1, whiteSpace: 'nowrap' }}>
+                {waResetBusy ? 'פותח…' : 'פתח ווצאפ לכולם'}
+              </button>
+            </div>
+            {Object.values(visibleMms).map(u => {
             const mmCands = visibleCands.filter(c => c.mmId === u.id);
             return (
               <div key={u.id} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 10, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
@@ -4646,7 +4682,9 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                 )}
               </div>
             );
-          });
+            })}
+          </>
+          );
         })()}
       </div>
     </div>
