@@ -6330,6 +6330,13 @@ function Register({ th, go }) {
   const [otpSending, setOtpSending] = useS(false);
   const [otpError, setOtpError] = useS('');
   const [otpCode, setOtpCode] = useS('');
+  // Some Israeli carriers (Golan Telecom confirmed, likely others) reliably fail to
+  // deliver Twilio's SMS — verified against Twilio's own Verify logs, not a guess (see
+  // the "איילת" case). Losing a matchmaker over that is worse than accepting an
+  // unverified phone, so this lets them through anyway; phoneVerified just records that
+  // it happened, in case that's ever worth auditing.
+  const [otpSkipped, setOtpSkipped] = useS(false);
+  const skipOtp = () => { setOtpSkipped(true); setOtpError(''); setStep(3); };
 
   const isPhoneValid = (p) => {
     const d = p.replace(/\D/g, '');
@@ -6367,6 +6374,7 @@ function Register({ th, go }) {
     try {
       const fn = firebase.functions().httpsCallable('verifyCode');
       await fn({ phone: formatE164(phone), code: otpCode });
+      setOtpSkipped(false);
       setStep(3);
     } catch(e) {
       setOtpError(e.message === 'קוד שגוי' ? 'קוד שגוי — נסה שוב' : 'שגיאה — נסה שוב');
@@ -6399,7 +6407,7 @@ function Register({ th, go }) {
         gender: gender === 'זכר' ? 'm' : 'f',
         ...(photoURL ? { photoURL } : {}),
         profileComplete: true,
-        phoneVerified: true,
+        phoneVerified: !otpSkipped,
       });
       go('home');
     } catch(err) { alert('שגיאה: ' + err.message); setSaving(false); }
@@ -6479,6 +6487,10 @@ function Register({ th, go }) {
         <button onClick={sendOtp} disabled={otpSending}
           style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', fontFamily: th.body, fontSize: fs(13), color: th.primary, marginTop: 16 }}>
           לא קיבלתי קוד — שלח שוב
+        </button>
+        <button onClick={skipOtp} disabled={otpSending}
+          style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.45), marginTop: 14, textDecoration: 'underline' }}>
+          עדיין לא הגיע? המשך בלי קוד
         </button>
       </div>
     </>
@@ -8156,6 +8168,11 @@ function CandidateSelfFill({ th, go, params }) {
   const [otpSending, setOtpSending] = useState(false);
   const [otpError, setOtpError]     = useState('');
   const [otpCode,  setOtpCode]      = useState('');
+  // Some Israeli carriers (Golan Telecom confirmed, likely others) reliably fail to
+  // deliver Twilio's SMS — verified against Twilio's own Verify logs, not a guess. Losing
+  // a candidate over that is worse than accepting an unverified phone.
+  const [otpSkipped, setOtpSkipped] = useState(false);
+  const skipOtp = () => { setOtpSkipped(true); setOtpError(''); setPhoneVerified(true); };
 
   const isPhoneValid = (p) => {
     const d = p.replace(/\D/g, '');
@@ -8183,6 +8200,7 @@ function CandidateSelfFill({ th, go, params }) {
     try {
       const fn = firebase.functions().httpsCallable('verifyCode');
       await fn({ phone: formatE164(f.phone), code: otpCode });
+      setOtpSkipped(false);
       setPhoneVerified(true);
     } catch(e) {
       setOtpError(e.message === 'קוד שגוי' ? 'קוד שגוי — נסה שוב' : 'שגיאה — נסה שוב');
@@ -8214,7 +8232,7 @@ function CandidateSelfFill({ th, go, params }) {
       const ref = await db.collection('candidates').add({
         ...f, phone: f.phone.trim(), height: f.height ? +f.height : null, photos,
         mmId: invite.mmId, candidateUid: user.uid,
-        phoneVerified: true, pendingApproval: true, available: true,
+        phoneVerified: !otpSkipped, pendingApproval: true, available: true,
         grad: gradForId(user.uid),
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -8281,6 +8299,10 @@ function CandidateSelfFill({ th, go, params }) {
               <button onClick={sendOtp} disabled={otpSending}
                 style={{ all:'unset', cursor:'pointer', display:'block', width:'100%', textAlign:'center', fontFamily:th.body, fontSize:13, color:th.primary, marginTop:10 }}>
                 לא קיבלתי קוד — שלח שוב
+              </button>
+              <button onClick={skipOtp} disabled={otpSending}
+                style={{ all:'unset', cursor:'pointer', display:'block', width:'100%', textAlign:'center', fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.45), marginTop:14, textDecoration:'underline' }}>
+                עדיין לא הגיע? המשך בלי קוד
               </button>
             </>
           )}
