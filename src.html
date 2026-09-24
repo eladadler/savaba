@@ -3922,6 +3922,32 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   const [updatingPhotos, setUpdatingPhotos] = useState(false);
   const [confirmWipe, setConfirmWipe] = useState(null); // null | 'offers' | 'candidates' | 'matchmakers'
   const [wiping, setWiping] = useState(false);
+  // One-off cleanup for old invitations across every matchmaker (not scoped to the admin's
+  // own uid, unlike InvitationsSheet's per-mm query) — pending/expired invites nobody ever
+  // finished pile up in the mm-facing "מעקב הזמנות" list with no way to bulk-clear them.
+  const [inviteCleanupDate, setInviteCleanupDate] = useState('2026-09-17');
+  const [confirmInviteCleanup, setConfirmInviteCleanup] = useState(false);
+  const [cleaningInvites, setCleaningInvites] = useState(false);
+  const [inviteCleanupResult, setInviteCleanupResult] = useState(null); // null | count deleted
+  const cleanupOldInvites = async () => {
+    setCleaningInvites(true); setInviteCleanupResult(null);
+    try {
+      const cutoffMs = new Date(inviteCleanupDate + 'T00:00:00').getTime();
+      const snap = await db.collection('invitations').get();
+      const toDelete = snap.docs.filter(d => {
+        const secs = d.data()?.createdAt?.seconds;
+        return secs && secs * 1000 < cutoffMs;
+      });
+      for (let i = 0; i < toDelete.length; i += 500) {
+        const batch = db.batch();
+        toDelete.slice(i, i + 500).forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      }
+      setInviteCleanupResult(toDelete.length);
+    } catch (e) { alert('שגיאה: ' + e.message); }
+    setCleaningInvites(false);
+    setConfirmInviteCleanup(false);
+  };
   const [deletionLog, setDeletionLog] = useState([]);
   const [notifEmail, setNotifEmail] = useState('');
   const [notifEmailInput, setNotifEmailInput] = useState('');
@@ -4527,6 +4553,44 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                   </div>
                 </div>
               )}
+
+              {/* ── OLD INVITATIONS CLEANUP ── */}
+              <div style={{ background: th.card, borderRadius: th.r, padding: '14px 16px', marginBottom: 20, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
+                <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(14), color: th.ink, marginBottom: 4 }}>📬 ניקוי הזמנות ישנות</div>
+                <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: alpha(th.ink, 0.5), marginBottom: 12, lineHeight: 1.4 }}>
+                  מוחק הזמנות שנשלחו לפני התאריך שנבחר — אצל כל השדכנים, לא רק אצלך.
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <span style={{ fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink, 0.6) }}>למחוק הזמנות שנוצרו לפני</span>
+                  <input type="date" value={inviteCleanupDate} onChange={e => setInviteCleanupDate(e.target.value)}
+                    style={{ border: `1.5px solid ${alpha(th.ink,0.15)}`, borderRadius: th.rSm, padding: '7px 10px', fontFamily: th.body, fontSize: fs(13), background: th.cream, outline: 'none', color: th.ink }} />
+                </div>
+                {!confirmInviteCleanup ? (
+                  <button onClick={() => setConfirmInviteCleanup(true)}
+                    style={{ border: `1.5px solid ${th.error}`, borderRadius: th.rSm, padding: '7px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: th.error }}>
+                    מחק הזמנות ישנות
+                  </button>
+                ) : (
+                  <div style={{ background: alpha(th.error, 0.07), borderRadius: th.rSm, padding: '12px 14px' }}>
+                    <div style={{ fontFamily: th.body, fontSize: fs(13), fontWeight: 700, color: th.error, marginBottom: 10 }}>
+                      ⚠️ למחוק את כל ההזמנות מלפני {new Date(inviteCleanupDate).toLocaleDateString('he-IL')}? בלתי הפיך.
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button disabled={cleaningInvites} onClick={cleanupOldInvites}
+                        style={{ flex: 1, border: 'none', borderRadius: th.rSm, padding: '9px 0', background: th.error, cursor: cleaningInvites ? 'default' : 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: '#fff', opacity: cleaningInvites ? 0.6 : 1 }}>
+                        {cleaningInvites ? 'מוחק…' : 'כן, מחק'}
+                      </button>
+                      <button disabled={cleaningInvites} onClick={() => setConfirmInviteCleanup(false)}
+                        style={{ border: `1.5px solid ${alpha(th.ink, 0.15)}`, borderRadius: th.rSm, padding: '9px 16px', background: 'transparent', cursor: 'pointer', fontFamily: th.display, fontWeight: 800, fontSize: fs(13), color: alpha(th.ink, 0.5) }}>
+                        ביטול
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {inviteCleanupResult !== null && (
+                  <div style={{ fontFamily: th.body, fontSize: fs(12.5), color: th.success, marginTop: 10 }}>✓ נמחקו {inviteCleanupResult} הזמנות</div>
+                )}
+              </div>
 
               <div style={{ background: alpha(th.error, 0.07), border: `1.5px solid ${alpha(th.error, 0.28)}`, borderRadius: th.r, padding: '14px 16px', marginBottom: 20, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: fs(24), lineHeight: 1 }}>☠️</span>
@@ -6880,7 +6944,13 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
   const [loading, setLoading] = useState(false);
   const [coRepReqs, setCoRepReqs] = useState([]);
   const [activeFilter, setActiveFilter] = useState(null); // null | 'review' | 'fill' | 'active'
+  const [copiedId, setCopiedId] = useState(null);
   const { t } = useTexts();
+  const copyInviteLink = (inv) => {
+    navigator.clipboard.writeText(inviteURL(inv.id));
+    setCopiedId(inv.id);
+    setTimeout(() => setCopiedId(id => id === inv.id ? null : id), 2000);
+  };
 
   const getCategory = inv => {
     const cand     = inv.candidateId ? candidates.find(c => c.id === inv.candidateId) : null;
@@ -7047,6 +7117,16 @@ function InvitationsSheet({ open, onClose, th, mmUid, go }) {
                 {isApproved && <div style={{ fontFamily:th.display, fontWeight:700, fontSize:12.5, color:th.success }}>{t('inv_action_view')}</div>}
               </div>
             </div>
+            {/* No linked candidate account yet — the invite link is still the only way to
+                reach this person, so make it easy to grab again if the original message
+                (WhatsApp, etc.) got lost. */}
+            {!inv.candidateUid && (
+              <button onClick={e => { e.stopPropagation(); copyInviteLink(inv); }}
+                style={{ all:'unset', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, width:'100%', boxSizing:'border-box', marginTop:10, paddingTop:10, borderTop:`1px solid ${alpha(th.ink,0.07)}`, fontFamily:th.display, fontWeight:700, fontSize:12.5, color: copiedId === inv.id ? th.success : th.primary }}>
+                <Icon name="link" size={14} />
+                {copiedId === inv.id ? '✓ הקישור הועתק' : 'העתק קישור הזמנה'}
+              </button>
+            )}
           </div>
         );
       })}
