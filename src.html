@@ -5282,6 +5282,8 @@ const TEXT_KEYS = {
   onb_cand_slide5_body:  'אונבורדינג מועמד/ת — גוף שקף 6',
   onb_cand_slide6_title: 'אונבורדינג מועמד/ת — כותרת שקף 7',
   onb_cand_slide6_body:  'אונבורדינג מועמד/ת — גוף שקף 7',
+  onb_cand_notif_title: 'אונבורדינג מועמד/ת — כותרת שקף התראות',
+  onb_cand_notif_body:  'אונבורדינג מועמד/ת — גוף שקף התראות',
   home_greeting:       'בית — ברכה',
   home_waiting_title:  'בית — כותרת "מה מחכה"',
   home_stat_cands:     'בית — כרטיסיית מועמדים פעילים',
@@ -5688,6 +5690,8 @@ const DEFAULT_TEXTS = {
   onb_cand_slide5_body:  'כשתגיע הצעה מתאימה תוכל/י לצפות בפרטים, לאשר או לדחות — ולהתקדם בקצב שלך.',
   onb_cand_slide6_title: 'הפרטיות שלך, קודם כל',
   onb_cand_slide6_body:  'הכרטיסייה שלך לא גלויה לכולם — רק לשדכן/ית שלך, ולמי שהם/ן בוחרים להציע לך.',
+  onb_cand_notif_title: 'תדעו ראשונים כשיש עדכון',
+  onb_cand_notif_body:  'כשיהיה עדכון לגבי הכרטיסייה שלכם — למשל הצעת שידוך — נשלח לכם התראה מיידית, כדי שלא תפספסו.',
   home_greeting:      'מה קורה היום?',
   home_waiting_title: 'מה מחכה לך',
   home_stat_cands:    'מועמדים פעילים',
@@ -6061,7 +6065,7 @@ const DEFAULT_TEXTS = {
 
 const SCREEN_TEXTS = {
   onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body','onb_slide4_title','onb_slide4_body','onb_slide5_title','onb_slide5_body','onb_slide7_title','onb_slide7_body','onb_notif_title','onb_notif_body','onb_notif_cta','onb_notif_later','onb_notif_ios_link','onb_notif_ios_body','onb_skip','onb_next','onb_start'],
-  onboardingCand: ['onb_cand_slide1_title','onb_cand_slide1_body','onb_cand_slide2_title','onb_cand_slide2_body','onb_cand_slide3_title','onb_cand_slide3_body','onb_cand_slide4_title','onb_cand_slide4_body','onb_cand_slide5_title','onb_cand_slide5_body','onb_cand_slide6_title','onb_cand_slide6_body','onb_skip','onb_next','onb_start'],
+  onboardingCand: ['onb_cand_slide1_title','onb_cand_slide1_body','onb_cand_slide2_title','onb_cand_slide2_body','onb_cand_slide3_title','onb_cand_slide3_body','onb_cand_slide4_title','onb_cand_slide4_body','onb_cand_slide5_title','onb_cand_slide5_body','onb_cand_slide6_title','onb_cand_slide6_body','onb_cand_notif_title','onb_cand_notif_body','onb_notif_cta','onb_notif_later','onb_notif_ios_link','onb_notif_ios_body','onb_skip','onb_next','onb_start'],
   register:      ['register_title','register_sub','register_field_firstname','register_field_lastname','register_field_gender','register_field_phone','register_phone_hint','register_btn_next','register_photo_title','register_photo_why_title','register_photo_why_body','register_btn_upload','register_btn_change','register_btn_save','register_btn_skip','register_photo_hint'],
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','home_launch_title','home_launch_sub','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
   cands:         ['cands_title','cands_count_suffix','cands_tab_mine','cands_tab_all','cands_search','cands_add_btn','cands_filter_neglected','cands_linkmode_title','cands_linkmode_body','cands_available_f','cands_available_m','cands_available_n','cands_busy_f','cands_busy_m','cands_busy_n','cands_hidden_badge','cands_height_unit','cands_corep_sent','cands_corep_btn'],
@@ -6202,6 +6206,7 @@ function Onboarding({ th, go, profile, isCandidate }) {
     { kind: 'ai',      title: t('onb_cand_slide4_title'), body: t('onb_cand_slide4_body') },
     { kind: 'offer',   title: t('onb_cand_slide5_title'), body: t('onb_cand_slide5_body') },
     { kind: 'privacy', title: t('onb_cand_slide6_title'), body: t('onb_cand_slide6_body') },
+    { kind: 'notif',   title: t('onb_cand_notif_title'), body: t('onb_cand_notif_body') },
   ] : [
     { kind: 'brand' },
     { kind: 'honest',  title: t('onb_slide1_title'), body: t('onb_slide1_body') },
@@ -6343,8 +6348,8 @@ function Onboarding({ th, go, profile, isCandidate }) {
       <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 12, width: 260 }) }}>
         {bubble(44, <Icon name="bell" size={22} />)}
         <div style={{ flex: 1, textAlign: 'right' }}>
-          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13.5), color: p.title, marginBottom: 2 }}>💌 הצעת שידוך חדשה</div>
-          <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: p.body }}>רחל הציעה שידוך בין דנה לתומר</div>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13.5), color: p.title, marginBottom: 2 }}>{isCandidate ? '💌 יש לך הצעת שידוך!' : '💌 הצעת שידוך חדשה'}</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: p.body }}>{isCandidate ? 'רחל השדכנית שלך שלחה לך הצעה' : 'רחל הציעה שידוך בין דנה לתומר'}</div>
         </div>
       </div>
     );
