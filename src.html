@@ -5261,6 +5261,12 @@ const TEXT_KEYS = {
   onb_slide6_body:  'אונבורדינג — גוף שקף 6',
   onb_slide7_title: 'אונבורדינג — כותרת שקף 7',
   onb_slide7_body:  'אונבורדינג — גוף שקף 7',
+  onb_notif_title:  'אונבורדינג — כותרת שקף התראות',
+  onb_notif_body:   'אונבורדינג — גוף שקף התראות',
+  onb_notif_cta:    'אונבורדינג — כפתור אישור התראות',
+  onb_notif_later:  'אונבורדינג — כפתור דחייה להתראות',
+  onb_notif_ios_link: 'אונבורדינג — קישור הסבר לאייפון',
+  onb_notif_ios_body: 'אונבורדינג — הסבר לאייפון',
   onb_skip:         'אונבורדינג — כפתור דילוג',
   onb_next:         'אונבורדינג — כפתור הבא',
   onb_start:        'אונבורדינג — כפתור סיום',
@@ -5661,6 +5667,12 @@ const DEFAULT_TEXTS = {
   onb_slide6_body:  'שתפו מועמדים עם שדכנים אחרים — וכל אחד מהם מרחיב לכם את מעגל ההתאמות.',
   onb_slide7_title: 'הפרטיות שלהם, באחריותכם',
   onb_slide7_body:  'מועמדים ב-Unlisted גלויים רק לכם, ושום פרט לא נחשף לשדכן אחר בלי אישור.',
+  onb_notif_title:  'שדכן שני הציע? תדעו קודם',
+  onb_notif_body:   'כשמישהו מציע לכם שידוך, נשלח לכם עדכון מיידי — כדי שתוכלו להגיב מהר ולא לפספס.',
+  onb_notif_cta:    'אפשר לי להתריע!',
+  onb_notif_later:  'אולי מאוחר יותר',
+  onb_notif_ios_link: '📱 משתמשים באייפון? יש שלב נוסף',
+  onb_notif_ios_body: 'ב-iPhone צריך קודם להוסיף את האפליקציה למסך הבית: פתחו את האתר בספארי → כפתור השיתוף → "הוסף למסך הבית". רק אחרי זה אפשר יהיה לאשר התראות.',
   onb_skip:         'דלג/י',
   onb_next:         'הבא',
   onb_start:        'שנתחיל?',
@@ -6048,7 +6060,7 @@ const DEFAULT_TEXTS = {
 };
 
 const SCREEN_TEXTS = {
-  onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body','onb_slide4_title','onb_slide4_body','onb_slide5_title','onb_slide5_body','onb_slide7_title','onb_slide7_body','onb_skip','onb_next','onb_start'],
+  onboarding:    ['onb_slide1_title','onb_slide1_body','onb_slide2_title','onb_slide2_body','onb_slide3_title','onb_slide3_body','onb_slide4_title','onb_slide4_body','onb_slide5_title','onb_slide5_body','onb_slide7_title','onb_slide7_body','onb_notif_title','onb_notif_body','onb_notif_cta','onb_notif_later','onb_notif_ios_link','onb_notif_ios_body','onb_skip','onb_next','onb_start'],
   onboardingCand: ['onb_cand_slide1_title','onb_cand_slide1_body','onb_cand_slide2_title','onb_cand_slide2_body','onb_cand_slide3_title','onb_cand_slide3_body','onb_cand_slide4_title','onb_cand_slide4_body','onb_cand_slide5_title','onb_cand_slide5_body','onb_cand_slide6_title','onb_cand_slide6_body','onb_skip','onb_next','onb_start'],
   register:      ['register_title','register_sub','register_field_firstname','register_field_lastname','register_field_gender','register_field_phone','register_phone_hint','register_btn_next','register_photo_title','register_photo_why_title','register_photo_why_body','register_btn_upload','register_btn_change','register_btn_save','register_btn_skip','register_photo_hint'],
   home:          ['home_greeting','home_waiting_title','home_stat_cands','home_stat_approved','home_stat_offers','home_tab_others','home_tab_mine','home_cta_title','home_cta_sub','home_cta_btn','home_ai_title','home_ai_sub','home_alert_offers_1','home_alert_offers','home_alert_neglected_1','home_alert_neglected','home_alert_await_1','home_alert_await','home_alert_corep_1','home_alert_corep','home_alert_msg_1','home_alert_msg','home_alert_offer_chat_1','home_alert_offer_chat','home_waiting_empty','home_empty_mine','home_empty_others','home_launch_title','home_launch_sub','cand_approval_popup_title','cand_approval_popup_sub','cand_approval_popup_btn','cand_approval_popup_dismiss','mode_modal_greeting_m','mode_modal_greeting_f','mode_modal_body_m','mode_modal_body_f','mode_modal_as_mm_m','mode_modal_as_mm_f','mode_modal_as_cand_m','mode_modal_as_cand_f','mode_modal_mm_sub','mode_modal_cand_sub'],
@@ -6175,6 +6187,7 @@ function SabaTicker({ th, p, boxStyle }) {
 
 function Onboarding({ th, go, profile, isCandidate }) {
   const [i, setI] = useS(0);
+  const [iosNoteOpen, setIosNoteOpen] = useS(false);
   const { t } = useTexts();
   const p = ONB_PALETTES[th.onbPalette] || ONB_PALETTES.orchid;
 
@@ -6197,6 +6210,7 @@ function Onboarding({ th, go, profile, isCandidate }) {
     { kind: 'ai',      title: t('onb_slide4_title'), body: t('onb_slide4_body') },
     { kind: 'offer',   title: t('onb_slide5_title'), body: t('onb_slide5_body') },
     { kind: 'privacy', title: t('onb_slide7_title'), body: t('onb_slide7_body') },
+    { kind: 'notif',   title: t('onb_notif_title'), body: t('onb_notif_body') },
   ];
   const last = i === slides.length - 1;
   const s = slides[i];
@@ -6325,6 +6339,16 @@ function Onboarding({ th, go, profile, isCandidate }) {
     );
 
 
+    if (s.kind === 'notif') return (
+      <div style={{ ...card({ display: 'flex', alignItems: 'center', gap: 12, width: 260 }) }}>
+        {bubble(44, <Icon name="bell" size={22} />)}
+        <div style={{ flex: 1, textAlign: 'right' }}>
+          <div style={{ fontFamily: th.display, fontWeight: 800, fontSize: fs(13.5), color: p.title, marginBottom: 2 }}>💌 הצעת שידוך חדשה</div>
+          <div style={{ fontFamily: th.body, fontSize: fs(11.5), color: p.body }}>רחל הציעה שידוך בין דנה לתומר</div>
+        </div>
+      </div>
+    );
+
     // privacy
     return (
       <div style={{ position: 'relative', width: 230 }}>
@@ -6369,6 +6393,16 @@ function Onboarding({ th, go, profile, isCandidate }) {
         {s.body && (
           <p style={{ fontFamily: th.body, fontSize: fs(16), color: p.body, lineHeight: 1.5, maxWidth: 310, margin: 0, textWrap: 'pretty' }}>{s.body}</p>
         )}
+        {s.kind === 'notif' && (
+          <div style={{ marginTop: 18, maxWidth: 300 }}>
+            <button onClick={() => setIosNoteOpen(v => !v)} style={{ all: 'unset', cursor: 'pointer', fontFamily: th.body, fontWeight: 700, fontSize: fs(13), color: p.accent }}>
+              {t('onb_notif_ios_link')}
+            </button>
+            {iosNoteOpen && (
+              <p style={{ fontFamily: th.body, fontSize: fs(12.5), color: p.body, lineHeight: 1.5, marginTop: 8, textWrap: 'pretty' }}>{t('onb_notif_ios_body')}</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* dots + controls */}
@@ -6389,6 +6423,10 @@ function Onboarding({ th, go, profile, isCandidate }) {
             // to always walk it). profileComplete already covers legacy matchmaker accounts
             // that registered before this flag existed.
             if (profile?.uid) db.collection('users').doc(profile.uid).update({ onboarded: true }).catch(() => {});
+            // The real browser permission prompt only fires from this tap — priming it
+            // with our own explanation first (this slide) instead of requesting silently
+            // on app load is what actually moves the opt-in needle.
+            if (s.kind === 'notif' && profile?.uid) initFCM(profile.uid);
             go(isCandidate ? 'candidateMode' : (profile?.profileComplete ? 'home' : 'register'));
           }}
           style={{ width: '100%', border: 'none', cursor: 'pointer', borderRadius: th.r,
@@ -6396,9 +6434,17 @@ function Onboarding({ th, go, profile, isCandidate }) {
             fontFamily: th.display, fontWeight: 800, fontSize: fs(17),
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             boxShadow: `0 10px 26px ${p.dark ? 'rgba(0,0,0,0.28)' : alpha(p.accent, 0.3)}` }}>
-          {last ? t('onb_start') : t('onb_next')}
+          {last ? (s.kind === 'notif' ? t('onb_notif_cta') : t('onb_start')) : t('onb_next')}
           {!last && <span style={{ transform: 'scaleX(-1)', display: 'inline-flex' }}><Icon name="arrow" size={20} /></span>}
         </button>
+        {last && s.kind === 'notif' && (
+          <button onClick={() => {
+            if (profile?.uid) db.collection('users').doc(profile.uid).update({ onboarded: true }).catch(() => {});
+            go(isCandidate ? 'candidateMode' : (profile?.profileComplete ? 'home' : 'register'));
+          }} style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%', textAlign: 'center', fontFamily: th.body, fontWeight: 600, fontSize: fs(13.5), color: p.body, marginTop: 14 }}>
+            {t('onb_notif_later')}
+          </button>
+        )}
       </div>
     </div>
   );
