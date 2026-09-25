@@ -3886,6 +3886,7 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
   // never arrived) — skips OTP entirely and stores the phone directly for WhatsApp use.
   const [manualCompleteId, setManualCompleteId] = useState(null); // null | uid
   const [manualForm, setManualForm] = useState({ firstName: '', lastName: '', gender: 'זכר', phone: '' });
+  const [userSearch, setUserSearch] = useState('');
   const openManualComplete = (u) => {
     const parts = (u.displayName || '').trim().split(/\s+/).filter(Boolean);
     setManualForm({ firstName: parts[0] || '', lastName: parts.slice(1).join(' ') || '', gender: 'זכר', phone: u.phone || '' });
@@ -4648,6 +4649,10 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
         {/* ── USERS (matchmakers) ── */}
         {tab === 'users' && (() => {
           const closedCount = Object.values(visibleMms).filter(u => u.noWhatsapp === true).length;
+          const q = userSearch.trim().toLowerCase();
+          const filteredMms = q
+            ? Object.values(visibleMms).filter(u => (u.displayName || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q))
+            : Object.values(visibleMms);
           return (
           <>
             <div style={{ background: th.card, borderRadius: th.r, padding: '12px 14px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, boxShadow: `0 3px 10px ${alpha(th.ink,0.05)}` }}>
@@ -4662,7 +4667,23 @@ function AdminPanel({ th, go, aiMode, setAiMode, editMethod, setEditMethod, setT
                 {waResetBusy ? 'פותח…' : 'פתח ווצאפ לכולם'}
               </button>
             </div>
-            {Object.values(visibleMms).map(u => {
+            <div style={{ position: 'relative', marginBottom: 14 }}>
+              <input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="חיפוש לפי שם או אימייל…"
+                style={{ width: '100%', boxSizing: 'border-box', padding: '10px 36px 10px 12px', borderRadius: th.r, border: `1.5px solid ${alpha(th.ink,0.15)}`, fontFamily: th.body, fontSize: fs(13.5), background: th.card, outline: 'none', color: th.ink }} />
+              <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: alpha(th.ink,0.4) }}>🔍</span>
+              {userSearch && (
+                <button onClick={() => setUserSearch('')}
+                  style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, color: alpha(th.ink,0.4) }}>
+                  ✕
+                </button>
+              )}
+            </div>
+            {q && filteredMms.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: th.body, fontSize: fs(13), color: alpha(th.ink,0.45) }}>
+                לא נמצאו שדכנים התואמים לחיפוש
+              </div>
+            )}
+            {filteredMms.map(u => {
             const mmCands = visibleCands.filter(c => c.mmId === u.id);
             return (
               <div key={u.id} style={{ background: th.card, borderRadius: th.r, padding: 12, marginBottom: 10, boxShadow: `0 3px 10px ${alpha(th.ink, 0.05)}` }}>
