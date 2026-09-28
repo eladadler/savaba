@@ -7514,6 +7514,11 @@ function Candidates({ th, go, params }) {
           <button onClick={() => setScope('mine')} style={{ position:'absolute', top:16, right:18, border:'none', background:'rgba(255,255,255,0.2)', backdropFilter:'blur(6px)', borderRadius:999, padding:'6px 14px 6px 10px', color:'#fff', cursor:'pointer', fontFamily:th.display, fontWeight:700, fontSize:fs(13), display:'flex', alignItems:'center', gap:5 }}>
             <Icon name="chevR" size={14} /> חזרה
           </button>
+          {/* add button lives in the header too (not just at the list's end) — with
+              enough candidates the trailing button can scroll out of easy reach */}
+          <button onClick={() => setDraftSheetDraft({})} title="הוסף ל-Unlisted" style={{ position:'absolute', top:16, left:18, border:'none', background:'rgba(255,255,255,0.2)', backdropFilter:'blur(6px)', borderRadius:'50%', width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', cursor:'pointer' }}>
+            <Icon name="plus" size={17} />
+          </button>
           <div style={{ fontFamily:th.display, fontWeight:900, fontSize:fs(28), color:'#fff', letterSpacing:'-0.5px', marginBottom:6 }}>Unlisted</div>
           <div style={{ fontFamily:th.body, fontSize:fs(13.5), color:'rgba(255,255,255,0.82)', lineHeight:1.45, maxWidth:250 }}>מועמדים שרק אתם יכולים לראות — הם עדיין לא נרשמו לאפליקציה.</div>
           {draftCandidates.length > 0 && <div style={{ marginTop:8, fontFamily:th.display, fontWeight:800, fontSize:fs(12), color:'rgba(255,255,255,0.65)' }}>{draftCandidates.length} מועמדים</div>}
