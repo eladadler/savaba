@@ -7639,6 +7639,11 @@ function Candidates({ th, go, params }) {
               <Icon name="plus" size={18} style={{ flexShrink:0 }} />
               <span style={{ fontFamily:th.display, fontWeight:800, fontSize:fs(14) }}>הוסף ל-Unlisted</span>
             </button>
+            {/* real spacer, not just padding on the scroll container — the floating
+                bottom nav still clipped this button on real devices even with
+                paddingBottom:NAV_SPACE on the container, so give it its own guaranteed
+                clearance under the last item instead of trusting that calculation */}
+            <div style={{ height: 90, flexShrink: 0 }} />
           </>
         ) : (
           <>
