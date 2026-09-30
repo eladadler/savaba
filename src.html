@@ -4923,6 +4923,15 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
   const [voiceUploading, setVoiceUploading] = useState(false);
   const voiceChunksRef = React.useRef([]);
   const [mmNote, setMmNote] = useState(initial?.mmNote || '');
+  // approve/save write straight to Firestore with no loading state or error handling --
+  // a rejected write (bad network, stale doc, etc) just silently did nothing, which
+  // matchmakers reported as the approval "getting stuck" or needing the form refilled.
+  const [saving, setSaving] = useState(false);
+  const runSave = async (fn, data) => {
+    setSaving(true);
+    try { await fn(data); }
+    catch (e) { alert('שגיאה בשמירה — נסה/י שוב.\n' + (e?.message || '')); setSaving(false); }
+  };
 
   useEffect(() => {
     if (!voiceBlob || !onUploadVoice) return;
@@ -5224,17 +5233,17 @@ function CandidateForm({ th, initial, onSave, onCancel, onUpload, onUploadVoice,
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
         {isLast && onApprove && (
-          <Btn th={th} full variant="success" onClick={() => onApprove({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>
-            {_t('review_approve_btn')}
+          <Btn th={th} full variant="success" disabled={saving} onClick={() => runSave(onApprove, { ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>
+            {saving ? 'שומר…' : _t('review_approve_btn')}
           </Btn>
         )}
         <div style={{ display: 'flex', gap: 8 }}>
           {step > 0
-            ? <Btn th={th} variant="ghost" onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
-            : <Btn th={th} variant="ghost" onClick={onCancel}>ביטול</Btn>
+            ? <Btn th={th} variant="ghost" disabled={saving} onClick={() => setStep(s => s - 1)}>← חזרה</Btn>
+            : <Btn th={th} variant="ghost" disabled={saving} onClick={onCancel}>ביטול</Btn>
           }
           {isLast
-            ? !onApprove && <Btn th={th} full variant="primary" onClick={() => onSave({ ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>שמור</Btn>
+            ? !onApprove && <Btn th={th} full variant="primary" disabled={saving} onClick={() => runSave(onSave, { ...f, ...(onUpload ? { photos, voiceNote: voiceUrl || null } : {}), ...(showMmNote ? { mmNote } : {}) })}>{saving ? 'שומר…' : 'שמור'}</Btn>
             : <Btn th={th} full onClick={() => {
                 if (stepName === 'פרטים בסיסיים' && !f.religiosity) { alert('נא לבחור קרבה לדת'); return; }
                 setStep(s => s + 1);
