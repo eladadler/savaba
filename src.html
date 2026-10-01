@@ -13787,6 +13787,8 @@ function AppSettings({ th, go, profile }) {
   const [editOpen, setEditOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editPhotoURL, setEditPhotoURL] = useState('');
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notifPerm, setNotifPerm] = useState(() =>
     ('Notification' in window) ? Notification.permission : 'unsupported'
@@ -13805,13 +13807,27 @@ function AppSettings({ th, go, profile }) {
   const openEdit = () => {
     setEditName(profile?.displayName || '');
     setEditPhone(profile?.phone || '');
+    setEditPhotoURL(profile?.photoURL || '');
     setEditOpen(true);
+  };
+  const handleEditPhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !user) return;
+    setPhotoUploading(true);
+    try {
+      const blob = await compressPhoto(file);
+      const ref = storage.ref(`candidates/mm_${user.uid}/${Date.now()}.jpg`);
+      await ref.put(blob, { contentType: 'image/jpeg' });
+      const url = await ref.getDownloadURL();
+      setEditPhotoURL(url);
+    } catch(err) { alert('שגיאה בהעלאת תמונה: ' + err.message); }
+    setPhotoUploading(false);
   };
   const saveEdit = async () => {
     if (!editName.trim()) return alert('נא להזין שם');
     setSaving(true);
     try {
-      await db.collection('users').doc(user.uid).update({ displayName: editName.trim(), phone: editPhone.trim() });
+      await db.collection('users').doc(user.uid).update({ displayName: editName.trim(), phone: editPhone.trim(), photoURL: editPhotoURL || null });
       if (user.displayName !== editName.trim()) await user.updateProfile({ displayName: editName.trim() });
       setEditOpen(false);
     } catch(e) { alert('שגיאה: ' + e.message); }
@@ -13943,6 +13959,21 @@ function AppSettings({ th, go, profile }) {
       </div>
 
       <Sheet open={editOpen} onClose={() => setEditOpen(false)} th={th} title="עריכת פרטים אישיים">
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, marginBottom:18 }}>
+          <div style={{ position:'relative' }}>
+            <Avatar grad={gradForId(profile?.uid||'me')} name={editName||profile?.displayName||profile?.email||'?'} size={84} photo={editPhotoURL} />
+            <label style={{ position:'absolute', bottom:-2, left:-2, width:30, height:30, borderRadius:'50%', background:th.primary, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', boxShadow:`0 3px 10px ${alpha(th.primary,0.4)}`, border:`2px solid ${th.card}` }}>
+              <Icon name="camera" size={14} style={{ color:'#fff' }} />
+              <input type="file" accept="image/*" onChange={handleEditPhoto} disabled={photoUploading} style={{ display:'none' }} />
+            </label>
+          </div>
+          {photoUploading && <div style={{ fontFamily:th.body, fontSize:12.5, color:alpha(th.ink,0.5) }}>מעלה תמונה…</div>}
+          {!photoUploading && editPhotoURL && (
+            <button onClick={() => setEditPhotoURL('')} style={{ all:'unset', cursor:'pointer', fontFamily:th.body, fontWeight:600, fontSize:12.5, color:th.error, textDecoration:'underline' }}>
+              הסר תמונה
+            </button>
+          )}
+        </div>
         <Field th={th} label="שם מלא *">
           <TextInput th={th} value={editName} onChange={setEditName} placeholder="שם מלא" />
         </Field>
